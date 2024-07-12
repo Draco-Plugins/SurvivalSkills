@@ -1,0 +1,714 @@
+Version: 1.91
+BuildingXP: 5.0
+CraftingXP: 15.0
+MiningXP: 1.0
+FishingXP: 50.0
+ExploringXP: 0.5
+FarmingXP: 5.0
+FightingXP: 20.0
+# The number of blocks needed to be mined to remove one unit of hunger (Half a meat chunk)
+VeinMinerHungerAmount: 2
+# Number of seconds before a grave is removed
+GraveLifespan: 3600
+SkillXPMultiplier: 1.0
+
+# Reward Settings
+Mining:
+  UnlimitedTorch:
+    Enabled: true
+    Level: 5
+    Type: 'Crafting'
+  FortuneI:
+    Enabled: true
+    Level: 10
+    Type: 'State'
+  SpelunkerI:
+    Enabled: true
+    Level: 15
+    Type: 'Command'
+  FortuneII:
+    Enabled: true
+    Level: 20
+    Type: 'State'
+  VeinMinerI:
+    Enabled: true
+    Level: 25
+    Type: 'Command'
+  FortuneIII:
+    Enabled: true
+    Level: 30
+    Type: 'State'
+  NightVisionI:
+    Enabled: true
+    Level: 35
+    Type: 'Command'
+  ArmorI:
+    Enabled: true
+    Level: 40
+    Type: 'State'
+  SpelunkerII:
+    Enabled: true
+    Level: 45
+    Type: 'Command'
+  MiningArmor:
+    Enabled: true
+    Level: 50
+    Type: 'Crafting'
+  VeinMinerII:
+    Enabled: true
+    Level: 55
+  PeacefulMiner:
+    Enabled: true
+    Level: 60
+    Type: 'Command'
+  SpelunkerIII:
+    Enabled: true
+    Level: 65
+    Type: 'Command'
+  ArmorII:
+    Enabled: true
+    Level: 70
+    Type: 'State'
+  NightVisionII:
+    Enabled: true
+    Level: 75
+    Type: 'Command'
+  ArmorIII:
+    Enabled: true
+    Level: 80
+    Type: 'State'
+  UnbreakableTools:
+    Enabled: true
+    Level: 90
+    Type: 'State'
+  ArmorIV:
+    Enabled: true
+    Level: 100
+    Type: 'State'
+Exploring:
+  SpeedI:
+    Enabled: true
+    Level: 5
+    Type: 'Attribute'
+  SwimI:
+    Enabled: true
+    Level: 10
+    Type: 'State'
+  JumpingBoots:
+    Enabled: true
+    Level: 15
+    Type: 'Crafting'
+  SpeedII:
+    Enabled: true
+    Level: 20
+    Type: 'Attribute'
+  SwimII:
+    Enabled: true
+    Level: 25
+    Type: 'State'
+  WandererArmor:
+    Enabled: true
+    Level: 30
+    Type: 'Crafting'
+  CaveFinder:
+    Enabled: true
+    Level: 35
+    Type: 'Crafting'
+  SpeedIII:
+    Enabled: true
+    Level: 40
+    Type: 'Attribute'
+  SwimIII:
+    Enabled: true
+    Level: 45
+    Type: 'State'
+  HealthRegen:
+    Enabled: true
+    Level: 50
+    Type: 'State'
+  FallI:
+    Enabled: true
+    Level: 55
+    Type: 'State'
+  SpeedIV:
+    Enabled: true
+    Level: 60
+    Type: 'Attribute'
+  SwimIV:
+    Enabled: true
+    Level: 65
+    Type: 'State'
+  TravellerArmor:
+    Enabled: true
+    Level: 70
+    Type: 'Crafting'
+  FallII:
+    Enabled: true
+    Level: 75
+    Type: 'State'
+  SpeedV:
+    Enabled: true
+    Level: 80
+    Type: 'Attribute'
+  SwimV:
+    Enabled: true
+    Level: 90
+    Type: 'State'
+  AdventurerArmor:
+    Enabled: true
+    Level: 100
+    Type: 'Crafting'
+Farming:
+  DoubleCropsI:
+    Enabled: true
+    Level: 5
+    Type: 'State'
+  HealthI:
+    Enabled: true
+    Level: 10
+    Type: 'Attribute'
+  WateringCan:
+    Enabled: true
+    Level: 15
+    Type: 'Crafting'
+  HealthII:
+    Enabled: true
+    Level: 20
+    Type: 'Attribute'
+  DoubleCropsII:
+    Enabled: true
+    Level: 25
+    Type: 'State'
+  UnlimitedBoneMeal:
+    Enabled: true
+    Level: 30
+    Type: 'Crafting'
+  AutoEat:
+    Enabled: true
+    Level: 35
+    Type: 'Command'
+  HealthIII:
+    Enabled: true
+    Level: 40
+    Type: 'Attribute'
+  HealthIV:
+    Enabled: true
+    Level: 45
+    Type: 'Attribute'
+  Harvester:
+    Enabled: true
+    Level: 50
+    Type: 'Crafting'
+  DoubleCropsIII:
+    Enabled: true
+    Level: 55
+    Type: 'State'
+  HealthV:
+    Enabled: true
+    Level: 60
+    Type: 'Attribute'
+  Eat:
+    Enabled: true
+    Level: 65
+    Type: 'Command'
+  HealthVI:
+    Enabled: true
+    Level: 70
+    Type: 'Attribute'
+  HealthVII:
+    Enabled: true
+    Level: 75
+    Type: 'Attribute'
+  DoubleCropsIV:
+    Enabled: true
+    Level: 80
+    Type: 'State'
+  HealthVIII:
+    Enabled: true
+    Level: 85
+    Type: 'Attribute'
+  HealthIX:
+    Enabled: true
+    Level: 90
+    Type: 'Attribute'
+  HealthX:
+    Enabled: true
+    Level: 95
+    Type: 'Attribute'
+  NoHunger:
+    Enabled: true
+    Level: 100
+    Type: 'State'
+Building:
+  BlockReturnI:
+    Enabled: true
+    Level: 5
+    Type: 'State'
+  BlockReturnII:
+    Enabled: true
+    Level: 10
+    Type: 'State'
+  FlightI:
+    Enabled: true
+    Level: 15
+    Type: 'Command'
+  BlockReturnIII:
+    Enabled: true
+    Level: 20
+    Type: 'State'
+  AutoSortWand:
+    Enabled: true
+    Level: 24
+    Type: 'Crafting'
+  BlockReturnIV:
+    Enabled: true
+    Level: 25
+    Type: 'State'
+  FlightII:
+    Enabled: true
+    Level: 30
+    Type: 'Command'
+  BlockReturnV:
+    Enabled: true
+    Level: 35
+    Type: 'State'
+  BlockReturnVI:
+    Enabled: true
+    Level: 40
+    Type: 'State'
+  ExtendedReach:
+    Enabled: true
+    Level: 45
+    Type: 'Attribute'
+  BlockReturnVII:
+    Enabled: true
+    Level: 50
+    Type: 'State'
+  FlightIII:
+    Enabled: true
+    Level: 60
+    Type: 'Command'
+  BlockReturnVIII:
+    Enabled: true
+    Level: 70
+    Type: 'State'
+  BlockReturnIX:
+    Enabled: true
+    Level: 80
+    Type: 'State'
+  BlockReturnX:
+    Enabled: true
+    Level: 90
+    Type: 'State'
+  FlightIV:
+    Enabled: true
+    Level: 100
+    Type: 'Command'
+Fighting:
+  BerserkerI:
+    Enabled: true
+    Level: 5
+    Type: 'State'
+  GiantSummon:
+    Enabled: true
+    Level: 10
+    Type: 'Crafting'
+  LifestealI:
+    Enabled: true
+    Level: 15
+    Type: 'State'
+  BerserkerII:
+    Enabled: true
+    Level: 20
+    Type: 'State'
+  TogglePhantomSpawns:
+    Enabled: true
+    Level: 24
+    Type: 'Command'
+  BroodMotherSummon:
+    Enabled: true
+    Level: 25
+    Type: 'Crafting'
+  LifestealII:
+    Enabled: true
+    Level: 30
+    Type: 'State'
+  BerserkerIII:
+    Enabled: true
+    Level: 35
+    Type: 'State'
+  LifestealIII:
+    Enabled: true
+    Level: 40
+    Type: 'State'
+  BerserkerIV:
+    Enabled: true
+    Level: 45
+    Type: 'State'
+  FishingKing:
+    Enabled: true
+    Level: 50
+    Type: 'State'
+  CriticalI:
+    Enabled: true
+    Level: 55
+    Type: 'State'
+  LifestealIV:
+    Enabled: true
+    Level: 60
+    Type: 'State'
+  MobScanner:
+    Enabled: true
+    Level: 65
+    Type: 'Command'
+  BerserkerV:
+    Enabled: true
+    Level: 70
+    Type: 'State'
+  LifestealV:
+    Enabled: true
+    Level: 80
+    Type: 'State'
+  BerserkerVI:
+    Enabled: true
+    Level: 85
+    Type: 'State'
+  TheExiledOneSummon:
+    Enabled: true
+    Level: 90
+    Type: 'Crafting'
+  CriticalII:
+    Enabled: true
+    Level: 95
+    Type: 'State'
+  BerserkerVII:
+    Enabled: true
+    Level: 100
+    Type: 'State'
+Fishing:
+  CommonLootI:
+    Enabled: true
+    Level: 1
+    Type: 'State'
+  RareLootI:
+    Enabled: true
+    Level: 3
+    Type: 'State'
+  ExperienceI:
+    Enabled: true
+    Level: 5
+    Type: 'State'
+  CommonLootII:
+    Enabled: true
+    Level: 6
+    Type: 'State'
+  FasterFishingI:
+    Enabled: true
+    Level: 8
+    Type: 'State'
+  CommonLootIII:
+    Enabled: true
+    Level: 10
+    Type: 'State'
+  AutoTrashI:
+    Enabled: true
+    Level: 12
+    Type: 'Command'
+  RareLootII:
+    Enabled: true
+    Level: 14
+    Type: 'State'
+  FishingLineI:
+    Enabled: true
+    Level: 15
+    Type: 'Crafting'
+  ExperienceII:
+    Enabled: true
+    Level: 18
+    Type: 'State'
+  CommonLootIV:
+    Enabled: true
+    Level: 20
+    Type: 'State'
+  FasterFishingII:
+    Enabled: true
+    Level: 23
+    Type: 'State'
+  WaterBreathingI:
+    Enabled: true
+    Level: 25
+    Type: 'Command'
+  AutoTrashII:
+    Enabled: true
+    Level: 28
+    Type: 'Command'
+  EpicLootI:
+    Enabled: true
+    Level: 29
+    Type: 'State'
+  ExperienceIII:
+    Enabled: true
+    Level: 30
+    Type: 'State'
+  CommonLootV:
+    Enabled: true
+    Level: 32
+    Type: 'State'
+  FishingLineII:
+    Enabled: true
+    Level: 35
+    Type: 'Crafting'
+  RareLootIII:
+    Enabled: true
+    Level: 36
+    Type: 'State'
+  FasterFishingIII:
+    Enabled: true
+    Level: 40
+    Type: 'State'
+  ExperienceIV:
+    Enabled: true
+    Level: 42
+    Type: 'State'
+  EpicLootII:
+    Enabled: true
+    Level: 46
+    Type: 'State'
+  PermaTrash:
+    Enabled: true
+    Level: 48
+    Type: 'Command'
+  WaterBreathingII:
+    Enabled: true
+    Level: 50
+    Type: 'Command'
+  RareLootIV:
+    Enabled: true
+    Level: 52
+    Type: 'State'
+  LegendaryLootI:
+    Enabled: true
+    Level: 56
+    Type: 'State'
+  ExperienceV:
+    Enabled: true
+    Level: 60
+    Type: 'State'
+  FasterFishingIV:
+    Enabled: true
+    Level: 62
+    Type: 'State'
+  FishingLineIII:
+    Enabled: true
+    Level: 65
+    Type: 'Crafting'
+  RareLootV:
+    Enabled: true
+    Level: 66
+    Type: 'State'
+  ExperienceVI:
+    Enabled: true
+    Level: 68
+    Type: 'State'
+  EpicLootIII:
+    Enabled: true
+    Level: 72
+    Type: 'State'
+  WaterBreathingIII:
+    Enabled: true
+    Level: 75
+    Type: 'Attribute'
+  ExperienceVII:
+    Enabled: true
+    Level: 78
+    Type: 'State'
+  FasterFishingV:
+    Enabled: true
+    Level: 80
+    Type: 'State'
+  EpicLootIV:
+    Enabled: true
+    Level: 82
+    Type: 'State'
+  ExperienceVIII:
+    Enabled: true
+    Level: 84
+    Type: 'State'
+  FishingLineIV:
+    Enabled: true
+    Level: 85
+    Type: 'Crafting'
+  LegendaryLootII:
+    Enabled: true
+    Level: 86
+    Type: 'State'
+  EpicLootV:
+    Enabled: true
+    Level: 90
+    Type: 'State'
+  ExperienceIX:
+    Enabled: true
+    Level: 92
+    Type: 'State'
+  LegendaryLootIII:
+    Enabled: true
+    Level: 94
+    Type: 'State'
+  FishingLineV:
+    Enabled: true
+    Level: 95
+    Type: 'Crafting'
+  ExperienceX:
+    Enabled: true
+    Level: 100
+    Type: 'State'
+Crafting:
+  ExtraOutputI:
+    Enabled: true
+    Level: 5
+    Type: 'State'
+  ExtraOutputII:
+    Enabled: true
+    Level: 10
+    Type: 'State'
+  MaterialsBackI:
+    Enabled: true
+    Level: 15
+    Type: 'State'
+  ExtraOutputIII:
+    Enabled: true
+    Level: 20
+    Type: 'State'
+  ExtraOutputIV:
+    Enabled: true
+    Level: 25
+    Type: 'State'
+  MaterialsBackII:
+    Enabled: true
+    Level: 30
+    Type: 'State'
+  ExtraOutputV:
+    Enabled: true
+    Level: 35
+    Type: 'State'
+  ExtraOutputVI:
+    Enabled: true
+    Level: 40
+    Type: 'State'
+  MaterialsBackIII:
+    Enabled: true
+    Level: 45
+    Type: 'State'
+  EnchantedGapple:
+    Enabled: true
+    Level: 50
+    Type: 'Crafting'
+  ExtraOutputVII:
+    Enabled: true
+    Level: 55
+    Type: 'State'
+  MaterialsBackIV:
+    Enabled: true
+    Level: 60
+    Type: 'State'
+  ExtraOutputVIII:
+    Enabled: true
+    Level: 70
+    Type: 'State'
+  MaterialsBackV:
+    Enabled: true
+    Level: 80
+    Type: 'State'
+  ExtraOutputIX:
+    Enabled: true
+    Level: 90
+    Type: 'State'
+  ExtraOutputX:
+    Enabled: true
+    Level: 100
+    Type: 'State'
+Main:
+  DustTrail:
+    Enabled: true
+    Level: 5
+    Type: 'State'
+  DeathLocationTracker:
+    Enabled: true
+    Level: 10
+    Type: 'Command'
+  WaterTrail:
+    Enabled: true
+    Level: 15
+    Type: 'State'
+  FireworkCannon:
+    Enabled: true
+    Level: 18
+    Type: 'Crafting'
+  SetHomeI:
+    Enabled: true
+    Level: 20
+    Type: 'Command'
+  HappyTrail:
+    Enabled: true
+    Level: 25
+    Type: 'State'
+  Gravestone:
+    Enabled: true
+    Level: 30
+    Type: 'State'
+  DragonTrail:
+    Enabled: true
+    Level: 35
+    Type: 'State'
+  SetHomeII:
+    Enabled: true
+    Level: 40
+    Type: 'Command'
+  ElectricTrail:
+    Enabled: true
+    Level: 45
+    Type: 'State'
+  SetHomeIII:
+    Enabled: true
+    Level: 50
+    Type: 'Command'
+  EnchantmentTrail:
+    Enabled: true
+    Level: 55
+    Type: 'State'
+  KeepExperience:
+    Enabled: true
+    Level: 60
+    Type: 'State'
+  OminousTrail:
+    Enabled: true
+    Level: 64
+    Type: 'State'
+  LoveTrail:
+    Enabled: true
+    Level: 65
+    Type: 'State'
+  FlameTrail:
+    Enabled: true
+    Level: 70
+    Type: 'State'
+  BlueFlameTrail:
+    Enabled: true
+    Level: 75
+    Type: 'State'
+  SetHomeIV:
+    Enabled: true
+    Level: 80
+    Type: 'Command'
+  CherryTrail:
+    Enabled: true
+    Level: 85
+    Type: 'State'
+  RainbowTrail:
+    Enabled: true
+    Level: 90
+    Type: 'State'
+  KeepInventory:
+    Enabled: true
+    Level: 100
+    Type: 'State'

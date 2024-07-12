@@ -1,0 +1,115 @@
+name: SurvivalSkills
+version: '${project.version}'
+main: sir_draco.survivalskills.SurvivalSkills
+api-version: '1.20'
+authors: [ Sir Draco ]
+load: POSTWORLD
+softdepend: [ Citizens, GriefPrevention ]
+description: Allows for leveling and customization for vanilla survival
+
+commands:
+  togglescoreboard:
+    description: Enables or disables the XP scoreboard
+    permission: survivalskills.default
+  skills:
+    description: Tells you your stats
+    permission: survivalskills.default
+  togglespeed:
+    description: Allows control over speed stats
+    permission: survivalskills.default
+  toggletrail:
+    description: Allows the player to choose a trail
+    permission: survivalskills.default
+
+  spelunker:
+    description: Notifies the player where nearby ores are
+    permission: survivalskills.default
+  veinminer:
+    description: Allows player to mine a vein of ores all at once
+    permission: survivalskills.default
+  ssnv:
+    description: Allows a player to enable or disable night vision
+    permission: survivalskills.default
+  peacefulminer:
+    description: Allows a player to mine without mobs spawning
+    permission: survivalskills.default
+  autoeat:
+    description: Automatically eats food when hungry
+    permission: survivalskills.default
+  sseat:
+    description: Allows a player to eat food
+    permission: survivalskills.default
+  flight:
+    description: Allows a player to fly
+    permission: survivalskills.default
+  mobscanner:
+    description: Notifies the player where nearby mobs are
+    permission: survivalskills.default
+  waterbreathing:
+    description: Allows a player to breathe underwater
+    permission: survivalskills.default
+  autotrash:
+    description: Automatically trashes items
+    permission: survivalskills.default
+  deathlocation:
+    description: Notifies the player where they died
+    permission: survivalskills.default
+  permatrash:
+    description: Allows a player to permanently trash items
+    permission: survivalskills.default
+  togglephantoms:
+    description: Allows a player to enable or disable phantoms
+    permission: survivalskills.default
+  deathreturn:
+    description: Allows a player to return to their death location
+    permission: survivalskills.default
+
+  gettrophy:
+    description: Gives a specified trophy
+    permission: survivalskills.op
+  ssget:
+    description: Gives any survival skills custom item
+    permission: survivalskills.op
+  cavefinder:
+    description: Notifies the player where nearby caves are
+    permission: survivalskills.op
+  ssboss:
+    description: Allows boss testing
+    permission: survivalskills.op
+  survivalskills:
+    description: Main command for SurvivalSkills
+    permission: survivalskills.op
+    aliases: [ ss ]
+  skillsmultiplier:
+    description: Allows for changing the multiplier of skills
+    permission: survivalskills.op
+    aliases: [ ssmult ]
+  resetfirstdragon:
+    description: Resets the first dragon
+    permission: survivalskills.op
+  bossmusic:
+    description: Allows for changing the boss music
+    permission: survivalskills.op
+
+permissions:
+  survivalskills.default:
+    description: Default permissions
+    default: not op
+  survivalskills.op:
+    description: Op permissions
+    default: op
+  survivalskills.fishinglineI:
+    description: Allows the player to use the fishing line I skill
+    default: not op
+  survivalskills.fishinglineII:
+    description: Allows the player to use the fishing line II skill
+    default: not op
+  survivalskills.fishinglineIII:
+    description: Allows the player to use the fishing line III skill
+    default: not op
+  survivalskills.fishinglineIV:
+    description: Allows the player to use the fishing line IV skill
+    default: not op
+  survivalskills.fishinglineV:
+    description: Allows the player to use the fishing line V skill
+    default: not op
