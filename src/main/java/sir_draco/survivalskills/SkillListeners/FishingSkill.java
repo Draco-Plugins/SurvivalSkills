@@ -500,6 +500,7 @@ public class FishingSkill implements Listener {
         legendaryLootTable.add(Material.TOTEM_OF_UNDYING);
         legendaryLootTable.add(Material.TRIDENT);
         legendaryLootTable.add(Material.EXPERIENCE_BOTTLE);
+        legendaryLootTable.add(Material.ELYTRA);
 
         legendaryEnchantments.put(Enchantment.POWER, 5);
         legendaryEnchantments.put(Enchantment.INFINITY, 1);
@@ -609,6 +610,7 @@ public class FishingSkill implements Listener {
             int random = getRandomPositiveInteger(legendaryLootTable.size()) - 1;
             mat = legendaryLootTable.get(random);
             checkStackable(p, mat);
+            if (mat.equals(Material.ELYTRA) && !p.getWorld().hasMetadata("killedfirstdragon")) return getMaterial(p, 1);
             return mat;
         }
         else if (type == 2) {

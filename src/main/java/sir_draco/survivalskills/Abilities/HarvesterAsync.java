@@ -90,7 +90,7 @@ public class HarvesterAsync extends BukkitRunnable {
     }
 
     public ArrayList<Block> getNearbyCrops(ArrayList<Block> blocks, ArrayList<Block> blocksChecked, Block block) {
-        if (blocks.size() >= 100) return blocks;
+        if (blocks.size() >= 200) return blocks;
         for (int x = -1; x <= 1; x++) {
             for (int z = -1; z <= 1; z++) {
                 Block b = block.getRelative(x, 0, z);

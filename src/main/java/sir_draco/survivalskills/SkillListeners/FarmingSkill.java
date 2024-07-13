@@ -257,7 +257,7 @@ public class FarmingSkill implements Listener {
             return;
         }
 
-        HarvesterTimer timer = new HarvesterTimer(plugin, p, 3);
+        HarvesterTimer timer = new HarvesterTimer(plugin, p, 1);
         harvesterCooldowns.put(p, timer);
         timer.runTaskTimerAsynchronously(plugin, 20, 20);
 

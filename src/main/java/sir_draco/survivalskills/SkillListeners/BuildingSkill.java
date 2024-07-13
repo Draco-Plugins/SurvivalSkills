@@ -277,7 +277,6 @@ public class BuildingSkill implements Listener {
         bannedReturns.add(Material.CHIPPED_ANVIL);
         bannedReturns.add(Material.COAL_BLOCK);
         bannedReturns.add(Material.COAL_ORE);
-        bannedReturns.add(Material.COMPARATOR);
         bannedReturns.add(Material.COMPOSTER);
         bannedReturns.add(Material.CRAFTING_TABLE);
         bannedReturns.add(Material.CYAN_SHULKER_BOX);
@@ -318,16 +317,12 @@ public class BuildingSkill implements Listener {
         bannedReturns.add(Material.NETHER_QUARTZ_ORE);
         bannedReturns.add(Material.ORANGE_SHULKER_BOX);
         bannedReturns.add(Material.PINK_SHULKER_BOX);
-        bannedReturns.add(Material.PISTON);
         bannedReturns.add(Material.PISTON_HEAD);
         bannedReturns.add(Material.PURPLE_SHULKER_BOX);
         bannedReturns.add(Material.QUARTZ_BLOCK);
         bannedReturns.add(Material.REDSTONE_BLOCK);
         bannedReturns.add(Material.REDSTONE_ORE);
-        bannedReturns.add(Material.REDSTONE_TORCH);
-        bannedReturns.add(Material.REDSTONE_WALL_TORCH);
         bannedReturns.add(Material.RED_SHULKER_BOX);
-        bannedReturns.add(Material.REPEATER);
         bannedReturns.add(Material.SHULKER_BOX);
         bannedReturns.add(Material.SLIME_BLOCK);
         bannedReturns.add(Material.SMITHING_TABLE);

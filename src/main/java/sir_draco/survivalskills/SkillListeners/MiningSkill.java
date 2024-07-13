@@ -324,6 +324,7 @@ public class MiningSkill implements Listener {
             if (newFood < 0) {
                 p.sendRawMessage(ChatColor.RED + "You don't have enough hunger to mine the whole ore vein with");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                veinTracker.remove(p);
                 return;
             }
             p.setFoodLevel(newFood);
