@@ -59,7 +59,12 @@ public class BuildingSkill implements Listener {
         if (isBannedReturn(e.getBlock().getType())) return;
         if (plugin.getPlayerRewards(p).getBlockBlackChance() == 0.0) return;
         if (Math.random() < plugin.getPlayerRewards(p).getBlockBlackChance()) {
-            p.getInventory().addItem(new ItemStack(e.getBlock().getType(), 1));
+            ItemStack item;
+            if (e.getBlock().getType().equals(Material.BUBBLE_CORAL_WALL_FAN)) {
+                item = new ItemStack(Material.BUBBLE_CORAL_FAN, 1);
+            }
+            else item = new ItemStack(e.getBlock().getType(), 1);
+            p.getInventory().addItem(item);
         }
     }
 
@@ -78,6 +83,19 @@ public class BuildingSkill implements Listener {
         }
         if (e.getHand() == null) return;
         if (!e.getHand().equals(EquipmentSlot.HAND)) return;
+        if (e.getAction().equals(Action.RIGHT_CLICK_AIR) && p.isSneaking()) {
+            // Sort the player's inventory
+            ItemStack[] items = new ItemStack[36];
+            for (int i = 0; i <= 35; i++) {
+                ItemStack item = p.getInventory().getItem(i);
+                if (item == null) continue;
+                items[i] = item;
+            }
+            sortPlayerInventory(items.clone(), p.getInventory());
+            p.sendRawMessage(ChatColor.GREEN + "Inventory sorted!");
+            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+        }
+
         if (!e.getAction().equals(Action.LEFT_CLICK_BLOCK)) return;
         Block block = e.getClickedBlock();
         if (block == null) return;
@@ -106,17 +124,31 @@ public class BuildingSkill implements Listener {
         }
 
         // Sort the chest and add the sorted items to the chest
-        ArrayList<ItemStack> items = getSortedItems(chestInventory.getContents().clone());
-        ArrayList<ItemStack> enchantedBooks = getSortedEnchantedBooks(chestInventory.getContents().clone());
-
-        chestInventory.clear();
-        if (!items.isEmpty())
-            for (ItemStack item : items) if (item != null) chestInventory.addItem(item);
-        if (!enchantedBooks.isEmpty())
-            for (ItemStack item : enchantedBooks) if (item != null) chestInventory.addItem(item);
-
+        sortChestInventory(chestInventory.getContents().clone(), chestInventory);
         p.sendRawMessage(ChatColor.GREEN + "Chest sorted!");
         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+    }
+
+    public void sortChestInventory(ItemStack[] inventoryItems, Inventory chest) {
+        ArrayList<ItemStack> items = getSortedItems(inventoryItems);
+        ArrayList<ItemStack> enchantedBooks = getSortedEnchantedBooks(inventoryItems);
+
+        chest.clear();
+        if (!items.isEmpty())
+            for (ItemStack item : items) if (item != null) chest.addItem(item);
+        if (!enchantedBooks.isEmpty())
+            for (ItemStack item : enchantedBooks) if (item != null) chest.addItem(item);
+    }
+
+    public void sortPlayerInventory(ItemStack[] inventoryItems, Inventory playerInventory) {
+        ArrayList<ItemStack> items = getSortedItems(inventoryItems);
+        ArrayList<ItemStack> enchantedBooks = getSortedEnchantedBooks(inventoryItems);
+
+        for (int i = 0; i <= 35; i++) playerInventory.setItem(i, null);
+        if (!items.isEmpty())
+            for (ItemStack item : items) if (item != null) playerInventory.addItem(item);
+        if (!enchantedBooks.isEmpty())
+            for (ItemStack item : enchantedBooks) if (item != null) playerInventory.addItem(item);
     }
 
     public ArrayList<ItemStack> getSortedItems(ItemStack[] itemsRaw) {
@@ -328,7 +360,6 @@ public class BuildingSkill implements Listener {
         bannedReturns.add(Material.SMITHING_TABLE);
         bannedReturns.add(Material.SMOKER);
         bannedReturns.add(Material.SOUL_CAMPFIRE);
-        bannedReturns.add(Material.STICKY_PISTON);
         bannedReturns.add(Material.STONECUTTER);
         bannedReturns.add(Material.TORCH);
         bannedReturns.add(Material.WALL_TORCH);
@@ -354,6 +385,5 @@ public class BuildingSkill implements Listener {
         brokenBlocks.add("CAVE_VINES_PLANT");
         brokenBlocks.add("GLOW_LICHEN_PLANT");
         brokenBlocks.add("GLOW_BERRIES");
-        brokenBlocks.add("BUBBLE_CORAL_WALL_FAN");
     }
 }
