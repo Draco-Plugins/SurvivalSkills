@@ -47,31 +47,10 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        boolean newPlayer = p.hasPlayedBefore();
-        boolean success = plugin.loadData(p, !newPlayer);
-        plugin.getTimerTracker().put(p, new ArrayList<>());
-
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (!success) plugin.loadData(p, !newPlayer);
-
-                if (!newPlayer) plugin.initializeScoreboard(p);
-                else if (plugin.getToggledScoreboard().containsKey(p.getUniqueId()) && plugin.getToggledScoreboard().get(p.getUniqueId()))
-                    plugin.initializeScoreboard(p);
-                else plugin.hideScoreboard(p);
-
-                for (Map.Entry<Location, Trophy> trophy : plugin.getTrophies().entrySet()) {
-                    Location loc = trophy.getKey();
-                    if (!p.getWorld().equals(loc.getWorld())) continue;
-                    if (p.getLocation().distance(loc) > 50) continue;
-                    trophy.getValue().getEffects().checkForPlayers();
-                }
-                plugin.loadPlayerRewards(p);
-                plugin.getMiningListener().hideGlowForPlayer(p);
-                plugin.checkMainXP(p);
-                plugin.loadPermaTrash(p);
-                plugin.leaderboardJoin(p);
+                plugin.playerJoin(p, false);
             }
         }.runTaskLater(plugin, 60);
     }
