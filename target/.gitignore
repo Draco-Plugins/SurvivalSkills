@@ -1,0 +1,6 @@
+# Ignore unnecessary folders
+classes/
+generated-sources/
+maven-archiver/
+maven-status/
+site/
