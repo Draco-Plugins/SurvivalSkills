@@ -505,25 +505,30 @@ public class PlayerListener implements Listener {
         Player p = e.getPlayer();
         int deaths = plugin.getLeaderboardTracker().get(p.getUniqueId()).getDeathScore();
 
-        if (deaths >= 10)
-            p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 2));
-        if (deaths >= 20)
-            p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 1200, 2));
-        if (deaths >= 30)
-            p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 1200, 2));
-        if (deaths >= 40)
-            p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 0, false, false,true));
-        if (deaths >= 50) {
-            PlayerRewards rewards = plugin.getPlayerRewards(p);
-            if (!rewards.isAddedDeathResistance()) {
-                rewards.setProtectionPercentage(rewards.getProtectionPercentage() + 0.1);
-                rewards.setAddedDeathResistance(true);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (deaths >= 10)
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 1200, 2));
+                if (deaths >= 20)
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 1200, 2));
+                if (deaths >= 30)
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 1200, 2));
+                if (deaths >= 40)
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 0, false, false, true));
+                if (deaths >= 50) {
+                    PlayerRewards rewards = plugin.getPlayerRewards(p);
+                    if (!rewards.isAddedDeathResistance()) {
+                        rewards.setProtectionPercentage(rewards.getProtectionPercentage() + 0.1);
+                        rewards.setAddedDeathResistance(true);
+                    }
+                }
+                if (deaths >= 75) {
+                    p.sendRawMessage(ChatColor.GOLD + "Use " + ChatColor.AQUA + "/deathreturn" + ChatColor.GOLD
+                            + " to return to your death location");
+                }
             }
-        }
-        if (deaths >= 75) {
-            p.sendRawMessage(ChatColor.GOLD + "Use " + ChatColor.AQUA + "/deathreturn" + ChatColor.GOLD
-                    + " to return to your death location");
-        }
+        }.runTaskLater(plugin, 1);
     }
 
     @EventHandler
