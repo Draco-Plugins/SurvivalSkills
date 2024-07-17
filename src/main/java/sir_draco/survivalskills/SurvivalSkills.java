@@ -787,9 +787,9 @@ public final class SurvivalSkills extends JavaPlugin {
             skillXPNext = "Progress: " + ChatColor.AQUA + "(" + newRatio + "％)";
         }
         else skillXPNext = "Progress: MAX";
-        newTeam(board, "SkillXPNext", ChatColor.BLUE.toString(), ChatColor.GRAY + skillXPNext, 3);
+        newTeam(board, "SkillXPNext", ChatColor.BLUE.toString(), ChatColor.GRAY + skillXPNext, 1);
         newTeam(board, "Skill", ChatColor.GRAY.toString(), ChatColor.GOLD + skillName + " Level " + ChatColor.AQUA + "(" + skillLevel + ")", 2);
-        newTeam(board, "Empty", ChatColor.DARK_PURPLE.toString(), ChatColor.GRAY + "----------------", 1);
+        newTeam(board, "Empty", ChatColor.DARK_PURPLE.toString(), ChatColor.GRAY + "----------------", 3);
         p.setScoreboard(board);
     }
 
