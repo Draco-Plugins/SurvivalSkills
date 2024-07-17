@@ -469,7 +469,11 @@ public final class SurvivalSkills extends JavaPlugin {
             return;
         }
 
-        if (rewardTracker.containsKey(p)) return;
+        if (rewardTracker.containsKey(p)) {
+            rewardTracker.get(p).enableRewards(p, playerSkills.get(p.getUniqueId()));
+            return;
+        }
+
         rewardTracker.put(p, new PlayerRewards(playerRewards.getRewardList()));
         rewardTracker.get(p).enableRewards(p, playerSkills.get(p.getUniqueId()));
     }
@@ -721,7 +725,7 @@ public final class SurvivalSkills extends JavaPlugin {
      * Changes a player's scoreboard to represent a change in the XP of a skill
      */
     public void updateScoreboard(Player p, String skillName) {
-        // Potentially add a cool-down every 2 seconds
+        // If the player has never toggled the scoreboard, initialize it
         if (toggledScoreboard.get(p.getUniqueId()) == null) {
             toggledScoreboard.put(p.getUniqueId(), true);
             initializeScoreboard(p);
@@ -733,6 +737,8 @@ public final class SurvivalSkills extends JavaPlugin {
             initializeScoreboard(p);
             return;
         }
+
+        // Get main skill and death objectives
         Skill mainSkill = getSkill(p.getUniqueId(), "Main");
         Objective main = board.getObjective("Main");
         Objective deaths = board.getObjective("Deaths");
@@ -740,7 +746,12 @@ public final class SurvivalSkills extends JavaPlugin {
         if (deaths == null) return;
         int playerLevel = mainSkill.getLevel();
 
-        main.setDisplayName(ChatColor.GOLD + "Player Main Level " + ChatColor.AQUA + "(" + playerLevel + ")");
+        // Color the main level in the scoreboard display
+        ChatColor mainColor = getChatColor(mainSkill);
+        String mainString;
+        if (mainSkill.getLevel() == 100) mainString = ChatColor.BOLD.toString() + mainColor;
+        else mainString = mainColor.toString();
+        main.setDisplayName(ChatColor.GOLD + "Player Main Level " + mainString + "(" + playerLevel + ")");
 
         // Deaths
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -749,7 +760,7 @@ public final class SurvivalSkills extends JavaPlugin {
             else deaths.getScore(player.getName()).setScore(0);
         }
 
-        // NameTag
+        // Player NameTags
         for (Player player : Bukkit.getOnlinePlayers()) {
             Skill playerMainSkill = getSkill(player.getUniqueId(), "Main");
             ChatColor color = getChatColor(playerMainSkill);
@@ -765,7 +776,7 @@ public final class SurvivalSkills extends JavaPlugin {
             else team.setPrefix(colorString + "(" + playerMainSkill.getLevel() + ") ");
         }
 
-        int score = 1;
+        // Handle other skills being displayed
         if (skillName.equals("Main")) return;
         Skill sideSkill = getSkill(p.getUniqueId(), skillName);
         int skillLevel = sideSkill.getLevel();
@@ -776,9 +787,22 @@ public final class SurvivalSkills extends JavaPlugin {
             skillXPNext = "Progress: " + ChatColor.AQUA + "(" + newRatio + "％)";
         }
         else skillXPNext = "Progress: MAX";
-        score = newTeam(board, main, "SkillXPNext", ChatColor.BLUE.toString(), ChatColor.GRAY + skillXPNext, score);
-        score = newTeam(board, main, "Skill", ChatColor.GRAY.toString(), ChatColor.GOLD + skillName + " Level " + ChatColor.AQUA + "(" + skillLevel + ")", score);
-        newTeam(board, main, "Empty", ChatColor.DARK_PURPLE.toString(), ChatColor.GRAY + "----------------", score);
+        newTeam(board, "SkillXPNext", ChatColor.BLUE.toString(), ChatColor.GRAY + skillXPNext, 3);
+        newTeam(board, "Skill", ChatColor.GRAY.toString(), ChatColor.GOLD + skillName + " Level " + ChatColor.AQUA + "(" + skillLevel + ")", 2);
+        newTeam(board, "Empty", ChatColor.DARK_PURPLE.toString(), ChatColor.GRAY + "----------------", 1);
+        p.setScoreboard(board);
+    }
+
+    public void newTeam(Scoreboard board, String name, String holder, String display, int score) {
+        Team team = board.getTeam(name);
+        if (team == null) {
+            team = board.registerNewTeam(name);
+            team.setPrefix(display);
+            team.addEntry(holder);
+            Objective obj = board.getObjective(DisplaySlot.SIDEBAR);
+            if (obj != null) obj.getScore(holder).setScore(score);
+        }
+        else team.setPrefix(display);
     }
 
     private static ChatColor getChatColor(Skill playerMainSkill) {
@@ -796,19 +820,6 @@ public final class SurvivalSkills extends JavaPlugin {
         else if (playerMainLevel < 100) color = ChatColor.DARK_RED;
         else color = ChatColor.GOLD;
         return color;
-    }
-
-    public int newTeam(Scoreboard board, Objective obj, String name, String holder, String display, int scoreCount) {
-        Team team = board.getTeam(name);
-        if (team == null) {
-            team = board.registerNewTeam(name);
-            team.addEntry(holder);
-            team.setPrefix(display);
-        }
-        else team.setPrefix(display);
-
-        obj.getScore(holder).setScore(scoreCount);
-        return scoreCount + 1;
     }
 
     public void createFarmingList() {
