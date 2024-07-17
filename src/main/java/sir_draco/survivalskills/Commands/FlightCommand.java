@@ -40,7 +40,7 @@ public class FlightCommand implements CommandExecutor {
                 timer.endAbility();
             }
             else {
-                p.sendRawMessage(ChatColor.RED + "You can use flight again in: " + RewardNotifications.cooldown(timer.getActiveTimeLeft()));
+                p.sendRawMessage(ChatColor.RED + "You can use flight again in: " + RewardNotifications.cooldown(timer.getTimeTillReset()));
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return false;
             }
