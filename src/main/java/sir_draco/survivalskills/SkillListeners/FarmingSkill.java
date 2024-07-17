@@ -3,14 +3,13 @@ package sir_draco.survivalskills.SkillListeners;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockFertilizeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -200,7 +199,8 @@ public class FarmingSkill implements Listener {
         else if (block.getType().equals(Material.MOSS_BLOCK)) block.applyBoneMeal(BlockFace.UP);
         else if (block.getType().toString().contains("SAPLING")) block.applyBoneMeal(BlockFace.UP);
         else {
-            if (!(block.getState() instanceof Ageable)) return;
+            BlockData state = block.getState().getBlockData();
+            if (!(state instanceof Ageable)) return;
             Ageable age = (Ageable) block.getState().getBlockData();
             if (age.getAge() == age.getMaximumAge()) return;
             age.setAge(age.getMaximumAge());
