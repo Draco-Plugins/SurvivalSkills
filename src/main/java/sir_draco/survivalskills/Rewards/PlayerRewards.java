@@ -468,6 +468,8 @@ public class PlayerRewards {
                     case "ArmorIV":
                         setProtectionPercentage(0.2);
                         break;
+                    case "VeinMinerII":
+                        plugin.getMiningListener().getVeinminerTracker().put(p, 1);
                     case "UnbreakableTools":
                         setUnbreakableTools(true);
                         break;
