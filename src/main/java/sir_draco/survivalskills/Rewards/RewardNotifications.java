@@ -949,6 +949,8 @@ public class RewardNotifications {
                 switch (reward) {
                     case "BerserkerI":
                         return ChatColor.GRAY + "You can now enter berserker mode by\n" + ChatColor.GRAY + "sneaking and right clicking while holding a weapon\n" +
+                                ChatColor.GRAY + "Berserker mode takes " + ChatColor.AQUA + "25%" + ChatColor.GRAY + " of your" +
+                                "health in exchange for " + ChatColor.AQUA + "50%" + ChatColor.GRAY + " more damage\n" +
                                 ChatColor.GRAY + "Berserker mode lasts for " + ChatColor.AQUA + "3 "
                                 + ChatColor.GRAY + "seconds\n" + ChatColor.GRAY + "with a cooldown of " + ChatColor.AQUA + "120 " + ChatColor.GRAY + "seconds";
                     case "BerserkerII":
