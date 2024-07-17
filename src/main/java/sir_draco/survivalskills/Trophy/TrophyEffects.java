@@ -503,7 +503,7 @@ public class TrophyEffects extends BukkitRunnable {
             if (chance < 0.5) {
                 Location newLoc = loc.clone().add(0.5 + (Math.random() - 0.5), 2.0 + (Math.random()), 0.5 + (Math.random() - 0.5));
                 Color color = colorList.get((int) Math.floor(Math.random() * colorList.size()));
-                spawnFirework(newLoc, 1, FireworkEffect.Type.BALL, color, false, false, colorList);
+                spawnFireworkEffect(newLoc, color, 1.5, 0.3);
             }
             if (cycle == 16) cycle = 0;
         }
@@ -544,24 +544,21 @@ public class TrophyEffects extends BukkitRunnable {
         for (String hex : hexColors) colorList.add(ColorParser.hexToColor(hex));
     }
 
-    public void spawnFirework(Location loc, int power, FireworkEffect.Type type, Color color, boolean trail, boolean flicker, ArrayList<Color> fadeColors) {
+    public void spawnFireworkEffect(Location loc, Color color, double radius, double step) {
+        // Spawn a sphere of dust particles of the color of the firework
         World world = loc.getWorld();
         if (world == null) return;
-        Firework fw = (Firework) world.spawnEntity(loc, EntityType.FIREWORK_ROCKET);
-        FireworkMeta fwm = fw.getFireworkMeta();
-
-        FireworkEffect.Builder build = FireworkEffect.builder();
-        build.with(type);
-        build.withColor(color);
-        if (trail) build.withTrail();
-        if (flicker) build.withFlicker();
-        if (fadeColors != null) build.withFade(fadeColors);
-
-        fwm.addEffect(build.build());
-        fwm.setPower(power);
-        fw.setMetadata("nodamage", new FixedMetadataValue(plugin, true));
-        fw.setFireworkMeta(fwm);
-        fw.detonate();
+        Particle.DustOptions dust = new Particle.DustOptions(color, 1f);
+        for (double x = -radius; x <= radius; x += step) {
+            for (double y = -radius; y <= radius; y += step) {
+                for (double z = -radius; z <= radius; z += step) {
+                    double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+                    if (distance > radius || distance < radius - step) continue;
+                    Location newLoc = loc.clone().add(x, y, z);
+                    world.spawnParticle(Particle.DUST, newLoc, 1, 1, 1, 1, dust);
+                }
+            }
+        }
     }
 
     public void netherParticles() {
