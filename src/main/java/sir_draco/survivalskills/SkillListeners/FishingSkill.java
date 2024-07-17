@@ -500,7 +500,6 @@ public class FishingSkill implements Listener {
         legendaryLootTable.add(Material.TOTEM_OF_UNDYING);
         legendaryLootTable.add(Material.TRIDENT);
         legendaryLootTable.add(Material.EXPERIENCE_BOTTLE);
-        legendaryLootTable.add(Material.ELYTRA);
 
         legendaryEnchantments.put(Enchantment.POWER, 5);
         legendaryEnchantments.put(Enchantment.INFINITY, 1);
@@ -605,7 +604,7 @@ public class FishingSkill implements Listener {
         if (!nonStackableItems.containsKey(p)) nonStackableItems.put(p, 0);
         if (type == 1) {
             Material mat;
-            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type);
+            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type, p);
 
             int random = getRandomPositiveInteger(legendaryLootTable.size()) - 1;
             mat = legendaryLootTable.get(random);
@@ -615,7 +614,7 @@ public class FishingSkill implements Listener {
         }
         else if (type == 2) {
             Material mat;
-            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type);
+            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type, p);
 
             int random = getRandomPositiveInteger(epicLootTable.size()) - 1;
             mat = epicLootTable.get(random);
@@ -624,7 +623,7 @@ public class FishingSkill implements Listener {
         }
         else if (type == 3) {
             Material mat;
-            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type);
+            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type, p);
 
             int random = getRandomPositiveInteger(rareLootTable.size()) - 1;
             mat = rareLootTable.get(random);
@@ -633,7 +632,7 @@ public class FishingSkill implements Listener {
         }
         else {
             Material mat;
-            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type);
+            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type, p);
 
             int random = getRandomPositiveInteger(commonLootTable.size()) - 1;
             mat = commonLootTable.get(random);
@@ -647,33 +646,34 @@ public class FishingSkill implements Listener {
         if (mat.equals(Material.SADDLE)) nonStackableItems.put(p, nonStackableItems.get(p) + 1);
     }
 
-    public Material getStackableMaterial(int type) {
+    public Material getStackableMaterial(int type, Player p) {
         if (type == 1) {
             int random = getRandomPositiveInteger(legendaryLootTable.size()) - 1;
             Material mat = legendaryLootTable.get(random);
-            if (mat.toString().contains("HORSE")) return getStackableMaterial(type);
-            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type);
+            if (mat.toString().contains("HORSE")) return getStackableMaterial(type, p);
+            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type, p);
+            if (mat.equals(Material.ELYTRA) && !p.getWorld().hasMetadata("killedfirstdragon")) return getStackableMaterial(type, p);
             return mat;
         }
         else if (type == 2) {
             int random = getRandomPositiveInteger(epicLootTable.size()) - 1;
             Material mat = epicLootTable.get(random);
-            if (mat.toString().contains("HORSE")) return getStackableMaterial(type);
-            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type);
+            if (mat.toString().contains("HORSE")) return getStackableMaterial(type, p);
+            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type, p);
             return mat;
         }
         else if (type == 3) {
             int random = getRandomPositiveInteger(rareLootTable.size()) - 1;
             Material mat = rareLootTable.get(random);
-            if (mat.toString().contains("HORSE")) return getStackableMaterial(type);
-            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type);
+            if (mat.toString().contains("HORSE")) return getStackableMaterial(type, p);
+            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type, p);
             return mat;
         }
         else {
             int random = getRandomPositiveInteger(commonLootTable.size()) - 1;
             Material mat = commonLootTable.get(random);
-            if (mat.toString().contains("HORSE")) return getStackableMaterial(type);
-            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type);
+            if (mat.toString().contains("HORSE")) return getStackableMaterial(type, p);
+            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type, p);
             return mat;
         }
     }
