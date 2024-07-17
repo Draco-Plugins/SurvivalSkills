@@ -173,6 +173,7 @@ public class ItemStackGenerator {
         loreList.add("");
         loreList.add(ChatColor.GRAY + "Haste II Everywhere");
         loreList.add(ChatColor.GRAY + "Fire Resistance and Speed when below" + ChatColor.AQUA + " Y-64");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
         ItemStack helmet = createCustomItem(Material.LEATHER_HELMET, 1, name, null, null, loreList, 3, false, null);
         ItemMeta meta = helmet.getItemMeta();
         if (meta == null) return helmet;
@@ -194,6 +195,7 @@ public class ItemStackGenerator {
         loreList.add("");
         loreList.add(ChatColor.GRAY + "Haste II Everywhere");
         loreList.add(ChatColor.GRAY + "Fire Resistance and Speed when below" + ChatColor.AQUA + " Y-64");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
         ItemStack chestplate = createCustomItem(Material.LEATHER_CHESTPLATE, 1, name, null, null, loreList, 3, false, null);
         ItemMeta meta = chestplate.getItemMeta();
         if (meta == null) return chestplate;
@@ -215,6 +217,7 @@ public class ItemStackGenerator {
         loreList.add("");
         loreList.add(ChatColor.GRAY + "Haste II Everywhere");
         loreList.add(ChatColor.GRAY + "Fire Resistance and Speed when below" + ChatColor.AQUA + " Y-64");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
         ItemStack leggings = createCustomItem(Material.LEATHER_LEGGINGS, 1, name, null, null, loreList, 3, false, null);
         ItemMeta meta = leggings.getItemMeta();
         if (meta == null) return leggings;
@@ -236,6 +239,7 @@ public class ItemStackGenerator {
         loreList.add("");
         loreList.add(ChatColor.GRAY + "Haste II Everywhere");
         loreList.add(ChatColor.GRAY + "Fire Resistance and Speed when below" + ChatColor.AQUA + " Y-64");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
         ItemStack boots = createCustomItem(Material.LEATHER_BOOTS, 1, name, null, null, loreList, 3, false, null);
         ItemMeta meta = boots.getItemMeta();
         if (meta == null) return boots;
@@ -289,26 +293,34 @@ public class ItemStackGenerator {
 
     public static ItemStack getWandererBoots() {
         String name = ColorParser.colorizeString("Wanderer Boots", ColorParser.generateGradient("#FFF000", "#FFDC6E", "Wanderer Boots"), true);
-        String lore = ChatColor.GRAY + "Speed I Everywhere";
-        return createCustomItem(Material.CHAINMAIL_BOOTS, 1, name, null, lore, null, 5, false, null);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Speed I Everywhere");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        return createCustomItem(Material.CHAINMAIL_BOOTS, 1, name, null, null, loreList, 5, false, null);
     }
 
     public static ItemStack getWandererLeggings() {
         String name = ColorParser.colorizeString("Wanderer Leggings", ColorParser.generateGradient("#FFF000", "#FFDC6E", "Wanderer Leggings"), true);
-        String lore = ChatColor.GRAY + "Speed I Everywhere";
-        return createCustomItem(Material.CHAINMAIL_LEGGINGS, 1, name, null, lore, null, 5, false, null);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Speed I Everywhere");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        return createCustomItem(Material.CHAINMAIL_LEGGINGS, 1, name, null, null, null, 5, false, null);
     }
 
     public static ItemStack getWandererChestplate() {
         String name = ColorParser.colorizeString("Wanderer Chestplate", ColorParser.generateGradient("#FFF000", "#FFDC6E", "Wanderer Chestplate"), true);
-        String lore = ChatColor.GRAY + "Speed I Everywhere";
-        return createCustomItem(Material.CHAINMAIL_CHESTPLATE, 1, name, null, lore, null, 5, false, null);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Speed I Everywhere");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        return createCustomItem(Material.CHAINMAIL_CHESTPLATE, 1, name, null, null, loreList, 5, false, null);
     }
 
     public static ItemStack getWandererHelmet() {
         String name = ColorParser.colorizeString("Wanderer Helmet", ColorParser.generateGradient("#FFF000", "#FFDC6E", "Wanderer Helmet"), true);
-        String lore = ChatColor.GRAY + "Speed I Everywhere";
-        return createCustomItem(Material.CHAINMAIL_HELMET, 1, name, null, lore, null, 5, false, null);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Speed I Everywhere");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        return createCustomItem(Material.CHAINMAIL_HELMET, 1, name, null, null, loreList, 5, false, null);
     }
 
     public static ItemStack getCaveFinder() {
@@ -322,26 +334,34 @@ public class ItemStackGenerator {
 
     public static ItemStack getTravellerBoots() {
         String name = ColorParser.colorizeString("Traveller Boots", ColorParser.generateGradient("#FF8800", "#FFDC6E", "Traveller Boots"), true);
-        String lore = ChatColor.GRAY + "Speed II Everywhere";
-        return createCustomItem(Material.DIAMOND_BOOTS, 1, name, null, lore, null, 7, false, null);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Speed II Everywhere");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        return createCustomItem(Material.DIAMOND_BOOTS, 1, name, null, null, loreList, 7, false, null);
     }
 
     public static ItemStack getTravellerLeggings() {
         String name = ColorParser.colorizeString("Traveller Leggings", ColorParser.generateGradient("#FF8800", "#FFDC6E", "Traveller Leggings"), true);
-        String lore = ChatColor.GRAY + "Speed II Everywhere";
-        return createCustomItem(Material.DIAMOND_LEGGINGS, 1, name, null, lore, null, 7, false, null);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Speed II Everywhere");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        return createCustomItem(Material.DIAMOND_LEGGINGS, 1, name, null, null, loreList, 7, false, null);
     }
 
     public static ItemStack getTravellerChestplate() {
         String name = ColorParser.colorizeString("Traveller Chestplate", ColorParser.generateGradient("#FF8800", "#FFDC6E", "Traveller Chestplate"), true);
-        String lore = ChatColor.GRAY + "Speed II Everywhere";
-        return createCustomItem(Material.DIAMOND_CHESTPLATE, 1, name, null, lore, null, 7, false, null);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Speed II Everywhere");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        return createCustomItem(Material.DIAMOND_CHESTPLATE, 1, name, null, null, loreList, 7, false, null);
     }
 
     public static ItemStack getTravellerHelmet() {
         String name = ColorParser.colorizeString("Traveller Helmet", ColorParser.generateGradient("#FF8800", "#FFDC6E", "Traveller Helmet"), true);
-        String lore = ChatColor.GRAY + "Speed II Everywhere";
-        return createCustomItem(Material.DIAMOND_HELMET, 1, name, null, lore, null, 7, false, null);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Speed II Everywhere");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        return createCustomItem(Material.DIAMOND_HELMET, 1, name, null, null, loreList, 7, false, null);
     }
 
     public static ItemStack getAdventurerBoots() {
@@ -350,6 +370,7 @@ public class ItemStackGenerator {
         loreList.add("");
         loreList.add(ChatColor.GRAY + "Speed III Everywhere");
         loreList.add(ChatColor.GRAY + "Prevents Fall Damage");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
         ItemStack item = createCustomItem(Material.NETHERITE_BOOTS, 1, name, null, null, loreList, 8, false, null);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
@@ -364,6 +385,7 @@ public class ItemStackGenerator {
         loreList.add("");
         loreList.add(ChatColor.GRAY + "Speed III Everywhere");
         loreList.add(ChatColor.GRAY + "Prevents Fall Damage");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
         ItemStack item = createCustomItem(Material.NETHERITE_LEGGINGS, 1, name, null, null, loreList, 8, false, null);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
@@ -378,6 +400,7 @@ public class ItemStackGenerator {
         loreList.add("");
         loreList.add(ChatColor.GRAY + "Speed III Everywhere");
         loreList.add(ChatColor.GRAY + "Prevents Fall Damage");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
         ItemStack item = createCustomItem(Material.NETHERITE_CHESTPLATE, 1, name, null, null, loreList, 8, false, null);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
@@ -392,6 +415,7 @@ public class ItemStackGenerator {
         loreList.add("");
         loreList.add(ChatColor.GRAY + "Speed III Everywhere");
         loreList.add(ChatColor.GRAY + "Prevents Fall Damage");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
         ItemStack item = createCustomItem(Material.NETHERITE_HELMET, 1, name, null, null, loreList, 8, false, null);
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
