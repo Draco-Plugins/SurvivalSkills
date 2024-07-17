@@ -47,6 +47,7 @@ public class Skill {
         UUID uuid = p.getUniqueId();
         Skill skill = plugin.getSkill(uuid, skillName);
         if (skill.getLevel() >= plugin.playerMaxSkillLevel(uuid)) {
+            plugin.updateScoreboard(p, "Main");
             if (skill.getLevel() == 100 || skill.isCurrentMaxMessage()) return;
             p.sendRawMessage(ChatColor.DARK_BLUE + "You have reached your current max level for: " + ChatColor.AQUA + skillName);
             p.playSound(p, Sound.BLOCK_NOTE_BLOCK_BASS, 1, 1);
