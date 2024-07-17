@@ -114,6 +114,7 @@ public class FarmingSkill implements Listener {
             // Get the first food item in the player's inventory
             for (ItemStack item : p.getInventory().getContents()) {
                 if (item == null) continue;
+                if (item.getType().equals(Material.ROTTEN_FLESH)) continue;
                 if (item.getType().isEdible()) {
                     // Get the amount of food the item will restore
                     int foodRestore = getFoodLevelRestorationAmount(item.getType());
