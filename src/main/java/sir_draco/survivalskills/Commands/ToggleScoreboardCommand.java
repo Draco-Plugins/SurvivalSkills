@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import sir_draco.survivalskills.Scoreboard.SkillScoreboard;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
@@ -43,12 +44,12 @@ public class ToggleScoreboardCommand implements CommandExecutor {
         boolean status = !plugin.getToggledScoreboard().get(p.getUniqueId());
         plugin.getToggledScoreboard().put(p.getUniqueId(), status);
         if (!status) {
-            plugin.hideScoreboard(p);
+            SkillScoreboard.hideScoreboard(plugin, p);
             p.sendRawMessage(ChatColor.GREEN + "The scoreboard is now hidden");
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         else {
-            plugin.initializeScoreboard(p);
+            SkillScoreboard.initializeScoreboard(plugin, p);
             p.sendRawMessage(ChatColor.GREEN + "The scoreboard is visible");
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }

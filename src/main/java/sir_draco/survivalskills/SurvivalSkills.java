@@ -20,6 +20,8 @@ import sir_draco.survivalskills.Abilities.TrailEffect;
 import sir_draco.survivalskills.Commands.*;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Rewards.Reward;
+import sir_draco.survivalskills.Scoreboard.LeaderboardPlayer;
+import sir_draco.survivalskills.Scoreboard.SkillScoreboard;
 import sir_draco.survivalskills.SkillListeners.*;
 import sir_draco.survivalskills.Trophy.Trophy;
 
@@ -42,7 +44,6 @@ public final class SurvivalSkills extends JavaPlugin {
     private final ArrayList<Material> farmingList = new ArrayList<>();
     private final ArrayList<NamespacedKey> recipeKeys = new ArrayList<>();
 
-    private ScoreboardManager scoreboardManager = Bukkit.getScoreboardManager();
     private PlayerRewards playerRewards; // Holds the default information for rewards
     private BuildingSkill buildingListener;
     private MiningSkill miningListener;
@@ -690,138 +691,6 @@ public final class SurvivalSkills extends JavaPlugin {
         return skill;
     }
 
-    public void initializeScoreboard(Player p) {
-        if (scoreboardManager == null) {
-            scoreboardManager = Bukkit.getScoreboardManager();
-            if (scoreboardManager == null) return;
-        }
-        Scoreboard board = scoreboardManager.getNewScoreboard();
-        p.setScoreboard(board);
-        scoreboardTracker.put(p, board);
-        if (board.getObjective("Main") == null) {
-            Objective main = board.registerNewObjective("Main", Criteria.DUMMY, "Main");
-            Objective deaths = board.registerNewObjective("Deaths", Criteria.DUMMY, "Deaths");
-            main.setDisplaySlot(DisplaySlot.SIDEBAR);
-            deaths.setDisplaySlot(DisplaySlot.PLAYER_LIST);
-            updateScoreboard(p, "Main");
-        }
-        else updateScoreboard(p, "Main");
-        p.setScoreboard(board);
-        scoreboardTracker.put(p, board);
-    }
-
-    /**
-     * Creates an empty scoreboard to hide an existing scoreboard
-     */
-    public void hideScoreboard(Player p) {
-        p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-        if (scoreboardManager == null) return;
-        Scoreboard empty = scoreboardManager.getNewScoreboard();
-        p.setScoreboard(empty);
-        scoreboardTracker.remove(p);
-    }
-
-    /**
-     * Changes a player's scoreboard to represent a change in the XP of a skill
-     */
-    public void updateScoreboard(Player p, String skillName) {
-        // If the player has never toggled the scoreboard, initialize it
-        if (toggledScoreboard.get(p.getUniqueId()) == null) {
-            toggledScoreboard.put(p.getUniqueId(), true);
-            initializeScoreboard(p);
-            return;
-        }
-        if (!toggledScoreboard.get(p.getUniqueId())) return;
-        Scoreboard board = scoreboardTracker.get(p);
-        if (board == null) {
-            initializeScoreboard(p);
-            return;
-        }
-
-        // Get main skill and death objectives
-        Skill mainSkill = getSkill(p.getUniqueId(), "Main");
-        Objective main = board.getObjective("Main");
-        Objective deaths = board.getObjective("Deaths");
-        if (main == null) return;
-        if (deaths == null) return;
-        int playerLevel = mainSkill.getLevel();
-
-        // Color the main level in the scoreboard display
-        ChatColor mainColor = getChatColor(mainSkill);
-        String mainString;
-        if (mainSkill.getLevel() == 100) mainString = ChatColor.BOLD.toString() + mainColor;
-        else mainString = mainColor.toString();
-        main.setDisplayName(ChatColor.GOLD + "Player Main Level " + mainString + "(" + playerLevel + ")");
-
-        // Deaths
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            LeaderboardPlayer leaderboardPlayer = leaderboardTracker.get(player.getUniqueId());
-            if (leaderboardPlayer != null) deaths.getScore(player.getName()).setScore(leaderboardPlayer.getDeathScore());
-            else deaths.getScore(player.getName()).setScore(0);
-        }
-
-        // Player NameTags
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            Skill playerMainSkill = getSkill(player.getUniqueId(), "Main");
-            ChatColor color = getChatColor(playerMainSkill);
-            String colorString;
-            if (playerMainSkill.getLevel() == 100) colorString = ChatColor.BOLD.toString() + color;
-            else colorString = color.toString();
-            Team team = board.getTeam(player.getName());
-            if (team == null) {
-                team = board.registerNewTeam(player.getName());
-                team.addEntry(player.getName());
-                team.setPrefix(colorString + "(" + playerMainSkill.getLevel() + ") ");
-            }
-            else team.setPrefix(colorString + "(" + playerMainSkill.getLevel() + ") ");
-        }
-
-        // Handle other skills being displayed
-        if (skillName.equals("Main")) return;
-        Skill sideSkill = getSkill(p.getUniqueId(), skillName);
-        int skillLevel = sideSkill.getLevel();
-        String skillXPNext;
-        if (skillLevel < 100) {
-            double ratio = (double) sideSkill.getExperienceSoFarInLevel() / sideSkill.getRawExperienceForNextLevel();
-            int newRatio = (int) (ratio * 100);
-            skillXPNext = "Progress: " + ChatColor.AQUA + "(" + newRatio + "％)";
-        }
-        else skillXPNext = "Progress: MAX";
-        newTeam(board, "SkillXPNext", ChatColor.BLUE.toString(), ChatColor.GRAY + skillXPNext, 1);
-        newTeam(board, "Skill", ChatColor.GRAY.toString(), ChatColor.GOLD + skillName + " Level " + ChatColor.AQUA + "(" + skillLevel + ")", 2);
-        newTeam(board, "Empty", ChatColor.DARK_PURPLE.toString(), ChatColor.GRAY + "----------------", 3);
-        p.setScoreboard(board);
-    }
-
-    public void newTeam(Scoreboard board, String name, String holder, String display, int score) {
-        Team team = board.getTeam(name);
-        if (team == null) {
-            team = board.registerNewTeam(name);
-            team.setPrefix(display);
-            team.addEntry(holder);
-            Objective obj = board.getObjective(DisplaySlot.SIDEBAR);
-            if (obj != null) obj.getScore(holder).setScore(score);
-        }
-        else team.setPrefix(display);
-    }
-
-    private static ChatColor getChatColor(Skill playerMainSkill) {
-        int playerMainLevel = playerMainSkill.getLevel();
-        ChatColor color;
-        if (playerMainLevel < 10) color = ChatColor.GRAY;
-        else if (playerMainLevel < 20) color = ChatColor.DARK_GRAY;
-        else if (playerMainLevel < 30) color = ChatColor.GREEN;
-        else if (playerMainLevel < 40) color = ChatColor.DARK_GREEN;
-        else if (playerMainLevel < 50) color = ChatColor.AQUA;
-        else if (playerMainLevel < 60) color = ChatColor.DARK_AQUA;
-        else if (playerMainLevel < 70) color = ChatColor.LIGHT_PURPLE;
-        else if (playerMainLevel < 80) color = ChatColor.DARK_PURPLE;
-        else if (playerMainLevel < 90) color = ChatColor.RED;
-        else if (playerMainLevel < 100) color = ChatColor.DARK_RED;
-        else color = ChatColor.GOLD;
-        return color;
-    }
-
     public void createFarmingList() {
         //farmingList.add(Material.SUGAR_CANE); // Needs to be bug prevented || cactus, bamboo, seaweed
         farmingList.add(Material.SUGAR_CANE);
@@ -893,10 +762,10 @@ public final class SurvivalSkills extends JavaPlugin {
         getMiningListener().hideGlowForPlayer(p);
 
         // Handle the scoreboard
-        if (newPlayer) initializeScoreboard(p);
+        if (newPlayer) SkillScoreboard.initializeScoreboard(this, p);
         else if (toggledScoreboard.containsKey(p.getUniqueId()) && toggledScoreboard.get(p.getUniqueId()))
-            initializeScoreboard(p);
-        else hideScoreboard(p);
+            SkillScoreboard.initializeScoreboard(this, p);
+        else SkillScoreboard.hideScoreboard(this, p);
     }
 
     /**
@@ -1228,7 +1097,7 @@ public final class SurvivalSkills extends JavaPlugin {
             rewards.setAddedDeathResistance(true);
         }
 
-        updateScoreboard(p, "Main");
+        SkillScoreboard.updateScoreboard(this, p, "Main");
     }
 
     public void runSkillAutoSave() {
@@ -1360,5 +1229,9 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public HashMap<String, Particle> getTrails() {
         return trails;
+    }
+
+    public HashMap<Player, Scoreboard> getScoreboardTracker() {
+        return scoreboardTracker;
     }
 }

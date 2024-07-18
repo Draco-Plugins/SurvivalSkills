@@ -19,6 +19,7 @@ import sir_draco.survivalskills.Abilities.HarvesterAsync;
 import sir_draco.survivalskills.Abilities.HarvesterTimer;
 import sir_draco.survivalskills.Bosses.ProjectileCalculator;
 import sir_draco.survivalskills.ItemStackGenerator;
+import sir_draco.survivalskills.Scoreboard.SkillScoreboard;
 import sir_draco.survivalskills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
@@ -95,7 +96,6 @@ public class FarmingSkill implements Listener {
         Ageable age = (Ageable) block.getState().getBlockData();
         if (age.getAge() != age.getMaximumAge()) return;
         Skill.experienceEvent(plugin, p, xp, "Farming");
-        plugin.updateScoreboard(p, "Farming");
     }
 
     @EventHandler (ignoreCancelled = true)

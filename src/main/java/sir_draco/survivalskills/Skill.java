@@ -6,6 +6,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import sir_draco.survivalskills.Scoreboard.LeaderboardPlayer;
+import sir_draco.survivalskills.Scoreboard.SkillScoreboard;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -47,7 +49,7 @@ public class Skill {
         UUID uuid = p.getUniqueId();
         Skill skill = plugin.getSkill(uuid, skillName);
         if (skill.getLevel() >= plugin.playerMaxSkillLevel(uuid)) {
-            plugin.updateScoreboard(p, "Main");
+            SkillScoreboard.updateScoreboard(plugin, p, "Main");
             if (skill.getLevel() == 100 || skill.isCurrentMaxMessage()) return;
             p.sendRawMessage(ChatColor.DARK_BLUE + "You have reached your current max level for: " + ChatColor.AQUA + skillName);
             p.playSound(p, Sound.BLOCK_NOTE_BLOCK_BASS, 1, 1);
@@ -102,7 +104,7 @@ public class Skill {
                     setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, main.getSkillName());
                 }
             }
-            plugin.updateScoreboard(p, skillName);
+            SkillScoreboard.updateScoreboard(plugin, p, skillName);
             if (xp != 0) experienceEvent(plugin, p, 0, skillName);
         }
     }
