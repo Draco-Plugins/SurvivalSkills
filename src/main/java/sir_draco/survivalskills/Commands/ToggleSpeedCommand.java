@@ -3,6 +3,7 @@ package sir_draco.survivalskills.Commands;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Rewards.Reward;
@@ -17,7 +18,8 @@ public class ToggleSpeedCommand implements CommandExecutor {
 
     public ToggleSpeedCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
-        plugin.getCommand("togglespeed").setExecutor(this);
+        PluginCommand command = plugin.getCommand("togglespeed");
+        if (command != null) command.setExecutor(this);
     }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
@@ -25,8 +27,8 @@ public class ToggleSpeedCommand implements CommandExecutor {
 
         Player p = (Player) sender;
         if (disabledPlayers.contains(p)) {
-            PlayerRewards rewards = plugin.getPlayerRewards(p);
-            int level = plugin.getSkill(p.getUniqueId(), "Exploring").getLevel();
+            PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+            int level = plugin.getSkillManager().getSkill(p.getUniqueId(), "Exploring").getLevel();
 
             // Get the player's walk and swim speed based on the exploring level
             float walkSpeed = 0.2f;
@@ -73,7 +75,7 @@ public class ToggleSpeedCommand implements CommandExecutor {
             p.sendMessage("Speed enabled");
         } else {
             p.setWalkSpeed(0.2f);
-            plugin.getPlayerRewards(p).setSwimSpeed(0);
+            plugin.getSkillManager().getPlayerRewards(p).setSwimSpeed(0);
             disabledPlayers.add(p);
             p.sendMessage("Speed disabled");
         }

@@ -24,7 +24,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import sir_draco.survivalskills.Abilities.SpelunkerAbilitySync;
 import sir_draco.survivalskills.ItemStackGenerator;
-import sir_draco.survivalskills.Skill;
+import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -45,11 +45,8 @@ public class MiningSkill implements Listener {
     private final ArrayList<EntityType> peacefulMobList = new ArrayList<>();
     private final int blocksPerHunger;
 
-    private double xp; // XP per block mined
-
-    public MiningSkill(SurvivalSkills plugin, double xp, int blocksPerHunger) {
+    public MiningSkill(SurvivalSkills plugin, int blocksPerHunger) {
         this.plugin = plugin;
-        this.xp = xp;
         this.blocksPerHunger = blocksPerHunger;
         setOres();
         setCommonOres();
@@ -70,7 +67,7 @@ public class MiningSkill implements Listener {
 
         // Handle XP
         double multiplier = getMultiplier(e.getBlock().getType());
-        Skill.experienceEvent(plugin, p, xp * multiplier, "Mining");
+        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getMiningXP() * multiplier, "Mining");
 
         // Handle double ore chance
         doubleOre(p, e);
@@ -82,7 +79,7 @@ public class MiningSkill implements Listener {
     @EventHandler
     public void placeTorch(PlayerInteractEvent e) {
         Player p = e.getPlayer();
-        if (!plugin.getPlayerRewards(p).getReward("Mining", "UnlimitedTorch").isApplied() && !p.hasPermission("survivalskills.op")) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "UnlimitedTorch").isApplied()) {
             if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 1) || ItemStackGenerator.isCustomItem(p.getInventory().getItemInOffHand(), 1)) {
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You are not a high enough level to use this item");
@@ -121,7 +118,7 @@ public class MiningSkill implements Listener {
     @EventHandler
     public void toolDamage(PlayerItemDamageEvent e) {
         Player p = e.getPlayer();
-        if (!plugin.getPlayerRewards(p).isUnbreakableTools()) return;
+        if (!plugin.getSkillManager().getPlayerRewards(p).isUnbreakableTools()) return;
         e.setCancelled(true);
     }
 
@@ -129,7 +126,7 @@ public class MiningSkill implements Listener {
     public void playerHurt(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player)) return;
         Player p = (Player) e.getEntity();
-        double reductionPercentage = plugin.getPlayerRewards(p).getProtectionPercentage();
+        double reductionPercentage = plugin.getSkillManager().getPlayerRewards(p).getProtectionPercentage();
         if (reductionPercentage == 0) return;
         double newDamage = e.getDamage() * (1 - reductionPercentage);
         e.setDamage(newDamage);
@@ -285,12 +282,12 @@ public class MiningSkill implements Listener {
     }
 
     public void doubleOre(Player p, BlockBreakEvent e) {
-        if (plugin.getPlayerRewards(p).getFortuneChance() == 0) return;
+        if (plugin.getSkillManager().getPlayerRewards(p).getFortuneChance() == 0) return;
         if (!ores.contains(e.getBlock().getType())) return;
         if (p.getInventory().getItemInMainHand().containsEnchantment(Enchantment.SILK_TOUCH)) return;
         if (e.getBlock().getType().equals(Material.ANCIENT_DEBRIS)) return;
         double chance = Math.random();
-        if (chance >= plugin.getPlayerRewards(p).getFortuneChance()) return;
+        if (chance >= plugin.getSkillManager().getPlayerRewards(p).getFortuneChance()) return;
         e.setDropItems(false);
         ItemStack[] drops = e.getBlock().getDrops(p.getInventory().getItemInMainHand()).toArray(new ItemStack[0]);
         for (ItemStack drop : drops) {
@@ -393,9 +390,5 @@ public class MiningSkill implements Listener {
         peacefulMobList.add(EntityType.ENDERMAN);
         peacefulMobList.add(EntityType.CREEPER);
         peacefulMobList.add(EntityType.SILVERFISH);
-    }
-
-    public void setXp(double xp) {
-        this.xp = xp;
     }
 }

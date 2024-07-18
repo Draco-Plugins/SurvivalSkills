@@ -304,7 +304,7 @@ public class ItemStackGenerator {
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Speed I Everywhere");
         loreList.add(ChatColor.GRAY + "Must wear the full set");
-        return createCustomItem(Material.CHAINMAIL_LEGGINGS, 1, name, null, null, null, 5, false, null);
+        return createCustomItem(Material.CHAINMAIL_LEGGINGS, 1, name, null, null, loreList, 5, false, null);
     }
 
     public static ItemStack getWandererChestplate() {
@@ -332,32 +332,32 @@ public class ItemStackGenerator {
         return createCustomItem(Material.COMPASS, 1, name, null, null, loreList, 6, false, null);
     }
 
-    public static ItemStack getTravellerBoots() {
-        String name = ColorParser.colorizeString("Traveller Boots", ColorParser.generateGradient("#FF8800", "#FFDC6E", "Traveller Boots"), true);
+    public static ItemStack getTravelerBoots() {
+        String name = ColorParser.colorizeString("Traveler Boots", ColorParser.generateGradient("#FF8800", "#FFDC6E", "Traveler Boots"), true);
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Speed II Everywhere");
         loreList.add(ChatColor.GRAY + "Must wear the full set");
         return createCustomItem(Material.DIAMOND_BOOTS, 1, name, null, null, loreList, 7, false, null);
     }
 
-    public static ItemStack getTravellerLeggings() {
-        String name = ColorParser.colorizeString("Traveller Leggings", ColorParser.generateGradient("#FF8800", "#FFDC6E", "Traveller Leggings"), true);
+    public static ItemStack getTravelerLeggings() {
+        String name = ColorParser.colorizeString("Traveler Leggings", ColorParser.generateGradient("#FF8800", "#FFDC6E", "Traveler Leggings"), true);
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Speed II Everywhere");
         loreList.add(ChatColor.GRAY + "Must wear the full set");
         return createCustomItem(Material.DIAMOND_LEGGINGS, 1, name, null, null, loreList, 7, false, null);
     }
 
-    public static ItemStack getTravellerChestplate() {
-        String name = ColorParser.colorizeString("Traveller Chestplate", ColorParser.generateGradient("#FF8800", "#FFDC6E", "Traveller Chestplate"), true);
+    public static ItemStack getTravelerChestplate() {
+        String name = ColorParser.colorizeString("Traveler Chestplate", ColorParser.generateGradient("#FF8800", "#FFDC6E", "Traveler Chestplate"), true);
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Speed II Everywhere");
         loreList.add(ChatColor.GRAY + "Must wear the full set");
         return createCustomItem(Material.DIAMOND_CHESTPLATE, 1, name, null, null, loreList, 7, false, null);
     }
 
-    public static ItemStack getTravellerHelmet() {
-        String name = ColorParser.colorizeString("Traveller Helmet", ColorParser.generateGradient("#FF8800", "#FFDC6E", "Traveller Helmet"), true);
+    public static ItemStack getTravelerHelmet() {
+        String name = ColorParser.colorizeString("Traveler Helmet", ColorParser.generateGradient("#FF8800", "#FFDC6E", "Traveler Helmet"), true);
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Speed II Everywhere");
         loreList.add(ChatColor.GRAY + "Must wear the full set");

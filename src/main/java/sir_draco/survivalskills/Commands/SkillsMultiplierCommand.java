@@ -46,7 +46,7 @@ public class SkillsMultiplierCommand implements CommandExecutor {
             return false;
         }
 
-        plugin.setMultiplier(multiplier);
+        plugin.getSkillManager().setMultiplier(multiplier);
         if (sender instanceof Player) {
             Player p = (Player) sender;
             p.sendRawMessage(ChatColor.GREEN + "Skills multiplier set to " + multiplier);

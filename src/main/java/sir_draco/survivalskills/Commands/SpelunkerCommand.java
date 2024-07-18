@@ -5,6 +5,7 @@ import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.Abilities.AbilityTimer;
 import sir_draco.survivalskills.Abilities.SpelunkerAbilitySync;
@@ -17,7 +18,8 @@ public class SpelunkerCommand implements CommandExecutor {
 
     public SpelunkerCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
-        plugin.getCommand("spelunker").setExecutor(this);
+        PluginCommand command = plugin.getCommand("spelunker");
+        if (command != null) command.setExecutor(this);
     }
 
     @Override
@@ -25,7 +27,7 @@ public class SpelunkerCommand implements CommandExecutor {
         if (!(sender instanceof Player)) return false;
         Player p = (Player) sender;
         // Check for level requirements reset and active times and radius
-        if (!plugin.getDefaultPlayerRewards().getReward("Mining", "SpelunkerI").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "SpelunkerI").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Spelunker is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
@@ -33,7 +35,7 @@ public class SpelunkerCommand implements CommandExecutor {
 
         // Show them how much time they have left
         if (strings.length == 1 && strings[0].equalsIgnoreCase("time")) {
-            AbilityTimer timer = plugin.getAbility(p, "Spelunker");
+            AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "Spelunker");
             if (timer != null && timer.isActive()) {
                 p.sendRawMessage(ChatColor.RED + "Spelunking time left: " + RewardNotifications.cooldown(timer.getActiveTimeLeft()));
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
@@ -44,22 +46,22 @@ public class SpelunkerCommand implements CommandExecutor {
         int resetTime;
         int activeTime;
         int radius;
-        if (!plugin.getPlayerRewards(p).getReward("Mining", "SpelunkerI").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "SpelunkerI").isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force spelunker use: " + ChatColor.AQUA + "/spelunker force");
             }
             p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                    + plugin.getDefaultPlayerRewards().getReward("Mining", "SpelunkerI").getLevel()
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "SpelunkerI").getLevel()
                     + ChatColor.RED + " to use Spelunker");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         }
-        else if (!plugin.getPlayerRewards(p).getReward("Mining", "SpelunkerII").isApplied()) {
+        else if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "SpelunkerII").isApplied()) {
             resetTime = 3600; // 60 minutes
             activeTime = 300; // 5 minutes
             radius = 5;
         }
-        else if (!plugin.getPlayerRewards(p).getReward("Mining", "SpelunkerIII").isApplied()) {
+        else if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "SpelunkerIII").isApplied()) {
             resetTime = 1800; // 30 minutes
             activeTime = 900; // 15 minutes
             radius = 10;
@@ -73,7 +75,7 @@ public class SpelunkerCommand implements CommandExecutor {
         if (plugin.isForced(p, strings)) resetTime = 3;
 
         // Check if it is already active
-        AbilityTimer timer = plugin.getAbility(p, "Spelunker");
+        AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "Spelunker");
         if (timer == null) {
             // No timer means a new one can be made
             newTimer(p, activeTime, resetTime, radius);
@@ -90,7 +92,7 @@ public class SpelunkerCommand implements CommandExecutor {
         // If a timer exists, and it is not active then it has to be in cooldown mode
         if (plugin.isForced(p, strings)) {
             timer.endCooldown();
-            plugin.removeAbility(p, "Spelunker");
+            plugin.getAbilityManager().removeAbility(p, "Spelunker");
             newTimer(p, activeTime, resetTime, radius);
         }
         else {
@@ -103,7 +105,7 @@ public class SpelunkerCommand implements CommandExecutor {
     public void newTimer(Player p, int activeTime, int resetTime, int radius) {
         AbilityTimer timer = new AbilityTimer(plugin, "Spelunker", p, activeTime, resetTime);
         timer.runTaskTimerAsynchronously(plugin, 0, 20);
-        plugin.addAbility(p, timer);
+        plugin.getAbilityManager().addAbility(p, timer);
         SpelunkerAbilitySync spelunker = new SpelunkerAbilitySync(plugin, radius, p);
         spelunker.runTaskTimer(plugin, 0, 10);
         plugin.getMiningListener().getSpelunkerTracker().put(p, spelunker);

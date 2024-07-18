@@ -9,9 +9,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.ItemStackGenerator;
-import sir_draco.survivalskills.Skill;
+import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -21,11 +20,8 @@ public class CraftingSkill implements Listener {
     private final SurvivalSkills plugin;
     private final ArrayList<Material> disallowedCraftingSkillMaterials = new ArrayList<>();
 
-    private double xp; // XP per block placed
-
-    public CraftingSkill(SurvivalSkills plugin, double xp) {
+    public CraftingSkill(SurvivalSkills plugin) {
         this.plugin = plugin;
-        this.xp = xp;
         createDisallowedCraftingSkillMaterials();
     }
 
@@ -43,12 +39,12 @@ public class CraftingSkill implements Listener {
             for (ItemStack item : e.getClickedInventory().getContents())
                 if (item.getAmount() < smallestStack && item.getAmount() != 0 && !item.getType().equals(e.getRecipe().getResult().getType())) smallestStack = item.getAmount();
 
-            Skill.experienceEvent(plugin, p, xp * smallestStack, "Crafting");
+            Skill.experienceEvent(plugin, p, plugin.getSkillManager().getCraftingXP() * smallestStack, "Crafting");
             handleCraftingSkills(p, e.getClickedInventory().getContents(), smallestStack, e.getRecipe().getResult());
             return;
         }
 
-        Skill.experienceEvent(plugin, p, xp, "Crafting");
+        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getCraftingXP(), "Crafting");
         if (cannotGetResult(e.getCursor(), e.getRecipe().getResult(), e.getClick())) return;
         handleCraftingSkills(p, e.getClickedInventory().getContents(), 1, e.getRecipe().getResult());
     }
@@ -74,7 +70,7 @@ public class CraftingSkill implements Listener {
             if (item == null) continue;
             if (item.getType().equals(Material.SHULKER_BOX)) return;
         }
-        double chance = plugin.getPlayerRewards(p).getMaterialsBack();
+        double chance = plugin.getSkillManager().getPlayerRewards(p).getMaterialsBack();
         if (chance == 0) return;
         if (disallowedCraftingSkillMaterials.contains(result.getType())) return;
         if (Math.random() >= chance) return;
@@ -90,7 +86,7 @@ public class CraftingSkill implements Listener {
 
     public void handleExtraOutput(Player p, ItemStack result, int smallestStack) {
         if (ItemStackGenerator.isCustomItem(result)) return;
-        double chance = plugin.getPlayerRewards(p).getExtraOutput();
+        double chance = plugin.getSkillManager().getPlayerRewards(p).getExtraOutput();
         if (chance == 0) return;
         if (disallowedCraftingSkillMaterials.contains(result.getType())) return;
         if (Math.random() >= chance) return;
@@ -128,9 +124,5 @@ public class CraftingSkill implements Listener {
         disallowedCraftingSkillMaterials.add(Material.HAY_BLOCK);
         disallowedCraftingSkillMaterials.add(Material.GLOWSTONE_DUST);
         disallowedCraftingSkillMaterials.add(Material.WHEAT);
-    }
-
-    public void setXp(double xp) {
-        this.xp = xp;
     }
 }

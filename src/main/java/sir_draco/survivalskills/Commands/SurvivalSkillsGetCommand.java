@@ -6,6 +6,7 @@ import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -14,7 +15,8 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 public class SurvivalSkillsGetCommand implements CommandExecutor {
     public SurvivalSkillsGetCommand(SurvivalSkills plugin) {
-        plugin.getCommand("ssget").setExecutor(this);
+        PluginCommand command = plugin.getCommand("ssget");
+        if (command != null) command.setExecutor(this);
     }
 
     @Override
@@ -44,12 +46,12 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
             return true;
         }
-        else if (strings[0].equalsIgnoreCase("travellerarmor")) {
-            p.getInventory().addItem(ItemStackGenerator.getTravellerHelmet());
-            p.getInventory().addItem(ItemStackGenerator.getTravellerChestplate());
-            p.getInventory().addItem(ItemStackGenerator.getTravellerLeggings());
-            p.getInventory().addItem(ItemStackGenerator.getTravellerBoots());
-            p.sendRawMessage(ChatColor.GREEN + "You have received: Traveller Armor");
+        else if (strings[0].equalsIgnoreCase("travelerarmor")) {
+            p.getInventory().addItem(ItemStackGenerator.getTravelerHelmet());
+            p.getInventory().addItem(ItemStackGenerator.getTravelerChestplate());
+            p.getInventory().addItem(ItemStackGenerator.getTravelerLeggings());
+            p.getInventory().addItem(ItemStackGenerator.getTravelerBoots());
+            p.sendRawMessage(ChatColor.GREEN + "You have received: Traveler Armor");
             p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
             return true;
         }
@@ -104,14 +106,14 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
                 return ItemStackGenerator.getWandererHelmet();
             case "cavefinder":
                 return ItemStackGenerator.getCaveFinder();
-            case "travellerboots":
-                return ItemStackGenerator.getTravellerBoots();
-            case "travellerleggings":
-                return ItemStackGenerator.getTravellerLeggings();
-            case "travellerchestplate":
-                return ItemStackGenerator.getTravellerChestplate();
-            case "travellerhelmet":
-                return ItemStackGenerator.getTravellerHelmet();
+            case "travelerboots":
+                return ItemStackGenerator.getTravelerBoots();
+            case "travelerleggings":
+                return ItemStackGenerator.getTravelerLeggings();
+            case "travelerchestplate":
+                return ItemStackGenerator.getTravelerChestplate();
+            case "travelerhelmet":
+                return ItemStackGenerator.getTravelerHelmet();
             case "adventurerboots":
                 return ItemStackGenerator.getAdventurerBoots();
             case "adventurerleggings":

@@ -5,6 +5,7 @@ import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
 
@@ -14,7 +15,8 @@ public class PeacefulMinerCommand implements CommandExecutor {
 
     public PeacefulMinerCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
-        plugin.getCommand("peacefulminer").setExecutor(this);
+        PluginCommand command = plugin.getCommand("peacefulminer");
+        if (command != null) command.setExecutor(this);
     }
 
 
@@ -24,19 +26,19 @@ public class PeacefulMinerCommand implements CommandExecutor {
         Player p = (Player) sender;
 
         // Check for if its enabled
-        if (!plugin.getDefaultPlayerRewards().getReward("Mining", "PeacefulMiner").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "PeacefulMiner").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Peaceful Miner is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
         }
 
         // Check if peaceful mining is allowed
-        if (!plugin.getPlayerRewards(p).getReward("Mining", "PeacefulMiner").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "PeacefulMiner").isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force peaceful miner use: " + ChatColor.AQUA + "/peacefulminer force");
             }
             p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                    + plugin.getDefaultPlayerRewards().getReward("Mining", "PeacefulMiner").getLevel()
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "PeacefulMiner").getLevel()
                     + ChatColor.RED + " to use Peaceful Miner");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;

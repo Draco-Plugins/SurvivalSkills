@@ -6,6 +6,7 @@ import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -21,7 +22,8 @@ public class ToggleScoreboardCommand implements CommandExecutor {
 
     public ToggleScoreboardCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
-        plugin.getCommand("togglescoreboard").setExecutor(this);
+        PluginCommand command = plugin.getCommand("togglescoreboard");
+        if (command != null) command.setExecutor(this);
     }
 
     @Override

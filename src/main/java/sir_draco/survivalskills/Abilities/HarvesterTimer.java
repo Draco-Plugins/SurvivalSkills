@@ -1,6 +1,5 @@
 package sir_draco.survivalskills.Abilities;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;

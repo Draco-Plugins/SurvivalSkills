@@ -7,12 +7,10 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Transformation;
 import sir_draco.survivalskills.SurvivalSkills;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +34,7 @@ public class SpelunkerAbilitySync extends BukkitRunnable {
     public void run() {
         // Make sure it is still active
         if (!p.isOnline()) return;
-        AbilityTimer timer = plugin.getAbility(p, "Spelunker");
+        AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "Spelunker");
         if (timer == null || !timer.isActive()) {
             p.sendRawMessage(ChatColor.YELLOW + "Spelunker has run out of time!");
             p.playSound(p, Sound.BLOCK_ANVIL_FALL, 1, 1);

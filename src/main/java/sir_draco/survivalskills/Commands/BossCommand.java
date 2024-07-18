@@ -5,6 +5,7 @@ import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -25,7 +26,8 @@ public class BossCommand implements CommandExecutor {
 
     public BossCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
-        plugin.getCommand("ssboss").setExecutor(this);
+        PluginCommand command = plugin.getCommand("ssboss");
+        if (command != null) command.setExecutor(this);
     }
 
     @Override

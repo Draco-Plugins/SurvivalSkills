@@ -28,7 +28,7 @@ public class AutoTrashCommand implements CommandExecutor {
         Player p = (Player) sender;
 
         boolean big = false;
-        Reward reward = plugin.getPlayerRewards(p).getReward("Fishing", "AutoTrashI");
+        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "AutoTrashI");
         if (reward == null) {
             Bukkit.getLogger().warning("AutoTrashI reward not found for player " + p.getName());
             p.sendRawMessage(ChatColor.RED + "An error occurred while trying to use this ability");
@@ -40,7 +40,7 @@ public class AutoTrashCommand implements CommandExecutor {
             return true;
         }
 
-        Reward reward2 = plugin.getPlayerRewards(p).getReward("Fishing", "AutoTrashII");
+        Reward reward2 = plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "AutoTrashII");
         if (reward2 == null) {
             Bukkit.getLogger().warning("AutoTrashII reward not found for player " + p.getName());
             p.sendRawMessage(ChatColor.RED + "An error occurred while trying to use this ability");

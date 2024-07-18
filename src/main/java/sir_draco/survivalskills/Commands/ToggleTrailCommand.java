@@ -29,7 +29,7 @@ public class ToggleTrailCommand implements CommandExecutor {
         if (strings.length > 0) {
             // Get trail
             String trail = null;
-            for (String str : plugin.getTrails().keySet()) {
+            for (String str : plugin.getAbilityManager().getTrails().keySet()) {
                 if (str.equalsIgnoreCase(strings[0])) {
                     trail = str;
                     break;
@@ -46,7 +46,7 @@ public class ToggleTrailCommand implements CommandExecutor {
 
             // Check if they have unlocked it
             String rewardName = trail + "Trail";
-            Reward reward = plugin.getPlayerRewards(p).getReward("Main", rewardName);
+            Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Main", rewardName);
             if (reward == null) {
                 p.sendRawMessage(ChatColor.RED + "You have not unlocked this trail!");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -65,25 +65,25 @@ public class ToggleTrailCommand implements CommandExecutor {
             }
 
             // Remove previous trail
-            if (plugin.getTrailTracker().containsKey(p)) {
-                plugin.getTrailTracker().get(p).cancel();
-                plugin.getTrailTracker().remove(p);
+            if (plugin.getAbilityManager().getTrailTracker().containsKey(p)) {
+                plugin.getAbilityManager().getTrailTracker().get(p).cancel();
+                plugin.getAbilityManager().getTrailTracker().remove(p);
             }
 
             int dustType = 1;
             if (trail.equalsIgnoreCase("Dust")) dustType = 2;
             else if (trail.equalsIgnoreCase("Rainbow")) dustType = 3;
 
-            TrailEffect effect = new TrailEffect(p, plugin.getTrails().get(trail), dustType, trail);
+            TrailEffect effect = new TrailEffect(p, plugin.getAbilityManager().getTrails().get(trail), dustType, trail);
             effect.runTaskTimer(plugin, 0, 1);
-            plugin.getTrailTracker().put(p, effect);
+            plugin.getAbilityManager().getTrailTracker().put(p, effect);
             p.sendRawMessage(ChatColor.GREEN + "Trail enabled!");
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
             return true;
         }
 
         // They input the command wrong
-        if (!plugin.getTrailTracker().containsKey(p)) {
+        if (!plugin.getAbilityManager().getTrailTracker().containsKey(p)) {
             p.sendRawMessage(ChatColor.GREEN + "Please specifiy a trail!");
             p.sendRawMessage(ChatColor.YELLOW + "Dust, Water, Happy, Dragon, Electric, Enchantment, Ominous, Love, " +
                     "Flame, BlueFlame, Cherry, Rainbow");
@@ -92,8 +92,8 @@ public class ToggleTrailCommand implements CommandExecutor {
         }
 
         // Remove existing trail
-        plugin.getTrailTracker().get(p).cancel();
-        plugin.getTrailTracker().remove(p);
+        plugin.getAbilityManager().getTrailTracker().get(p).cancel();
+        plugin.getAbilityManager().getTrailTracker().remove(p);
         p.sendRawMessage(ChatColor.GREEN + "Trail disabled!");
         p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         return true;

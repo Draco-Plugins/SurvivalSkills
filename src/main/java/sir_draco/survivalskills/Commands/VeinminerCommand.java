@@ -5,6 +5,7 @@ import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
 
@@ -14,7 +15,8 @@ public class VeinminerCommand implements CommandExecutor {
 
     public VeinminerCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
-        plugin.getCommand("veinminer").setExecutor(this);
+        PluginCommand command = plugin.getCommand("veinminer");
+        if (command != null) command.setExecutor(this);
     }
 
     @Override
@@ -23,7 +25,7 @@ public class VeinminerCommand implements CommandExecutor {
         Player p = (Player) sender;
 
         // Check for level requirements reset and active times and radius
-        if (!plugin.getDefaultPlayerRewards().getReward("Mining", "VeinminerI").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "VeinminerI").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Veinminer is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
@@ -38,17 +40,17 @@ public class VeinminerCommand implements CommandExecutor {
         }
 
         // Enable veinminer
-        if (!plugin.getPlayerRewards(p).getReward("Mining", "VeinminerI").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "VeinminerI").isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force veinminer use: " + ChatColor.AQUA + "/veinminer force");
             }
             p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                    + plugin.getDefaultPlayerRewards().getReward("Mining", "VeinminerI").getLevel()
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "VeinminerI").getLevel()
                     + ChatColor.RED + " to use veinminer");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         }
-        else if (plugin.getPlayerRewards(p).getReward("Mining", "VeinminerII").isApplied()) plugin.getMiningListener().getVeinminerTracker().put(p, 1);
+        else if (plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "VeinminerII").isApplied()) plugin.getMiningListener().getVeinminerTracker().put(p, 1);
         else plugin.getMiningListener().getVeinminerTracker().put(p, 0);
 
         p.sendRawMessage(ChatColor.GREEN + "Veinminer has been enabled!");

@@ -5,6 +5,7 @@ import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.Abilities.CaveFinderAsync;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -15,7 +16,8 @@ public class CaveFinderCommand implements CommandExecutor {
 
     public CaveFinderCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
-        plugin.getCommand("cavefinder").setExecutor(this);
+        PluginCommand command = plugin.getCommand("cavefinder");
+        if (command != null) command.setExecutor(this);
     }
 
     @Override

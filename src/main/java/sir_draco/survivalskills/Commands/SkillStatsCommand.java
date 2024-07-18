@@ -14,7 +14,7 @@ import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.Rewards.RewardItemInfo;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.Boards.Leaderboard;
-import sir_draco.survivalskills.Skill;
+import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.*;
@@ -42,7 +42,7 @@ public class SkillStatsCommand implements CommandExecutor {
         Player p = (Player) sender;
 
         if (strings.length == 0) {
-            for (Skill skill : plugin.getPlayerSkills().get(p.getUniqueId())) skill.printStats(p, true);
+            for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId())) skill.printStats(p, true);
             return true;
         }
 
@@ -160,7 +160,7 @@ public class SkillStatsCommand implements CommandExecutor {
                 return true;
             }
 
-            for (Skill skill : plugin.getPlayerSkills().get(play.getUniqueId())) skill.printStats(p, false);
+            for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(play.getUniqueId())) skill.printStats(p, false);
             return true;
         }
 
@@ -341,8 +341,8 @@ public class SkillStatsCommand implements CommandExecutor {
 
     public ArrayList<Inventory> createSkillTree(Player p, String skill) {
         ArrayList<Inventory> inventories = new ArrayList<>();
-        int playerLevel = plugin.getSkill(p.getUniqueId(), skill).getLevel();
-        HashMap<String, ArrayList<Reward>> allSkills = plugin.getDefaultPlayerRewards().getRewardList();
+        int playerLevel = plugin.getSkillManager().getSkill(p.getUniqueId(), skill).getLevel();
+        HashMap<String, ArrayList<Reward>> allSkills = plugin.getSkillManager().getDefaultPlayerRewards().getRewardList();
         ArrayList<Reward> rewards = null;
         switch (skill) {
             case Skill.MINING:
@@ -630,7 +630,7 @@ public class SkillStatsCommand implements CommandExecutor {
     }
 
     public RewardItemInfo getRewardItemInfo(ItemStack item, String skillName, String rewardName) {
-        return new RewardItemInfo(item, skillName, rewardName, plugin.getRewardLevel(skillName, rewardName));
+        return new RewardItemInfo(item, skillName, plugin.getTrophyManager().getRewardLevel(skillName, rewardName));
     }
 
     public void createItemLevelInfo() {
@@ -644,10 +644,10 @@ public class SkillStatsCommand implements CommandExecutor {
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererChestplate(), "Exploring", "WandererArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererLeggings(), "Exploring", "WandererArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererBoots(), "Exploring", "WandererArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravellerHelmet(), "Exploring", "TravellerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravellerChestplate(), "Exploring", "TravellerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravellerLeggings(), "Exploring", "TravellerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravellerBoots(), "Exploring", "TravellerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerHelmet(), "Exploring", "TravelerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerChestplate(), "Exploring", "TravelerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerLeggings(), "Exploring", "TravelerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerBoots(), "Exploring", "TravelerArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerHelmet(), "Exploring", "AdventurerArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerChestplate(), "Exploring", "AdventurerArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerLeggings(), "Exploring", "AdventurerArmor"));

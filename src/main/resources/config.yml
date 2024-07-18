@@ -140,7 +140,7 @@ Exploring:
     Enabled: true
     Level: 65
     Type: 'State'
-  TravellerArmor:
+  TravelerArmor:
     Enabled: true
     Level: 70
     Type: 'Crafting'

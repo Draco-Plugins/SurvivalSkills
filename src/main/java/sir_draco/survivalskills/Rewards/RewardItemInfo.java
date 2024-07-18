@@ -6,13 +6,11 @@ public class RewardItemInfo {
 
     private final ItemStack item;
     private final String skillName;
-    private final String rewardName;
     private final int level;
 
-    public RewardItemInfo(ItemStack item, String skillName, String rewardName, int level) {
+    public RewardItemInfo(ItemStack item, String skillName, int level) {
         this.item = item;
         this.skillName = skillName;
-        this.rewardName = rewardName;
         this.level = level;
     }
 
@@ -22,10 +20,6 @@ public class RewardItemInfo {
 
     public String getSkillName() {
         return skillName;
-    }
-
-    public String getRewardName() {
-        return rewardName;
     }
 
     public int getLevel() {

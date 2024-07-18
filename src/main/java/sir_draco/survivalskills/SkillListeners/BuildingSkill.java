@@ -23,7 +23,7 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.Abilities.FlyingTimer;
 import sir_draco.survivalskills.Rewards.Reward;
-import sir_draco.survivalskills.Skill;
+import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.*;
@@ -35,11 +35,8 @@ public class BuildingSkill implements Listener {
     private final HashSet<Material> bannedReturns = new HashSet<>();
     private final HashSet<String> brokenBlocks = new HashSet<>();
 
-    private double xp; // XP per block placed
-
-    public BuildingSkill(SurvivalSkills plugin, double xp) {
+    public BuildingSkill(SurvivalSkills plugin) {
         this.plugin = plugin;
-        this.xp = xp;
         createBannedReturns();
         createBrokenBlocks();
     }
@@ -53,12 +50,12 @@ public class BuildingSkill implements Listener {
         if (plugin.getFarmingList().contains(e.getBlock().getType())) return;
         if (p.getInventory().getItemInMainHand().getType().toString().contains("SHOVEL")) return;
 
-        Skill.experienceEvent(plugin, p, xp, "Building");
+        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getBuildingXP(), "Building");
 
         // Handle block return
         if (isBannedReturn(e.getBlock().getType())) return;
-        if (plugin.getPlayerRewards(p).getBlockBlackChance() == 0.0) return;
-        if (Math.random() < plugin.getPlayerRewards(p).getBlockBlackChance()) {
+        if (plugin.getSkillManager().getPlayerRewards(p).getBlockBlackChance() == 0.0) return;
+        if (Math.random() < plugin.getSkillManager().getPlayerRewards(p).getBlockBlackChance()) {
             ItemStack item;
             if (e.getBlock().getType().equals(Material.BUBBLE_CORAL_WALL_FAN)) {
                 item = new ItemStack(Material.BUBBLE_CORAL_FAN, 1);
@@ -73,7 +70,7 @@ public class BuildingSkill implements Listener {
         // Make sure they have all necessary requirements to use the sort wand
         Player p = e.getPlayer();
         if (!isSortWand(p.getInventory().getItemInMainHand())) return;
-        Reward reward = plugin.getPlayerRewards(p).getReward("Building", "AutoSortWand");
+        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Building", "AutoSortWand");
         if (!reward.isEnabled()) return;
         if (!reward.isApplied() && !p.isOp()) {
             p.sendRawMessage(ChatColor.RED + "You have to be building level: " + ChatColor.AQUA + reward.getLevel()
@@ -366,10 +363,6 @@ public class BuildingSkill implements Listener {
         bannedReturns.add(Material.WHITE_SHULKER_BOX);
         bannedReturns.add(Material.WITHER_SKELETON_SKULL);
         bannedReturns.add(Material.YELLOW_SHULKER_BOX);
-    }
-
-    public void setXp(double xp) {
-        this.xp = xp;
     }
 
     public void createBrokenBlocks() {

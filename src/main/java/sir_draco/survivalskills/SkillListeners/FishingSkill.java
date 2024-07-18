@@ -29,7 +29,7 @@ import sir_draco.survivalskills.Abilities.AutoTrash;
 import sir_draco.survivalskills.Bosses.ProjectileCalculator;
 import sir_draco.survivalskills.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
-import sir_draco.survivalskills.Skill;
+import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -55,11 +55,9 @@ public class FishingSkill implements Listener {
     private final HashMap<Enchantment, Integer> legendaryEnchantments = new HashMap<>();
 
     private int id = 1;
-    private double xp; // XP per fishing action
 
-    public FishingSkill(SurvivalSkills plugin, double xp) {
+    public FishingSkill(SurvivalSkills plugin) {
         this.plugin = plugin;
-        this.xp = xp;
         createCommonLootTable();
         createRareLootTable();
         createEpicLootTable();
@@ -80,8 +78,8 @@ public class FishingSkill implements Listener {
             if (rod.containsEnchantment(Enchantment.LURE)) lureLevel = Math.min(3, rod.getEnchantmentLevel(Enchantment.LURE));
 
             // Get fishing skill speed level
-            int minSpeed = plugin.getPlayerRewards(p).getFishingMinTickSpeed();
-            int maxSpeed = plugin.getPlayerRewards(p).getFishingMaxTickSpeed();
+            int minSpeed = plugin.getSkillManager().getPlayerRewards(p).getFishingMinTickSpeed();
+            int maxSpeed = plugin.getSkillManager().getPlayerRewards(p).getFishingMaxTickSpeed();
             minSpeed = Math.min(Math.max(1, minSpeed - (lureLevel * 10)), 79);
             maxSpeed = Math.max(minSpeed + 5, maxSpeed - (lureLevel * 20));
 
@@ -117,7 +115,7 @@ public class FishingSkill implements Listener {
 
                         handleFishingExperience(p);
                         handleDurability(rod);
-                        Skill.experienceEvent(plugin, p, xp, "Fishing");
+                        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), "Fishing");
                         hook.remove();
                         rainFishers.remove(p);
                     }
@@ -136,10 +134,10 @@ public class FishingSkill implements Listener {
         Player p = e.getPlayer();
 
         // Check if the player is above fighting level 50 and try to spawn fishing boss
-        if (plugin.getPlayerRewards(p).getReward("Fighting", "FishingKing").isApplied()) {
+        if (plugin.getSkillManager().getPlayerRewards(p).getReward("Fighting", "FishingKing").isApplied()) {
             double chance = Math.random();
 
-            if (!plugin.getTrophyTracker().get(p.getUniqueId()).get("FishingTrophy")) {
+            if (!plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId()).get("FishingTrophy")) {
                 if (chance <= 0.004) {
                     Location loc = e.getHook().getLocation();
                     World world = e.getHook().getWorld();
@@ -180,13 +178,13 @@ public class FishingSkill implements Listener {
         // Set the velocity of all the items in the list to the velocity of the entity that was caught
         if (!items.isEmpty()) for (ItemStack item : items) world.dropItem(loc, item).setVelocity(velocity);
 
-        Skill.experienceEvent(plugin, p, xp, "Fishing");
+        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), "Fishing");
     }
 
     @EventHandler
     public void experienceEvent(PlayerExpChangeEvent e) {
         Player p = e.getPlayer();
-        double xpMultiplier = plugin.getPlayerRewards(p).getExperienceMultiplier();
+        double xpMultiplier = plugin.getSkillManager().getPlayerRewards(p).getExperienceMultiplier();
         e.setAmount((int) (e.getAmount() * xpMultiplier));
     }
 
@@ -194,7 +192,7 @@ public class FishingSkill implements Listener {
     public void playerMoveInWater(PlayerMoveEvent e) {
         Player p = e.getPlayer();
         if (!p.isSwimming() && !p.isInWater()) return;
-        if (plugin.getPlayerRewards(p).getReward("Fishing", "WaterBreathingIII").isApplied()) {
+        if (plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "WaterBreathingIII").isApplied()) {
             p.setRemainingAir(300);
             return;
         }
@@ -535,7 +533,7 @@ public class FishingSkill implements Listener {
     }
 
     public int getFishingLineNumber(Player p) {
-        PlayerRewards rewards = plugin.getPlayerRewards(p);
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
         if (rewards.getReward("Fishing", "FishingLineV").isApplied()) return 10;
         if (rewards.getReward("Fishing", "FishingLineIV").isApplied()) return 7;
         if (rewards.getReward("Fishing", "FishingLineIII").isApplied()) return 5;
@@ -547,7 +545,7 @@ public class FishingSkill implements Listener {
     public ArrayList<ItemStack> getItemsToDrop(Player p, int luckLevel) {
         ArrayList<ItemStack> items = new ArrayList<>();
         int lineNumber = getFishingLineNumber(p);
-        PlayerRewards rewards = plugin.getPlayerRewards(p);
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
         double commonPercentage = rewards.getCommonFishingLootChance() + (luckLevel * 0.15);
         double rarePercentage = rewards.getRareFishingLootChance() + (luckLevel * 0.1);
         double epicPercentage = rewards.getEpicFishingLootChance() + (luckLevel * 0.05);
@@ -680,7 +678,7 @@ public class FishingSkill implements Listener {
 
     public void handleFishingExperience(Player p) {
         int xp = (int) (Math.random() * 6);
-        int xpMultiplier = (int) plugin.getPlayerRewards(p).getExperienceMultiplier();
+        int xpMultiplier = (int) plugin.getSkillManager().getPlayerRewards(p).getExperienceMultiplier();
         if (xp != 0) p.getWorld().spawn(p.getLocation(), ExperienceOrb.class).setExperience(xp * xpMultiplier);
     }
 
@@ -732,10 +730,6 @@ public class FishingSkill implements Listener {
 
     public ArrayList<Player> getWaterBreathers() {
         return waterBreathers;
-    }
-
-    public void setXp(double xp) {
-        this.xp = xp;
     }
 
     public ArrayList<Player> getOpenTrashInventories() {

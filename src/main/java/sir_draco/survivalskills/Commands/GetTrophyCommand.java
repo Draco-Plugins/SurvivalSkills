@@ -5,6 +5,7 @@ import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -15,7 +16,8 @@ public class GetTrophyCommand implements CommandExecutor {
 
     public GetTrophyCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
-        plugin.getCommand("gettrophy").setExecutor(this);
+        PluginCommand command = plugin.getCommand("gettrophy");
+        if (command != null) command.setExecutor(this);
     }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
@@ -32,7 +34,7 @@ public class GetTrophyCommand implements CommandExecutor {
         } catch (Exception e) {
             type = 1;
         }
-        ItemStack item = plugin.getTrophyItem(type);
+        ItemStack item = plugin.getTrophyManager().getTrophyItem(type);
         p.getInventory().addItem(item);
         p.sendRawMessage(ChatColor.GREEN + "You have received the trophy");
         p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);

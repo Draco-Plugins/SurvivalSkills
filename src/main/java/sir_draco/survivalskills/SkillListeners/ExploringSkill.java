@@ -18,7 +18,7 @@ import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.CaveFinderAsync;
 import sir_draco.survivalskills.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
-import sir_draco.survivalskills.Skill;
+import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.HashMap;
@@ -30,11 +30,8 @@ public class ExploringSkill implements Listener {
     private final HashMap<UUID, Location> locationTracker = new HashMap<>();
     private final HashMap<UUID, Integer> stepCounter = new HashMap<>();
 
-    private double xp; // XP per block travelled
-
-    public ExploringSkill(SurvivalSkills plugin, double xp) {
+    public ExploringSkill(SurvivalSkills plugin) {
         this.plugin = plugin;
-        this.xp = xp;
     }
 
     @EventHandler
@@ -68,7 +65,7 @@ public class ExploringSkill implements Listener {
         }
         else stepCounter.put(p.getUniqueId(), steps - 100);
 
-        Skill.experienceEvent(plugin, p, xp * 100, "Exploring");
+        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getExploringXP() * 100, "Exploring");
         stepCounter.put(uuid, 0);
     }
 
@@ -101,21 +98,21 @@ public class ExploringSkill implements Listener {
         }
         else stepCounter.put(p.getUniqueId(), steps - 100);
 
-        Skill.experienceEvent(plugin, p, xp * 100, "Exploring");
+        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getExploringXP() * 100, "Exploring");
         stepCounter.put(uuid, 0);
     }
 
     @EventHandler
     public void exploringSkill(PlayerMoveEvent e) {
         Player p = e.getPlayer();
-        PlayerRewards rewards = plugin.getPlayerRewards(p);
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
         if (rewards == null) return;
 
         if (p.isSwimming()) setSwimSpeed(p);
         checkJumpBoots(p, rewards);
         checkWandererArmor(p, rewards);
         checkHealthRegen(p, rewards);
-        checkTravellerArmor(p, rewards);
+        checkTravelerArmor(p, rewards);
         checkAdventurerArmor(p, rewards);
     }
 
@@ -123,7 +120,7 @@ public class ExploringSkill implements Listener {
     public void onFallDamage(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player)) return;
         Player p = (Player) e.getEntity();
-        PlayerRewards rewards = plugin.getPlayerRewards(p);
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
         if (e.getCause() != EntityDamageEvent.DamageCause.FALL) return;
         if (isAdventurerArmor(p.getInventory()) && (rewards.getReward("Exploring", "AdventurerArmor").isApplied() || p.hasPermission("survivalskills.op"))) {
             e.setCancelled(true);
@@ -146,7 +143,7 @@ public class ExploringSkill implements Listener {
         PlayerInventory inv = p.getInventory();
         if (!ItemStackGenerator.isCustomItem(inv.getItemInMainHand(), 6)
                 && !ItemStackGenerator.isCustomItem(inv.getItemInOffHand(), 6)) return;
-        if (!plugin.getPlayerRewards(p).getReward("Exploring", "CaveFinder").isApplied()) return;
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "CaveFinder").isApplied()) return;
         CaveFinderAsync task = new CaveFinderAsync(p, plugin);
         task.runTaskAsynchronously(plugin);
     }
@@ -166,7 +163,7 @@ public class ExploringSkill implements Listener {
     }
 
     public void setSwimSpeed(Player p) {
-        double speed = plugin.getPlayerRewards(p).getSwimSpeed();
+        double speed = plugin.getSkillManager().getPlayerRewards(p).getSwimSpeed();
         if (speed == 0) return;
         speed *= 0.2;
         Vector v = p.getLocation().getDirection();
@@ -184,7 +181,7 @@ public class ExploringSkill implements Listener {
         return ItemStackGenerator.isCustomItem(inv.getHelmet(), 5);
     }
 
-    public boolean isTravellerArmor(PlayerInventory inv) {
+    public boolean isTravelerArmor(PlayerInventory inv) {
         if (!ItemStackGenerator.isCustomItem(inv.getBoots(), 7)) return false;
         if (!ItemStackGenerator.isCustomItem(inv.getLeggings(), 7)) return false;
         if (!ItemStackGenerator.isCustomItem(inv.getChestplate(), 7)) return false;
@@ -199,7 +196,8 @@ public class ExploringSkill implements Listener {
     }
 
     public boolean isJumpingBoots(Player p) {
-        if (!plugin.getPlayerRewards(p).getReward("Exploring", "JumpingBoots").isApplied() && !p.hasPermission("survivalskills.op")) return false;
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "JumpingBoots").isApplied()
+                && !p.hasPermission("survivalskills.op")) return false;
         return ItemStackGenerator.isCustomItem(p.getInventory().getBoots(), 4);
     }
 
@@ -221,9 +219,9 @@ public class ExploringSkill implements Listener {
         if (isWandererArmor(p.getInventory())) giveSpeedPotionEffect(p, 0);
     }
 
-    public void checkTravellerArmor(Player p, PlayerRewards rewards) {
-        if (!rewards.getReward("Exploring", "TravellerArmor").isApplied() && !p.hasPermission("survivalskills.op")) return;
-        if (isTravellerArmor(p.getInventory())) giveSpeedPotionEffect(p, 1);
+    public void checkTravelerArmor(Player p, PlayerRewards rewards) {
+        if (!rewards.getReward("Exploring", "TravelerArmor").isApplied() && !p.hasPermission("survivalskills.op")) return;
+        if (isTravelerArmor(p.getInventory())) giveSpeedPotionEffect(p, 1);
     }
 
     public void checkAdventurerArmor(Player p, PlayerRewards rewards) {
@@ -234,9 +232,5 @@ public class ExploringSkill implements Listener {
     public void checkHealthRegen(Player p, PlayerRewards rewards) {
         if (!rewards.getReward("Exploring", "HealthRegen").isApplied()) return;
         giveRegenPotionEffect(p);
-    }
-
-    public void setXp(double xp) {
-        this.xp = xp;
     }
 }

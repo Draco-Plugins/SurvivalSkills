@@ -23,7 +23,7 @@ public class AbilityTimer extends BukkitRunnable {
 
     @Override
     public void run() {
-        if (plugin.getAbility(p, name) == null) {
+        if (plugin.getAbilityManager().getAbility(p, name) == null) {
             this.cancel();
             return;
         }
@@ -36,7 +36,7 @@ public class AbilityTimer extends BukkitRunnable {
             activeTimeLeft--;
         }
         if (timeTillReset == 0) {
-            plugin.removeAbility(p, name);
+            plugin.getAbilityManager().removeAbility(p, name);
             this.cancel();
         }
     }

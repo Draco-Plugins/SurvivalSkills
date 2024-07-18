@@ -4,7 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.*;
-import sir_draco.survivalskills.Skill;
+import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 public class SkillScoreboard {
@@ -65,7 +65,7 @@ public class SkillScoreboard {
         }
 
         // Get main skill and death objectives
-        Skill mainSkill = plugin.getSkill(p.getUniqueId(), "Main");
+        Skill mainSkill = plugin.getSkillManager().getSkill(p.getUniqueId(), "Main");
         Objective main = board.getObjective("Main");
         Objective deaths = board.getObjective("Deaths");
         if (main == null) return;
@@ -88,7 +88,7 @@ public class SkillScoreboard {
 
         // Player NameTags
         for (Player player : Bukkit.getOnlinePlayers()) {
-            Skill playerMainSkill = plugin.getSkill(player.getUniqueId(), "Main");
+            Skill playerMainSkill = plugin.getSkillManager().getSkill(player.getUniqueId(), "Main");
             ChatColor color = getChatColor(playerMainSkill);
             String colorString;
             if (playerMainSkill.getLevel() == 100) colorString = ChatColor.BOLD.toString() + color;
@@ -104,7 +104,7 @@ public class SkillScoreboard {
 
         // Handle another skill being displayed
         if (skillName.equals("Main")) return;
-        Skill sideSkill = plugin.getSkill(p.getUniqueId(), skillName);
+        Skill sideSkill = plugin.getSkillManager().getSkill(p.getUniqueId(), skillName);
         int skillLevel = sideSkill.getLevel();
         String skillXPNext;
         if (skillLevel < 100) {

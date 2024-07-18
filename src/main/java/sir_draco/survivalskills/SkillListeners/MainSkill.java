@@ -60,7 +60,7 @@ public class MainSkill implements Listener {
     @EventHandler (priority = EventPriority.LOWEST)
     public void onPlayerDeath(PlayerDeathEvent e) {
         Player p = e.getEntity();
-        PlayerRewards rewards = plugin.getPlayerRewards(p);
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
 
         if (deathLocations.containsKey(p)) deathLocations.get(p).add(p.getLocation());
         else {
@@ -194,9 +194,10 @@ public class MainSkill implements Listener {
             UUID player = UUID.fromString(uuidString);
             Location location = getLocationFromConfig(Integer.parseInt(id));
             ArrayList<ItemStack> items = new ArrayList<>();
-            grave.getConfigurationSection("Graves." + id + ".Inventory").getKeys(false).forEach(slot -> {
-                items.add(grave.getItemStack("Graves." + id + ".Inventory." + slot));
-            });
+            ConfigurationSection section = grave.getConfigurationSection("Graves." + id + ".Inventory");
+            if (section == null) return;
+            section.getKeys(false).forEach(slot ->
+                    items.add(grave.getItemStack("Graves." + id + ".Inventory." + slot)));
 
             removeIDs.add(intID);
             if (location != null) {

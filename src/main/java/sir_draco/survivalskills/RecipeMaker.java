@@ -34,7 +34,7 @@ public class RecipeMaker {
         NamespacedKey championKey = new NamespacedKey(plugin, "champion");
 
         ArrayList<NamespacedKey> recipeKeys = plugin.getRecipeKeys();
-        HashMap<Integer, ItemStack> trophyItems = plugin.getTrophyItems();
+        HashMap<Integer, ItemStack> trophyItems = plugin.getTrophyManager().getTrophyItems();
 
         recipeKeys.add(caveKey);
         recipeKeys.add(forestKey);
@@ -333,10 +333,10 @@ public class RecipeMaker {
         NamespacedKey wandererChestplateKey = createKey("wandererchestplate", plugin);
         NamespacedKey wandererLeggingsKey = createKey("wandererleggings", plugin);
         NamespacedKey wandererBootsKey = createKey("wandererboots", plugin);
-        NamespacedKey travellerHelmetKey = createKey("travellerhelmet", plugin);
-        NamespacedKey travellerChestplateKey = createKey("travellerchestplate", plugin);
-        NamespacedKey travellerLeggingsKey = createKey("travellerleggings", plugin);
-        NamespacedKey travellerBootsKey = createKey("travellerboots", plugin);
+        NamespacedKey travelerHelmetKey = createKey("travelerhelmet", plugin);
+        NamespacedKey travelerChestplateKey = createKey("travelerchestplate", plugin);
+        NamespacedKey travelerLeggingsKey = createKey("travelerleggings", plugin);
+        NamespacedKey travelerBootsKey = createKey("travelerboots", plugin);
         NamespacedKey adventurerHelmetKey = createKey("adventurerhelmet", plugin);
         NamespacedKey adventurerChestplateKey = createKey("adventurerchestplate", plugin);
         NamespacedKey adventurerLeggingsKey = createKey("adventurerleggings", plugin);
@@ -366,10 +366,10 @@ public class RecipeMaker {
         recipeKeys.add(wandererChestplateKey);
         recipeKeys.add(wandererLeggingsKey);
         recipeKeys.add(wandererBootsKey);
-        recipeKeys.add(travellerHelmetKey);
-        recipeKeys.add(travellerChestplateKey);
-        recipeKeys.add(travellerLeggingsKey);
-        recipeKeys.add(travellerBootsKey);
+        recipeKeys.add(travelerHelmetKey);
+        recipeKeys.add(travelerChestplateKey);
+        recipeKeys.add(travelerLeggingsKey);
+        recipeKeys.add(travelerBootsKey);
         recipeKeys.add(adventurerHelmetKey);
         recipeKeys.add(adventurerChestplateKey);
         recipeKeys.add(adventurerLeggingsKey);
@@ -413,23 +413,23 @@ public class RecipeMaker {
         ItemStackGenerator.createSmallShapedRecipe(wandererBootsKey, ItemStackGenerator.getWandererBoots(), "DDD:B B:BAB",
                 ItemStackGenerator.getSpeedPotion(), null, null, null, Material.CHAIN, null);
 
-        ItemStackGenerator.createSmallShapedRecipe(travellerHelmetKey, ItemStackGenerator.getTravellerHelmet(), "BAB:B B:DDD",
+        ItemStackGenerator.createSmallShapedRecipe(travelerHelmetKey, ItemStackGenerator.getTravelerHelmet(), "BAB:B B:DDD",
                 ItemStackGenerator.getWandererHelmet(), null, null, null, Material.DIAMOND, null);
-        ItemStackGenerator.createSmallShapedRecipe(travellerChestplateKey, ItemStackGenerator.getTravellerChestplate(), "B B:BAB:BBB",
+        ItemStackGenerator.createSmallShapedRecipe(travelerChestplateKey, ItemStackGenerator.getTravelerChestplate(), "B B:BAB:BBB",
                 ItemStackGenerator.getWandererChestplate(), null, null, null, Material.DIAMOND, null);
-        ItemStackGenerator.createSmallShapedRecipe(travellerLeggingsKey, ItemStackGenerator.getTravellerLeggings(), "BAB:B B:B B",
+        ItemStackGenerator.createSmallShapedRecipe(travelerLeggingsKey, ItemStackGenerator.getTravelerLeggings(), "BAB:B B:B B",
                 ItemStackGenerator.getWandererLeggings(), null, null, null, Material.DIAMOND, null);
-        ItemStackGenerator.createSmallShapedRecipe(travellerBootsKey, ItemStackGenerator.getTravellerBoots(), "DDD:BAB:B B",
+        ItemStackGenerator.createSmallShapedRecipe(travelerBootsKey, ItemStackGenerator.getTravelerBoots(), "DDD:BAB:B B",
                 ItemStackGenerator.getWandererBoots(), null, null, null, Material.DIAMOND, null);
 
         ItemStackGenerator.createSmallShapedRecipe(adventurerHelmetKey, ItemStackGenerator.getAdventurerHelmet(), "BAB:C C:DDD",
-                ItemStackGenerator.getTravellerHelmet(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);
+                ItemStackGenerator.getTravelerHelmet(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);
         ItemStackGenerator.createSmallShapedRecipe(adventurerChestplateKey, ItemStackGenerator.getAdventurerChestplate(), "C C:BAB:CCC",
-                ItemStackGenerator.getTravellerChestplate(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);
+                ItemStackGenerator.getTravelerChestplate(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);
         ItemStackGenerator.createSmallShapedRecipe(adventurerLeggingsKey, ItemStackGenerator.getAdventurerLeggings(), "BAB:C C:C C",
-                ItemStackGenerator.getTravellerLeggings(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);
+                ItemStackGenerator.getTravelerLeggings(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);
         ItemStackGenerator.createSmallShapedRecipe(adventurerBootsKey, ItemStackGenerator.getAdventurerBoots(), "DDD:BAB:C C",
-                ItemStackGenerator.getTravellerBoots(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);
+                ItemStackGenerator.getTravelerBoots(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);
 
         ItemStackGenerator.createSmallShapedRecipe(caveFinder, ItemStackGenerator.getCaveFinder(), "AAA:ABA:AAA",
                 null, null, null, Material.REDSTONE_BLOCK, Material.COMPASS, null);

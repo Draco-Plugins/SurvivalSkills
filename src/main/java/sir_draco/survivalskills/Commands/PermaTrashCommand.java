@@ -26,7 +26,7 @@ public class PermaTrashCommand implements CommandExecutor {
         if (!(sender instanceof Player)) return false;
         Player p = (Player) sender;
 
-        Reward reward = plugin.getPlayerRewards(p).getReward("Fishing", "PermaTrash");
+        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "PermaTrash");
         if ((!reward.isEnabled() || !reward.isApplied()) && !plugin.isForced(p, strings)) {
             p.sendRawMessage(ChatColor.RED + "You have to be fishing level " + ChatColor.AQUA + reward.getLevel() + ChatColor.RED + " to use this ability");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

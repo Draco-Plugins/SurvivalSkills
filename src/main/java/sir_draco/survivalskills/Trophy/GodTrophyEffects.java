@@ -2,8 +2,6 @@ package sir_draco.survivalskills.Trophy;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
-import net.citizensnpcs.api.trait.Trait;
-import net.citizensnpcs.commands.gui.NPCConfigurator;
 import net.citizensnpcs.trait.Gravity;
 import net.citizensnpcs.trait.LookClose;
 import net.citizensnpcs.trait.SkinTrait;
@@ -26,7 +24,6 @@ public class GodTrophyEffects {
     private final double centerX;
     private final double centerY;
     private final double centerZ;
-    private final CircularRotationObject crystalOrbit;
     private final Location trophyLoc;
 
     private ItemDisplay display;
@@ -38,7 +35,6 @@ public class GodTrophyEffects {
 
     public GodTrophyEffects(Location trophyLoc) {
         this.trophyLoc = trophyLoc;
-        crystalOrbit = new CircularRotationObject(trophyLoc.clone().add(0.5, 1.5, 0.5), 2, 1);
         centerX = trophyLoc.getX() + 0.5;
         centerY = trophyLoc.getY() + 1.5;
         centerZ = trophyLoc.getZ() + 0.5;

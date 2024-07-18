@@ -23,7 +23,7 @@ import sir_draco.survivalskills.Bosses.*;
 import sir_draco.survivalskills.Bosses.Boss;
 import sir_draco.survivalskills.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
-import sir_draco.survivalskills.Skill;
+import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -41,12 +41,10 @@ public class FightingSkill implements Listener {
     private final HashMap<Player, Boss> summonTracker = new HashMap<>();
     private final HashMap<EntityType, Double> mobXP = new HashMap<>();
 
-    private double xp; // XP per mob killed
     private DragonBoss dragonBoss;
 
-    public FightingSkill(SurvivalSkills plugin, double xp) {
+    public FightingSkill(SurvivalSkills plugin) {
         this.plugin = plugin;
-        this.xp = xp;
         createMobXPMapping();
         createValidWeapons();
     }
@@ -81,19 +79,19 @@ public class FightingSkill implements Listener {
                     drop = ItemStackGenerator.getGiantBossItem();
                     removeGiant(e.getEntity());
                     Bukkit.broadcastMessage(ChatColor.AQUA + "The Giant" + ChatColor.LIGHT_PURPLE + " has been slain!");
-                    killExperience(p, xp * 500);
+                    killExperience(p, plugin.getSkillManager().getFightingXP() * 500);
                     break;
                 case SPIDER:
                     drop = ItemStackGenerator.getBroodMotherBossItem();
                     removeBroodMother(e.getEntity());
                     Bukkit.broadcastMessage(ChatColor.AQUA + "The BroodMother" + ChatColor.LIGHT_PURPLE + " has been slain!");
-                    killExperience(p, xp * 1000);
+                    killExperience(p, plugin.getSkillManager().getFightingXP() * 1000);
                     break;
                 case VILLAGER:
                     drop = ItemStackGenerator.getVillagerBossItem();
                     removeVillager(e.getEntity());
                     Bukkit.broadcastMessage(ChatColor.AQUA + "The Exiled One" + ChatColor.LIGHT_PURPLE + " has been slain!");
-                    killExperience(p, xp * 2500);
+                    killExperience(p, plugin.getSkillManager().getFightingXP() * 2500);
                     break;
                 case ENDER_DRAGON:
                     if (dragonBoss != null) {
@@ -103,8 +101,9 @@ public class FightingSkill implements Listener {
                         for (Player player : Bukkit.getOnlinePlayers()) {
                             if (!player.getWorld().getEnvironment().equals(World.Environment.THE_END)) continue;
 
-                            if (!world.hasMetadata("killedfirstdragon")) killExperience(player, xp * 500);
-                            else killExperience(player, xp * 75);
+                            if (!world.hasMetadata("killedfirstdragon"))
+                                killExperience(player, plugin.getSkillManager().getFightingXP() * 500);
+                            else killExperience(player, plugin.getSkillManager().getFightingXP() * 75);
                         }
 
                         if (!world.hasMetadata("killedfirstdragon"))
@@ -164,7 +163,7 @@ public class FightingSkill implements Listener {
         if (e.getAction().equals(Action.LEFT_CLICK_BLOCK) || e.getAction().equals(Action.LEFT_CLICK_AIR)) return;
 
         // Check if a berserker effect is active or is on cooldown
-        AbilityTimer timer = plugin.getAbility(p, "Berserker");
+        AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "Berserker");
         if (timer != null) {
             if (!timer.isActive()) {
                 p.sendRawMessage(ChatColor.RED + "You can use Berserker in " + ChatColor.AQUA
@@ -186,12 +185,12 @@ public class FightingSkill implements Listener {
         // If it is, check if it is an active berserker
         Player p = (Player) e.getDamager();
         if (activeBerserkers.contains(p)) {
-            if (!plugin.getTimerTracker().containsKey(p)) {
+            if (!plugin.getAbilityManager().getTimerTracker().containsKey(p)) {
                 activeBerserkers.remove(p);
                 return;
             }
             boolean found = false;
-            for (AbilityTimer timer : plugin.getTimerTracker().get(p)) {
+            for (AbilityTimer timer : plugin.getAbilityManager().getTimerTracker().get(p)) {
                 if (!timer.getName().equals("Berserker")) continue;
                 found = true;
                 break;
@@ -207,7 +206,7 @@ public class FightingSkill implements Listener {
             }
         }
 
-        double criticalChance = plugin.getPlayerRewards(p).getCriticalChance();
+        double criticalChance = plugin.getSkillManager().getPlayerRewards(p).getCriticalChance();
         if (criticalChance != 0 && Math.random() < criticalChance) {
             e.setDamage(e.getDamage() * 2.0);
             p.sendRawMessage(ChatColor.GOLD + "Critical Hit!");
@@ -217,7 +216,7 @@ public class FightingSkill implements Listener {
             }
         }
 
-        double lifesteal = plugin.getPlayerRewards(p).getLifesteal();
+        double lifesteal = plugin.getSkillManager().getPlayerRewards(p).getLifesteal();
         if (lifesteal != 0 && Math.random() < lifesteal) {
             double health = p.getHealth();
             AttributeInstance healthAttribute = p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
@@ -330,7 +329,7 @@ public class FightingSkill implements Listener {
     public void handleExperience(Player p, Entity ent) {
         EntityType type = ent.getType();
         if (!mobXP.containsKey(type)) {
-            killExperience(p, xp * 0.5);
+            killExperience(p, plugin.getSkillManager().getFightingXP() * 0.5);
             return;
         }
         if (type.equals(EntityType.IRON_GOLEM)) {
@@ -340,11 +339,11 @@ public class FightingSkill implements Listener {
 
         double exp;
         try {
-            exp = xp * mobXP.get(type);
+            exp = plugin.getSkillManager().getFightingXP() * mobXP.get(type);
         }
         catch (Exception error) {
             Bukkit.getLogger().warning("Entity not found: " + type);
-            exp = xp;
+            exp = plugin.getSkillManager().getFightingXP();
         }
         killExperience(p, exp);
     }
@@ -416,12 +415,12 @@ public class FightingSkill implements Listener {
             return;
         }
 
-        PlayerRewards reward = plugin.getPlayerRewards(p);
+        PlayerRewards reward = plugin.getSkillManager().getPlayerRewards(p);
         int activeTime;
         int resetTime;
         if (!reward.getReward("Fighting", "BerserkerI").isApplied()) {
             p.sendRawMessage(ChatColor.RED + "Berserker is unlocked at level: " + ChatColor.AQUA
-                    + plugin.getDefaultPlayerRewards().getReward("Fighting", "BerserkerI").getLevel());
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Fighting", "BerserkerI").getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
@@ -456,7 +455,7 @@ public class FightingSkill implements Listener {
 
         AbilityTimer timer = new AbilityTimer(plugin, "Berserker", p, activeTime, resetTime);
         timer.runTaskTimerAsynchronously(plugin, 0, 20);
-        plugin.addAbility(p, timer);
+        plugin.getAbilityManager().addAbility(p, timer);
         activeBerserkers.add(p);
         BerserkerEffects berserker = new BerserkerEffects(p, activeTime);
         berserker.runTaskTimer(plugin, 0, 5);
@@ -580,10 +579,6 @@ public class FightingSkill implements Listener {
 
     public DragonBoss getDragonBoss() {
         return dragonBoss;
-    }
-
-    public void setXp(double xp) {
-        this.xp = xp;
     }
 
     public ArrayList<Player> getNoPhantomSpawns() {

@@ -6,11 +6,12 @@ import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Rewards.Reward;
-import sir_draco.survivalskills.Skill;
+import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
@@ -24,7 +25,8 @@ public class SurvivalSkillsCommand implements CommandExecutor {
 
     public SurvivalSkillsCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
-        plugin.getCommand("survivalskills").setExecutor(this);
+        PluginCommand command = plugin.getCommand("survivalskills");
+        if (command != null) command.setExecutor(this);
     }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
@@ -74,7 +76,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
-            Skill skill = plugin.getSkill(target.getUniqueId(), strings[2]);
+            Skill skill = plugin.getSkillManager().getSkill(target.getUniqueId(), strings[2]);
             handleXP(p, target, skill, strings);
             updateRewards(target, skill);
             return true;
@@ -97,7 +99,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
-            Skill skill = plugin.getSkill(target.getUniqueId(), strings[2]);
+            Skill skill = plugin.getSkillManager().getSkill(target.getUniqueId(), strings[2]);
             handleLevel(p, target, skill, strings);
             updateRewards(target, skill);
             return true;
@@ -127,7 +129,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
 
             String skill = strings[1];
             if (skill.equalsIgnoreCase("building")) {
-                plugin.getBuildingListener().setXp(amount);
+                plugin.getSkillManager().setBuildingXP(amount);
                 p.sendRawMessage(ChatColor.GREEN + "Building skill XP set to " + ChatColor.AQUA + amount);
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 File config = new File(plugin.getDataFolder(), "config.yml");
@@ -140,7 +142,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 }
             }
             else if (skill.equalsIgnoreCase("fighting")) {
-                plugin.getFightingListener().setXp(amount);
+                plugin.getSkillManager().setFightingXP(amount);
                 p.sendRawMessage(ChatColor.GREEN + "Fighting skill XP set to " + ChatColor.AQUA + amount);
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 File config = new File(plugin.getDataFolder(), "config.yml");
@@ -153,7 +155,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 }
             }
             else if (skill.equalsIgnoreCase("farming")) {
-                plugin.getFarmingListener().setXp(amount);
+                plugin.getSkillManager().setFarmingXP(amount);
                 p.sendRawMessage(ChatColor.GREEN + "Farming skill XP set to " + ChatColor.AQUA + amount);
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 File config = new File(plugin.getDataFolder(), "config.yml");
@@ -166,7 +168,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 }
             }
             else if (skill.equalsIgnoreCase("fishing")) {
-                plugin.getFishingListener().setXp(amount);
+                plugin.getSkillManager().setFishingXP(amount);
                 p.sendRawMessage(ChatColor.GREEN + "Fishing skill XP set to " + ChatColor.AQUA + amount);
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 File config = new File(plugin.getDataFolder(), "config.yml");
@@ -179,7 +181,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 }
             }
             else if (skill.equalsIgnoreCase("mining")) {
-                plugin.getMiningListener().setXp(amount);
+                plugin.getSkillManager().setMiningXP(amount);
                 p.sendRawMessage(ChatColor.GREEN + "Mining skill XP set to " + ChatColor.AQUA + amount);
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 File config = new File(plugin.getDataFolder(), "config.yml");
@@ -192,7 +194,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 }
             }
             else if (skill.equalsIgnoreCase("exploring")) {
-                plugin.getExploringListener().setXp(amount);
+                plugin.getSkillManager().setExploringXP(amount);
                 p.sendRawMessage(ChatColor.GREEN + "Exploring skill XP set to " + ChatColor.AQUA + amount);
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 File config = new File(plugin.getDataFolder(), "config.yml");
@@ -205,7 +207,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 }
             }
             else if (skill.equalsIgnoreCase("crafting")) {
-                plugin.getCraftingListener().setXp(amount);
+                plugin.getSkillManager().setCraftingXP(amount);
                 p.sendRawMessage(ChatColor.GREEN + "Crafting skill XP set to " + ChatColor.AQUA + amount);
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 File config = new File(plugin.getDataFolder(), "config.yml");
@@ -281,7 +283,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
     }
 
     public boolean isNotSkill(UUID uuid, String skill) {
-        for (Skill s : plugin.getPlayerSkills().get(uuid)) {
+        for (Skill s : plugin.getSkillManager().getPlayerSkills().get(uuid)) {
             if (s.getSkillName().equalsIgnoreCase(skill)) return false;
         }
         return true;
@@ -363,16 +365,16 @@ public class SurvivalSkillsCommand implements CommandExecutor {
     }
 
     public void updateRewards(Player p, Skill skill) {
-        for (Reward reward : plugin.getPlayerRewards(p).getRewardList().get(skill.getSkillName())) {
+        for (Reward reward : plugin.getSkillManager().getPlayerRewards(p).getRewardList().get(skill.getSkillName())) {
             if (skill.getLevel() >= reward.getLevel() && !reward.isApplied() && reward.isEnabled()) {
                 p.sendMessage(ChatColor.GREEN + "You have unlocked a new reward: " + ChatColor.GRAY + reward.getName());
             }
         }
-        plugin.getPlayerRewards(p).enableSkillRewards(p, skill);
+        plugin.getSkillManager().getPlayerRewards(p).enableSkillRewards(p, skill);
     }
 
     public Reward findReward(String rewardName) {
-        for (Map.Entry<String, ArrayList<Reward>> skill : plugin.getDefaultPlayerRewards().getRewardList().entrySet()) {
+        for (Map.Entry<String, ArrayList<Reward>> skill : plugin.getSkillManager().getDefaultPlayerRewards().getRewardList().entrySet()) {
             for (Reward reward : skill.getValue()) {
                 if (!reward.getName().equalsIgnoreCase(rewardName)) continue;
                 return reward;
@@ -393,7 +395,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
         }
 
         for (Player p : Bukkit.getOnlinePlayers()) {
-            PlayerRewards rewards = plugin.getPlayerRewards(p);
+            PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
             rewards.getReward(reward.getSkillType(), reward.getName()).setEnabled(reward.isEnabled());
         }
     }
@@ -410,7 +412,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
         }
 
         for (Player p : Bukkit.getOnlinePlayers()) {
-            PlayerRewards rewards = plugin.getPlayerRewards(p);
+            PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
             rewards.getReward(reward.getSkillType(), reward.getName()).setLevel(level);
         }
     }

@@ -5,6 +5,7 @@ import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -20,25 +21,26 @@ public class MobScannerCommand implements CommandExecutor {
 
     public MobScannerCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
-        plugin.getCommand("mobscanner").setExecutor(this);
+        PluginCommand command = plugin.getCommand("mobscanner");
+        if (command != null) command.setExecutor(this);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (!(sender instanceof Player)) return false;
         Player p = (Player) sender;
-        if (!plugin.getDefaultPlayerRewards().getReward("Fighting", "MobScanner").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Fighting", "MobScanner").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Mob Scanner is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
         }
 
-        if (!plugin.getPlayerRewards(p).getReward("Fighting", "MobScanner").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Fighting", "MobScanner").isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force Mob Scanner use: " + ChatColor.AQUA + "/mobscanner force");
             }
             p.sendRawMessage(ChatColor.RED + "You need to be fighting level " + ChatColor.AQUA
-                    + plugin.getDefaultPlayerRewards().getReward("Fighting", "MobScanner").getLevel()
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Fighting", "MobScanner").getLevel()
                     + ChatColor.RED + " to use Mob Scanner");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;

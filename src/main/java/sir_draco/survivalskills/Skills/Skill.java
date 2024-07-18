@@ -1,4 +1,4 @@
-package sir_draco.survivalskills;
+package sir_draco.survivalskills.Skills;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.Boards.Leaderboard;
 import sir_draco.survivalskills.Boards.LeaderboardPlayer;
 import sir_draco.survivalskills.Boards.SkillScoreboard;
+import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -46,10 +47,10 @@ public class Skill {
     }
 
     public static void experienceEvent(SurvivalSkills plugin, Player p, double xp, String skillName) {
-        xp = xp * plugin.getMultiplier();
+        xp = xp * plugin.getSkillManager().getMultiplier();
         UUID uuid = p.getUniqueId();
-        Skill skill = plugin.getSkill(uuid, skillName);
-        if (skill.getLevel() >= plugin.playerMaxSkillLevel(uuid)) {
+        Skill skill = plugin.getSkillManager().getSkill(uuid, skillName);
+        if (skill.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) {
             SkillScoreboard.updateScoreboard(plugin, p, "Main");
             if (skill.getLevel() == 100 || skill.isCurrentMaxMessage()) return;
             p.sendRawMessage(ChatColor.DARK_BLUE + "You have reached your current max level for: " + ChatColor.AQUA + skillName);
@@ -61,9 +62,9 @@ public class Skill {
             if (plugin.getToggledScoreboard().containsKey(p.getUniqueId()) && plugin.getToggledScoreboard().get(p.getUniqueId())
                     && xp != 0)
                 sendActionBarMessage(p, ChatColor.GRAY + skillName + ChatColor.YELLOW + " (+" + xp + ")");
-            if (skill.changeExperience(xp, plugin.playerMaxSkillLevel(uuid))) {
+            if (skill.changeExperience(xp, plugin.getTrophyManager().playerMaxSkillLevel(uuid))) {
                 skill.levelUpNotification(p);
-                plugin.getPlayerRewards(p).handleReward(plugin, p, skill, skillName, true);
+                plugin.getSkillManager().getPlayerRewards(p).handleReward(plugin, p, skill, skillName, true);
                 if (plugin.getLeaderboardTracker().containsKey(p.getUniqueId())) {
                     LeaderboardPlayer player = plugin.getLeaderboardTracker().get(p.getUniqueId());
                     setScore(player, p, plugin, skill.getSkillName());
@@ -74,19 +75,19 @@ public class Skill {
                     setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, skill.getSkillName());
                 }
             }
-            Skill main = plugin.getSkill(uuid, "Main");
-            if (main.getLevel() >= plugin.playerMaxSkillLevel(uuid)) return;
-            if (main.changeExperience(xp / 7.0, plugin.playerMaxSkillLevel(uuid))) {
+            Skill main = plugin.getSkillManager().getSkill(uuid, "Main");
+            if (main.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) return;
+            if (main.changeExperience(xp / 7.0, plugin.getTrophyManager().playerMaxSkillLevel(uuid))) {
                 main.levelUpNotification(p);
-                plugin.getPlayerRewards(p).handleReward(plugin, p, main, "Main", true);
+                plugin.getSkillManager().getPlayerRewards(p).handleReward(plugin, p, main, "Main", true);
                 if (main.getLevel() == 100) {
-                    HashMap<String, Boolean> trophies = plugin.getTrophyTracker().get(p.getUniqueId());
+                    HashMap<String, Boolean> trophies = plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId());
                     trophies.put("GodTrophy", true);
-                    plugin.getTrophyTracker().put(p.getUniqueId(), trophies);
+                    plugin.getTrophyManager().getTrophyTracker().put(p.getUniqueId(), trophies);
 
                     if (!p.getLocation().getBlock().getRelative(0, -1, 0).isEmpty())
-                        p.getWorld().dropItem(p.getLocation(), plugin.getTrophyItem(10));
-                    else p.getInventory().addItem(plugin.getTrophyItem(10));
+                        p.getWorld().dropItem(p.getLocation(), plugin.getTrophyManager().getTrophyItem(10));
+                    else p.getInventory().addItem(plugin.getTrophyManager().getTrophyItem(10));
 
                     plugin.getServer().broadcastMessage(ChatColor.AQUA + p.getName() + " has maxed out all of their skills!");
                     plugin.getServer().broadcastMessage(ChatColor.GREEN + "Congratulate the hard work they put in!");

@@ -10,40 +10,37 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
-import sir_draco.survivalskills.Abilities.AbilityTimer;
+import sir_draco.survivalskills.Abilities.AbilityManager;
 import sir_draco.survivalskills.Abilities.AutoTrash;
 import sir_draco.survivalskills.Abilities.TrailEffect;
 import sir_draco.survivalskills.Commands.*;
-import sir_draco.survivalskills.Rewards.PlayerRewards;
-import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.Boards.Leaderboard;
 import sir_draco.survivalskills.Boards.LeaderboardPlayer;
 import sir_draco.survivalskills.Boards.SkillScoreboard;
 import sir_draco.survivalskills.SkillListeners.*;
+import sir_draco.survivalskills.Skills.Skill;
+import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Trophy.Trophy;
+import sir_draco.survivalskills.Trophy.TrophyManager;
 
 import java.io.*;
 import java.util.*;
 
 public final class SurvivalSkills extends JavaPlugin {
 
-    private final HashMap<UUID, ArrayList<Skill>> playerSkills = new HashMap<>();
     private final HashMap<UUID, Boolean> toggledScoreboard = new HashMap<>();
     private final HashMap<Player, Scoreboard> scoreboardTracker = new HashMap<>();
-    private final HashMap<UUID, HashMap<String, Boolean>> trophyTracker = new HashMap<>();
-    private final HashMap<Location, Trophy> trophies = new HashMap<>();
-    private final HashMap<Integer, ItemStack> trophyItems = new HashMap<>();
-    private final HashMap<Player, PlayerRewards> rewardTracker = new HashMap<>();
-    private final HashMap<Player, ArrayList<AbilityTimer>> timerTracker = new HashMap<>();
-    private final HashMap<Player, TrailEffect> trailTracker = new HashMap<>();
-    private final HashMap<String, Particle> trails = new HashMap<>();
     private final HashMap<UUID, LeaderboardPlayer> leaderboardTracker = new HashMap<>();
     private final ArrayList<Material> farmingList = new ArrayList<>();
     private final ArrayList<NamespacedKey> recipeKeys = new ArrayList<>();
 
-    private PlayerRewards playerRewards; // Holds the default information for rewards
+    // Managers
+    private AbilityManager abilityManager;
+    private SkillManager skillManager;
+    private TrophyManager trophyManager;
+
+    // Listeners
     private BuildingSkill buildingListener;
     private MiningSkill miningListener;
     private FishingSkill fishingListener;
@@ -53,14 +50,8 @@ public final class SurvivalSkills extends JavaPlugin {
     private CraftingSkill craftingListener;
     private MainSkill mainListener;
     private PlayerListener playerListener;
-    private double buildingXP;
-    private double miningXP;
-    private double fishingXP;
-    private double exploringXP;
-    private double farmingXP;
-    private double fightingXP;
-    private double craftingXP;
-    private double multiplier = 1;
+
+    // Configs
     private FileConfiguration config;
     private File trophyFile;
     private FileConfiguration trophyData;
@@ -68,6 +59,7 @@ public final class SurvivalSkills extends JavaPlugin {
     private FileConfiguration leaderboardData;
     private File permaTrashFile;
     private FileConfiguration permaTrashData;
+
     private boolean woolRecipes = false;
     private boolean griefPreventionEnabled = false;
 
@@ -91,7 +83,7 @@ public final class SurvivalSkills extends JavaPlugin {
 
         // See if an update needs to be made to the config
         if (config.get("Version") == null || config.getDouble("Version") != 1.91) saveResource("config.yml", true);
-        loadConfigSettings();
+        skillManager = new SkillManager(this);
 
         trophyFile = new File(getDataFolder(), "trophydata.yml");
         if (!trophyFile.exists()) saveResource("trophydata.yml", true);
@@ -108,19 +100,17 @@ public final class SurvivalSkills extends JavaPlugin {
 
         // Load plugin features
         loadListeners();
-        loadTrophies();
+        trophyManager = new TrophyManager(this);
         RecipeMaker.trophyRecipes(this);
         RecipeMaker.rewardRecipes(this);
+        abilityManager = new AbilityManager();
         loadCommands();
-        createTrails();
 
         // If the plugin is reloaded without a restart
         if (!getServer().getOnlinePlayers().isEmpty())
             for (Player p : getServer().getOnlinePlayers()) playerJoin(p, true);
 
         if (getServer().getPluginManager().getPlugin("GriefPrevention") != null) griefPreventionEnabled = true;
-        // Auto save skills every 15 minutes
-        runSkillAutoSave();
     }
 
     @Override
@@ -137,7 +127,7 @@ public final class SurvivalSkills extends JavaPlugin {
         }
 
         try {
-            saveTrophies();
+            trophyManager.saveTrophies();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -155,43 +145,6 @@ public final class SurvivalSkills extends JavaPlugin {
         }
 
         getMiningListener().endSpelunkerAll();
-    }
-
-    public void loadConfigSettings() {
-        // Load XP settings
-        buildingXP = config.getDouble("BuildingXP");
-        miningXP = config.getDouble("MiningXP");
-        fishingXP = config.getDouble("FishingXP");
-        exploringXP = config.getDouble("ExploringXP");
-        farmingXP = config.getDouble("FarmingXP");
-        fightingXP = config.getDouble("FightingXP");
-        craftingXP = config.getDouble("CraftingXP");
-
-        // Load global multiplier
-        if (config.get("SkillXPMultiplier") != null) multiplier = config.getDouble("SkillXPMultiplier");
-
-        // Load skill rewards
-        playerRewards = new PlayerRewards();
-        loadRewardConfig("Mining");
-        loadRewardConfig("Exploring");
-        loadRewardConfig("Farming");
-        loadRewardConfig("Building");
-        loadRewardConfig("Fighting");
-        loadRewardConfig("Fishing");
-        loadRewardConfig("Crafting");
-        loadRewardConfig("Main");
-    }
-
-    public void loadRewardConfig(String type) {
-        ConfigurationSection section = config.getConfigurationSection(type);
-        if (section == null) return;
-        section.getKeys(false).forEach(key -> {
-            // Load whether it is enabled, the level it is unlocked, and the type of reward
-            boolean enabled = config.getBoolean(type + "." + key + ".Enabled");
-            int level = config.getInt(type + "." + key + ".Level");
-            String rewardType = config.getString(type + "." + key + ".Type");
-            playerRewards.addReward(type, new Reward(type, key, rewardType, level, enabled));
-        });
     }
 
     public void loadCommands() {
@@ -302,13 +255,13 @@ public final class SurvivalSkills extends JavaPlugin {
         // Keep farming list global for use by multiple listeners
         createFarmingList();
 
-        buildingListener = new BuildingSkill(this, buildingXP);
-        miningListener = new MiningSkill(this, miningXP, config.getInt("VeinMinerHungerAmount"));
-        fishingListener = new FishingSkill(this, fishingXP);
-        exploringListener = new ExploringSkill(this, exploringXP);
-        farmingListener = new FarmingSkill(this, farmingXP);
-        fightingListener = new FightingSkill(this, fightingXP);
-        craftingListener = new CraftingSkill(this, craftingXP);
+        buildingListener = new BuildingSkill(this);
+        miningListener = new MiningSkill(this, config.getInt("VeinMinerHungerAmount"));
+        fishingListener = new FishingSkill(this);
+        exploringListener = new ExploringSkill(this);
+        farmingListener = new FarmingSkill(this);
+        fightingListener = new FightingSkill(this);
+        craftingListener = new CraftingSkill(this);
         mainListener = new MainSkill(this);
         playerListener = new PlayerListener(this);
         TabCompleter tabCompleter = new TabCompleter(this);
@@ -348,8 +301,8 @@ public final class SurvivalSkills extends JavaPlugin {
             skills.add(new Skill(0, 1, "Farming"));
             skills.add(new Skill(0, 1, "Fighting"));
             skills.add(new Skill(0, 1, "Crafting"));
-            trophyTracker.put(p.getUniqueId(), trophyList);
-            playerSkills.put(p.getUniqueId(), skills);
+            trophyManager.getTrophyTracker().put(p.getUniqueId(), trophyList);
+            skillManager.getPlayerSkills().put(p.getUniqueId(), skills);
             toggledScoreboard.put(p.getUniqueId(), true);
 
             savePlayerData(p);
@@ -357,9 +310,9 @@ public final class SurvivalSkills extends JavaPlugin {
         }
 
         UUID uuid = p.getUniqueId();
-        if (!playerSkills.containsKey(uuid)) loadPlayerSkills(uuid, data);
+        if (!skillManager.getPlayerSkills().containsKey(uuid)) skillManager.loadPlayerSkills(uuid, data);
         if (!toggledScoreboard.containsKey(uuid)) loadScoreboardSetting(uuid, data);
-        if (!trophyTracker.containsKey(uuid)) loadPlayerTrophies(uuid, data);
+        if (!trophyManager.getTrophyTracker().containsKey(uuid)) trophyManager.loadPlayerTrophies(uuid, data);
 
         if (data.get(uuid + ".NoPhantoms") != null) {
             boolean phantoms = data.getBoolean(uuid + ".NoPhantoms");
@@ -371,13 +324,13 @@ public final class SurvivalSkills extends JavaPlugin {
         if (data.get(uuid + ".Trail") != null) {
             String trailName = data.getString(uuid + ".Trail");
             if (trailName != null && !trailName.equals("None")) {
-                if (trails.containsKey(trailName)) {
+                if (abilityManager.getTrails().containsKey(trailName)) {
                     int dustType = 1;
                     if (trailName.equalsIgnoreCase("Dust")) dustType = 2;
                     else if (trailName.equalsIgnoreCase("Rainbow")) dustType = 3;
-                    TrailEffect effect = new TrailEffect(p, trails.get(trailName), dustType, trailName);
+                    TrailEffect effect = new TrailEffect(p, abilityManager.getTrails().get(trailName), dustType, trailName);
                     effect.runTaskTimer(this, 60, 1);
-                    trailTracker.put(p, effect);
+                    abilityManager.getTrailTracker().put(p, effect);
                 }
             }
         }
@@ -407,96 +360,15 @@ public final class SurvivalSkills extends JavaPlugin {
         toggledScoreboard.put(uuid, data.getBoolean(uuid + ".Scoreboard"));
     }
 
-    public void loadPlayerTrophies(UUID uuid, FileConfiguration data) {
-        if (trophyTracker.containsKey(uuid)) return;
-        HashMap<String, Boolean> trophyList = new HashMap<>();
-        trophyList.put("CaveTrophy", data.getBoolean(uuid + ".CaveTrophy"));
-        trophyList.put("ForestTrophy", data.getBoolean(uuid + ".ForestTrophy"));
-        trophyList.put("FarmingTrophy", data.getBoolean(uuid + ".FarmingTrophy"));
-        trophyList.put("OceanTrophy", data.getBoolean(uuid + ".OceanTrophy"));
-        trophyList.put("FishingTrophy", data.getBoolean(uuid + ".FishingTrophy"));
-        trophyList.put("ColorTrophy", data.getBoolean(uuid + ".ColorTrophy"));
-        trophyList.put("NetherTrophy", data.getBoolean(uuid + ".NetherTrophy"));
-        trophyList.put("EndTrophy", data.getBoolean(uuid + ".EndTrophy"));
-        trophyList.put("ChampionTrophy", data.getBoolean(uuid + ".ChampionTrophy"));
-        trophyList.put("GodTrophy", data.getBoolean(uuid + ".GodTrophy"));
-        trophyTracker.put(uuid, trophyList);
-    }
-
-    public void loadPlayerSkills(UUID uuid, FileConfiguration data) {
-        if (playerSkills.containsKey(uuid)) return;
-        ArrayList<Skill> skills = new ArrayList<>();
-        skills.add(new Skill(data.getDouble(uuid + ".Main.Experience"), data.getInt(uuid + ".Main.Level"), "Main"));
-        skills.add(new Skill(data.getDouble(uuid + ".Building.Experience"), data.getInt(uuid + ".Building.Level"), "Building"));
-        skills.add(new Skill(data.getDouble(uuid + ".Mining.Experience"), data.getInt(uuid + ".Mining.Level"), "Mining"));
-        skills.add(new Skill(data.getDouble(uuid + ".Fishing.Experience"), data.getInt(uuid + ".Fishing.Level"), "Fishing"));
-        skills.add(new Skill(data.getDouble(uuid + ".Exploring.Experience"), data.getInt(uuid + ".Exploring.Level"), "Exploring"));
-        skills.add(new Skill(data.getDouble(uuid + ".Farming.Experience"), data.getInt(uuid + ".Farming.Level"), "Farming"));
-        skills.add(new Skill(data.getDouble(uuid + ".Fighting.Experience"), data.getInt(uuid + ".Fighting.Level"), "Fighting"));
-        skills.add(new Skill(data.getDouble(uuid + ".Crafting.Experience"), data.getInt(uuid + ".Crafting.Level"), "Crafting"));
-        playerSkills.put(uuid, skills);
-    }
-
-    /**
-     * Gets the location of trophies, their type, and
-     * who placed the trophy from a file
-     */
-    public void loadTrophies() {
-        ConfigurationSection section = trophyData.getConfigurationSection("");
-        if (section == null) return;
-
-        section.getKeys(false).forEach(key -> {
-            Location loc = trophyData.getLocation(key + ".Location");
-            String uuidString = trophyData.getString(key + ".UUID");
-            if (uuidString == null) {
-                trophyData.set(key, null);
-            }
-            else {
-                int id = Integer.parseInt(key);
-                UUID uuid = UUID.fromString(uuidString);
-                String type = trophyData.getString(key + ".Type");
-                String playerName = trophyData.getString(key + ".PlayerName");
-                Trophy trophy = new Trophy(loc, uuid, type, id, playerName);
-                trophy.spawnTrophy(this);
-                trophies.put(loc, trophy);
-            }
-        });
-    }
-
-    public void loadPlayerRewards(Player p) {
-        if (playerRewards == null || playerRewards.getRewardList() == null) {
-            Bukkit.getLogger().warning("Player rewards are not loaded");
-            return;
-        }
-
-        if (rewardTracker.containsKey(p)) {
-            rewardTracker.get(p).enableRewards(p, playerSkills.get(p.getUniqueId()));
-            return;
-        }
-
-        rewardTracker.put(p, new PlayerRewards(playerRewards.getRewardList()));
-        rewardTracker.get(p).enableRewards(p, playerSkills.get(p.getUniqueId()));
-    }
-
     public void savePlayerData(Player p) {
+        if (skillManager.getPlayerSkills().isEmpty()) return;
+
         File dataFile = new File(getDataFolder(), "playerdata.yml");
         if (!dataFile.exists()) saveResource("playerdata.yml", true);
         FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
 
-        if (playerSkills.isEmpty()) return;
-
         UUID uuid = p.getUniqueId();
-        if (trophyTracker.containsKey(uuid)) {
-            for (Map.Entry<String, Boolean> list : trophyTracker.get(uuid).entrySet()) {
-                if (data.get(uuid + "." + list.getKey()) != null) {
-                    boolean trophy = data.getBoolean(uuid + "." + list.getKey());
-                    if (trophy) continue;
-                    data.set(uuid + "." + list.getKey(), list.getValue());
-                }
-                else data.set(uuid + "." + list.getKey(), list.getValue());
-            }
-        }
-        else Bukkit.getLogger().warning("Player " + p.getName() + " does not have a trophy status");
+        trophyManager.savePlayerTrophyData(uuid, data);
 
         if (toggledScoreboard.containsKey(uuid)) data.set(uuid + ".Scoreboard", toggledScoreboard.get(uuid));
         else Bukkit.getLogger().warning("Player " + p.getName() + " does not have a scoreboard status");
@@ -504,7 +376,8 @@ public final class SurvivalSkills extends JavaPlugin {
         if (getFightingListener().getNoPhantomSpawns().contains(p)) data.set(uuid + ".NoPhantoms", true);
         else data.set(uuid + ".NoPhantoms", false);
 
-        if (trailTracker.containsKey(p)) data.set(uuid + ".Trail", trailTracker.get(p).getTrailName());
+        if (abilityManager.getTrailTracker().containsKey(p))
+            data.set(uuid + ".Trail", abilityManager.getTrailTracker().get(p).getTrailName());
         else data.set(uuid + ".Trail", "None");
 
         if (farmingListener.getAutoEat().contains(p)) data.set(uuid + ".AutoEat", true);
@@ -515,14 +388,7 @@ public final class SurvivalSkills extends JavaPlugin {
         if (miningListener.getPeacefulMiners().contains(p)) data.set(uuid + ".PeacefulMiner", true);
         else data.set(uuid + ".PeacefulMiner", false);
 
-        if (playerSkills.containsKey(uuid)) {
-            for (Skill skill : playerSkills.get(uuid)) {
-                data.set(uuid + "." + skill.getSkillName() + ".Level", skill.getLevel());
-                data.set(uuid + "." + skill.getSkillName() + ".Experience", skill.getExperience());
-            }
-        }
-        else Bukkit.getLogger().warning("Player " + p.getName() + " does not have any skills");
-
+        skillManager.savePlayerSkillData(uuid, data);
         savePermaTrash(p);
 
         try {
@@ -534,42 +400,25 @@ public final class SurvivalSkills extends JavaPlugin {
     }
 
     public void savePlayerData() throws IOException {
-        if (playerSkills.isEmpty()) return;
+        if (skillManager.getPlayerSkills().isEmpty()) return;
 
         File dataFile = new File(getDataFolder(), "playerdata.yml");
         if (!dataFile.exists()) saveResource("playerdata.yml", true);
         FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
 
-        for (Map.Entry<UUID, HashMap<String, Boolean>> player : trophyTracker.entrySet()) {
-            UUID uuid = player.getKey();
-            data.set(uuid + ".Scoreboard", toggledScoreboard.get(uuid));
-            for (Map.Entry<String, Boolean> list : player.getValue().entrySet()) {
-                if (data.get(uuid + "." + list.getKey()) != null) {
-                    boolean trophy = data.getBoolean(uuid + "." + list.getKey());
-                    if (trophy) continue;
-                    data.set(uuid + "." + list.getKey(), list.getValue());
-                }
-                else data.set(uuid + "." + list.getKey(), list.getValue());
-            }
-        }
-
-        for (Map.Entry<UUID, ArrayList<Skill>> player : playerSkills.entrySet()) {
-            UUID uuid = player.getKey();
-            for (Skill skill : player.getValue()) {
-                data.set(uuid + "." + skill.getSkillName() + ".Level", skill.getLevel());
-                data.set(uuid + "." + skill.getSkillName() + ".Experience", skill.getExperience());
-            }
-        }
+        trophyManager.saveTrophyData(data);
+        skillManager.saveSkillData(data);
 
         for (Player p : Bukkit.getOnlinePlayers()) {
             UUID uuid = p.getUniqueId();
             if (toggledScoreboard.containsKey(uuid)) data.set(uuid + ".Scoreboard", toggledScoreboard.get(uuid));
             else Bukkit.getLogger().warning("Player " + p.getName() + " does not have a scoreboard status");
 
-            if (getFightingListener().getNoPhantomSpawns().contains(p)) data.set(uuid + ".NoPhantoms", true);
+            if (fightingListener.getNoPhantomSpawns().contains(p)) data.set(uuid + ".NoPhantoms", true);
             else data.set(uuid + ".NoPhantoms", false);
 
-            if (trailTracker.containsKey(p)) data.set(uuid + ".Trail", trailTracker.get(p).getTrailName());
+            if (abilityManager.getTrailTracker().containsKey(p))
+                data.set(uuid + ".Trail", abilityManager.getTrailTracker().get(p).getTrailName());
             else data.set(uuid + ".Trail", "None");
 
             if (farmingListener.getAutoEat().contains(p)) data.set(uuid + ".AutoEat", true);
@@ -637,44 +486,55 @@ public final class SurvivalSkills extends JavaPlugin {
         }
     }
 
-    public void saveTrophies() throws IOException {
-        if (trophyData == null) return;
-
-        if (trophies.isEmpty()) {
-            saveResource("trophydata.yml", true);
-            return;
-        }
-
-        for (Map.Entry<Location, Trophy> trophy : trophies.entrySet()) {
-            trophy.getValue().shutdownTrophy();
-            trophyData.set(trophy.getValue().getID() + ".Location", trophy.getKey());
-            trophyData.set(trophy.getValue().getID() + ".UUID", trophy.getValue().getUUID().toString());
-            trophyData.set(trophy.getValue().getID() + ".Type", trophy.getValue().getType());
-            trophyData.set(trophy.getValue().getID() + ".PlayerName", trophy.getValue().getPlayerName());
-        }
-
-        trophyData.save(trophyFile);
-    }
-
-    public void updateExploringStats(UUID uuid) {
-        Skill exploring = getSkill(uuid, "Exploring");
-        exploring.changeExperience(exploringListener.getPlayerSteps(uuid) * exploringXP, playerMaxSkillLevel(uuid));
-    }
-
     /**
-     * Gets the specified skill of a player
+     * Removes the player from the skills list and from the
+     * scoreboard hashtable
      */
-    public Skill getSkill(UUID uuid, String skillName) {
-        if (playerSkills.isEmpty()) {
-            ArrayList<Skill> skills = new ArrayList<>();
-            skills.add(new Skill(0, 0, skillName));
-            playerSkills.put(uuid, skills);
+    public void playerQuit(Player p) {
+        skillManager.getPlayerSkills().remove(p.getUniqueId());
+        toggledScoreboard.remove(p.getUniqueId());
+        scoreboardTracker.remove(p);
+        HashMap<Player, TrailEffect> trailTracker = abilityManager.getTrailTracker();
+        if (trailTracker.containsKey(p)) {
+            trailTracker.get(p).cancel();
+            trailTracker.remove(p);
         }
-        if (playerSkills.get(uuid) == null) return new Skill(0, 0, skillName);
-        for (Skill skill : playerSkills.get(uuid)) if (skill.getSkillName().equalsIgnoreCase(skillName)) return skill;
-        Skill skill = new Skill(0, 0, skillName);
-        playerSkills.get(uuid).add(skill);
-        return skill;
+        fightingListener.getNoPhantomSpawns().remove(p);
+        fightingListener.getActiveBerserkers().remove(p);
+    }
+
+    public void playerJoin(Player p, boolean overrideNewPlayer) {
+        abilityManager.getTimerTracker().put(p, new ArrayList<>());
+
+        File dataFile = new File(getDataFolder(), "playerdata.yml");
+        if (!dataFile.exists()) saveResource("playerdata.yml", true);
+        FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
+
+        boolean newPlayer = data.get(p.getUniqueId().toString()) == null;
+        if (overrideNewPlayer) newPlayer = false;
+        loadData(p, data);
+
+        // Check if the player should activate any nearby trophies
+        for (Map.Entry<Location, Trophy> trophy : trophyManager.getTrophies().entrySet()) {
+            Location loc = trophy.getKey();
+            if (!p.getWorld().equals(loc.getWorld())) continue;
+            if (p.getLocation().distance(loc) > 50) continue;
+            trophy.getValue().getEffects().checkForPlayers();
+        }
+
+        // Make sure the main XP level is correct, load the player's rewards, add them to active leaderboard players
+        // Load their perma trash inventory, and hide any glowing blocks from other player's spelunker ability
+        skillManager.checkMainXP(p);
+        skillManager.loadPlayerRewards(p);
+        Leaderboard.leaderboardJoin(this, p);
+        loadPermaTrash(p);
+        getMiningListener().hideGlowForPlayer(p);
+
+        // Handle the scoreboard
+        if (newPlayer) SkillScoreboard.initializeScoreboard(this, p);
+        else if (toggledScoreboard.containsKey(p.getUniqueId()) && toggledScoreboard.get(p.getUniqueId()))
+            SkillScoreboard.initializeScoreboard(this, p);
+        else SkillScoreboard.hideScoreboard(this, p);
     }
 
     public void createFarmingList() {
@@ -704,169 +564,12 @@ public final class SurvivalSkills extends JavaPlugin {
         farmingList.add(Material.NETHER_WART);
     }
 
-    /**
-     * Removes the player from the skills list and from the
-     * scoreboard hashtable
-     */
-    public void playerQuit(Player p) {
-        playerSkills.remove(p.getUniqueId());
-        toggledScoreboard.remove(p.getUniqueId());
-        scoreboardTracker.remove(p);
-        if (trailTracker.containsKey(p)) {
-            trailTracker.get(p).cancel();
-            trailTracker.remove(p);
-        }
-        getFightingListener().getNoPhantomSpawns().remove(p);
-        fightingListener.getActiveBerserkers().remove(p);
-    }
-
-    public void playerJoin(Player p, boolean overrideNewPlayer) {
-        timerTracker.put(p, new ArrayList<>());
-
-        File dataFile = new File(getDataFolder(), "playerdata.yml");
-        if (!dataFile.exists()) saveResource("playerdata.yml", true);
-        FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
-
-        boolean newPlayer = data.get(p.getUniqueId().toString()) == null;
-        if (overrideNewPlayer) newPlayer = false;
-        loadData(p, data);
-
-        // Check if the player should activate any nearby trophies
-        for (Map.Entry<Location, Trophy> trophy : trophies.entrySet()) {
-            Location loc = trophy.getKey();
-            if (!p.getWorld().equals(loc.getWorld())) continue;
-            if (p.getLocation().distance(loc) > 50) continue;
-            trophy.getValue().getEffects().checkForPlayers();
-        }
-
-        // Make sure the main XP level is correct, load the player's rewards, add them to active leaderboard players
-        // Load their perma trash inventory, and hide any glowing blocks from other player's spelunker ability
-        checkMainXP(p);
-        loadPlayerRewards(p);
-        Leaderboard.leaderboardJoin(this, p);
-        loadPermaTrash(p);
-        getMiningListener().hideGlowForPlayer(p);
-
-        // Handle the scoreboard
-        if (newPlayer) SkillScoreboard.initializeScoreboard(this, p);
-        else if (toggledScoreboard.containsKey(p.getUniqueId()) && toggledScoreboard.get(p.getUniqueId()))
-            SkillScoreboard.initializeScoreboard(this, p);
-        else SkillScoreboard.hideScoreboard(this, p);
-    }
-
-    /**
-     * Counts how many trophies a player has obtained and returns the
-     * max level a player can be
-     */
-    public int playerMaxSkillLevel(UUID uuid) {
-        int count = 0;
-        if (trophyTracker.get(uuid) == null)  {
-            // Try to load the player's trophies after a delay
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    loadTrophies();
-                }
-            }.runTaskLater(this, 20);
-            return 10;
-        }
-        for (Map.Entry<String, Boolean> list : trophyTracker.get(uuid).entrySet()) if (list.getValue()) count++;
-        return 10 + (count * 10);
-    }
-
-    public int generateTrophyID() {
-        int id = (int) Math.ceil(Math.random() * 1000000);
-        if (trophies.isEmpty()) return id;
-        for (Map.Entry<Location, Trophy> trophy : trophies.entrySet()) if (trophy.getValue().getID() == id) return generateTrophyID();
-        return id;
-    }
-
-    public void removeTrophy(Location loc) {
-        Trophy trophy = trophies.get(loc);
-        trophies.remove(loc);
-        if (trophyData.get("" + trophy.getID()) == null) return;
-        trophyData.set("" + trophy.getID(), null);
-    }
-
-    public int getRewardLevel(String type, String reward) {
-        for (Reward r : playerRewards.getRewardList().get(type)) {
-            if (r.getName().equalsIgnoreCase(reward)) return r.getLevel();
-        }
-        return 0;
-    }
-
     public ArrayList<Material> getFarmingList() {
         return farmingList;
     }
 
     public HashMap<UUID, Boolean> getToggledScoreboard() {
         return toggledScoreboard;
-    }
-
-    public HashMap<Location, Trophy> getTrophies() {
-        return trophies;
-    }
-
-    public ItemStack getTrophyItem(int type) {
-        if (!trophyItems.containsKey(type)) return new ItemStack(Material.AIR);
-        return trophyItems.get(type);
-    }
-
-    public HashMap<Integer, ItemStack> getTrophyItems() {
-        return trophyItems;
-    }
-
-    public HashMap<UUID, ArrayList<Skill>> getPlayerSkills() {
-        return playerSkills;
-    }
-
-    public PlayerRewards getPlayerRewards(Player p) {
-        if (!rewardTracker.containsKey(p)) {
-            loadPlayerRewards(p);
-            return rewardTracker.get(p);
-        }
-        return rewardTracker.get(p);
-    }
-
-    public HashMap<Player, ArrayList<AbilityTimer>> getTimerTracker() {
-        return timerTracker;
-    }
-
-    public void endPlayerTimers(Player p) {
-        if (!timerTracker.containsKey(p)) return;
-        for (AbilityTimer timer : timerTracker.get(p)) timer.endAbility();
-    }
-
-    public void addAbility(Player p, AbilityTimer timer) {
-        timerTracker.computeIfAbsent(p, k -> new ArrayList<>());
-        timerTracker.get(p).add(timer);
-    }
-
-    public void removeAbility(Player p, String ability) {
-        if (!timerTracker.containsKey(p)) return;
-        timerTracker.get(p).removeIf(timer -> timer.getName().equalsIgnoreCase(ability));
-    }
-
-    public AbilityTimer getAbility(Player p, String ability) {
-        if (!timerTracker.containsKey(p)) return null;
-        for (AbilityTimer timer : timerTracker.get(p)) if (timer.getName().equalsIgnoreCase(ability)) return timer;
-        return null;
-    }
-
-    public void checkMainXP(Player p) {
-        if (!playerSkills.containsKey(p.getUniqueId())) return;
-        double totalXP = 0;
-        for (Skill skill : playerSkills.get(p.getUniqueId())) {
-            if (skill.getSkillName().equalsIgnoreCase("Main")) continue;
-            totalXP += skill.getExperience();
-        }
-        
-        totalXP /= 7.0;
-        Skill main = getSkill(p.getUniqueId(), "Main");
-        if (main.getExperience() < totalXP || main.getExperience() > totalXP + 10.0) {
-            main.setExperience((int) totalXP);
-            savePlayerData(p);
-        }
     }
 
     /**
@@ -877,48 +580,11 @@ public final class SurvivalSkills extends JavaPlugin {
         return (noBuildReason != null);
     }
 
-    public void runSkillAutoSave() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            savePlayerData();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                }.runTask(SurvivalSkills.this);
-            }
-        }.runTaskTimerAsynchronously(this, 900, 900);
-    }
-
-    public void createTrails() {
-        trails.put("Dust", Particle.DUST);
-        trails.put("Water", Particle.SPLASH);
-        trails.put("Happy", Particle.HAPPY_VILLAGER);
-        trails.put("Dragon", Particle.DRAGON_BREATH);
-        trails.put("Electric", Particle.ELECTRIC_SPARK);
-        trails.put("Enchantment", Particle.ENCHANT);
-        trails.put("Ominous", Particle.TRIAL_OMEN);
-        trails.put("Love", Particle.HEART);
-        trails.put("Flame", Particle.FLAME);
-        trails.put("BlueFlame", Particle.SOUL_FIRE_FLAME);
-        trails.put("Cherry", Particle.CHERRY_LEAVES);
-        trails.put("Rainbow", Particle.DUST);
-    }
-
     public Enchantment getEnchantFromKey(String key) {
         for (Enchantment enchant : Registry.ENCHANTMENT) {
             if (enchant.getKey().toString().equalsIgnoreCase(key)) return enchant;
         }
         return Enchantment.EFFICIENCY;
-    }
-
-    public PlayerRewards getDefaultPlayerRewards() {
-        return playerRewards;
     }
 
     public MiningSkill getMiningListener() {
@@ -968,24 +634,16 @@ public final class SurvivalSkills extends JavaPlugin {
         return config;
     }
 
-    public HashMap<UUID, HashMap<String, Boolean>> getTrophyTracker() {
-        return trophyTracker;
+    public FileConfiguration getTrophyData() {
+        return trophyData;
+    }
+
+    public File getTrophyFile() {
+        return trophyFile;
     }
 
     public ArrayList<NamespacedKey> getRecipeKeys() {
         return recipeKeys;
-    }
-
-    public HashMap<Player, TrailEffect> getTrailTracker() {
-        return trailTracker;
-    }
-
-    public double getMultiplier() {
-        return multiplier;
-    }
-
-    public void setMultiplier(double multiplier) {
-        this.multiplier = multiplier;
     }
 
     public boolean isGriefPreventionEnabled() {
@@ -1004,15 +662,23 @@ public final class SurvivalSkills extends JavaPlugin {
         this.woolRecipes = woolRecipes;
     }
 
-    public HashMap<String, Particle> getTrails() {
-        return trails;
-    }
-
     public HashMap<Player, Scoreboard> getScoreboardTracker() {
         return scoreboardTracker;
     }
 
     public FileConfiguration getLeaderboardData() {
         return leaderboardData;
+    }
+
+    public AbilityManager getAbilityManager() {
+        return abilityManager;
+    }
+
+    public TrophyManager getTrophyManager() {
+        return trophyManager;
+    }
+
+    public SkillManager getSkillManager() {
+        return skillManager;
     }
 }

@@ -3,7 +3,6 @@ package sir_draco.survivalskills.Bosses;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -26,9 +25,7 @@ public class BroodMotherBoss extends Boss {
         if (isSpawnSuccess()) {
             spider = (Spider) getBoss();
             AttributeInstance size = spider.getAttribute(Attribute.GENERIC_SCALE);
-            if (size != null) {
-                size.addModifier(new AttributeModifier("Big", 3.0, AttributeModifier.Operation.MULTIPLY_SCALAR_1));
-            }
+            if (size != null) size.setBaseValue(3);
         }
     }
 

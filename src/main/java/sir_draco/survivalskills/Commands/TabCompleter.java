@@ -7,7 +7,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.TabCompleteEvent;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Rewards.Reward;
-import sir_draco.survivalskills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -69,10 +68,10 @@ public class TabCompleter implements Listener {
         words.add("wandererchestplate");
         words.add("wandererhelmet");
         words.add("cavefinder");
-        words.add("travellerboots");
-        words.add("travellerleggings");
-        words.add("travellerchestplate");
-        words.add("travellerhelmet");
+        words.add("travelerboots");
+        words.add("travelerleggings");
+        words.add("travelerchestplate");
+        words.add("travelerhelmet");
         words.add("adventurerboots");
         words.add("adventurerleggings");
         words.add("adventurerchestplate");
@@ -220,7 +219,7 @@ public class TabCompleter implements Listener {
 
     public void handleTrails(Player p, String buffer, TabCompleteEvent e) {
         ArrayList<String> words = new ArrayList<>();
-        PlayerRewards rewards = plugin.getPlayerRewards(p);
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
 
         if (rewards.getReward("Main", "DustTrail").isApplied()) words.add("dust");
         if (rewards.getReward("Main", "WaterTrail").isApplied()) words.add("water");
@@ -285,7 +284,7 @@ public class TabCompleter implements Listener {
     }
 
     public void createSkillNames(SurvivalSkills plugin) {
-        for (Map.Entry<String, ArrayList<Reward>> rewards : plugin.getDefaultPlayerRewards().getRewardList().entrySet()) {
+        for (Map.Entry<String, ArrayList<Reward>> rewards : plugin.getSkillManager().getDefaultPlayerRewards().getRewardList().entrySet()) {
             for (Reward reward : rewards.getValue()) skillNames.add(reward.getName());
         }
     }

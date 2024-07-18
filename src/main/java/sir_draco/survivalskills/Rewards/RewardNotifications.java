@@ -153,9 +153,9 @@ public class RewardNotifications {
                     case "FallII":
                         p.sendRawMessage(ChatColor.GREEN + "You now take 50% less fall damage");
                         break;
-                    case "TravellerArmor":
-                        p.sendRawMessage(ChatColor.GREEN + "You can now craft Traveller Armor");
-                        p.sendRawMessage(ChatColor.GREEN + "Traveller Armor lets you travel even faster!");
+                    case "TravelerArmor":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now craft Traveler Armor");
+                        p.sendRawMessage(ChatColor.GREEN + "Traveler Armor lets you travel even faster!");
                         p.sendRawMessage(ChatColor.GRAY + "See the crafting recipe by using the command" + ChatColor.AQUA + " /skills recipes");
                         break;
                     case "AdventurerArmor":
@@ -809,7 +809,7 @@ public class RewardNotifications {
                     case "JumpingBoots":
                     case "CaveFinder":
                     case "WandererArmor":
-                    case "TravellerArmor":
+                    case "TravelerArmor":
                     case "AdventurerArmor":
                         return ChatColor.GRAY + "Craftable Item";
                     case "SwimI":

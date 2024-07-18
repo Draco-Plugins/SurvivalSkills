@@ -25,7 +25,7 @@ public class TogglePhantomsCommand implements CommandExecutor {
         if (!(sender instanceof Player)) return false;
         Player p = (Player) sender;
 
-        Reward reward = plugin.getPlayerRewards(p).getReward("Fighting", "TogglePhantomSpawns");
+        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Fighting", "TogglePhantomSpawns");
         if (reward == null || !reward.isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "That reward is not enabled");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
