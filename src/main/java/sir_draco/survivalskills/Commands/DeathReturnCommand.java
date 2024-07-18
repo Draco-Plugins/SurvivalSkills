@@ -7,6 +7,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
+import sir_draco.survivalskills.Boards.Leaderboard;
 import sir_draco.survivalskills.SurvivalSkills;
 
 public class DeathReturnCommand implements CommandExecutor {
@@ -23,7 +24,7 @@ public class DeathReturnCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (!(sender instanceof Player)) return false;
         Player p = (Player) sender;
-        int deaths = plugin.getLeaderboardScore(p, "Deaths");
+        int deaths = Leaderboard.getLeaderboardScore(plugin, p, "Deaths");
         if (deaths < 75) {
             p.sendRawMessage(ChatColor.RED + "You must die at least 75 times to use this command.");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

@@ -23,7 +23,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.ItemStackGenerator;
-import sir_draco.survivalskills.Scoreboard.LeaderboardPlayer;
+import sir_draco.survivalskills.Boards.LeaderboardPlayer;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Trophy.Trophy;
@@ -130,61 +130,61 @@ public class PlayerListener implements Listener {
         Trophy trophy;
         if (hand.getType().equals(Material.DIAMOND_PICKAXE)) {
             above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "CaveTrophy", plugin.generateID(), playerName);
+            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "CaveTrophy", plugin.generateTrophyID(), playerName);
             trophy.spawnTrophy(plugin);
             plugin.getTrophies().put(above.getLocation(), trophy);
         }
         else if (hand.getType().equals(Material.OAK_SAPLING)) {
             above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "ForestTrophy", plugin.generateID(), playerName);
+            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "ForestTrophy", plugin.generateTrophyID(), playerName);
             trophy.spawnTrophy(plugin);
             plugin.getTrophies().put(above.getLocation(), trophy);
         }
         else if (hand.getType().equals(Material.GOLDEN_CARROT)) {
             above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "FarmingTrophy", plugin.generateID(), playerName);
+            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "FarmingTrophy", plugin.generateTrophyID(), playerName);
             trophy.spawnTrophy(plugin);
             plugin.getTrophies().put(above.getLocation(), trophy);
         }
         else if (hand.getType().equals(Material.TRIDENT)) {
             above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "OceanTrophy", plugin.generateID(), playerName);
+            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "OceanTrophy", plugin.generateTrophyID(), playerName);
             trophy.spawnTrophy(plugin);
             plugin.getTrophies().put(above.getLocation(), trophy);
         }
         else if (hand.getType().equals(Material.FISHING_ROD)) {
             above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "FishingTrophy", plugin.generateID(), playerName);
+            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "FishingTrophy", plugin.generateTrophyID(), playerName);
             trophy.spawnTrophy(plugin);
             plugin.getTrophies().put(above.getLocation(), trophy);
         }
         else if (hand.getType().equals(Material.SHEARS)) {
             above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "ColorTrophy", plugin.generateID(), playerName);
+            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "ColorTrophy", plugin.generateTrophyID(), playerName);
             trophy.spawnTrophy(plugin);
             plugin.getTrophies().put(above.getLocation(), trophy);
         }
         else if (hand.getType().equals(Material.NETHERRACK)) {
             above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "NetherTrophy", plugin.generateID(), playerName);
+            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "NetherTrophy", plugin.generateTrophyID(), playerName);
             trophy.spawnTrophy(plugin);
             plugin.getTrophies().put(above.getLocation(), trophy);
         }
         else if (hand.getType().equals(Material.END_STONE)) {
             above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "EndTrophy", plugin.generateID(), playerName);
+            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "EndTrophy", plugin.generateTrophyID(), playerName);
             trophy.spawnTrophy(plugin);
             plugin.getTrophies().put(above.getLocation(), trophy);
         }
         else if (hand.getType().equals(Material.DIAMOND_SWORD)) {
             above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "ChampionTrophy", plugin.generateID(), playerName);
+            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "ChampionTrophy", plugin.generateTrophyID(), playerName);
             trophy.spawnTrophy(plugin);
             plugin.getTrophies().put(above.getLocation(), trophy);
         }
         else if (hand.getType().equals(Material.GRASS_BLOCK)) {
             above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "GodTrophy", plugin.generateID(), playerName);
+            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "GodTrophy", plugin.generateTrophyID(), playerName);
             trophy.spawnTrophy(plugin);
             plugin.getTrophies().put(above.getLocation(), trophy);
         }
@@ -413,7 +413,7 @@ public class PlayerListener implements Listener {
                 }
                 plugin.getTrophyTracker().put(p.getUniqueId(), trophies);
                 p.sendRawMessage(ChatColor.GREEN + "Your level cap has been changed to: " + ChatColor.AQUA
-                        + (plugin.getTrophyCount(p.getUniqueId()) * 10 + 10));
+                        + (plugin.playerMaxSkillLevel(p.getUniqueId())));
                 p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                 break;
         }

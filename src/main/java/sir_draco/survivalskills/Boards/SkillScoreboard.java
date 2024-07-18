@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.Scoreboard;
+package sir_draco.survivalskills.Boards;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

@@ -6,8 +6,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import sir_draco.survivalskills.Scoreboard.LeaderboardPlayer;
-import sir_draco.survivalskills.Scoreboard.SkillScoreboard;
+import sir_draco.survivalskills.Boards.Leaderboard;
+import sir_draco.survivalskills.Boards.LeaderboardPlayer;
+import sir_draco.survivalskills.Boards.SkillScoreboard;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -69,7 +70,7 @@ public class Skill {
                     plugin.getLeaderboardTracker().put(p.getUniqueId(), player);
                 }
                 else {
-                    plugin.getLeaderboardTracker().put(p.getUniqueId(), plugin.createLeaderboardPlayer(p));
+                    plugin.getLeaderboardTracker().put(p.getUniqueId(), Leaderboard.createLeaderboardPlayer(plugin, p));
                     setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, skill.getSkillName());
                 }
             }
@@ -100,7 +101,7 @@ public class Skill {
                     plugin.getLeaderboardTracker().put(p.getUniqueId(), player);
                 }
                 else {
-                    plugin.getLeaderboardTracker().put(p.getUniqueId(), plugin.createLeaderboardPlayer(p));
+                    plugin.getLeaderboardTracker().put(p.getUniqueId(), Leaderboard.createLeaderboardPlayer(plugin, p));
                     setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, main.getSkillName());
                 }
             }
@@ -295,31 +296,35 @@ public class Skill {
     }
 
     public static void setScore(LeaderboardPlayer player, Player p, SurvivalSkills plugin, String skillName) {
-        player.setScore(plugin.getLeaderboardScore(p, "All"));
+        player.setScore(Leaderboard.getLeaderboardScore(plugin, p, "All"));
+        int skillScore = Leaderboard.getLeaderboardScore(plugin, p, skillName);
         switch (skillName) {
             case "Building":
-                player.setBuildingScore(plugin.getLeaderboardScore(p, "Building"));
+                player.setBuildingScore(skillScore);
                 break;
             case "Mining":
-                player.setMiningScore(plugin.getLeaderboardScore(p, "Mining"));
+                player.setMiningScore(skillScore);
                 break;
             case "Farming":
-                player.setFarmingScore(plugin.getLeaderboardScore(p, "Farming"));
+                player.setFarmingScore(skillScore);
                 break;
             case "Fighting":
-                player.setFightingScore(plugin.getLeaderboardScore(p, "Fighting"));
+                player.setFightingScore(skillScore);
                 break;
             case "Fishing":
-                player.setFishingScore(plugin.getLeaderboardScore(p, "Fishing"));
+                player.setFishingScore(skillScore);
                 break;
             case "Crafting":
-                player.setCraftingScore(plugin.getLeaderboardScore(p, "Crafting"));
+                player.setCraftingScore(skillScore);
                 break;
             case "Exploring":
-                player.setExploringScore(plugin.getLeaderboardScore(p, "Exploring"));
+                player.setExploringScore(skillScore);
                 break;
             case "Main":
-                player.setMainScore(plugin.getLeaderboardScore(p, "Main"));
+                player.setMainScore(skillScore);
+                break;
+            case "Death":
+                player.setDeathScore(skillScore);
                 break;
         }
     }

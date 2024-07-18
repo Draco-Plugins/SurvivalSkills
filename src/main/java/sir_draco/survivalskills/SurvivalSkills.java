@@ -10,8 +10,6 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 import sir_draco.survivalskills.Abilities.AbilityTimer;
@@ -20,8 +18,9 @@ import sir_draco.survivalskills.Abilities.TrailEffect;
 import sir_draco.survivalskills.Commands.*;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Rewards.Reward;
-import sir_draco.survivalskills.Scoreboard.LeaderboardPlayer;
-import sir_draco.survivalskills.Scoreboard.SkillScoreboard;
+import sir_draco.survivalskills.Boards.Leaderboard;
+import sir_draco.survivalskills.Boards.LeaderboardPlayer;
+import sir_draco.survivalskills.Boards.SkillScoreboard;
 import sir_draco.survivalskills.SkillListeners.*;
 import sir_draco.survivalskills.Trophy.Trophy;
 
@@ -662,19 +661,6 @@ public final class SurvivalSkills extends JavaPlugin {
         exploring.changeExperience(exploringListener.getPlayerSteps(uuid) * exploringXP, playerMaxSkillLevel(uuid));
     }
 
-    public void removeTrophy(Location loc) {
-        Trophy trophy = trophies.get(loc);
-        trophies.remove(loc);
-        if (trophyData.get("" + trophy.getID()) == null) return;
-        trophyData.set("" + trophy.getID(), null);
-    }
-
-    public int getTrophyCount(UUID uuid) {
-        int count = 0;
-        for (Map.Entry<String, Boolean> list : trophyTracker.get(uuid).entrySet()) if (list.getValue()) count++;
-        return count;
-    }
-
     /**
      * Gets the specified skill of a player
      */
@@ -757,7 +743,7 @@ public final class SurvivalSkills extends JavaPlugin {
         // Load their perma trash inventory, and hide any glowing blocks from other player's spelunker ability
         checkMainXP(p);
         loadPlayerRewards(p);
-        leaderboardJoin(p);
+        Leaderboard.leaderboardJoin(this, p);
         loadPermaTrash(p);
         getMiningListener().hideGlowForPlayer(p);
 
@@ -775,6 +761,7 @@ public final class SurvivalSkills extends JavaPlugin {
     public int playerMaxSkillLevel(UUID uuid) {
         int count = 0;
         if (trophyTracker.get(uuid) == null)  {
+            // Try to load the player's trophies after a delay
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -787,11 +774,18 @@ public final class SurvivalSkills extends JavaPlugin {
         return 10 + (count * 10);
     }
 
-    public int generateID() {
+    public int generateTrophyID() {
         int id = (int) Math.ceil(Math.random() * 1000000);
         if (trophies.isEmpty()) return id;
-        for (Map.Entry<Location, Trophy> trophy : trophies.entrySet()) if (trophy.getValue().getID() == id) return generateID();
+        for (Map.Entry<Location, Trophy> trophy : trophies.entrySet()) if (trophy.getValue().getID() == id) return generateTrophyID();
         return id;
+    }
+
+    public void removeTrophy(Location loc) {
+        Trophy trophy = trophies.get(loc);
+        trophies.remove(loc);
+        if (trophyData.get("" + trophy.getID()) == null) return;
+        trophyData.set("" + trophy.getID(), null);
     }
 
     public int getRewardLevel(String type, String reward) {
@@ -881,223 +875,6 @@ public final class SurvivalSkills extends JavaPlugin {
     public boolean checkForClaim(Player p, Location loc) {
         String noBuildReason = GriefPrevention.instance.allowBuild(p, loc);
         return (noBuildReason != null);
-    }
-
-    public ArrayList<String> getTopTen() {
-        // Get the 10 highest scores from the leaderboard
-        ArrayList<String> topTen = new ArrayList<>();
-        HashMap<UUID, LeaderboardPlayer> topTenPlayers = new HashMap<>();
-        for (int i = 1; i <= 10; i++) {
-            UUID topPlayer = null;
-            String name = "";
-            double topScore = 0;
-            for (Map.Entry<UUID, LeaderboardPlayer> entry : leaderboardTracker.entrySet()) {
-                if (topTenPlayers.containsKey(entry.getKey())) continue;
-                if (entry.getValue().getScore() > topScore) {
-                    topPlayer = entry.getKey();
-                    topScore = entry.getValue().getScore();
-                    name = entry.getValue().getName();
-                }
-            }
-            if (topPlayer == null) break;
-            topTenPlayers.put(topPlayer, leaderboardTracker.get(topPlayer));
-            topTen.add(ChatColor.AQUA.toString() + i + ": " + ChatColor.GOLD + name + ChatColor.AQUA + " - " + ChatColor.GREEN + topScore);
-        }
-        return topTen;
-    }
-
-    public ArrayList<String> sortLeaderboard(String skillName) {
-        // Get the 10 highest scores from the leaderboard
-        ArrayList<String> sorted = new ArrayList<>();
-        HashMap<UUID, LeaderboardPlayer> sortedPlayers = new HashMap<>();
-        for (int i = 1; i <= leaderboardTracker.size(); i++) {
-            UUID topPlayer = null;
-            String name = "";
-            double topScore = 0;
-            if (skillName.equalsIgnoreCase("deaths")) topScore = Integer.MAX_VALUE;
-            for (Map.Entry<UUID, LeaderboardPlayer> entry : leaderboardTracker.entrySet()) {
-                if (sortedPlayers.containsKey(entry.getKey())) continue;
-
-                if (skillName.equalsIgnoreCase("all") && entry.getValue().getScore() > topScore) {
-                    topPlayer = entry.getKey();
-                    topScore = entry.getValue().getScore();
-                    name = entry.getValue().getName();
-                }
-                else if (skillName.equalsIgnoreCase("building") && entry.getValue().getBuildingScore() > topScore) {
-                    topPlayer = entry.getKey();
-                    topScore = entry.getValue().getBuildingScore();
-                    name = entry.getValue().getName();
-                }
-                else if (skillName.equalsIgnoreCase("crafting") && entry.getValue().getCraftingScore() > topScore) {
-                    topPlayer = entry.getKey();
-                    topScore = entry.getValue().getCraftingScore();
-                    name = entry.getValue().getName();
-                }
-                else if (skillName.equalsIgnoreCase("exploring") && entry.getValue().getExploringScore() > topScore) {
-                    topPlayer = entry.getKey();
-                    topScore = entry.getValue().getExploringScore();
-                    name = entry.getValue().getName();
-                }
-                else if (skillName.equalsIgnoreCase("farming") && entry.getValue().getFarmingScore() > topScore) {
-                    topPlayer = entry.getKey();
-                    topScore = entry.getValue().getFarmingScore();
-                    name = entry.getValue().getName();
-                }
-                else if (skillName.equalsIgnoreCase("fighting") && entry.getValue().getFightingScore() > topScore) {
-                    topPlayer = entry.getKey();
-                    topScore = entry.getValue().getFightingScore();
-                    name = entry.getValue().getName();
-                }
-                else if (skillName.equalsIgnoreCase("fishing") && entry.getValue().getFishingScore() > topScore) {
-                    topPlayer = entry.getKey();
-                    topScore = entry.getValue().getFishingScore();
-                    name = entry.getValue().getName();
-                }
-                else if (skillName.equalsIgnoreCase("mining") && entry.getValue().getMiningScore() > topScore) {
-                    topPlayer = entry.getKey();
-                    topScore = entry.getValue().getMiningScore();
-                    name = entry.getValue().getName();
-                }
-                else if (skillName.equalsIgnoreCase("main") && entry.getValue().getMainScore() > topScore) {
-                    topPlayer = entry.getKey();
-                    topScore = entry.getValue().getMainScore();
-                    name = entry.getValue().getName();
-                }
-                else if (skillName.equalsIgnoreCase("deaths") && entry.getValue().getDeathScore() < topScore) {
-                    topPlayer = entry.getKey();
-                    topScore = entry.getValue().getDeathScore();
-                    name = entry.getValue().getName();
-                }
-            }
-            if (topPlayer == null) break;
-            sortedPlayers.put(topPlayer, leaderboardTracker.get(topPlayer));
-            if (skillName.equalsIgnoreCase("deaths"))
-                sorted.add(ChatColor.AQUA.toString() + i + ". " + ChatColor.GOLD + name + ChatColor.AQUA + " - " + ChatColor.GREEN + ((int) topScore));
-            else
-                sorted.add(ChatColor.AQUA.toString() + i + ". " + ChatColor.GOLD + name + ChatColor.AQUA + " - " + ChatColor.GREEN + topScore);
-        }
-        return sorted;
-    }
-
-    public LeaderboardPlayer createLeaderboardPlayer(Player p) {
-        int score = getLeaderboardScore(p, "All");
-        int buildingScore = getLeaderboardScore(p, "Building");
-        int craftingScore = getLeaderboardScore(p, "Crafting");
-        int exploringScore = getLeaderboardScore(p, "Exploring");
-        int farmingScore = getLeaderboardScore(p, "Farming");
-        int fightingScore = getLeaderboardScore(p, "Fighting");
-        int fishingScore = getLeaderboardScore(p, "Fishing");
-        int miningScore = getLeaderboardScore(p, "Mining");
-        int mainScore = getLeaderboardScore(p, "Main");
-        int deathScore = getLeaderboardScore(p, "Deaths");
-
-        return new LeaderboardPlayer(p.getDisplayName(), score, buildingScore, craftingScore, exploringScore,
-                farmingScore, fightingScore, fishingScore, miningScore, mainScore, deathScore);
-    }
-
-    public void printRank(Player p, String skillName) {
-        int rank = 1;
-        for (Map.Entry<UUID, LeaderboardPlayer> entry : leaderboardTracker.entrySet()) {
-            if (entry.getKey().equals(p.getUniqueId())) continue;
-            if (skillName.equalsIgnoreCase("all") && entry.getValue().getScore() > getLeaderboardScore(p, "All")) rank++;
-            else if (skillName.equalsIgnoreCase("building") && entry.getValue().getBuildingScore() > getLeaderboardScore(p, "Building")) rank++;
-            else if (skillName.equalsIgnoreCase("crafting") && entry.getValue().getCraftingScore() > getLeaderboardScore(p, "Crafting")) rank++;
-            else if (skillName.equalsIgnoreCase("exploring") && entry.getValue().getExploringScore() > getLeaderboardScore(p, "Exploring")) rank++;
-            else if (skillName.equalsIgnoreCase("farming") && entry.getValue().getFarmingScore() > getLeaderboardScore(p, "Farming")) rank++;
-            else if (skillName.equalsIgnoreCase("fighting") && entry.getValue().getFightingScore() > getLeaderboardScore(p, "Fighting")) rank++;
-            else if (skillName.equalsIgnoreCase("fishing") && entry.getValue().getFishingScore() > getLeaderboardScore(p, "Fishing")) rank++;
-            else if (skillName.equalsIgnoreCase("mining") && entry.getValue().getMiningScore() > getLeaderboardScore(p, "Mining")) rank++;
-            else if (skillName.equalsIgnoreCase("main") && entry.getValue().getMainScore() > getLeaderboardScore(p, "Main")) rank++;
-        }
-        p.sendRawMessage(ChatColor.GREEN + "You are currently ranked " + ChatColor.GOLD + rank + ChatColor.GREEN + " in "
-                + ChatColor.GOLD + skillName + ChatColor.GREEN + " out of " + ChatColor.GOLD + leaderboardTracker.size() + ChatColor.GREEN + "!");
-    }
-
-    public int getLeaderboardScore(Player p, String skillName) {
-        if (skillName.equalsIgnoreCase("All")) {
-            int score = 0;
-            if (!playerSkills.containsKey(p.getUniqueId())) return score;
-            for (Skill skill : playerSkills.get(p.getUniqueId())) score += skill.getLevel();
-            return score;
-        }
-        else if (skillName.equals("Building")) {
-            int score = 0;
-            if (!playerSkills.containsKey(p.getUniqueId())) return score;
-            return getSkill(p.getUniqueId(), "Building").getLevel();
-        }
-        else if (skillName.equals("Crafting")) {
-            int score = 0;
-            if (!playerSkills.containsKey(p.getUniqueId())) return score;
-            return getSkill(p.getUniqueId(), "Crafting").getLevel();
-        }
-        else if (skillName.equals("Exploring")) {
-            int score = 0;
-            if (!playerSkills.containsKey(p.getUniqueId())) return score;
-            return getSkill(p.getUniqueId(), "Exploring").getLevel();
-        }
-        else if (skillName.equals("Farming")) {
-            int score = 0;
-            if (!playerSkills.containsKey(p.getUniqueId())) return score;
-            return getSkill(p.getUniqueId(), "Farming").getLevel();
-        }
-        else if (skillName.equals("Mining")) {
-            int score = 0;
-            if (!playerSkills.containsKey(p.getUniqueId())) return score;
-            return getSkill(p.getUniqueId(), "Mining").getLevel();
-        }
-        else if (skillName.equals("Fighting")) {
-            int score = 0;
-            if (!playerSkills.containsKey(p.getUniqueId())) return score;
-            return getSkill(p.getUniqueId(), "Fighting").getLevel();
-        }
-        else if (skillName.equals("Fishing")) {
-            int score = 0;
-            if (!playerSkills.containsKey(p.getUniqueId())) return score;
-            return getSkill(p.getUniqueId(), "Fishing").getLevel();
-        }
-        else if (skillName.equals("Main")) {
-            int score = 0;
-            if (!playerSkills.containsKey(p.getUniqueId())) return score;
-            return getSkill(p.getUniqueId(), "Main").getLevel();
-        }
-        else if (skillName.equalsIgnoreCase("Deaths")) {
-            if (leaderboardData.get(p.getUniqueId().toString()) == null) {
-                ScoreboardManager manager = Bukkit.getScoreboardManager();
-                if (manager == null) return 0;
-                Scoreboard mainBoard = manager.getMainScoreboard();
-                Objective objective = mainBoard.getObjective("deaths");
-                if (objective == null) return 0;
-                Score score = objective.getScore(p.getName());
-                return score.getScore();
-            }
-            int deaths = leaderboardData.getInt(p.getUniqueId() + ".Deaths");
-            if (deaths == 0) {
-                ScoreboardManager manager = Bukkit.getScoreboardManager();
-                if (manager == null) return 0;
-                Scoreboard mainBoard = manager.getMainScoreboard();
-                Objective objective = mainBoard.getObjective("deaths");
-                if (objective == null) return 0;
-                Score score = objective.getScore(p.getName());
-                return score.getScore();
-            }
-            return deaths;
-        }
-
-        return 0;
-    }
-
-    public void leaderboardJoin(Player p) {
-        leaderboardTracker.put(p.getUniqueId(), createLeaderboardPlayer(p));
-        int deaths = getLeaderboardScore(p, "Deaths");
-        if (deaths >= 40)
-            p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 0, false, false, true));
-        if (deaths >= 50) {
-            PlayerRewards rewards = getPlayerRewards(p);
-            rewards.setProtectionPercentage(rewards.getProtectionPercentage() + 0.1);
-            rewards.setAddedDeathResistance(true);
-        }
-
-        SkillScoreboard.updateScoreboard(this, p, "Main");
     }
 
     public void runSkillAutoSave() {
@@ -1233,5 +1010,9 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public HashMap<Player, Scoreboard> getScoreboardTracker() {
         return scoreboardTracker;
+    }
+
+    public FileConfiguration getLeaderboardData() {
+        return leaderboardData;
     }
 }

@@ -9,7 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import sir_draco.survivalskills.Scoreboard.SkillScoreboard;
+import sir_draco.survivalskills.Boards.SkillScoreboard;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;

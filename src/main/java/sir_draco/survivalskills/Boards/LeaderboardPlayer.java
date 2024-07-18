@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.Scoreboard;
+package sir_draco.survivalskills.Boards;
 
 public class LeaderboardPlayer {
 

@@ -19,7 +19,6 @@ import sir_draco.survivalskills.Abilities.HarvesterAsync;
 import sir_draco.survivalskills.Abilities.HarvesterTimer;
 import sir_draco.survivalskills.Bosses.ProjectileCalculator;
 import sir_draco.survivalskills.ItemStackGenerator;
-import sir_draco.survivalskills.Scoreboard.SkillScoreboard;
 import sir_draco.survivalskills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 

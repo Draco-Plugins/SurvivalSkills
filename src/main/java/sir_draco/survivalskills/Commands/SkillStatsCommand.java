@@ -13,6 +13,7 @@ import sir_draco.survivalskills.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.Rewards.RewardItemInfo;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
+import sir_draco.survivalskills.Boards.Leaderboard;
 import sir_draco.survivalskills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
@@ -23,14 +24,16 @@ public class SkillStatsCommand implements CommandExecutor {
     private final SurvivalSkills plugin;
     private final ArrayList<Inventory> recipeInventories = new ArrayList<>();
     private final ArrayList<RewardItemInfo> recipeLevelInformation = new ArrayList<>();
+    private final ArrayList<String> acceptableSkillList = new ArrayList<>();
 
     public SkillStatsCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
         PluginCommand command = plugin.getCommand("skills");
         if (command == null) return;
         command.setExecutor(this);
-        getItemLevelInformation();
+        createItemLevelInfo();
         createRecipeInventories();
+        createAcceptableSkillList();
     }
 
     @Override
@@ -50,165 +53,50 @@ public class SkillStatsCommand implements CommandExecutor {
                 return true;
             }
 
-            if (strings[1].equalsIgnoreCase("mining")) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        ArrayList<Inventory> inventories = createSkillTree(p, Skill.MINING);
-                        if (inventories == null || inventories.isEmpty()) return;
-                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                p.openInventory(inventories.get(0));
-                            }
-                        }.runTask(plugin);
-                    }
-                }.runTaskAsynchronously(plugin);
-                return true;
-            }
-            else if (strings[1].equalsIgnoreCase("farming")) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        ArrayList<Inventory> inventories = createSkillTree(p, Skill.FARMING);
-                        if (inventories == null || inventories.isEmpty()) return;
-                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                p.openInventory(inventories.get(0));
-                            }
-                        }.runTask(plugin);
-                    }
-                }.runTaskAsynchronously(plugin);
-                return true;
-            }
-            else if (strings[1].equalsIgnoreCase("fighting")) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        ArrayList<Inventory> inventories = createSkillTree(p, Skill.FIGHTING);
-                        if (inventories == null || inventories.isEmpty()) return;
-                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                p.openInventory(inventories.get(0));
-                            }
-                        }.runTask(plugin);
-                    }
-                }.runTaskAsynchronously(plugin);
-                return true;
-            }
-            else if (strings[1].equalsIgnoreCase("crafting")) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        ArrayList<Inventory> inventories = createSkillTree(p, Skill.CRAFTING);
-                        if (inventories == null || inventories.isEmpty()) return;
-                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                p.openInventory(inventories.get(0));
-                            }
-                        }.runTask(plugin);
-                    }
-                }.runTaskAsynchronously(plugin);
-                return true;
-            }
-            else if (strings[1].equalsIgnoreCase("main")) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        ArrayList<Inventory> inventories = createSkillTree(p, Skill.MAIN);
-                        if (inventories == null || inventories.isEmpty()) return;
-                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                p.openInventory(inventories.get(0));
-                            }
-                        }.runTask(plugin);
-                    }
-                }.runTaskAsynchronously(plugin);
-                return true;
-            }
-            else if (strings[1].equalsIgnoreCase("building")) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        ArrayList<Inventory> inventories = createSkillTree(p, Skill.BUILDING);
-                        if (inventories == null || inventories.isEmpty()) return;
-                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                p.openInventory(inventories.get(0));
-                            }
-                        }.runTask(plugin);
-                    }
-                }.runTaskAsynchronously(plugin);
-                return true;
-            }
-            else if (strings[1].equalsIgnoreCase("fishing")) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        ArrayList<Inventory> inventories = createSkillTree(p, Skill.FISHING);
-                        if (inventories == null || inventories.isEmpty()) return;
-                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                p.openInventory(inventories.get(0));
-                            }
-                        }.runTask(plugin);
-                    }
-                }.runTaskAsynchronously(plugin);
-                return true;
-            }
-            else if (strings[1].equalsIgnoreCase("exploring")) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        ArrayList<Inventory> inventories = createSkillTree(p, Skill.EXPLORING);
-                        if (inventories == null || inventories.isEmpty()) return;
-                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                p.openInventory(inventories.get(0));
-                            }
-                        }.runTask(plugin);
-                    }
-                }.runTaskAsynchronously(plugin);
-                return true;
-            }
-            else if (strings[1].equalsIgnoreCase("deaths")) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        Inventory inventory = Bukkit.createInventory(null, 9);
-                        int deaths = plugin.getLeaderboardScore(p, "Deaths");
-                        createDeathTree(inventory, deaths);
-                        ArrayList<Inventory> inventories = new ArrayList<>();
-                        inventories.add(inventory);
-                        if (inventory.isEmpty()) return;
-                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                p.openInventory(inventory);
-                            }
-                        }.runTask(plugin);
-                    }
-                }.runTaskAsynchronously(plugin);
+
+            for (String skill : acceptableSkillList) {
+                if (!skill.equalsIgnoreCase(strings[1])) continue;
+
+                if (skill.equalsIgnoreCase("Deaths")) {
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            Inventory inventory = Bukkit.createInventory(null, 9);
+                            int deaths = Leaderboard.getLeaderboardScore(plugin, p, "Deaths");
+                            createDeathTree(inventory, deaths);
+                            ArrayList<Inventory> inventories = new ArrayList<>();
+                            inventories.add(inventory);
+                            if (inventory.isEmpty()) return;
+                            plugin.getPlayerListener().getCustomInventories().put(p, inventories);
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    p.openInventory(inventory);
+                                }
+                            }.runTask(plugin);
+                        }
+                    }.runTaskAsynchronously(plugin);
+                }
+                else {
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            ArrayList<Inventory> inventories = createSkillTree(p, skill);
+                            if (inventories == null || inventories.isEmpty()) return;
+                            plugin.getPlayerListener().getCustomInventories().put(p, inventories);
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    p.openInventory(inventories.get(0));
+                                }
+                            }.runTask(plugin);
+                        }
+                    }.runTaskAsynchronously(plugin);
+                }
                 return true;
             }
 
-            p.sendRawMessage(ChatColor.RED + "Invalid skill tree.");
+            p.sendRawMessage(ChatColor.RED + "Invalid skill tree: " + ChatColor.YELLOW + strings[1]);
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         }
@@ -283,21 +171,28 @@ public class SkillStatsCommand implements CommandExecutor {
                 return true;
             }
 
+            // No parameters default to the top 10 players with the highest total skill score
             if (strings.length == 1) {
-                ArrayList<String> leaderboard = plugin.getTopTen();
+                ArrayList<String> leaderboard = Leaderboard.getTopTen(plugin);
                 for (String line : leaderboard) p.sendRawMessage(line);
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 return true;
             }
 
+            // Calculate the total number of pages required to display all players
             double size = Math.ceil((double) plugin.getLeaderboardTracker().size() / 10);
             int maxPage = Math.max(1, (int) Math.ceil(size));
-            if (strings[1].equalsIgnoreCase("all")) {
+
+            for (String skill : acceptableSkillList) {
+                if (!skill.equalsIgnoreCase(strings[1])) continue;
+
+                // If they don't specify a page number print the first page
                 if (strings.length != 3) {
-                    printLeaderboard(p, "All", 1, maxPage);
+                    Leaderboard.printLeaderboard(plugin, p, skill, 1, maxPage);
                     return true;
                 }
 
+                // Otherwise print the specified page
                 try {
                     int page = Integer.parseInt(strings[2]);
                     if (page < 1 || page > maxPage) {
@@ -305,183 +200,16 @@ public class SkillStatsCommand implements CommandExecutor {
                         p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                         return true;
                     }
-                    printLeaderboard(p, "All", page, maxPage);
+                    Leaderboard.printLeaderboard(plugin, p, skill, page, maxPage);
                 } catch (NumberFormatException e) {
                     p.sendRawMessage(ChatColor.RED + "Invalid page number.");
                     p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 }
+                return true;
             }
-            else if (strings[1].equalsIgnoreCase("building")) {
-                if (strings.length != 3) {
-                    printLeaderboard(p, "Building", 1, maxPage);
-                    return true;
-                }
 
-                try {
-                    int page = Integer.parseInt(strings[2]);
-                    if (page < 1 || page > maxPage) {
-                        p.sendRawMessage(ChatColor.RED + "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                        return true;
-                    }
-                    printLeaderboard(p, "Building", page, maxPage);
-                } catch (NumberFormatException e) {
-                    p.sendRawMessage(ChatColor.RED + "Invalid page number.");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                }
-            }
-            else if (strings[1].equalsIgnoreCase("crafting")) {
-                if (strings.length != 3) {
-                    printLeaderboard(p, "Crafting", 1, maxPage);
-                    return true;
-                }
-
-                try {
-                    int page = Integer.parseInt(strings[2]);
-                    if (page < 1 || page > maxPage) {
-                        p.sendRawMessage(ChatColor.RED + "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                        return true;
-                    }
-                    printLeaderboard(p, "Crafting", page, maxPage);
-                } catch (NumberFormatException e) {
-                    p.sendRawMessage(ChatColor.RED + "Invalid page number.");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                }
-            }
-            else if (strings[1].equalsIgnoreCase("exploring")) {
-                if (strings.length != 3) {
-                    printLeaderboard(p, "Exploring", 1, maxPage);
-                    return true;
-                }
-
-                try {
-                    int page = Integer.parseInt(strings[2]);
-                    if (page < 1 || page > maxPage) {
-                        p.sendRawMessage(ChatColor.RED + "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                        return true;
-                    }
-                    printLeaderboard(p, "Exploring", page, maxPage);
-                } catch (NumberFormatException e) {
-                    p.sendRawMessage(ChatColor.RED + "Invalid page number.");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                }
-            }
-            else if (strings[1].equalsIgnoreCase("farming")) {
-                if (strings.length != 3) {
-                    printLeaderboard(p, "Farming", 1, maxPage);
-                    return true;
-                }
-
-                try {
-                    int page = Integer.parseInt(strings[2]);
-                    if (page < 1 || page > maxPage) {
-                        p.sendRawMessage(ChatColor.RED + "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    }
-                    printLeaderboard(p, "Farming", page, maxPage);
-                }
-                catch (NumberFormatException e) {
-                    p.sendRawMessage(ChatColor.RED + "Invalid page number.");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                }
-            }
-            else if (strings[1].equalsIgnoreCase("fighting")) {
-                if (strings.length != 3) {
-                    printLeaderboard(p, "Fighting", 1, maxPage);
-                    return true;
-                }
-
-                try {
-                    int page = Integer.parseInt(strings[2]);
-                    if (page < 1 || page > maxPage) {
-                        p.sendRawMessage(ChatColor.RED + "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    }
-                    printLeaderboard(p, "Fighting", page, maxPage);
-                }
-                catch (NumberFormatException e) {
-                    p.sendRawMessage(ChatColor.RED + "Invalid page number.");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                }
-            }
-            else if (strings[1].equalsIgnoreCase("fishing")) {
-                if (strings.length != 3) {
-                    printLeaderboard(p, "Fishing", 1, maxPage);
-                    return true;
-                }
-
-                try {
-                    int page = Integer.parseInt(strings[2]);
-                    if (page < 1 || page > maxPage) {
-                        p.sendRawMessage(ChatColor.RED + "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    }
-                    printLeaderboard(p, "Fishing", page, maxPage);
-                }
-                catch (NumberFormatException e) {
-                    p.sendRawMessage(ChatColor.RED + "Invalid page number.");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                }
-            }
-            else if (strings[1].equalsIgnoreCase("mining")) {
-                if (strings.length != 3) {
-                    printLeaderboard(p, "Mining", 1, maxPage);
-                    return true;
-                }
-
-                try {
-                    int page = Integer.parseInt(strings[2]);
-                    if (page < 1 || page > maxPage) {
-                        p.sendRawMessage(ChatColor.RED + "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    }
-                    printLeaderboard(p, "Mining", page, maxPage);
-                }
-                catch (NumberFormatException e) {
-                    p.sendRawMessage(ChatColor.RED + "Invalid page number.");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                }
-            }
-            else if (strings[1].equalsIgnoreCase("main")) {
-                if (strings.length != 3) {
-                    printLeaderboard(p, "Main", 1, maxPage);
-                    return true;
-                }
-
-                try {
-                    int page = Integer.parseInt(strings[2]);
-                    if (page < 1 || page > maxPage) {
-                        p.sendRawMessage(ChatColor.RED + "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    }
-                    printLeaderboard(p, "Main", page, maxPage);
-                }
-                catch (NumberFormatException e) {
-                    p.sendRawMessage(ChatColor.RED + "Invalid page number.");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                }
-            }
-            else if (strings[1].equalsIgnoreCase("deaths")) {
-                if (strings.length != 3) {
-                    printLeaderboard(p, "Deaths", 1, maxPage);
-                    return true;
-                }
-
-                try {
-                    int page = Integer.parseInt(strings[2]);
-                    if (page < 1 || page > maxPage) {
-                        p.sendRawMessage(ChatColor.RED + "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    }
-                    printLeaderboard(p, "Deaths", page, maxPage);
-                }
-                catch (NumberFormatException e) {
-                    p.sendRawMessage(ChatColor.RED + "Invalid page number.");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                }
-            }
+            p.sendRawMessage(ChatColor.RED + "Invalid skill: " + ChatColor.YELLOW + strings[1]);
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         }
         return true;
@@ -547,22 +275,21 @@ public class SkillStatsCommand implements CommandExecutor {
                 else layer = shape[2];
                 if (slot >= layer.length()) continue;
                 char c = layer.charAt(slot);
-
                 if (c == ' ' || c == 'D') continue;
+
+                // Check if it is the fishing king item
                 ItemStack ingredient = ingredients.get(c);
                 if (ingredient != null && ingredient.getType().equals(Material.PRISMARINE_SHARD)
                         && ingredient.getItemMeta() != null && ingredient.getItemMeta().hasCustomModelData()) {
-                    ArrayList<String> lore = (ArrayList<String>) ingredient.getItemMeta().getLore();
-                    if (lore != null) {
-                        lore.add(ChatColor.GRAY + "Unlocked at fighting level: " + ChatColor.AQUA +
-                                plugin.getDefaultPlayerRewards().getReward("Fighting", "FishingKing").getLevel());
-                        ItemMeta meta = ingredient.getItemMeta();
-                        meta.setLore(lore);
-                        ingredient.setItemMeta(meta);
-                    }
+                    inv.setItem(slots.get(i), getResult(ingredient));
+                    continue;
                 }
+
                 if (ingredients.containsKey(c)) inv.setItem(slots.get(i), ingredients.get(c));
-                else if (recipeChoices.containsKey(c)) inv.setItem(slots.get(i), recipeChoices.get(c).getItemStack());
+                else if (recipeChoices.containsKey(c)) {
+                    RecipeChoice.ExactChoice choice = (RecipeChoice.ExactChoice) recipeChoices.get(c);
+                    inv.setItem(slots.get(i), choice.getItemStack());
+                }
             }
             ItemStack result = getResult(shapedRecipe.getResult());
             inv.setItem(slots.get(9), result);
@@ -906,7 +633,7 @@ public class SkillStatsCommand implements CommandExecutor {
         return new RewardItemInfo(item, skillName, rewardName, plugin.getRewardLevel(skillName, rewardName));
     }
 
-    public void getItemLevelInformation() {
+    public void createItemLevelInfo() {
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getUnlimitedTorch(), "Mining", "UnlimitedTorch"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningHelmet(), "Mining", "MiningArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningChestplate(), "Mining", "MiningArmor"));
@@ -933,6 +660,7 @@ public class SkillStatsCommand implements CommandExecutor {
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getFireworkCannon(), "Main", "FireworkCannon"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getSortWand(), "Building", "AutoSortWand"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGiantSummoner(), "Fighting", "GiantSummon"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getFishingBossItem(), "Fighting", "FishingKing"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBroodMotherSummoner(), "Fighting", "BroodMotherSummon"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getVillagerSummoner(), "Fighting", "TheExiledOneSummon"));
     }
@@ -971,16 +699,16 @@ public class SkillStatsCommand implements CommandExecutor {
         return item;
     }
 
-    public void printLeaderboard(Player p, String skillName, int page, int maxPage) {
-        ArrayList<String> leaderboard = plugin.sortLeaderboard(skillName);
-
-        p.sendRawMessage(ChatColor.YELLOW + "Page: " + ChatColor.AQUA + page + ChatColor.YELLOW + "/" + ChatColor.AQUA + maxPage);
-        plugin.printRank(p, skillName);
-        for (int i = (page * 10) - 10; i <= (page * 10) - 1; i++) {
-            if (i >= leaderboard.size()) break;
-            p.sendRawMessage(leaderboard.get(i));
-        }
-        p.sendRawMessage(ChatColor.YELLOW + "Type " + ChatColor.AQUA + "/skills leaderboard " + skillName + " <page>" + ChatColor.YELLOW + " to view more pages");
-        p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+    public void createAcceptableSkillList() {
+        acceptableSkillList.add("All");
+        acceptableSkillList.add("Building");
+        acceptableSkillList.add("Crafting");
+        acceptableSkillList.add("Exploring");
+        acceptableSkillList.add("Farming");
+        acceptableSkillList.add("Fighting");
+        acceptableSkillList.add("Fishing");
+        acceptableSkillList.add("Mining");
+        acceptableSkillList.add("Main");
+        acceptableSkillList.add("Deaths");
     }
 }
