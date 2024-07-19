@@ -1,5 +1,14 @@
 package sir_draco.survivalskills;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.flags.Flags;
+import com.sk89q.worldguard.protection.flags.StateFlag;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
@@ -66,6 +75,8 @@ public final class SurvivalSkills extends JavaPlugin {
 
     private boolean woolRecipes = false;
     private boolean griefPreventionEnabled = false;
+    private boolean worldGuardEnabled = false;
+    private RegionContainer container = null;
 
     @Override
     public void onEnable() {
@@ -119,6 +130,10 @@ public final class SurvivalSkills extends JavaPlugin {
             for (Player p : getServer().getOnlinePlayers()) playerJoin(p, true);
 
         if (getServer().getPluginManager().getPlugin("GriefPrevention") != null) griefPreventionEnabled = true;
+        if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
+            worldGuardEnabled = true;
+            container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+        }
     }
 
     @Override
@@ -645,6 +660,28 @@ public final class SurvivalSkills extends JavaPlugin {
         return (noBuildReason != null);
     }
 
+    public boolean canPlaceBlockInRegion(Player p, Location loc) {
+        World world = loc.getWorld();
+        if (world == null) return true;
+        RegionManager regions = container.get(BukkitAdapter.adapt(world));
+        if (regions == null) return true;
+
+        double x = loc.getX();
+        double y = loc.getY();
+        double z = loc.getZ();
+        ApplicableRegionSet applicableRegions = regions.getApplicableRegions(BlockVector3.at(loc.getX(), loc.getY(), loc.getZ()));
+        for (ProtectedRegion region : applicableRegions) {
+            if (region == null) continue;
+            if (!region.contains(BlockVector3.at(x, y, z))) continue;
+            StateFlag.State state = region.getFlag(Flags.BLOCK_PLACE);
+            boolean allowed = StateFlag.test(state);
+            if (p.hasPermission("worldguard.region.bypass." + region.getId()) || p.isOp()) allowed = true;
+            if (!allowed) return false;
+        }
+
+        return true;
+    }
+
     public Enchantment getEnchantFromKey(String key) {
         for (Enchantment enchant : Registry.ENCHANTMENT) {
             if (enchant.getKey().toString().equalsIgnoreCase(key)) return enchant;
@@ -725,6 +762,10 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public boolean isGriefPreventionEnabled() {
         return griefPreventionEnabled;
+    }
+
+    public boolean isWorldGuardEnabled() {
+        return worldGuardEnabled;
     }
 
     public HashMap<UUID, LeaderboardPlayer> getLeaderboardTracker() {

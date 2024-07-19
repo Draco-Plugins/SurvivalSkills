@@ -4,7 +4,7 @@ main: sir_draco.survivalskills.SurvivalSkills
 api-version: '1.20'
 authors: [ Sir Draco ]
 load: POSTWORLD
-softdepend: [ Citizens, GriefPrevention ]
+softdepend: [ Citizens, GriefPrevention, WorldGuard ]
 description: Allows for leveling and customization for vanilla survival
 
 commands:

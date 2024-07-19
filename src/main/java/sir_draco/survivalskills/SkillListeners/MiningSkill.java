@@ -106,6 +106,11 @@ public class MiningSkill implements Listener {
 
         // Check if it is in a claim
         if (plugin.isGriefPreventionEnabled() && plugin.checkForClaim(p, e.getClickedBlock().getLocation())) return;
+        // Check if they are in spawn
+        if (plugin.isWorldGuardEnabled()) {
+            boolean canPlace = plugin.canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
+            if (!canPlace) return;
+        }
 
         // Place torch if possible
         Block desiredBlock = e.getClickedBlock().getRelative(e.getBlockFace());
