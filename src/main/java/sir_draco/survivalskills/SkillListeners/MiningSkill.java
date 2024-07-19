@@ -177,6 +177,7 @@ public class MiningSkill implements Listener {
         Player p = (Player) e.getWhoClicked();
         Inventory inv = e.getClickedInventory();
         Inventory top = e.getView().getTopInventory();
+        if (!toolBelts.containsKey(p)) return;
         Inventory toolBelt = toolBelts.get(p);
         if (!toolBelt.equals(inv) && !toolBelt.equals(top)) return;
         if (e.getCurrentItem() == null) return;
