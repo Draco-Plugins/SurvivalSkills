@@ -23,6 +23,10 @@ Mining:
     Enabled: true
     Level: 10
     Type: 'State'
+  ToolBelt:
+    Enabled: true
+    Level: 12
+    Type: 'Command'
   SpelunkerI:
     Enabled: true
     Level: 15

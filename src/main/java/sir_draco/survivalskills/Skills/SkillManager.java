@@ -177,6 +177,8 @@ public class SkillManager {
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
+
+                        plugin.getAbilityManager().saveToolBelts();
                     }
                 }.runTask(plugin);
             }

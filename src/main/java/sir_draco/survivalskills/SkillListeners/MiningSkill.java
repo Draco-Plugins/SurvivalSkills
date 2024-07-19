@@ -14,10 +14,14 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
@@ -38,11 +42,13 @@ public class MiningSkill implements Listener {
     private final ArrayList<Material> commonOres = new ArrayList<>();
     private final ArrayList<Material> uncommonOres = new ArrayList<>();
     private final ArrayList<Material> rareOres = new ArrayList<>();
+    private final ArrayList<Player> peacefulMiners = new ArrayList<>();
+    private final ArrayList<EntityType> peacefulMobList = new ArrayList<>();
+    private final ArrayList<Material> acceptableTools = new ArrayList<>();
     private final HashMap<Player, SpelunkerAbilitySync> spelunkerTracker = new HashMap<>();
     private final HashMap<Player, Integer> veinminerTracker = new HashMap<>(); // Integer is 0 (takes hunger) or 1 (doesn't)
     private final HashMap<Player, ArrayList<Block>> veinTracker = new HashMap<>();
-    private final ArrayList<Player> peacefulMiners = new ArrayList<>();
-    private final ArrayList<EntityType> peacefulMobList = new ArrayList<>();
+    private final HashMap<Player, Inventory> toolBelts = new HashMap<>();
     private final int blocksPerHunger;
 
     public MiningSkill(SurvivalSkills plugin, int blocksPerHunger) {
@@ -53,6 +59,7 @@ public class MiningSkill implements Listener {
         setUncommonOres();
         setRareOres();
         setPeacefulMobList();
+        setAcceptableTools();
     }
 
     @EventHandler (ignoreCancelled = true)
@@ -159,6 +166,54 @@ public class MiningSkill implements Listener {
         }
     }
 
+    @EventHandler
+    public void onToolBeltClick(InventoryClickEvent e) {
+        if (e.getClickedInventory() == null) return;
+        Player p = (Player) e.getWhoClicked();
+        Inventory inv = e.getClickedInventory();
+        Inventory top = e.getView().getTopInventory();
+        Inventory toolBelt = toolBelts.get(p);
+        if (!toolBelt.equals(inv) && !toolBelt.equals(top)) return;
+        if (e.getCurrentItem() == null) return;
+
+        // Check if the clicked item is a tool
+        if (!acceptableTools.contains(e.getCurrentItem().getType())) {
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onToolBeltDrag(InventoryDragEvent e) {
+        Inventory inv = e.getInventory();
+        if (!toolBelts.containsValue(inv)) return;
+        Player p = (Player) e.getWhoClicked();
+
+        // Check if the clicked item is a tool
+        if (!acceptableTools.contains(e.getOldCursor().getType())) {
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            e.setCancelled(true);
+            return;
+        }
+
+        for (ItemStack item : e.getNewItems().values()) {
+            if (!acceptableTools.contains(item.getType())) {
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                e.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    @EventHandler
+    public void onToolBeltClose(InventoryCloseEvent e) {
+        Player p = (Player) e.getPlayer();
+        if (!toolBelts.containsKey(p)) return;
+
+        // Save the changes to the tool belt
+        plugin.getAbilityManager().saveToolBelt(p, toolBelts.get(p));
+    }
+
     public double getMultiplier(Material mat) {
         switch (mat) {
             case DEEPSLATE:
@@ -195,63 +250,6 @@ public class MiningSkill implements Listener {
         }
     }
 
-    public void setOres() {
-        ores.add(Material.COAL_ORE);
-        ores.add(Material.DEEPSLATE_COAL_ORE);
-        ores.add(Material.IRON_ORE);
-        ores.add(Material.DEEPSLATE_IRON_ORE);
-        ores.add(Material.COPPER_ORE);
-        ores.add(Material.GOLD_ORE);
-        ores.add(Material.DEEPSLATE_GOLD_ORE);
-        ores.add(Material.LAPIS_ORE);
-        ores.add(Material.NETHER_GOLD_ORE);
-        ores.add(Material.NETHER_QUARTZ_ORE);
-        ores.add(Material.DEEPSLATE_LAPIS_ORE);
-        ores.add(Material.DIAMOND_ORE);
-        ores.add(Material.DEEPSLATE_DIAMOND_ORE);
-        ores.add(Material.EMERALD_ORE);
-        ores.add(Material.DEEPSLATE_EMERALD_ORE);
-        ores.add(Material.ANCIENT_DEBRIS);
-        ores.add(Material.REDSTONE_ORE);
-        ores.add(Material.DEEPSLATE_REDSTONE_ORE);
-        ores.add(Material.OBSIDIAN);
-    }
-
-    public void setCommonOres() {
-        commonOres.add(Material.COAL_ORE);
-        commonOres.add(Material.DEEPSLATE_COAL_ORE);
-        commonOres.add(Material.IRON_ORE);
-        commonOres.add(Material.DEEPSLATE_IRON_ORE);
-        commonOres.add(Material.COPPER_ORE);
-    }
-
-    public void setUncommonOres() {
-        uncommonOres.add(Material.GOLD_ORE);
-        uncommonOres.add(Material.DEEPSLATE_GOLD_ORE);
-        uncommonOres.add(Material.LAPIS_ORE);
-        uncommonOres.add(Material.NETHER_GOLD_ORE);
-        uncommonOres.add(Material.NETHER_QUARTZ_ORE);
-        uncommonOres.add(Material.DEEPSLATE_LAPIS_ORE);
-        uncommonOres.add(Material.REDSTONE_ORE);
-        uncommonOres.add(Material.DEEPSLATE_REDSTONE_ORE);
-    }
-
-    public void setRareOres() {
-        rareOres.add(Material.DIAMOND_ORE);
-        rareOres.add(Material.DEEPSLATE_DIAMOND_ORE);
-        rareOres.add(Material.EMERALD_ORE);
-        rareOres.add(Material.DEEPSLATE_EMERALD_ORE);
-        rareOres.add(Material.ANCIENT_DEBRIS);
-    }
-
-    public HashMap<Player, SpelunkerAbilitySync> getSpelunkerTracker() {
-        return spelunkerTracker;
-    }
-
-    public ArrayList<Material> getOres() {
-        return ores;
-    }
-
     public String getOreTeam(Material mat) {
         if (commonOres.contains(mat)) return "common";
         else if (uncommonOres.contains(mat)) return ChatColor.GREEN + "uncommon";
@@ -275,10 +273,6 @@ public class MiningSkill implements Listener {
     public void hideGlowForPlayer(Player p) {
         if (spelunkerTracker.isEmpty()) return;
         for (Map.Entry<Player, SpelunkerAbilitySync> hide : spelunkerTracker.entrySet()) hide.getValue().hideAllGlowForPlayer(p);
-    }
-
-    public HashMap<Player, Integer> getVeinminerTracker() {
-        return veinminerTracker;
     }
 
     public void doubleOre(Player p, BlockBreakEvent e) {
@@ -378,8 +372,53 @@ public class MiningSkill implements Listener {
         return ItemStackGenerator.isCustomItem(inv.getHelmet(), 3);
     }
 
-    public ArrayList<Player> getPeacefulMiners() {
-        return peacefulMiners;
+    public void setOres() {
+        ores.add(Material.COAL_ORE);
+        ores.add(Material.DEEPSLATE_COAL_ORE);
+        ores.add(Material.IRON_ORE);
+        ores.add(Material.DEEPSLATE_IRON_ORE);
+        ores.add(Material.COPPER_ORE);
+        ores.add(Material.GOLD_ORE);
+        ores.add(Material.DEEPSLATE_GOLD_ORE);
+        ores.add(Material.LAPIS_ORE);
+        ores.add(Material.NETHER_GOLD_ORE);
+        ores.add(Material.NETHER_QUARTZ_ORE);
+        ores.add(Material.DEEPSLATE_LAPIS_ORE);
+        ores.add(Material.DIAMOND_ORE);
+        ores.add(Material.DEEPSLATE_DIAMOND_ORE);
+        ores.add(Material.EMERALD_ORE);
+        ores.add(Material.DEEPSLATE_EMERALD_ORE);
+        ores.add(Material.ANCIENT_DEBRIS);
+        ores.add(Material.REDSTONE_ORE);
+        ores.add(Material.DEEPSLATE_REDSTONE_ORE);
+        ores.add(Material.OBSIDIAN);
+    }
+
+    public void setCommonOres() {
+        commonOres.add(Material.COAL_ORE);
+        commonOres.add(Material.DEEPSLATE_COAL_ORE);
+        commonOres.add(Material.IRON_ORE);
+        commonOres.add(Material.DEEPSLATE_IRON_ORE);
+        commonOres.add(Material.COPPER_ORE);
+    }
+
+    public void setUncommonOres() {
+        uncommonOres.add(Material.GOLD_ORE);
+        uncommonOres.add(Material.DEEPSLATE_GOLD_ORE);
+        uncommonOres.add(Material.LAPIS_ORE);
+        uncommonOres.add(Material.NETHER_GOLD_ORE);
+        uncommonOres.add(Material.NETHER_QUARTZ_ORE);
+        uncommonOres.add(Material.DEEPSLATE_LAPIS_ORE);
+        uncommonOres.add(Material.REDSTONE_ORE);
+        uncommonOres.add(Material.DEEPSLATE_REDSTONE_ORE);
+    }
+
+    public void setRareOres() {
+        rareOres.add(Material.DIAMOND_ORE);
+        rareOres.add(Material.DEEPSLATE_DIAMOND_ORE);
+        rareOres.add(Material.EMERALD_ORE);
+        rareOres.add(Material.DEEPSLATE_EMERALD_ORE);
+        rareOres.add(Material.ANCIENT_DEBRIS);
     }
 
     public void setPeacefulMobList() {
@@ -390,5 +429,85 @@ public class MiningSkill implements Listener {
         peacefulMobList.add(EntityType.ENDERMAN);
         peacefulMobList.add(EntityType.CREEPER);
         peacefulMobList.add(EntityType.SILVERFISH);
+    }
+
+    public void setAcceptableTools() {
+        acceptableTools.add(Material.WOODEN_PICKAXE);
+        acceptableTools.add(Material.STONE_PICKAXE);
+        acceptableTools.add(Material.IRON_PICKAXE);
+        acceptableTools.add(Material.GOLDEN_PICKAXE);
+        acceptableTools.add(Material.DIAMOND_PICKAXE);
+        acceptableTools.add(Material.NETHERITE_PICKAXE);
+        acceptableTools.add(Material.WOODEN_SHOVEL);
+        acceptableTools.add(Material.STONE_SHOVEL);
+        acceptableTools.add(Material.IRON_SHOVEL);
+        acceptableTools.add(Material.GOLDEN_SHOVEL);
+        acceptableTools.add(Material.DIAMOND_SHOVEL);
+        acceptableTools.add(Material.NETHERITE_SHOVEL);
+        acceptableTools.add(Material.WOODEN_AXE);
+        acceptableTools.add(Material.STONE_AXE);
+        acceptableTools.add(Material.IRON_AXE);
+        acceptableTools.add(Material.GOLDEN_AXE);
+        acceptableTools.add(Material.DIAMOND_AXE);
+        acceptableTools.add(Material.NETHERITE_AXE);
+        acceptableTools.add(Material.WOODEN_HOE);
+        acceptableTools.add(Material.STONE_HOE);
+        acceptableTools.add(Material.IRON_HOE);
+        acceptableTools.add(Material.GOLDEN_HOE);
+        acceptableTools.add(Material.DIAMOND_HOE);
+        acceptableTools.add(Material.NETHERITE_HOE);
+        acceptableTools.add(Material.SHEARS);
+        acceptableTools.add(Material.BUCKET);
+        acceptableTools.add(Material.WATER_BUCKET);
+        acceptableTools.add(Material.LAVA_BUCKET);
+        acceptableTools.add(Material.FLINT_AND_STEEL);
+        acceptableTools.add(Material.CLOCK);
+        acceptableTools.add(Material.COMPASS);
+        acceptableTools.add(Material.FISHING_ROD);
+        acceptableTools.add(Material.CARROT_ON_A_STICK);
+        acceptableTools.add(Material.WARPED_FUNGUS_ON_A_STICK);
+        acceptableTools.add(Material.SPYGLASS);
+        acceptableTools.add(Material.TROPICAL_FISH_BUCKET);
+        acceptableTools.add(Material.PUFFERFISH_BUCKET);
+        acceptableTools.add(Material.SALMON_BUCKET);
+        acceptableTools.add(Material.COD_BUCKET);
+        acceptableTools.add(Material.AXOLOTL_BUCKET);
+        acceptableTools.add(Material.ELYTRA);
+        acceptableTools.add(Material.RECOVERY_COMPASS);
+        acceptableTools.add(Material.BRUSH);
+        acceptableTools.add(Material.TADPOLE_BUCKET);
+        acceptableTools.add(Material.MILK_BUCKET);
+        acceptableTools.add(Material.POWDER_SNOW_BUCKET);
+        acceptableTools.add(Material.WIND_CHARGE);
+        acceptableTools.add(Material.FIREWORK_ROCKET);
+        acceptableTools.add(Material.TOTEM_OF_UNDYING);
+        acceptableTools.add(Material.BONE_MEAL);
+        acceptableTools.add(Material.LEAD);
+        acceptableTools.add(Material.FIRE_CHARGE);
+        acceptableTools.add(Material.SPYGLASS);
+        acceptableTools.add(Material.WRITABLE_BOOK);
+        acceptableTools.add(Material.MAP);
+        acceptableTools.add(Material.ENDER_PEARL);
+        acceptableTools.add(Material.ENDER_EYE);
+    }
+
+    public HashMap<Player, SpelunkerAbilitySync> getSpelunkerTracker() {
+        return spelunkerTracker;
+    }
+
+    public ArrayList<Material> getOres() {
+        return ores;
+    }
+
+    public HashMap<Player, Integer> getVeinminerTracker() {
+        return veinminerTracker;
+    }
+
+    public ArrayList<Player> getPeacefulMiners() {
+        return peacefulMiners;
+    }
+
+    public HashMap<Player, Inventory> getToolBelts() {
+        return toolBelts;
     }
 }

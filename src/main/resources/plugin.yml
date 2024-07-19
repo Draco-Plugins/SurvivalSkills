@@ -24,6 +24,9 @@ commands:
   spelunker:
     description: Notifies the player where nearby ores are
     permission: survivalskills.default
+  toolbelt:
+    description: Allows a player to use a toolbelt
+    permission: survivalskills.default
   veinminer:
     description: Allows player to mine a vein of ores all at once
     permission: survivalskills.default

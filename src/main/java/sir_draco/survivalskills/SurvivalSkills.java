@@ -61,6 +61,8 @@ public final class SurvivalSkills extends JavaPlugin {
     private FileConfiguration leaderboardData;
     private File permaTrashFile;
     private FileConfiguration permaTrashData;
+    private File toolBeltFile;
+    private FileConfiguration toolBeltData;
 
     private boolean woolRecipes = false;
     private boolean griefPreventionEnabled = false;
@@ -84,7 +86,7 @@ public final class SurvivalSkills extends JavaPlugin {
         config = YamlConfiguration.loadConfiguration(configFile);
 
         // See if an update needs to be made to the config
-        if (config.get("Version") == null || config.getDouble("Version") != 1.94) updateConfig();
+        if (config.get("Version") == null || config.getDouble("Version") != 1.941) updateConfig();
         skillManager = new SkillManager(this);
 
         trophyFile = new File(getDataFolder(), "trophydata.yml");
@@ -100,12 +102,16 @@ public final class SurvivalSkills extends JavaPlugin {
         if (!permaTrashFile.exists()) saveResource("permatrash.yml", true);
         permaTrashData = YamlConfiguration.loadConfiguration(permaTrashFile);
 
+        toolBeltFile = new File(getDataFolder(), "toolbelt.yml");
+        if (!toolBeltFile.exists()) saveResource("toolbelt.yml", true);
+        toolBeltData = YamlConfiguration.loadConfiguration(toolBeltFile);
+
         // Load plugin features
         loadListeners();
         trophyManager = new TrophyManager(this);
         RecipeMaker.trophyRecipes(this);
         RecipeMaker.rewardRecipes(this);
-        abilityManager = new AbilityManager();
+        abilityManager = new AbilityManager(this);
         loadCommands();
 
         // If the plugin is reloaded without a restart
@@ -146,6 +152,8 @@ public final class SurvivalSkills extends JavaPlugin {
             throw new RuntimeException(e);
         }
 
+        abilityManager.saveToolBelts();
+
         getMiningListener().endSpelunkerAll();
     }
 
@@ -169,6 +177,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new PermaTrashCommand(this);
         new TogglePhantomsCommand(this);
         new DeathReturnCommand(this);
+        new ToolBeltCommand(this);
 
         // Admin Commands
         new GetTrophyCommand(this);
@@ -694,6 +703,18 @@ public final class SurvivalSkills extends JavaPlugin {
         return trophyFile;
     }
 
+    public FileConfiguration getLeaderboardData() {
+        return leaderboardData;
+    }
+
+    public File getToolBeltFile() {
+        return toolBeltFile;
+    }
+
+    public FileConfiguration getToolBeltData() {
+        return toolBeltData;
+    }
+
     public ArrayList<NamespacedKey> getRecipeKeys() {
         return recipeKeys;
     }
@@ -716,10 +737,6 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public HashMap<Player, Scoreboard> getScoreboardTracker() {
         return scoreboardTracker;
-    }
-
-    public FileConfiguration getLeaderboardData() {
-        return leaderboardData;
     }
 
     public AbilityManager getAbilityManager() {

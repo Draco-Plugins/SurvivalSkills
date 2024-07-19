@@ -1,23 +1,71 @@
 package sir_draco.survivalskills.Abilities;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Particle;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import sir_draco.survivalskills.SurvivalSkills;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class AbilityManager {
 
+    private final SurvivalSkills plugin;
     private final HashMap<Player, ArrayList<AbilityTimer>> timerTracker = new HashMap<>();
     private final HashMap<Player, TrailEffect> trailTracker = new HashMap<>();
     private final HashMap<String, Particle> trails = new HashMap<>();
 
-    public AbilityManager() {
+    public AbilityManager(SurvivalSkills plugin) {
+        this.plugin = plugin;
         createTrails();
     }
 
-    public HashMap<Player, ArrayList<AbilityTimer>> getTimerTracker() {
-        return timerTracker;
+    public Inventory loadToolBelt(Player p) {
+        FileConfiguration data = plugin.getToolBeltData();
+        if (!data.contains(p.getUniqueId().toString())) return null;
+
+        Inventory toolBelt = Bukkit.createInventory(p, 9, "Tool Belt");
+        ConfigurationSection section = data.getConfigurationSection(p.getUniqueId().toString());
+        if (section == null) return null;
+        for (String key : section.getKeys(false)) {
+            ItemStack item = section.getItemStack(key);
+            if (item == null) continue;
+            toolBelt.addItem(item);
+        }
+        return toolBelt;
+    }
+
+    public void saveToolBelt(Player p, Inventory inv) {
+        FileConfiguration data = plugin.getToolBeltData();
+        int slot = 0;
+        if (inv.isEmpty()) {
+            data.set(p.getUniqueId().toString(), null);
+            return;
+        }
+        for (int i = 0; i < inv.getSize(); i++) {
+            if (inv.getItem(i) == null) continue;
+            data.set(p.getUniqueId() + "." + slot, inv.getItem(i));
+            slot++;
+        }
+    }
+
+    public void saveToolBelts() {
+        File file = plugin.getToolBeltFile();
+        FileConfiguration data = plugin.getToolBeltData();
+        for (Map.Entry<Player, Inventory> toolBelt : plugin.getMiningListener().getToolBelts().entrySet())
+            saveToolBelt(toolBelt.getKey(), toolBelt.getValue());
+
+        try {
+            data.save(file);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save Tool Belts", e);
+        }
     }
 
     public void endPlayerTimers(Player p) {
@@ -62,5 +110,9 @@ public class AbilityManager {
 
     public HashMap<Player, TrailEffect> getTrailTracker() {
         return trailTracker;
+    }
+
+    public HashMap<Player, ArrayList<AbilityTimer>> getTimerTracker() {
+        return timerTracker;
     }
 }
