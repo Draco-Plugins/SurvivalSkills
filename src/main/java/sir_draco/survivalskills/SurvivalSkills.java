@@ -22,9 +22,11 @@ import sir_draco.survivalskills.SkillListeners.*;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Trophy.Trophy;
+import sir_draco.survivalskills.Trophy.TrophyListener;
 import sir_draco.survivalskills.Trophy.TrophyManager;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public final class SurvivalSkills extends JavaPlugin {
@@ -82,7 +84,7 @@ public final class SurvivalSkills extends JavaPlugin {
         config = YamlConfiguration.loadConfiguration(configFile);
 
         // See if an update needs to be made to the config
-        if (config.get("Version") == null || config.getDouble("Version") != 1.91) saveResource("config.yml", true);
+        if (config.get("Version") == null || config.getDouble("Version") != 1.94) updateConfig();
         skillManager = new SkillManager(this);
 
         trophyFile = new File(getDataFolder(), "trophydata.yml");
@@ -264,6 +266,7 @@ public final class SurvivalSkills extends JavaPlugin {
         craftingListener = new CraftingSkill(this);
         mainListener = new MainSkill(this);
         playerListener = new PlayerListener(this);
+        TrophyListener trophyListener = new TrophyListener(this);
         TabCompleter tabCompleter = new TabCompleter(this);
 
         getServer().getPluginManager().registerEvents(buildingListener, this);
@@ -275,6 +278,7 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(craftingListener, this);
         getServer().getPluginManager().registerEvents(mainListener, this);
         getServer().getPluginManager().registerEvents(playerListener, this);
+        getServer().getPluginManager().registerEvents(trophyListener, this);
         getServer().getPluginManager().registerEvents(tabCompleter, this);
     }
 
@@ -483,6 +487,54 @@ public final class SurvivalSkills extends JavaPlugin {
             permaTrashData.save(permaTrashFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void updateConfig() {
+        // Load the default configuration from the JAR
+        InputStream defConfigStream = getClass().getClassLoader().getResourceAsStream("config.yml");
+        if (defConfigStream == null) {
+            throw new RuntimeException("Failed to load default config");
+        }
+        YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream, StandardCharsets.UTF_8));
+        mergeConfigWithOrder(config, defConfig, "");
+
+        // Save the merged configuration
+        File file = new File(getDataFolder(), "config.yml");
+        try {
+            defConfig.save(file);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save config file", e);
+        }
+    }
+
+    /**
+     * Takes the new default file and copies existing values from the old config file into the new one
+     */
+    private void mergeConfigWithOrder(ConfigurationSection target, ConfigurationSection source, String parentKey) {
+        for (String key : source.getKeys(false)) {
+            // Get the current path
+            String fullKey = parentKey.isEmpty() ? key : parentKey + "." + key;
+
+            // If both target and source contain the key, and they are sections, recurse
+            if (source.isConfigurationSection(key) && target.isConfigurationSection(key)) {
+                ConfigurationSection targetSection = target.getConfigurationSection(key);
+                ConfigurationSection sourceSection = source.getConfigurationSection(key);
+                if (targetSection != null && sourceSection != null) {
+                    mergeConfigWithOrder(targetSection, sourceSection, fullKey);
+                } else {
+                    Bukkit.getLogger().warning("Failed to handle section: " + fullKey);
+                }
+            }
+            // If it is simply a value and target contains it, copy it to the source
+            else if (target.contains(key)) {
+                Object value = target.get(key);
+                source.set(key, value);
+            }
+            else if (target.get(key) != null) {
+                Object value = target.get(key);
+                source.set(key, value);
+            }
         }
     }
 
