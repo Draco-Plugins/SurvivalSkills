@@ -178,9 +178,12 @@ public class FightingSkill implements Listener {
     }
 
     @EventHandler
-    public void berserkerDamage(EntityDamageByEntityEvent e) {
+    public void handleFightingSkills(EntityDamageByEntityEvent e) {
         // Check if the entity is a player
         if (!(e.getDamager() instanceof Player)) return;
+
+        // Check if it is from thorns
+        if (e.getCause().equals(EntityDamageEvent.DamageCause.THORNS)) return;
 
         // If it is, check if it is an active berserker
         Player p = (Player) e.getDamager();
