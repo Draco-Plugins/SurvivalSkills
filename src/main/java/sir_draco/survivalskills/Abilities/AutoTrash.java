@@ -16,9 +16,12 @@ public class AutoTrash {
     private final ArrayList<Enchantment> enchants = new ArrayList<>();
     private final ArrayList<Material> trashMaterials = new ArrayList<>();
 
+    private Boolean big = false;
+
     private Inventory trashInventory;
 
     public AutoTrash(boolean big) {
+        this.big = big;
         if (big) trashInventory = Bukkit.createInventory(null, 54, "Auto Trash");
         else trashInventory = Bukkit.createInventory(null, 27, "Auto Trash");
     }
@@ -111,6 +114,7 @@ public class AutoTrash {
         }
 
         trashInventory = newTrashInventory;
+        big = true;
     }
 
     public void openTrashInventory(Player p) {
@@ -127,5 +131,9 @@ public class AutoTrash {
 
     public Inventory getTrashInventory() {
         return trashInventory;
+    }
+
+    public Boolean isBig() {
+        return big;
     }
 }

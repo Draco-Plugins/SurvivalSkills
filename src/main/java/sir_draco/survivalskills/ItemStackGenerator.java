@@ -18,6 +18,8 @@ import static org.bukkit.Bukkit.getServer;
 
 public class ItemStackGenerator {
 
+    public static NamespacedKey skillsItemKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "SurvivalSkills");
+
     /**
      * Creates a custom item based on the parameters
      * @param material Item material
@@ -42,10 +44,10 @@ public class ItemStackGenerator {
         }
         if (loreList != null) meta.setLore(loreList);
         if (modelData != 0) meta.setCustomModelData(modelData);
-        if (hideEnchants) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        meta.getPersistentDataContainer().set(new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "SurvivalSkills"), PersistentDataType.BOOLEAN, true);
-        item.setItemMeta(meta);
+        meta.getPersistentDataContainer().set(skillsItemKey, PersistentDataType.BOOLEAN, true);
         if (enchants != null) for (Map.Entry<Enchantment, Integer> enchant : enchants.entrySet()) item.addUnsafeEnchantment(enchant.getKey(), enchant.getValue());
+        if (hideEnchants) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        item.setItemMeta(meta);
         return item;
     }
 
@@ -75,7 +77,7 @@ public class ItemStackGenerator {
         if (item.getItemMeta() == null) return false;
         ItemMeta meta = item.getItemMeta();
         if (!meta.hasCustomModelData()) return false;
-        if (!meta.getPersistentDataContainer().has(new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "SurvivalSkills"), PersistentDataType.BOOLEAN)) return false;
+        if (!meta.getPersistentDataContainer().has(skillsItemKey, PersistentDataType.BOOLEAN)) return false;
         return meta.getCustomModelData() == modelData;
     }
 
@@ -84,7 +86,7 @@ public class ItemStackGenerator {
         if (item.getItemMeta() == null) return false;
         ItemMeta meta = item.getItemMeta();
         if (!meta.hasCustomModelData()) return false;
-        return meta.getPersistentDataContainer().has(new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "SurvivalSkills"), PersistentDataType.BOOLEAN);
+        return meta.getPersistentDataContainer().has(skillsItemKey, PersistentDataType.BOOLEAN);
     }
 
     public static ItemStack getUnlimitedTorch() {

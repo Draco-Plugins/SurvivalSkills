@@ -86,7 +86,7 @@ public final class SurvivalSkills extends JavaPlugin {
         config = YamlConfiguration.loadConfiguration(configFile);
 
         // See if an update needs to be made to the config
-        if (config.get("Version") == null || config.getDouble("Version") != 1.941) updateConfig();
+        if (config.get("Version") == null || config.getDouble("Version") != 1.942) updateConfig();
         skillManager = new SkillManager(this);
 
         trophyFile = new File(getDataFolder(), "trophydata.yml");
@@ -217,7 +217,9 @@ public final class SurvivalSkills extends JavaPlugin {
         if (perma == null) return;
 
         ConfigurationSection materials = permaTrashData.getConfigurationSection(uuid + ".Materials");
-        AutoTrash trash = new AutoTrash(false);
+        boolean big = false;
+        if (permaTrashData.contains(uuid + ".BigTrash")) big = permaTrashData.getBoolean(uuid + ".BigTrash");
+        AutoTrash trash = new AutoTrash(big);
         if (materials != null) {
             // get the list of materials from the config
             materials.getKeys(false).forEach(key -> {
@@ -477,6 +479,8 @@ public final class SurvivalSkills extends JavaPlugin {
         if (!getFishingListener().getPermaTrash().containsKey(p)) return;
         AutoTrash trash = getFishingListener().getPermaTrash().get(p);
         if (trash == null) return;
+
+        permaTrashData.set(uuid + ".BigTrash", trash.isBig());
 
         int i = 0;
         if (trash.getTrashMaterials().isEmpty()) permaTrashData.set(uuid + ".Materials", null);
