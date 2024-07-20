@@ -15,15 +15,17 @@ public class DragonBoss extends Boss {
 
     private final EnderDragon dragon;
     private final ArrayList<Location> crystalLocations = new ArrayList<>();
+    private final ArrayList<Player> players = new ArrayList<>();
 
     private int lightningDefault = 20 * 30;
     private int lightningCounter = lightningDefault;
     private int attackDefault = 20 * 10;
     private int attackCounter = attackDefault;
-    private int totalEndermanSpawned = 0;
+    private int timeSinceDragonFollowerSpawn = 0;
     private boolean regeneratedCrystals = false;
     private boolean enableStages = false;
     private boolean gotCrystals = false;
+    private boolean isRespawn = false;
 
     public DragonBoss(String name, int spawnRadiusRequired, int spawnHeightRequired, double maxHealth, double damage, double defense, double speed, EntityType type, Location loc, LivingEntity entity) {
         super(name, spawnRadiusRequired, spawnHeightRequired, maxHealth, damage, defense, speed, type, loc, 3);
@@ -33,6 +35,7 @@ public class DragonBoss extends Boss {
 
         Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
         + ChatColor.RESET + "So you have finally come to challenge me?");
+        Bukkit.broadcastMessage(ChatColor.GRAY + "[Server] " + ChatColor.ITALIC + "Keep Inventory Enabled in the End");
         for (Player p : Bukkit.getOnlinePlayers()) p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1, 1);
     }
 
@@ -46,6 +49,7 @@ public class DragonBoss extends Boss {
             cancel();
             return;
         }
+
         if (!gotCrystals) {
             getCrystalLocations();
             gotCrystals = true;
@@ -54,7 +58,7 @@ public class DragonBoss extends Boss {
         checkStage(false, Sound.ENTITY_ENDER_DRAGON_GROWL);
         if (isDisableAttack()) return;
         if (lightningCounter == 0) {
-            lightningStrike((int) Math.max(5, (1 - getHealthPercentage()) * 30));
+            lightningStrike((int) Math.max(5, (1 - getHealthPercentage()) * 40));
             lightningCounter = lightningDefault;
         }
         else lightningCounter--;
@@ -69,6 +73,8 @@ public class DragonBoss extends Boss {
             enableStages = true;
             setAppliedAttributes(true);
         }
+
+        if (timeSinceDragonFollowerSpawn > 0) timeSinceDragonFollowerSpawn--;
     }
 
     @Override
@@ -104,8 +110,15 @@ public class DragonBoss extends Boss {
 
     @Override
     public void deathAnimation() {
+        if (dragon.getWorld().hasMetadata("killedfirstdragon")) {
+            Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
+            + ChatColor.RESET + "I always come back");
+            return;
+        }
+
         Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
         + ChatColor.RESET + "This is only the beginning");
+
         dragon.getWorld().setMetadata("killedfirstdragon", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
         World overworld = Bukkit.getWorld(dragon.getWorld().getName().replace("_the_end", ""));
         if (overworld != null) {
@@ -120,7 +133,7 @@ public class DragonBoss extends Boss {
                     p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 1);
                 }
             }
-        }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 20 * 10);
+        }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 20 * 15);
     }
 
     public void dragonAttributes() {
@@ -128,6 +141,9 @@ public class DragonBoss extends Boss {
         if (health != null) health.setBaseValue(getMaxHealth());
         dragon.setHealth(getMaxHealth());
         dragon.setMetadata("boss", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
+        if (!dragon.getWorld().hasMetadata("killedfirstdragon")) {
+            dragon.getWorld().setGameRule(GameRule.KEEP_INVENTORY, true);
+        }
     }
 
     public void lightningStrike(int numStrikes) {
@@ -196,7 +212,11 @@ public class DragonBoss extends Boss {
     }
 
     public void spawnAngryEndermen() {
-        if (totalEndermanSpawned >= 50) cannon();
+        if (timeSinceDragonFollowerSpawn > 0) {
+            cannon();
+            return;
+        }
+
         for (int i = 0; i < 5; i++) {
             Location loc = randomLoc(dragon.getLocation(), 30, true);
             if (loc == null) continue;
@@ -206,13 +226,15 @@ public class DragonBoss extends Boss {
             AttributeInstance health = eman.getAttribute(Attribute.GENERIC_MAX_HEALTH);
             if (health != null) health.setBaseValue(50);
             eman.setHealth(50);
+            AttributeInstance speed = eman.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+            if (speed != null) speed.setBaseValue(0.5);
             AttributeInstance damage = eman.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
             if (damage != null) damage.setBaseValue(15);
 
-            totalEndermanSpawned++;
+            timeSinceDragonFollowerSpawn = 20 * 30;
             eman.getWorld().spawnParticle(Particle.PORTAL, eman.getLocation().clone().add(0, 1, 0), 15);
             Player p = null;
-            for (Entity ent : eman.getNearbyEntities(5, 5, 5)) {
+            for (Entity ent : eman.getNearbyEntities(10, 10, 10)) {
                 if (!(ent instanceof Player)) continue;
                 p = (Player) ent;
                 break;
@@ -220,6 +242,7 @@ public class DragonBoss extends Boss {
             if (p == null) continue;
             eman.setTarget(p);
             eman.teleportTowards(p);
+            eman.attack(p);
         }
     }
 
@@ -317,5 +340,22 @@ public class DragonBoss extends Boss {
             EnderCrystal crystal = (EnderCrystal) loc.getWorld().spawnEntity(loc, EntityType.END_CRYSTAL);
             crystal.setBeamTarget(dragon.getLocation());
         }
+    }
+
+    public void setCanAttackPlayers(ArrayList<Player> players) {
+        isRespawn = true;
+        this.players.addAll(players);
+    }
+
+    public void addCanAttackPlayer(Player p) {
+        players.add(p);
+    }
+
+    public ArrayList<Player> getPlayers() {
+        return players;
+    }
+
+    public boolean isRespawn() {
+        return isRespawn;
     }
 }

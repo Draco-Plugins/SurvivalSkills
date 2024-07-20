@@ -264,52 +264,90 @@ public class FightingSkill implements Listener {
     @EventHandler
     public void bossDamageByCorrectPlayer(EntityDamageByEntityEvent e) {
         if (!isBoss(e.getEntity())) return;
-        if (!(e.getDamager() instanceof Player)) return;
-        if (!e.getEntity().getType().equals(EntityType.VILLAGER)) return;
-
-        Player p = (Player) e.getDamager();
-        if (summonTracker.containsKey(p)) {
-            Boss boss = summonTracker.get(p);
-            if (boss == null) {
-                summonTracker.remove(p);
+        Player p = null;
+        if (e.getDamager() instanceof Arrow) {
+            Arrow arrow = (Arrow) e.getDamager();
+            if (!(arrow.getShooter() instanceof Player)) {
                 e.setCancelled(true);
                 return;
             }
-            if (!boss.getBoss().equals(e.getEntity())) e.setCancelled(true);
+            p = (Player) arrow.getShooter();
         }
-        else e.setCancelled(true);
+        else if (e.getDamager() instanceof Trident) {
+            Trident trident = (Trident) e.getDamager();
+            if (!(trident.getShooter() instanceof Player)) {
+                e.setCancelled(true);
+                return;
+            }
+            p = (Player) trident.getShooter();
+        }
+        else if (e.getDamager() instanceof Player) p = (Player) e.getDamager();
+
+        if (p == null) {
+            e.setCancelled(true);
+            return;
+        }
+
+        if (e.getEntity().getType().equals(EntityType.VILLAGER)) {
+            if (summonTracker.containsKey(p)) {
+                Boss boss = summonTracker.get(p);
+                if (boss == null) {
+                    summonTracker.remove(p);
+                    e.setCancelled(true);
+                    return;
+                }
+                if (!boss.getBoss().equals(e.getEntity())) e.setCancelled(true);
+            }
+            else e.setCancelled(true);
+        }
+        else if (e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
+            if (dragonBoss == null) return;
+            if (!dragonBoss.getBoss().equals(e.getEntity())) e.setCancelled(true);
+            if (dragonBoss.getPlayers().contains(p)) return;
+            e.setCancelled(true);
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void teleportToEnd(PlayerTeleportEvent e) {
         if (!e.getCause().equals(PlayerTeleportEvent.TeleportCause.END_PORTAL)) return;
         if (dragonBoss != null) {
-            e.getPlayer().sendRawMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
-                    + ChatColor.RESET + ChatColor.DARK_AQUA + "So you wish to die again " + e.getPlayer().getName() + "?");
-            e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.AMBIENT_CAVE, 1, 1);
-            return;
+            if (dragonBoss.isRespawn()) {
+                if (dragonBoss.getPlayers().isEmpty()) dragonBoss.addCanAttackPlayer(e.getPlayer());
+            } else {
+                e.getPlayer().sendRawMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
+                        + ChatColor.RESET + ChatColor.DARK_AQUA + "So you wish to die again " + e.getPlayer().getName() + "?");
+                e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.AMBIENT_CAVE, 1, 1);
+                return;
+            }
         }
 
-        Bukkit.getLogger().info("Searching for the world");
+
         // Get the ender dragon if it is alive
-        World world = e.getPlayer().getWorld();
+        if (e.getTo() == null) return;
+        World world = e.getTo().getWorld();
+        if (world == null) return;
         if (world.getEnvironment().equals(World.Environment.NORMAL)) world = Bukkit.getWorld(world.getName() + "_the_end");
         if (world == null) return;
         if (world.hasMetadata("killedfirstdragon")) return;
 
-        Bukkit.getLogger().info("Searching for the dragon");
         World finalWorld = world;
         new BukkitRunnable() {
             @Override
             public void run() {
+                boolean found = false;
                 for (Entity entity : finalWorld.getEntities()) {
                     if (!entity.getType().equals(EntityType.ENDER_DRAGON)) continue;
+                    found = true;
                     LivingEntity ent = (LivingEntity) entity;
                     dragonBoss = new DragonBoss("dragon", 0, 0,
                             250 * Bukkit.getOnlinePlayers().size(), 0, 0, 0, entity.getType(),
                             entity.getLocation(), ent);
                     dragonBoss.runTaskTimer(plugin, 0, 1);
+                    break;
                 }
+
+                if (!found) finalWorld.setMetadata("killedfirstdragon", new FixedMetadataValue(plugin, true));
             }
         }.runTaskLater(plugin, 20);
     }
@@ -327,6 +365,31 @@ public class FightingSkill implements Listener {
                 return;
             }
         }
+    }
+
+    @EventHandler
+    public void dragonSpawnEvent(EntitySpawnEvent e) {
+        if (!e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) return;
+        World world = e.getLocation().getWorld();
+        if (world == null) return;
+        if (!world.getEnvironment().equals(World.Environment.THE_END)) return;
+        if (!world.hasMetadata("killedfirstdragon")) return;
+
+        // Spawn the dragon
+        // Get the players in the end to determine dragon health
+        ArrayList<Player> players = new ArrayList<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!player.getWorld().getEnvironment().equals(World.Environment.THE_END)) continue;
+            players.add(player);
+        }
+        int health;
+        if (players.isEmpty()) health = 250;
+        else health = 250 * players.size();
+
+        dragonBoss = new DragonBoss("dragon", 0, 0, health, 0, 0, 0,
+                e.getEntity().getType(), e.getLocation(), (LivingEntity) e.getEntity());
+        dragonBoss.runTaskTimer(plugin, 0, 1);
+        dragonBoss.setCanAttackPlayers(players);
     }
 
     public void handleExperience(Player p, Entity ent) {

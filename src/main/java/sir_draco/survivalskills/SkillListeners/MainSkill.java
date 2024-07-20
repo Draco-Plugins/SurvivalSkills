@@ -82,6 +82,7 @@ public class MainSkill implements Listener {
             e.getDrops().clear();
             return;
         }
+        if (e.getKeepInventory()) return;
 
         if (e.getDrops().isEmpty()) return;
         if (!rewards.getReward("Main", "Gravestone").isApplied()) return;
