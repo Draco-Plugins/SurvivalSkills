@@ -91,6 +91,7 @@ public class AutoTrash {
     public void upgradeTrashSize() {
         Inventory newTrashInventory = Bukkit.createInventory(null, 54, "Auto Trash");
         trashInventory.clear();
+        trashInventory = newTrashInventory;
         if (!trashMaterials.isEmpty()) {
             for (Material mat : trashMaterials) {
                 ItemStack item = new ItemStack(mat);
@@ -112,8 +113,6 @@ public class AutoTrash {
                 }
             }
         }
-
-        trashInventory = newTrashInventory;
         big = true;
     }
 

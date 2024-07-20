@@ -207,7 +207,7 @@ public class DragonBoss extends Boss {
             if (health != null) health.setBaseValue(50);
             eman.setHealth(50);
             AttributeInstance damage = eman.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
-            if (damage != null) damage.setBaseValue(10);
+            if (damage != null) damage.setBaseValue(15);
 
             totalEndermanSpawned++;
             eman.getWorld().spawnParticle(Particle.PORTAL, eman.getLocation().clone().add(0, 1, 0), 15);
@@ -292,7 +292,9 @@ public class DragonBoss extends Boss {
     }
 
     public void lifeSteal() {
-        dragon.setHealth(dragon.getHealth() + 10);
+        AttributeInstance health = dragon.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        if (health == null) return;
+        dragon.setHealth(Math.min(dragon.getHealth() + 20, health.getValue()));
         Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: " +
                 ChatColor.RESET + "I will feed off your fallen comrade");
         for (Player p : Bukkit.getOnlinePlayers()) {
