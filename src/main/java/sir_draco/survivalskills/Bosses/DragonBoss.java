@@ -124,6 +124,7 @@ public class DragonBoss extends Boss {
         if (overworld != null) {
             overworld.setMetadata("killedfirstdragon", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
         }
+        dragon.getWorld().setGameRule(GameRule.KEEP_INVENTORY, false);
 
         new BukkitRunnable() {
             @Override
