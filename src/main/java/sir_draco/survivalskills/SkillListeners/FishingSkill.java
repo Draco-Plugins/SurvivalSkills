@@ -498,6 +498,7 @@ public class FishingSkill implements Listener {
         legendaryLootTable.add(Material.TOTEM_OF_UNDYING);
         legendaryLootTable.add(Material.TRIDENT);
         legendaryLootTable.add(Material.EXPERIENCE_BOTTLE);
+        legendaryLootTable.add(Material.ELYTRA);
 
         legendaryEnchantments.put(Enchantment.POWER, 5);
         legendaryEnchantments.put(Enchantment.INFINITY, 1);
