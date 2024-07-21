@@ -572,6 +572,10 @@ public final class SurvivalSkills extends JavaPlugin {
      */
     public void playerQuit(Player p) {
         skillManager.getPlayerSkills().remove(p.getUniqueId());
+        if (miningListener.getToolBelts().containsKey(p)) {
+            abilityManager.saveToolBelt(p, miningListener.getToolBelts().get(p));
+            miningListener.getToolBelts().remove(p);
+        }
         toggledScoreboard.remove(p.getUniqueId());
         scoreboardTracker.remove(p);
         HashMap<Player, TrailEffect> trailTracker = abilityManager.getTrailTracker();
