@@ -46,14 +46,19 @@ public class AbilityManager {
 
         FileConfiguration data = plugin.getToolBeltData();
         int slot = 0;
-        if (inv.isEmpty()) {
-            data.set(p.getUniqueId().toString(), null);
-            return;
-        }
+        data.set(p.getUniqueId().toString(), null);
         for (int i = 0; i < inv.getSize(); i++) {
             if (inv.getItem(i) == null) continue;
             data.set(p.getUniqueId() + "." + slot, inv.getItem(i));
             slot++;
+        }
+    }
+
+    public void saveToolBeltFile(File file, FileConfiguration data) {
+        try {
+            data.save(file);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save Tool Belts", e);
         }
     }
 
@@ -63,11 +68,7 @@ public class AbilityManager {
         for (Map.Entry<Player, Inventory> toolBelt : plugin.getMiningListener().getToolBelts().entrySet())
             saveToolBelt(toolBelt.getKey(), toolBelt.getValue());
 
-        try {
-            data.save(file);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to save Tool Belts", e);
-        }
+        saveToolBeltFile(file, data);
     }
 
     public void endPlayerTimers(Player p) {
