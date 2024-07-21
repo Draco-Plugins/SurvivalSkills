@@ -42,6 +42,8 @@ public class AbilityManager {
     }
 
     public void saveToolBelt(Player p, Inventory inv) {
+        if (!inv.getViewers().isEmpty()) return;
+
         FileConfiguration data = plugin.getToolBeltData();
         int slot = 0;
         if (inv.isEmpty()) {
