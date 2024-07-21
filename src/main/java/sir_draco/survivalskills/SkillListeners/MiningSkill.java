@@ -27,6 +27,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import sir_draco.survivalskills.Abilities.SpelunkerAbilitySync;
+import sir_draco.survivalskills.Abilities.VeinMinerAsync;
 import sir_draco.survivalskills.ItemStackGenerator;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -311,64 +312,8 @@ public class MiningSkill implements Listener {
             return;
         }
 
-        // Get the blocks in the vein and remove hunger appropriately
-        ArrayList<Block> blocks = getVeinBlocks(e.getBlock());
-        ArrayList<Block> eventBlockTrackingList = new ArrayList<>(blocks);
-        veinTracker.put(p, eventBlockTrackingList);
-        if (veinminerTracker.get(p) == 0) {
-            int food = p.getFoodLevel();
-            int newFood = food - (blocks.size() / blocksPerHunger);
-            if (newFood < 0) {
-                p.sendRawMessage(ChatColor.RED + "You don't have enough hunger to mine the whole ore vein with");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                veinTracker.remove(p);
-                return;
-            }
-            p.setFoodLevel(newFood);
-        }
-
-        // Break all the blocks in the vein
-        ItemStack pickaxe = p.getInventory().getItemInMainHand();
-        for (Block block : blocks) {
-            BlockBreakEvent event = new BlockBreakEvent(block, p);
-            Bukkit.getServer().getPluginManager().callEvent(event);
-            if (!event.isCancelled()) block.breakNaturally(pickaxe);
-        }
-    }
-
-    public ArrayList<Block> getVeinBlocks(Block startBlock) {
-        ArrayList<Block> blocks = new ArrayList<>();
-        blocks.add(startBlock);
-        int iterations = 0;
-        getVeinBlockHelper(startBlock.getType(), startBlock, new ArrayList<>(), blocks, iterations);
-        blocks.remove(startBlock);
-        return blocks;
-    }
-
-    public ArrayList<Block> getVeinBlockHelper(Material type, Block startBlock, ArrayList<Block> checkedBlocks, ArrayList<Block> blocks, int iterations) {
-        iterations++;
-        if (iterations > 10000 || blocks.size() >= 100) return blocks;
-        Block left = startBlock.getRelative(-1, 0, 0);
-        Block right = startBlock.getRelative(1, 0, 0);
-        Block front = startBlock.getRelative(0, 0, 1);
-        Block back = startBlock.getRelative(0, 0, -1);
-        Block up = startBlock.getRelative(0, 1, 0);
-        Block down = startBlock.getRelative(0, -1, 0);
-
-        if (type.equals(left.getType()) && !blocks.contains(left)) blocks.add(left);
-        if (type.equals(right.getType()) && !blocks.contains(right)) blocks.add(right);
-        if (type.equals(front.getType()) && !blocks.contains(front)) blocks.add(front);
-        if (type.equals(back.getType()) && !blocks.contains(back)) blocks.add(back);
-        if (type.equals(up.getType()) && !blocks.contains(up)) blocks.add(up);
-        if (type.equals(down.getType()) && !blocks.contains(down)) blocks.add(down);
-
-        checkedBlocks.add(startBlock);
-        if (checkedBlocks.size() == blocks.size()) return blocks;
-        for (Block block : blocks) {
-            if (checkedBlocks.contains(block)) continue;
-            return getVeinBlockHelper(type, block, checkedBlocks, blocks, iterations);
-        }
-        return blocks;
+        VeinMinerAsync veinMiner = new VeinMinerAsync(plugin, p, this, e.getBlock(), blocksPerHunger);
+        veinMiner.runTaskAsynchronously(plugin);
     }
 
     public boolean isMiningArmor(PlayerInventory inv) {
@@ -507,6 +452,10 @@ public class MiningSkill implements Listener {
 
     public HashMap<Player, Integer> getVeinminerTracker() {
         return veinminerTracker;
+    }
+
+    public HashMap<Player, ArrayList<Block>> getVeinTracker() {
+        return veinTracker;
     }
 
     public ArrayList<Player> getPeacefulMiners() {
