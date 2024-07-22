@@ -58,6 +58,16 @@ public class FightingSkill implements Listener {
             if (summonTracker.containsKey(p)) {
                 Boss boss = summonTracker.get(p);
                 if (boss != null) {
+                    LivingEntity entity = boss.getBoss();
+                    if (entity instanceof Villager) {
+                        for (VillagerBoss villager : villagers) {
+                            if (!villager.getBoss().equals(entity)) continue;
+                            ExiledBossMusic music = villager.getMusic();
+                            if (music != null) music.setDead(true);
+                            villager.removeBossSummonedMobs();
+                        }
+                    }
+
                     boss.despawnBoss();
                     Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + p.getDisplayName() + ChatColor.RED + ChatColor.BOLD +
                             " was bested by " + ChatColor.DARK_PURPLE + ChatColor.BOLD + boss.getName());
@@ -259,6 +269,51 @@ public class FightingSkill implements Listener {
             else if (e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) e.setCancelled(true);
             else if (e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING)) e.setCancelled(true);
         }
+        else if (e.getEntity().getType().equals(EntityType.VILLAGER)) {
+            if (e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING)) e.setCancelled(true);
+            else if (e.getCause().equals(EntityDamageEvent.DamageCause.FALL)) e.setCancelled(true);
+            else if (e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION)) e.setCancelled(true);
+            else if (e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void exiledDamage(EntityDamageByEntityEvent e) {
+        if (!isBoss(e.getEntity())) return;
+        if (!e.getEntity().getType().equals(EntityType.VILLAGER)) return;
+        VillagerBoss boss = null;
+        for (VillagerBoss villager : villagers) {
+            if (!villager.getBoss().equals(e.getEntity())) continue;
+            boss = villager;
+            break;
+        }
+        if (boss == null) return;
+        if (boss.isHitPhase()) return;
+        if (boss.isHealing()) return;
+        e.setCancelled(true);
+
+        Player p = null;
+        if (e.getDamager() instanceof Arrow) {
+            Arrow arrow = (Arrow) e.getDamager();
+            if (!(arrow.getShooter() instanceof Player)) {
+                e.setCancelled(true);
+                return;
+            }
+            p = (Player) arrow.getShooter();
+        }
+        else if (e.getDamager() instanceof Trident) {
+            Trident trident = (Trident) e.getDamager();
+            if (!(trident.getShooter() instanceof Player)) {
+                e.setCancelled(true);
+                return;
+            }
+            p = (Player) trident.getShooter();
+        }
+        else if (e.getDamager() instanceof Player) p = (Player) e.getDamager();
+
+        if (p == null) return;
+        p.sendRawMessage(ChatColor.YELLOW.toString() + ChatColor.BOLD + "The Exiled One's magic shield prevents damage!");
+        p.playSound(p, Sound.BLOCK_ANVIL_LAND, 1, 1);
     }
 
     @EventHandler
@@ -567,7 +622,7 @@ public class FightingSkill implements Listener {
                 if (mainHand.getAmount() == 1) p.getInventory().remove(mainHand);
                 else mainHand.setAmount(mainHand.getAmount() - 1);
                 break;
-            case "Villager":
+            case "The Exiled One":
                 VillagerBoss villager = new VillagerBoss(loc, p);
                 if (!villager.isSpawnSuccess()) {
                     p.sendRawMessage(ChatColor.RED + "Not enough space to spawn the exiled one");
