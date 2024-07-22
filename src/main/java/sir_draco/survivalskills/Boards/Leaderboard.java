@@ -85,7 +85,7 @@ public class Leaderboard {
             return plugin.getSkillManager().getSkill(p.getUniqueId(), "Main").getLevel();
         }
         else if (skillName.equalsIgnoreCase("Deaths")) {
-            if (plugin.getLeaderboardData().get(p.getUniqueId().toString()) == null) {
+            if (!plugin.getLeaderboardData().contains(p.getUniqueId().toString())) {
                 ScoreboardManager manager = Bukkit.getScoreboardManager();
                 if (manager == null) return 0;
                 Scoreboard mainBoard = manager.getMainScoreboard();
