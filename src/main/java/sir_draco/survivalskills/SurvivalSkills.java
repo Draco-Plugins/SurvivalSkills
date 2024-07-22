@@ -154,6 +154,7 @@ public final class SurvivalSkills extends JavaPlugin {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        trophyManager.disableTrophies();
 
         try {
             mainListener.saveGraves();

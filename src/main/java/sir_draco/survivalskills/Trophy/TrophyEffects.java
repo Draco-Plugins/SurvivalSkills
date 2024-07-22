@@ -28,6 +28,7 @@ public class TrophyEffects extends BukkitRunnable {
     private Entity mob;
     private CircularRotationObject mobTrophyOrbital = null;
     private boolean run = true;
+    private boolean citizensEnabled = false;
     private GodTrophyEffects godTrophy;
     private String playerName;
 
@@ -38,6 +39,11 @@ public class TrophyEffects extends BukkitRunnable {
         this.trophy = trophy;
         if (type == 10) {
             this.playerName = playerName;
+            if (plugin.getServer().getPluginManager().getPlugin("Citizens") == null) {
+                plugin.getLogger().warning("Citizens not found, disabling God Trophy");
+                return;
+            }
+            if (plugin.getServer().getPluginManager().isPluginEnabled("Citizens")) citizensEnabled = true;
             return;
         }
         spawnItem(0.5, 1.0, 0.5);
@@ -669,6 +675,7 @@ public class TrophyEffects extends BukkitRunnable {
     }
 
     public void godParticles() {
+        if (!citizensEnabled) return;
         if (cycle == 1) godTrophy = new GodTrophyEffects(loc);
 
         if (cycle < 122) {

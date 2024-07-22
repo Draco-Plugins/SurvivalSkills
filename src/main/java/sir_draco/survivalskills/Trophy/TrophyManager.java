@@ -110,6 +110,12 @@ public class TrophyManager {
         else Bukkit.getLogger().warning("UUID " + uuid + " does not have a trophy status");
     }
 
+    public void disableTrophies() {
+        for (Map.Entry<Location, Trophy> trophy : trophies.entrySet()) {
+            trophy.getValue().shutdownTrophy();
+        }
+    }
+
     /**
      * Counts how many trophies a player has obtained and returns the
      * max level a player can be
