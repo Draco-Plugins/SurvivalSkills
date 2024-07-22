@@ -1229,6 +1229,9 @@ public class RewardNotifications {
                     case "EnchantmentTrail":
                         return ChatColor.GREEN + "Enchantment particles follow you when you walk\n" + ChatColor.GREEN
                                 + "Use " + ChatColor.AQUA + "/toggletrail enchantment" + ChatColor.GREEN + " to toggle it";
+                    case "OminousTrail":
+                        return ChatColor.GREEN + "Ominous particles follow you when you walk\n" + ChatColor.GREEN
+                                + "Use " + ChatColor.AQUA + "/toggletrail ominous" + ChatColor.GREEN + " to toggle it";
                     case "LoveTrail":
                         return ChatColor.GREEN + "Love particles follow you when you walk\n" + ChatColor.GREEN
                                 + "Use " + ChatColor.AQUA + "/toggletrail love" + ChatColor.GREEN + " to toggle it";
