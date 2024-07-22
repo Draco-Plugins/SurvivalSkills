@@ -53,6 +53,7 @@ public class Skill {
         if (skill.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) {
             SkillScoreboard.updateScoreboard(plugin, p, "Main");
             if (skill.getLevel() == 100 || skill.isCurrentMaxMessage()) return;
+            if (plugin.getSkillManager().getMaxSkillMessage().containsKey(p) && !plugin.getSkillManager().getMaxSkillMessage().get(p)) return;
             p.sendRawMessage(ChatColor.DARK_BLUE + "You have reached your current max level for: " + ChatColor.AQUA + skillName);
             p.playSound(p, Sound.BLOCK_NOTE_BLOCK_BASS, 1, 1);
             skill.setCurrentMaxMessage(true);

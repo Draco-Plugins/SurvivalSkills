@@ -22,6 +22,7 @@ public class SkillManager {
     private final SurvivalSkills plugin;
     private final HashMap<UUID, ArrayList<Skill>> playerSkills = new HashMap<>();
     private final HashMap<Player, PlayerRewards> rewardTracker = new HashMap<>();
+    private final HashMap<Player, Boolean> maxSkillMessage = new HashMap<>();
 
     private PlayerRewards playerRewards; // Holds the default information for rewards
     private double buildingXP;
@@ -274,5 +275,9 @@ public class SkillManager {
 
     public HashMap<UUID, ArrayList<Skill>> getPlayerSkills() {
         return playerSkills;
+    }
+
+    public HashMap<Player, Boolean> getMaxSkillMessage() {
+        return maxSkillMessage;
     }
 }

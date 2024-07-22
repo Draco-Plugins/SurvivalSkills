@@ -174,35 +174,36 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public void loadCommands() {
         // Default Player Commands
-        new SkillStatsCommand(this);
-        new ToggleScoreboardCommand(this);
-        new SpelunkerCommand(this);
-        new VeinminerCommand(this);
-        new NightVisionCommand(this);
-        new PeacefulMinerCommand(this);
         new AutoEatCommand(this);
+        new AutoTrashCommand(this);
+        new DeathLocationCommand(this);
+        new DeathReturnCommand(this);
         new EatCommand(this);
         new FlightCommand(this);
         new MobScannerCommand(this);
-        new WaterBreathingCommand(this);
-        new DeathLocationCommand(this);
+        new NightVisionCommand(this);
+        new PeacefulMinerCommand(this);
+        new PermaTrashCommand(this);
+        new SkillStatsCommand(this);
+        new SpelunkerCommand(this);
+        new ToggleMaxSkillMessageCommand(this);
+        new TogglePhantomsCommand(this);
+        new ToggleScoreboardCommand(this);
         new ToggleSpeedCommand(this);
         new ToggleTrailCommand(this);
-        new AutoTrashCommand(this);
-        new PermaTrashCommand(this);
-        new TogglePhantomsCommand(this);
-        new DeathReturnCommand(this);
         new ToolBeltCommand(this);
+        new VeinminerCommand(this);
+        new WaterBreathingCommand(this);
 
         // Admin Commands
-        new GetTrophyCommand(this);
-        new SurvivalSkillsGetCommand(this);
-        new CaveFinderCommand(this);
         new BossCommand(this);
-        new SurvivalSkillsCommand(this);
-        new SkillsMultiplierCommand(this);
-        new ResetFirstDragon(this);
         new BossMusicCommand(this);
+        new CaveFinderCommand(this);
+        new GetTrophyCommand(this);
+        new ResetFirstDragon(this);
+        new SkillsMultiplierCommand(this);
+        new SurvivalSkillsCommand(this);
+        new SurvivalSkillsGetCommand(this);
     }
 
     public void loadLeaderboard() {
@@ -333,6 +334,7 @@ public final class SurvivalSkills extends JavaPlugin {
             skills.add(new Skill(0, 1, "Crafting"));
             trophyManager.getTrophyTracker().put(p.getUniqueId(), trophyList);
             skillManager.getPlayerSkills().put(p.getUniqueId(), skills);
+            skillManager.getMaxSkillMessage().put(p, true);
             toggledScoreboard.put(p.getUniqueId(), true);
 
             savePlayerData(p);
@@ -344,14 +346,14 @@ public final class SurvivalSkills extends JavaPlugin {
         if (!toggledScoreboard.containsKey(uuid)) loadScoreboardSetting(uuid, data);
         if (!trophyManager.getTrophyTracker().containsKey(uuid)) trophyManager.loadPlayerTrophies(uuid, data);
 
-        if (data.get(uuid + ".NoPhantoms") != null) {
+        if (data.contains(uuid + ".NoPhantoms")) {
             boolean phantoms = data.getBoolean(uuid + ".NoPhantoms");
             if (phantoms && !getFightingListener().getNoPhantomSpawns().contains(p)) {
                 getFightingListener().getNoPhantomSpawns().add(p);
             }
         }
 
-        if (data.get(uuid + ".Trail") != null) {
+        if (data.contains(uuid + ".Trail")) {
             String trailName = data.getString(uuid + ".Trail");
             if (trailName != null && !trailName.equals("None")) {
                 if (abilityManager.getTrails().containsKey(trailName)) {
@@ -365,25 +367,30 @@ public final class SurvivalSkills extends JavaPlugin {
             }
         }
 
-        if (data.get(uuid + ".AutoEat") != null) {
+        if (data.contains(uuid + ".AutoEat")) {
             boolean autoEat = data.getBoolean(uuid + ".AutoEat");
             if (autoEat && !farmingListener.getAutoEat().contains(p)) farmingListener.getAutoEat().add(p);
         }
 
-        if (data.get(uuid + ".Veinminer") != null) {
+        if (data.contains(uuid + ".Veinminer")) {
             int veinminer = data.getInt(uuid + ".Veinminer");
             if (veinminer == 0 || veinminer == 1) miningListener.getVeinminerTracker().put(p, veinminer);
         }
 
-        if (data.get(uuid + ".PeacefulMiner") != null) {
+        if (data.contains(uuid + ".PeacefulMiner")) {
             boolean peacefulMiner = data.getBoolean(uuid + ".PeacefulMiner");
             if (peacefulMiner && !miningListener.getPeacefulMiners().contains(p)) miningListener.getPeacefulMiners().add(p);
+        }
+
+        if (data.contains(uuid + ".MaxSkillMessage")) {
+            boolean maxSkillMessage = data.getBoolean(uuid + ".MaxSkillMessage");
+            skillManager.getMaxSkillMessage().put(p, maxSkillMessage);
         }
     }
 
     public void loadScoreboardSetting(UUID uuid, FileConfiguration data) {
         if (toggledScoreboard.containsKey(uuid)) return;
-        if (data.get(uuid + ".Scoreboard") == null) {
+        if (data.contains(uuid + ".Scoreboard")) {
             toggledScoreboard.put(uuid, true);
             return;
         }
