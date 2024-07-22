@@ -20,6 +20,9 @@ commands:
   toggletrail:
     description: Allows the player to choose a trail
     permission: survivalskills.default
+  togglemaxskillmessage:
+    description: Allows the player to enable or disable max skill messages
+    permission: survivalskills.default
 
   spelunker:
     description: Notifies the player where nearby ores are

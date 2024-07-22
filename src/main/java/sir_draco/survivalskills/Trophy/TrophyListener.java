@@ -52,7 +52,8 @@ public class TrophyListener implements Listener {
         if (!e.getHand().equals(EquipmentSlot.HAND)) return;
         if (hand.getItemMeta() == null) return;
         if (!hand.getItemMeta().hasCustomModelData()) return;
-        if (hand.getEnchantments().containsKey(Enchantment.KNOCKBACK) && hand.getItemMeta().getCustomModelData() == 999) e.setCancelled(true);
+
+        if (hand.getItemMeta().getCustomModelData() == 999) e.setCancelled(true);
         else return;
 
 

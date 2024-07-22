@@ -205,7 +205,7 @@ public class ExploringSkill implements Listener {
     }
 
     public boolean checkGillSwim(Player p, PlayerRewards rewards) {
-        if (!rewards.getReward("Exploring", "GillSwim").isApplied() && !p.hasPermission("survivalskills.op")) return false;
+        if (!rewards.getReward("Exploring", "GillArmor").isApplied() && !p.hasPermission("survivalskills.op")) return false;
         return isGillArmor(p.getInventory());
     }
 
