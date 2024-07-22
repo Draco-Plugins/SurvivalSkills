@@ -187,6 +187,24 @@ public class PlayerListener implements Listener {
                         + rewards.getReward("Exploring", "TheExiledOneSummon").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
+            case 16:
+                if (rewards.getReward("Building", "AutoSortWand").isApplied()) return;
+                e.setCancelled(true);
+                p.sendRawMessage(ChatColor.RED + "You need to be building level " + ChatColor.AQUA
+                        + rewards.getReward("Building", "AutoSortWand").getLevel() + ChatColor.RED + " to craft this");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            case 18:
+                if (rewards.getReward("Main", "FireworkCannon").isApplied()) return;
+                e.setCancelled(true);
+                p.sendRawMessage(ChatColor.RED + "You need to be main level " + ChatColor.AQUA
+                        + rewards.getReward("Main", "FireworkCannon").getLevel() + ChatColor.RED + " to craft this");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            case 19:
+                if (rewards.getReward("Exploring", "GillArmor").isApplied()) return;
+                e.setCancelled(true);
+                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
+                        + rewards.getReward("Exploring", "GillArmor").getLevel() + ChatColor.RED + " to craft this");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 999:
                 if (result.getType().equals(Material.WHITE_WOOL)) return;
                 if (result.getType().equals(Material.BLACK_WOOL)) return;

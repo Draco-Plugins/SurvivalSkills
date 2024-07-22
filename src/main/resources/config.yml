@@ -156,6 +156,10 @@ Exploring:
     Enabled: true
     Level: 80
     Type: 'Attribute'
+  GillArmor:
+    Enabled: true
+    Level: 85
+    Type: 'Crafting'
   SwimV:
     Enabled: true
     Level: 90

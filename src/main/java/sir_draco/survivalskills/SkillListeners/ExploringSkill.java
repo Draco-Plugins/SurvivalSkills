@@ -114,6 +114,7 @@ public class ExploringSkill implements Listener {
         checkHealthRegen(p, rewards);
         checkTravelerArmor(p, rewards);
         checkAdventurerArmor(p, rewards);
+        checkGillArmor(p, rewards);
     }
 
     @EventHandler
@@ -165,9 +166,17 @@ public class ExploringSkill implements Listener {
     public void setSwimSpeed(Player p) {
         double speed = plugin.getSkillManager().getPlayerRewards(p).getSwimSpeed();
         if (speed == 0) return;
-        speed *= 0.2;
-        Vector v = p.getLocation().getDirection();
-        p.setVelocity(v.multiply(speed));
+
+        if (checkGillSwim(p, plugin.getSkillManager().getPlayerRewards(p))) {
+            speed *= 0.6;
+            Vector v = p.getLocation().getDirection();
+            p.setVelocity(v.multiply(speed));
+        }
+        else {
+            speed *= 0.2;
+            Vector v = p.getLocation().getDirection();
+            p.setVelocity(v.multiply(speed));
+        }
     }
 
     public void giveJumpPotionEffect(Player p) {
@@ -188,6 +197,18 @@ public class ExploringSkill implements Listener {
         return ItemStackGenerator.isCustomItem(inv.getHelmet(), 7);
     }
 
+    public boolean isGillArmor(PlayerInventory inv) {
+        if (!ItemStackGenerator.isCustomItem(inv.getBoots(), 19)) return false;
+        if (!ItemStackGenerator.isCustomItem(inv.getLeggings(), 19)) return false;
+        if (!ItemStackGenerator.isCustomItem(inv.getChestplate(), 19)) return false;
+        return ItemStackGenerator.isCustomItem(inv.getHelmet(), 19);
+    }
+
+    public boolean checkGillSwim(Player p, PlayerRewards rewards) {
+        if (!rewards.getReward("Exploring", "GillSwim").isApplied() && !p.hasPermission("survivalskills.op")) return;
+        return isGillArmor(p.getInventory());
+    }
+
     public boolean isAdventurerArmor(PlayerInventory inv) {
         if (!ItemStackGenerator.isCustomItem(inv.getBoots(), 8)) return false;
         if (!ItemStackGenerator.isCustomItem(inv.getLeggings(), 8)) return false;
@@ -206,7 +227,11 @@ public class ExploringSkill implements Listener {
     }
 
     public void giveRegenPotionEffect(Player p) {
-        p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 0, false, false, false));
+        p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 0, false, false, true));
+    }
+
+    public void giveWaterBreathingPotionEffect(Player p) {
+        p.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 100, 0, false, false, true));
     }
 
     public void checkJumpBoots(Player p, PlayerRewards rewards) {
@@ -222,6 +247,13 @@ public class ExploringSkill implements Listener {
     public void checkTravelerArmor(Player p, PlayerRewards rewards) {
         if (!rewards.getReward("Exploring", "TravelerArmor").isApplied() && !p.hasPermission("survivalskills.op")) return;
         if (isTravelerArmor(p.getInventory())) giveSpeedPotionEffect(p, 1);
+    }
+
+    public void checkGillArmor(Player p, PlayerRewards rewards) {
+        if (!rewards.getReward("Exploring", "GillArmor").isApplied() && !p.hasPermission("survivalskills.op")) return;
+        if (isGillArmor(p.getInventory())) {
+            giveWaterBreathingPotionEffect(p);
+        }
     }
 
     public void checkAdventurerArmor(Player p, PlayerRewards rewards) {

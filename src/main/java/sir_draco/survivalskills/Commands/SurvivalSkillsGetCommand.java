@@ -55,6 +55,15 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
             return true;
         }
+        else if (strings[0].equalsIgnoreCase("gillarmor")) {
+            p.getInventory().addItem(ItemStackGenerator.getGillHelmet());
+            p.getInventory().addItem(ItemStackGenerator.getGillChestplate());
+            p.getInventory().addItem(ItemStackGenerator.getGillLeggings());
+            p.getInventory().addItem(ItemStackGenerator.getGillBoots());
+            p.sendRawMessage(ChatColor.GREEN + "You have received: Gill Armor");
+            p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+            return true;
+        }
         else if (strings[0].equalsIgnoreCase("adventurerarmor")) {
             p.getInventory().addItem(ItemStackGenerator.getAdventurerHelmet());
             p.getInventory().addItem(ItemStackGenerator.getAdventurerChestplate());
@@ -114,6 +123,14 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
                 return ItemStackGenerator.getTravelerChestplate();
             case "travelerhelmet":
                 return ItemStackGenerator.getTravelerHelmet();
+            case "gillboots":
+                return ItemStackGenerator.getGillBoots();
+            case "gillleggings":
+                return ItemStackGenerator.getGillLeggings();
+            case "gillchestplate":
+                return ItemStackGenerator.getGillChestplate();
+            case "gillhelmet":
+                return ItemStackGenerator.getGillHelmet();
             case "adventurerboots":
                 return ItemStackGenerator.getAdventurerBoots();
             case "adventurerleggings":

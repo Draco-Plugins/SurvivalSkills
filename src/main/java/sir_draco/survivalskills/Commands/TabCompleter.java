@@ -72,6 +72,10 @@ public class TabCompleter implements Listener {
         words.add("travelerleggings");
         words.add("travelerchestplate");
         words.add("travelerhelmet");
+        words.add("gillhelmet");
+        words.add("gillchestplate");
+        words.add("gillleggings");
+        words.add("gillboots");
         words.add("adventurerboots");
         words.add("adventurerleggings");
         words.add("adventurerchestplate");

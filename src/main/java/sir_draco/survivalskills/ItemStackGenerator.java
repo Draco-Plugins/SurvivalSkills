@@ -366,6 +366,90 @@ public class ItemStackGenerator {
         return createCustomItem(Material.DIAMOND_HELMET, 1, name, null, null, loreList, 7, false, null);
     }
 
+    public static ItemStack getGillHelmet() {
+        String name = ColorParser.colorizeString("Gill Helmet", ColorParser.generateGradient("#86A8FF", "#ADF3FD", "Gill Helmet"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add("");
+        loreList.add(ChatColor.GRAY + "Water Breathing Everywhere");
+        loreList.add(ChatColor.GRAY + "Lightning Fast Swim Speed");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        ItemStack helmet = createCustomItem(Material.NETHERITE_HELMET, 1, name, null, null, loreList, 19, false, null);
+        ItemMeta meta = helmet.getItemMeta();
+        if (meta == null) return helmet;
+
+        // Set the color of the helmet to blue
+        if (meta instanceof LeatherArmorMeta) {
+            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+            leatherMeta.setColor(Color.BLUE);
+        }
+
+        helmet.setItemMeta(meta);
+        return helmet;
+    }
+
+    public static ItemStack getGillChestplate() {
+        String name = ColorParser.colorizeString("Gill Chestplate", ColorParser.generateGradient("#86A8FF", "#ADF3FD", "Gill Chestplate"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add("");
+        loreList.add(ChatColor.GRAY + "Water Breathing Everywhere");
+        loreList.add(ChatColor.GRAY + "Lightning Fast Swim Speed");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        ItemStack chestplate = createCustomItem(Material.NETHERITE_CHESTPLATE, 1, name, null, null, loreList, 19, false, null);
+        ItemMeta meta = chestplate.getItemMeta();
+        if (meta == null) return chestplate;
+
+        // Set the color of the chestplate to blue
+        if (meta instanceof LeatherArmorMeta) {
+            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+            leatherMeta.setColor(Color.BLUE);
+        }
+
+        chestplate.setItemMeta(meta);
+        return chestplate;
+    }
+
+    public static ItemStack getGillLeggings() {
+        String name = ColorParser.colorizeString("Gill Leggings", ColorParser.generateGradient("#86A8FF", "#ADF3FD", "Gill Leggings"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add("");
+        loreList.add(ChatColor.GRAY + "Water Breathing Everywhere");
+        loreList.add(ChatColor.GRAY + "Lightning Fast Swim Speed");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        ItemStack leggings = createCustomItem(Material.NETHERITE_LEGGINGS, 1, name, null, null, loreList, 19, false, null);
+        ItemMeta meta = leggings.getItemMeta();
+        if (meta == null) return leggings;
+
+        // Set the color of the leggings to blue
+        if (meta instanceof LeatherArmorMeta) {
+            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+            leatherMeta.setColor(Color.BLUE);
+        }
+
+        leggings.setItemMeta(meta);
+        return leggings;
+    }
+
+    public static ItemStack getGillBoots() {
+        String name = ColorParser.colorizeString("Gill Boots", ColorParser.generateGradient("#86A8FF", "#ADF3FD", "Gill Boots"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add("");
+        loreList.add(ChatColor.GRAY + "Water Breathing Everywhere");
+        loreList.add(ChatColor.GRAY + "Lightning Fast Swim Speed");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        ItemStack boots = createCustomItem(Material.NETHERITE_BOOTS, 1, name, null, null, loreList, 19, false, null);
+        ItemMeta meta = boots.getItemMeta();
+        if (meta == null) return boots;
+
+        // Set the color of the boots to blue
+        if (meta instanceof LeatherArmorMeta) {
+            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+            leatherMeta.setColor(Color.BLUE);
+        }
+
+        boots.setItemMeta(meta);
+        return boots;
+    }
+
     public static ItemStack getAdventurerBoots() {
         String name = ColorParser.colorizeString("Adventurer Boots", ColorParser.generateGradient("#FF0000", "#FFDC6E", "Adventurer Boots"), true);
         ArrayList<String> loreList = new ArrayList<>();
