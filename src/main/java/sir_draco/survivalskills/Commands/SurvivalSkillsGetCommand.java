@@ -151,6 +151,8 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
                 return ItemStackGenerator.getBroodMotherSummoner();
             case "exiledsummoner":
                 return ItemStackGenerator.getVillagerSummoner();
+            case "dragonhead":
+                return ItemStackGenerator.getEnderDragonBossItem();
             case "sortofstonepick":
                 return ItemStackGenerator.getSortOfStonePick();
             case "fireworkcannon":

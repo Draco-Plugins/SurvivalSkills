@@ -363,6 +363,8 @@ public class BuildingSkill implements Listener {
         bannedReturns.add(Material.WHITE_SHULKER_BOX);
         bannedReturns.add(Material.WITHER_SKELETON_SKULL);
         bannedReturns.add(Material.YELLOW_SHULKER_BOX);
+        bannedReturns.add(Material.END_PORTAL_FRAME);
+        bannedReturns.add(Material.FARMLAND);
     }
 
     public void createBrokenBlocks() {
@@ -378,5 +380,6 @@ public class BuildingSkill implements Listener {
         brokenBlocks.add("CAVE_VINES_PLANT");
         brokenBlocks.add("GLOW_LICHEN_PLANT");
         brokenBlocks.add("GLOW_BERRIES");
+        brokenBlocks.add("DRAGON_WALL_HEAD");
     }
 }

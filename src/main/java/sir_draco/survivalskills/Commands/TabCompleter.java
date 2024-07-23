@@ -83,6 +83,7 @@ public class TabCompleter implements Listener {
         words.add("wateringcan");
         words.add("unlimitedbonemeal");
         words.add("harvester");
+        words.add("dragonhead");
         words.add("giantsummoner");
         words.add("broodmothersummoner");
         words.add("exiledsummoner");

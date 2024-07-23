@@ -105,6 +105,7 @@ public class FightingSkill implements Listener {
                     break;
                 case ENDER_DRAGON:
                     if (dragonBoss != null) {
+                        p.getInventory().addItem(ItemStackGenerator.getEnderDragonBossItem());
                         World world = dragonBoss.getBoss().getWorld();
                         dragonBoss.death();
                         dragonBoss = null;
@@ -119,6 +120,7 @@ public class FightingSkill implements Listener {
                         if (!world.hasMetadata("killedfirstdragon"))
                             world.setMetadata("killedfirstdragon", new FixedMetadataValue(plugin, true));
                     }
+                    else drop = ItemStackGenerator.getEnderDragonBossItem();
                     break;
             }
             e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), drop);
@@ -358,6 +360,7 @@ public class FightingSkill implements Listener {
         else if (e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
             if (dragonBoss == null) return;
             if (!dragonBoss.getBoss().equals(e.getEntity())) e.setCancelled(true);
+            if (!dragonBoss.isRespawn()) return;
             if (dragonBoss.getPlayers().contains(p)) return;
             e.setCancelled(true);
         }

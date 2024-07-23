@@ -33,7 +33,7 @@ public class VillagerBoss extends Boss {
     private ExiledBossMusic music;
 
     public VillagerBoss(Location loc, Player summoner) {
-        super("Villager", 3, 3, 1000, 0, 10, 0.2, EntityType.VILLAGER, loc, 5);
+        super("The Exiled One", 3, 3, 1000, 0, 10, 0.2, EntityType.VILLAGER, loc, 5);
         this.summoner = summoner;
         if (isSpawnSuccess()) {
             villager = (Villager) getBoss();
@@ -73,6 +73,22 @@ public class VillagerBoss extends Boss {
             return;
         }
 
+        if (!summoner.isOnline()) {
+            despawnBoss();
+            music.setDead(true);
+            cancel();
+            return;
+        }
+
+        // Make sure the player doesn't get too far away
+        if (summoner.getLocation().distance(villager.getLocation()) > 100) {
+            // Shoot the player towards the boss
+            Vector direction = ProjectileCalculator.getDirectionVector(villager.getLocation(), summoner.getLocation());
+            summoner.setVelocity(direction.multiply(2.0));
+            summoner.playSound(summoner, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            summoner.sendRawMessage(ChatColor.RED + "You can't leave this fight");
+        }
+
         villager.setGravity(false);
         villager.setAI(false);
         if (teleportCooldown != 0) teleportCooldown--;
@@ -90,11 +106,15 @@ public class VillagerBoss extends Boss {
     public void attack() {
         if (hitPhase) {
             manaRegen();
+            if (attackCooldown <= 0) {
+                for (int i = 0; i <= 3; i++) launchMeteor();
+                attackCooldown = 20;
+            }
             return;
         }
         else {
             shieldParticles();
-            if (attackCount == getStage() * 5) {
+            if (attackCount >= getStage() * 5) {
                 if (inAction) return;
 
                 // Allow the exiled one to be hit
@@ -114,19 +134,21 @@ public class VillagerBoss extends Boss {
                     @Override
                     public void run() {
                         hitPhase = false;
-                        teleportFinder(false, false, null, 10);
+                        teleportFinder(false, false, null, 5);
                     }
                 }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 160);
                 return;
             }
         }
 
+        if (inAction) return;
+
         // Determine if the villager will attack - the lower the health the higher the attack rate
         double attackChance = Math.random();
         double emeraldChance = Math.random();
         double teleportChance = Math.random();
         double rate = Math.max(0.01, (1 - getHealthPercentage()) * 0.1);
-        if (teleportCooldown == 0 && teleportChance < rate) {
+        if (teleportCooldown <= 0 && teleportChance < rate) {
             teleportCooldown = 60;
             teleportFinder(false, true, null, 0);
         }
@@ -135,7 +157,7 @@ public class VillagerBoss extends Boss {
         if (!activeAttack && emeraldChance < rate) emeraldAttack(false);
 
         // Handle Phase
-        if (attackChance > rate || attackCooldown != 0) return;
+        if (attackChance > rate || attackCooldown > 0) return;
         attackCooldown = 20;
         attackCount++;
         if (getStage() == 1) {
@@ -234,7 +256,7 @@ public class VillagerBoss extends Boss {
 
     public void emeraldAttack(boolean machineGun) {
         Player target = targetEmeraldProjectile();
-        if (target == null) return;;
+        if (target == null) return;
 
         if (machineGun) {
             new BukkitRunnable() {
@@ -305,7 +327,7 @@ public class VillagerBoss extends Boss {
     }
 
     public void cowCannon() {
-        teleportFinder(false, false, null, 5);
+        teleportFinder(false, true, null, 0);
         // Shoots a cow at nearby players. If the cow hits a player or the ground it explodes
         ArrayList<Player> players = getNearbyPlayers(50);
         if (players.isEmpty()) return;
@@ -339,7 +361,7 @@ public class VillagerBoss extends Boss {
         // Get a random player from the list
         Player target = players.get((int) (Math.random() * players.size()));
         Location loc = villager.getLocation().clone().add(0, 1, 0);
-        inAction = true;
+        teleportLater(65, false, true, 0);
 
         // Draw a line of particles from the villager to the player over 2 ticks
         target.playSound(target, Sound.BLOCK_BEACON_ACTIVATE, 1, 1);
@@ -590,6 +612,40 @@ public class VillagerBoss extends Boss {
         }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 1);
     }
 
+    public void launchMeteor() {
+        // Spawn fire charges in the sky that create explosion particles as they fall and when they collide with a block or player they explode
+        Location loc = randomLocation();
+        loc.setY(loc.getY() + 30);
+        Vector direction = new Vector(0, -1, 0);
+        // Launch a fireball projectile from the location
+        Fireball fireball = villager.getWorld().spawn(loc, Fireball.class);
+        fireball.setDirection(direction);
+
+        new BukkitRunnable() {
+
+            @Override
+            public void run() {
+                if (fireball.isDead()) {
+                    cancel();
+                    return;
+                }
+
+                // If the fireball hits a block or player, explode
+                if (fireball.isOnGround() || !fireball.getNearbyEntities(1, 1, 1).isEmpty()
+                        || !fireball.getLocation().getBlock().getType().isAir()) {
+                    fireball.getWorld().createExplosion(fireball.getLocation(), 6, false, false, fireball);
+                    fireball.remove();
+                    cancel();
+                    return;
+                }
+
+                // Spawn explosion particles as the fireball falls
+                Location particleLoc = fireball.getLocation().clone().add(0, 1, 0);
+                fireball.getWorld().spawnParticle(Particle.EXPLOSION, particleLoc, 3);
+            }
+        }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 1);
+    }
+
     public void teleport(Location loc) {
         ProjectileCalculator.particleLine(villager.getLocation(), loc, Particle.DUST, Color.AQUA);
         villager.teleport(loc);
@@ -608,10 +664,7 @@ public class VillagerBoss extends Boss {
                 return true;
             }
 
-            double offsetX = (Math.random() - 0.5) * 10;
-            double offsetY = (Math.random() - 0.5) * 5;
-            double offsetZ = (Math.random() - 0.5) * 10;
-            Location loc = villager.getLocation().clone().add(offsetX, offsetY, offsetZ);
+            Location loc = randomLocation();
             boolean isAir = loc.getBlock().isEmpty();
             boolean isAirAbove = loc.getBlock().getRelative(0, 1, 0).isEmpty();
             if (!isAir && isAirAbove) return teleportFinder(false, true, loc.add(0, 1, 0), 0);
@@ -647,6 +700,13 @@ public class VillagerBoss extends Boss {
                 teleportFinder(findGround, random, null, relativeY);
             }
         }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), delay);
+    }
+
+    public Location randomLocation() {
+        double offsetX = (Math.random() - 0.5) * 10;
+        double offsetY = (Math.random() - 0.5) * 5;
+        double offsetZ = (Math.random() - 0.5) * 10;
+        return villager.getLocation().clone().add(offsetX, offsetY, offsetZ);
     }
 
     public ArrayList<Player> getNearbyPlayers(int radius) {

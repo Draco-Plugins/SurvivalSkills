@@ -312,7 +312,7 @@ public class MiningSkill implements Listener {
             return;
         }
 
-        VeinMinerAsync veinMiner = new VeinMinerAsync(plugin, p, this, e.getBlock(), blocksPerHunger);
+        VeinMinerAsync veinMiner = new VeinMinerAsync(plugin, p, this, e.getBlock(), e.getBlock().getType(), blocksPerHunger);
         veinMiner.runTaskAsynchronously(plugin);
     }
 

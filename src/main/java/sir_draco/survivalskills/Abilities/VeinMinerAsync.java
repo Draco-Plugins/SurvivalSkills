@@ -20,13 +20,15 @@ public class VeinMinerAsync extends BukkitRunnable {
     private final Player p;
     private final MiningSkill skill;
     private final Block block;
+    private final Material material;
     private final int blocksPerHunger;
 
-    public VeinMinerAsync(SurvivalSkills plugin, Player p, MiningSkill skill, Block block, int blocksPerHunger) {
+    public VeinMinerAsync(SurvivalSkills plugin, Player p, MiningSkill skill, Block block, Material material, int blocksPerHunger) {
         this.plugin = plugin;
         this.p = p;
         this.skill = skill;
         this.block = block;
+        this.material = material;
         this.blocksPerHunger = blocksPerHunger;
     }
 
@@ -73,7 +75,7 @@ public class VeinMinerAsync extends BukkitRunnable {
         ArrayList<Block> blocks = new ArrayList<>();
         blocks.add(startBlock);
         int iterations = 0;
-        getVeinBlockHelper(startBlock.getType(), startBlock, new ArrayList<>(), blocks, iterations);
+        blocks = getVeinBlockHelper(material, startBlock, new ArrayList<>(), blocks, iterations);
         blocks.remove(startBlock);
         return blocks;
     }
