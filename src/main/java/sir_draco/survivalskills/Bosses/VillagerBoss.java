@@ -28,12 +28,14 @@ public class VillagerBoss extends Boss {
     private boolean activeMusic = false;
     private int attackCount = 0;
     private int attackCooldown = 20;
+    private int defaultCooldown = 20;
     private int shieldParticleCounter = 0;
     private int teleportCooldown = 80;
+    private int arrowCount = 0;
     private ExiledBossMusic music;
 
     public VillagerBoss(Location loc, Player summoner) {
-        super("The Exiled One", 3, 3, 1000, 0, 10, 0.2, EntityType.VILLAGER, loc, 5);
+        super("The Exiled One", 3, 3, 1500, 0, 10, 0.2, EntityType.VILLAGER, loc, 5);
         this.summoner = summoner;
         if (isSpawnSuccess()) {
             villager = (Villager) getBoss();
@@ -83,7 +85,7 @@ public class VillagerBoss extends Boss {
         // Make sure the player doesn't get too far away
         if (summoner.getLocation().distance(villager.getLocation()) > 100) {
             // Shoot the player towards the boss
-            Vector direction = ProjectileCalculator.getDirectionVector(villager.getLocation(), summoner.getLocation());
+            Vector direction = ProjectileCalculator.getDirectionVector(summoner.getLocation(), villager.getLocation());
             summoner.setVelocity(direction.multiply(2.0));
             summoner.playSound(summoner, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             summoner.sendRawMessage(ChatColor.RED + "You can't leave this fight");
@@ -108,7 +110,7 @@ public class VillagerBoss extends Boss {
             manaRegen();
             if (attackCooldown <= 0) {
                 for (int i = 0; i <= 3; i++) launchMeteor();
-                attackCooldown = 20;
+                attackCooldown = defaultCooldown;
             }
             return;
         }
@@ -142,6 +144,11 @@ public class VillagerBoss extends Boss {
         }
 
         if (inAction) return;
+        if (arrowCount >= 10) {
+            arrowCount = 0;
+            explosion();
+            return;
+        }
 
         // Determine if the villager will attack - the lower the health the higher the attack rate
         double attackChance = Math.random();
@@ -158,7 +165,7 @@ public class VillagerBoss extends Boss {
 
         // Handle Phase
         if (attackChance > rate || attackCooldown > 0) return;
-        attackCooldown = 20;
+        attackCooldown = defaultCooldown;
         attackCount++;
         if (getStage() == 1) {
             double type = Math.random();
@@ -174,6 +181,7 @@ public class VillagerBoss extends Boss {
             else if (type >= 0.2) emeraldAttack(true);
             else heal();
         } else if (getStage() == 3) {
+            if (defaultCooldown != 10) defaultCooldown = 10;
             double type = Math.random();
             if (type >= 0.833) cowCannon();
             else if (type >= 0.666) slowRay();
@@ -183,6 +191,7 @@ public class VillagerBoss extends Boss {
             else heal();
         } else if (getStage() == 4) {
             if (!mobAttackCalled) {
+                villager.setHealth(getMaxHealth() / 2);
                 mobAttack();
                 mobAttackCalled = true;
                 return;
@@ -196,6 +205,7 @@ public class VillagerBoss extends Boss {
             else if (type >= 0.166) emeraldAttack(true);
             else heal();
         } else {
+            if (defaultCooldown != 5) defaultCooldown = 5;
             if (!mobAttackCalled) {
                 mobAttack();
                 mobAttackCalled = true;
@@ -255,9 +265,6 @@ public class VillagerBoss extends Boss {
     }
 
     public void emeraldAttack(boolean machineGun) {
-        Player target = targetEmeraldProjectile();
-        if (target == null) return;
-
         if (machineGun) {
             new BukkitRunnable() {
                 private int count = 0;
@@ -267,30 +274,23 @@ public class VillagerBoss extends Boss {
                         cancel();
                         return;
                     }
-                    emeraldProjectile(target);
+                    emeraldProjectile();
                     count++;
                 }
             }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 3);
         }
-        else emeraldProjectile(target);
+        else emeraldProjectile();
     }
 
-    public Player targetEmeraldProjectile() {
-        // Get a random nearby player
-        ArrayList<Player> players = getNearbyPlayers(25);
-        if (players.isEmpty()) return null;
-        return players.get((int) (Math.random() * players.size()));
-    }
-
-    public void emeraldProjectile(Player target) {
+    public void emeraldProjectile() {
         // Spawn an emerald item stack at the villager's location
         Location loc = villager.getLocation().clone().add(0, 1, 0);
         ItemStack emerald = new ItemStack(Material.EMERALD);
         Item item = villager.getWorld().dropItem(loc, emerald);
         item.setGravity(false);
         item.setOwner(UUID.fromString("00000000-0000-0000-0000-000000000000"));
-        item.setVelocity(ProjectileCalculator.getNoGravityVector(loc, target.getLocation().clone().add(0, 1, 0), 2));
-        target.playSound(target, Sound.ENTITY_SHULKER_SHOOT, 1, 1);
+        item.setVelocity(ProjectileCalculator.getNoGravityVector(loc, summoner.getLocation().clone().add(0, 1, 0), 2));
+        summoner.playSound(summoner, Sound.ENTITY_SHULKER_SHOOT, 1, 1);
 
         // Create a bukkit runnable that checks if the emerald is inside the target's hit-box
         new BukkitRunnable() {
@@ -317,7 +317,7 @@ public class VillagerBoss extends Boss {
                         if (distance > 0.85 || yDist > 1.5) continue;
                         if (alreadyHitPlayers.contains(p)) continue;
                         alreadyHitPlayers.add(p);
-                        p.damage(25);
+                        p.damage(45);
                         p.playSound(p, Sound.BLOCK_ANVIL_HIT, 1, 1);
                     }
                 }
@@ -328,54 +328,52 @@ public class VillagerBoss extends Boss {
 
     public void cowCannon() {
         teleportFinder(false, true, null, 0);
-        // Shoots a cow at nearby players. If the cow hits a player or the ground it explodes
-        ArrayList<Player> players = getNearbyPlayers(50);
-        if (players.isEmpty()) return;
-        for (Player p : players) {
-            Location loc = villager.getLocation().clone().add(0, 1, 0);
-            Cow cow = villager.getWorld().spawn(loc, Cow.class);
-            cow.setGravity(false);
-            Vector direction = ProjectileCalculator.getNoGravityVector(loc, p.getLocation().clone().add(0, 1, 0), 2.5);
-            cow.setVelocity(direction);
+        Location loc = villager.getLocation().clone().add(0, 1, 0);
+        Cow cow = villager.getWorld().spawn(loc, Cow.class);
+        cow.setGravity(false);
+        Vector direction = ProjectileCalculator.getNoGravityVector(loc, summoner.getLocation().clone().add(0, 1, 0), 2.5);
+        cow.setVelocity(direction);
 
-            new BukkitRunnable() {
-                private final Player player = p;
-                private final Cow cowCannon = cow;
-                @Override
-                public void run() {
-                    // If the cow hits a player or the ground, explode
-                    cowCannon.setGravity(false);
-                    if (cowCannon.getLocation().distance(player.getLocation()) > 2 && !cowCannon.isOnGround()) return;
-                    cowCannon.getWorld().createExplosion(cowCannon.getLocation(), 5);
+        new BukkitRunnable() {
+            private final Cow cowCannon = cow;
+            private int count = 0;
+            @Override
+            public void run() {
+                if (count >= 80) {
+                    cowCannon.getWorld().createExplosion(cowCannon.getLocation(), 8);
                     cowCannon.remove();
                     cancel();
+                    return;
                 }
-            }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 1);
-        }
+
+                // If the cow hits a player or the ground, explode
+                cowCannon.setGravity(false);
+                count++;
+                if (cowCannon.getLocation().distance(summoner.getLocation()) > 2 && !cowCannon.isOnGround()) return;
+                cowCannon.getWorld().createExplosion(cowCannon.getLocation(), 8);
+                cowCannon.remove();
+                cancel();
+            }
+        }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 1);
     }
 
     public void slowRay() {
-        // Shoots a ray that applies slowness to a player nearby
-        ArrayList<Player> players = getNearbyPlayers(50);
-        if (players.isEmpty()) return;
-        // Get a random player from the list
-        Player target = players.get((int) (Math.random() * players.size()));
         Location loc = villager.getLocation().clone().add(0, 1, 0);
         teleportLater(65, false, true, 0);
 
         // Draw a line of particles from the villager to the player over 2 ticks
-        target.playSound(target, Sound.BLOCK_BEACON_ACTIVATE, 1, 1);
+        summoner.playSound(summoner, Sound.BLOCK_BEACON_ACTIVATE, 1, 1);
         new BukkitRunnable() {
             private int count = 0;
             @Override
             public void run() {
                 if (count == 0) {
-                    if (!villager.hasLineOfSight(target)) {
+                    summoner.playSound(summoner, Sound.BLOCK_BEACON_DEACTIVATE, 1, 1);
+                    if (!villager.hasLineOfSight(summoner)) {
                         cancel();
                         return;
                     }
-                    target.playSound(target, Sound.BLOCK_BEACON_DEACTIVATE, 1, 1);
-                    target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 600, 3));
+                    summoner.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 600, 3));
                 }
 
                 if (count >= 3) {
@@ -383,8 +381,8 @@ public class VillagerBoss extends Boss {
                     return;
                 }
 
-                Vector direction = ProjectileCalculator.getDirectionVector(loc, target.getLocation());
-                int distance = (int) Math.ceil(loc.distance(target.getLocation()));
+                Vector direction = ProjectileCalculator.getDirectionVector(loc, summoner.getLocation());
+                int distance = (int) Math.ceil(loc.distance(summoner.getLocation()));
                 for (int i = 0; i < distance * 2; i++) {
                     Location particleLoc = loc.clone().add(direction.clone().multiply((double) i / 2));
                     villager.getWorld().spawnParticle(Particle.DUST, particleLoc, 1, 0, 0, 0, 0, new Particle.DustOptions(Color.BLACK, 3));
@@ -410,7 +408,7 @@ public class VillagerBoss extends Boss {
                     return;
                 }
 
-                if (count == 2) {
+                if (count == 3) {
                     healing = false;
                     villager.setHealth(Math.min(villager.getHealth() + villager.getHealth() * 0.5, getMaxHealth()));
                     for (int i = 0; i < 10; i++) {
@@ -426,6 +424,7 @@ public class VillagerBoss extends Boss {
                     Location loc = villager.getLocation().clone().add(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
                     villager.getWorld().spawnParticle(Particle.HEART, loc, 2, 0, 0, 0, 0);
                 }
+                villager.getWorld().playSound(villager.getLocation(), Sound.ENTITY_GENERIC_DRINK, 10, 1);
                 count++;
             }
         }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 20);
@@ -473,7 +472,7 @@ public class VillagerBoss extends Boss {
         attackCooldown = 200;
         teleportFinder(false, false, null, 5);
         villager.getWorld().playSound(villager.getLocation(), Sound.BLOCK_PORTAL_TRAVEL, 10, 1);
-        ArrayList<Player> players = getNearbyPlayers(20);
+        summoner.sendTitle("", ChatColor.RED + "Your arrows pull you in", 10, 40, 10);
 
         // Pull players in gently for 4 seconds with a 2-second delay
         new BukkitRunnable() {
@@ -485,13 +484,10 @@ public class VillagerBoss extends Boss {
                     cancel();
                     return;
                 }
-                for (Player p : players) {
-                    if (!p.equals(summoner)) continue;
-                    Vector direction = ProjectileCalculator.getDirectionVector(p.getLocation(), villager.getLocation());
-                    Vector nudge = p.getVelocity().add(direction.multiply(0.25));
-                    p.setVelocity(nudge);
-                    ProjectileCalculator.particleLine(p.getLocation(), villager.getLocation(), Particle.DUST, Color.BLACK);
-                }
+                Vector direction = ProjectileCalculator.getDirectionVector(summoner.getLocation(), villager.getLocation());
+                Vector nudge = summoner.getVelocity().add(direction.multiply(0.4));
+                summoner.setVelocity(nudge);
+                ProjectileCalculator.particleLine(summoner.getLocation(), villager.getLocation(), Particle.DUST, Color.BLACK);
                 count++;
             }
         }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 40, 2);
@@ -535,7 +531,7 @@ public class VillagerBoss extends Boss {
         new BukkitRunnable() {
             @Override
             public void run() {
-                villager.getWorld().createExplosion(villager.getLocation(), 10, false, true, villager);
+                villager.getWorld().createExplosion(villager.getLocation(), 15, false, true, villager);
                 activeAttack = false;
             }
         }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 120);
@@ -793,6 +789,10 @@ public class VillagerBoss extends Boss {
             if (ent.isDead()) continue;
             ent.remove();
         }
+    }
+
+    public void incrementArrow() {
+        arrowCount++;
     }
 
     public boolean isHitPhase() {

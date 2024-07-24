@@ -695,6 +695,7 @@ public class FishingSkill implements Listener {
                 if (chance <= (100f / (level + 1))) meta.setDamage(meta.getDamage() + 1);
             }
             else meta.setDamage(meta.getDamage() + 1);
+            fishingRod.setItemMeta(meta);
         }
     }
 

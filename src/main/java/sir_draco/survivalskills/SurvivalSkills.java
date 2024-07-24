@@ -205,6 +205,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new SkillsMultiplierCommand(this);
         new SurvivalSkillsCommand(this);
         new SurvivalSkillsGetCommand(this);
+        new ToggleOverworldFirstDragon(this);
     }
 
     public void loadLeaderboard() {

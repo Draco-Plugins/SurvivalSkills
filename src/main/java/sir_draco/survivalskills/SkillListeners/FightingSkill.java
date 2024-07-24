@@ -80,9 +80,9 @@ public class FightingSkill implements Listener {
         }
 
         Player p = e.getEntity().getKiller();
-        if (p == null) return;
+        if (p == null && !e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) return;
 
-        if (isBoss(e.getEntity())) {
+        if (isBoss(e.getEntity()) || e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
             ItemStack drop = new ItemStack(Material.AIR);
             switch (e.getEntity().getType()) {
                 case ZOMBIE:
@@ -105,22 +105,22 @@ public class FightingSkill implements Listener {
                     break;
                 case ENDER_DRAGON:
                     if (dragonBoss != null) {
-                        p.getInventory().addItem(ItemStackGenerator.getEnderDragonBossItem());
+                        if (p != null) p.getInventory().addItem(ItemStackGenerator.getEnderDragonBossItem());
                         World world = dragonBoss.getBoss().getWorld();
-                        dragonBoss.death();
+                        dragonBoss.deathAnimation();
                         dragonBoss = null;
                         for (Player player : Bukkit.getOnlinePlayers()) {
                             if (!player.getWorld().getEnvironment().equals(World.Environment.THE_END)) continue;
 
                             if (!world.hasMetadata("killedfirstdragon"))
                                 killExperience(player, plugin.getSkillManager().getFightingXP() * 500);
-                            else killExperience(player, plugin.getSkillManager().getFightingXP() * 75);
+                            else killExperience(player, plugin.getSkillManager().getFightingXP() * 100);
                         }
 
                         if (!world.hasMetadata("killedfirstdragon"))
                             world.setMetadata("killedfirstdragon", new FixedMetadataValue(plugin, true));
                     }
-                    else drop = ItemStackGenerator.getEnderDragonBossItem();
+                    else Bukkit.getLogger().warning("Error finding custom dragon");
                     break;
             }
             e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), drop);
@@ -289,7 +289,9 @@ public class FightingSkill implements Listener {
             boss = villager;
             break;
         }
+
         if (boss == null) return;
+        if (e.getDamager() instanceof Arrow) boss.incrementArrow();
         if (boss.isHitPhase()) return;
         if (boss.isHealing()) return;
         e.setCancelled(true);
@@ -595,6 +597,11 @@ public class FightingSkill implements Listener {
     }
 
     public void spawnBoss(String boss, Location loc, Player p, ItemStack mainHand) {
+        if (summonTracker.containsKey(p)) {
+            p.sendRawMessage(ChatColor.RED + "You can only summon one boss at a time");
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return;
+        }
         switch (boss) {
             case "Giant":
                 if (!isNight(p.getWorld())) {

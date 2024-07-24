@@ -96,6 +96,9 @@ commands:
   bossmusic:
     description: Allows for changing the boss music
     permission: survivalskills.op
+  toggleoverworldfirstdragon:
+    description: Allows for toggling the first dragon in the overworld
+    permission: survivalskills.op
 
 permissions:
   survivalskills.default:

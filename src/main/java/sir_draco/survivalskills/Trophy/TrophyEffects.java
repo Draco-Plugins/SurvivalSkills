@@ -637,7 +637,7 @@ public class TrophyEffects extends BukkitRunnable {
         itemList.add(giant);
 
         Item guardian = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        guardian.setItemStack(new ItemStack(Material.PRISMARINE_CRYSTALS));
+        guardian.setItemStack(new ItemStack(Material.ENDER_EYE));
         setFloatingItemProperties(guardian);
         itemList.add(guardian);
 
@@ -647,12 +647,12 @@ public class TrophyEffects extends BukkitRunnable {
         itemList.add(wither);
 
         Item warden = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        warden.setItemStack(new ItemStack(Material.MUSIC_DISC_WARD));
+        warden.setItemStack(new ItemStack(Material.ECHO_SHARD));
         setFloatingItemProperties(warden);
         itemList.add(warden);
 
         Item dragon = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        dragon.setItemStack(new ItemStack(Material.DRAGON_EGG));
+        dragon.setItemStack(new ItemStack(Material.DRAGON_HEAD));
         setFloatingItemProperties(dragon);
         itemList.add(dragon);
 

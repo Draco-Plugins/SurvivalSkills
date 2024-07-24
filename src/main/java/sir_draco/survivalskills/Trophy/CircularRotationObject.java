@@ -83,6 +83,7 @@ public class CircularRotationObject {
     }
 
     public Location getLocation(int slot) {
+        if (slot >= locationList.size()) slot = 0;
         return locationList.get(slot);
     }
 

@@ -35,8 +35,10 @@ public class DragonBoss extends Boss {
 
         Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
         + ChatColor.RESET + "So you have finally come to challenge me?");
-        Bukkit.broadcastMessage(ChatColor.GRAY + "[Server] " + ChatColor.ITALIC + "Keep Inventory Enabled in the End");
-        for (Player p : Bukkit.getOnlinePlayers()) p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1, 1);
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (!p.getWorld().getEnvironment().equals(World.Environment.THE_END)) continue;
+            p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1, 1);
+        }
     }
 
     @Override
@@ -113,28 +115,27 @@ public class DragonBoss extends Boss {
         if (dragon.getWorld().hasMetadata("killedfirstdragon")) {
             Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
             + ChatColor.RESET + "I always come back");
-            return;
         }
-
-        Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
-        + ChatColor.RESET + "This is only the beginning");
-
-        dragon.getWorld().setMetadata("killedfirstdragon", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
-        World overworld = Bukkit.getWorld(dragon.getWorld().getName().replace("_the_end", ""));
-        if (overworld != null) {
-            overworld.setMetadata("killedfirstdragon", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
-        }
-        dragon.getWorld().setGameRule(GameRule.KEEP_INVENTORY, false);
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                Bukkit.broadcastMessage(ChatColor.GREEN + "The Exiled One can now be summoned!");
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 1);
+        else {
+            dragon.getWorld().setGameRule(GameRule.KEEP_INVENTORY, false);
+            Bukkit.broadcastMessage(ChatColor.GRAY + "[Server] " + ChatColor.ITALIC + "Keep Inventory Disabled in the End");
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    Bukkit.broadcastMessage(ChatColor.GREEN + "The Exiled One can now be summoned!");
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        p.playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 1, 1);
+                    }
                 }
-            }
-        }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 20 * 15);
+            }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 20 * 15);
+
+            Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
+                    + ChatColor.RESET + "This is only the beginning");
+
+            dragon.getWorld().setMetadata("killedfirstdragon", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
+            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "toggleoverworldfirstdragon");
+        }
+        cancel();
     }
 
     public void dragonAttributes() {
@@ -144,6 +145,7 @@ public class DragonBoss extends Boss {
         dragon.setMetadata("boss", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
         if (!dragon.getWorld().hasMetadata("killedfirstdragon")) {
             dragon.getWorld().setGameRule(GameRule.KEEP_INVENTORY, true);
+            Bukkit.broadcastMessage(ChatColor.GRAY + "[Server] " + ChatColor.ITALIC + "Keep Inventory Enabled in the End");
         }
     }
 
