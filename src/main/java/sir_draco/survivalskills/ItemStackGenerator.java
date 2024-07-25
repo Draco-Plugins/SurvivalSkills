@@ -373,9 +373,10 @@ public class ItemStackGenerator {
         loreList.add(ChatColor.GRAY + "Water Breathing Everywhere");
         loreList.add(ChatColor.GRAY + "Lightning Fast Swim Speed");
         loreList.add(ChatColor.GRAY + "Must wear the full set");
-        ItemStack helmet = createCustomItem(Material.NETHERITE_HELMET, 1, name, null, null, loreList, 19, false, null);
+        ItemStack helmet = createCustomItem(Material.LEATHER_HELMET, 1, name, null, null, loreList, 19, false, null);
         ItemMeta meta = helmet.getItemMeta();
         if (meta == null) return helmet;
+        meta.setUnbreakable(true);
 
         // Set the color of the helmet to blue
         if (meta instanceof LeatherArmorMeta) {
@@ -394,9 +395,10 @@ public class ItemStackGenerator {
         loreList.add(ChatColor.GRAY + "Water Breathing Everywhere");
         loreList.add(ChatColor.GRAY + "Lightning Fast Swim Speed");
         loreList.add(ChatColor.GRAY + "Must wear the full set");
-        ItemStack chestplate = createCustomItem(Material.NETHERITE_CHESTPLATE, 1, name, null, null, loreList, 19, false, null);
+        ItemStack chestplate = createCustomItem(Material.LEATHER_CHESTPLATE, 1, name, null, null, loreList, 19, false, null);
         ItemMeta meta = chestplate.getItemMeta();
         if (meta == null) return chestplate;
+        meta.setUnbreakable(true);
 
         // Set the color of the chestplate to blue
         if (meta instanceof LeatherArmorMeta) {
@@ -415,9 +417,10 @@ public class ItemStackGenerator {
         loreList.add(ChatColor.GRAY + "Water Breathing Everywhere");
         loreList.add(ChatColor.GRAY + "Lightning Fast Swim Speed");
         loreList.add(ChatColor.GRAY + "Must wear the full set");
-        ItemStack leggings = createCustomItem(Material.NETHERITE_LEGGINGS, 1, name, null, null, loreList, 19, false, null);
+        ItemStack leggings = createCustomItem(Material.LEATHER_LEGGINGS, 1, name, null, null, loreList, 19, false, null);
         ItemMeta meta = leggings.getItemMeta();
         if (meta == null) return leggings;
+        meta.setUnbreakable(true);
 
         // Set the color of the leggings to blue
         if (meta instanceof LeatherArmorMeta) {
@@ -436,9 +439,10 @@ public class ItemStackGenerator {
         loreList.add(ChatColor.GRAY + "Water Breathing Everywhere");
         loreList.add(ChatColor.GRAY + "Lightning Fast Swim Speed");
         loreList.add(ChatColor.GRAY + "Must wear the full set");
-        ItemStack boots = createCustomItem(Material.NETHERITE_BOOTS, 1, name, null, null, loreList, 19, false, null);
+        ItemStack boots = createCustomItem(Material.LEATHER_BOOTS, 1, name, null, null, loreList, 19, false, null);
         ItemMeta meta = boots.getItemMeta();
         if (meta == null) return boots;
+        meta.setUnbreakable(true);
 
         // Set the color of the boots to blue
         if (meta instanceof LeatherArmorMeta) {

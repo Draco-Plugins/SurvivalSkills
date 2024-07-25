@@ -333,7 +333,7 @@ public class VillagerBoss extends Boss {
                         if (distance > 0.85 || yDist > 1.5) continue;
                         if (alreadyHitPlayers.contains(p)) continue;
                         alreadyHitPlayers.add(p);
-                        p.damage(45);
+                        p.damage(40);
                         p.playSound(p, Sound.BLOCK_ANVIL_HIT, 1, 1);
                     }
                 }
@@ -620,7 +620,7 @@ public class VillagerBoss extends Boss {
             private int count = 0;
             @Override
             public void run() {
-                if (count == 100) {
+                if (count == 120) {
                     item.remove();
                     cancel();
                     return;
