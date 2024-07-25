@@ -338,6 +338,8 @@ public class RecipeMaker {
         NamespacedKey travelerLeggingsKey = createKey("travelerleggings", plugin);
         NamespacedKey travelerBootsKey = createKey("travelerboots", plugin);
         NamespacedKey gillHelmetKey = createKey("gillhelmet", plugin);
+        NamespacedKey hardNautilusShellKey = createKey("hardnautilusshell", plugin);
+        NamespacedKey hardHeartOfTheSeaKey = createKey("hardheartofthesea", plugin);
         NamespacedKey gillChestplateKey = createKey("gillchestplate", plugin);
         NamespacedKey gillLeggingsKey = createKey("gillleggings", plugin);
         NamespacedKey gillBootsKey = createKey("gillboots", plugin);
@@ -374,6 +376,8 @@ public class RecipeMaker {
         recipeKeys.add(travelerChestplateKey);
         recipeKeys.add(travelerLeggingsKey);
         recipeKeys.add(travelerBootsKey);
+        recipeKeys.add(hardNautilusShellKey);
+        recipeKeys.add(hardHeartOfTheSeaKey);
         recipeKeys.add(gillHelmetKey);
         recipeKeys.add(gillChestplateKey);
         recipeKeys.add(gillLeggingsKey);
@@ -430,8 +434,13 @@ public class RecipeMaker {
         ItemStackGenerator.createSmallShapedRecipe(travelerBootsKey, ItemStackGenerator.getTravelerBoots(), "DDD:BAB:B B",
                 ItemStackGenerator.getWandererBoots(), null, null, null, Material.DIAMOND, null);
 
-        ItemStack shells = new ItemStack(Material.NAUTILUS_SHELL, 64);
-        ItemStack heartOfTheSeas = new ItemStack(Material.HEART_OF_THE_SEA, 64);
+        ItemStackGenerator.createSmallShapedRecipe(hardNautilusShellKey, ItemStackGenerator.getHardNautilusShell(), "AAA:AAA:AAA",
+                null, null, null, Material.NAUTILUS_SHELL, null, null);
+        ItemStackGenerator.createSmallShapedRecipe(hardHeartOfTheSeaKey, ItemStackGenerator.getHardHeartOfTheSea(), "AAA:AAA:AAA",
+                null, null, null, Material.HEART_OF_THE_SEA, null, null);
+
+        ItemStack shells = ItemStackGenerator.getHardNautilusShell();
+        ItemStack heartOfTheSeas = ItemStackGenerator.getHardHeartOfTheSea();
         ItemStackGenerator.createSmallShapedRecipe(gillHelmetKey, ItemStackGenerator.getGillHelmet(), "AAA:B B:DDD",
                 shells, heartOfTheSeas, null, null, null, null);
         ItemStackGenerator.createSmallShapedRecipe(gillChestplateKey, ItemStackGenerator.getGillChestplate(), "A A:BBB:AAA",

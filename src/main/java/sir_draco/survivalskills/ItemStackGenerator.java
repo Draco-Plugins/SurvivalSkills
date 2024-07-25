@@ -605,4 +605,14 @@ public class ItemStackGenerator {
         loreList.add(ChatColor.GRAY + "Last Used: Never");
         return createCustomItem(Material.CLOCK, 1, name, null, null, loreList, 23, false, null);
     }
+
+    public static ItemStack getHardNautilusShell() {
+        String name = ChatColor.WHITE.toString() + ChatColor.BOLD + "Hard Nautilus Shell";
+        return createCustomItem(Material.NAUTILUS_SHELL, 1, name, null, null, null, 24, false, null);
+    }
+
+    public static ItemStack getHardHeartOfTheSea() {
+        String name = ChatColor.YELLOW.toString() + ChatColor.BOLD + "Hard Heart Of The Sea";
+        return createCustomItem(Material.HEART_OF_THE_SEA, 1, name, null, null, null, 25, false, null);
+    }
 }
