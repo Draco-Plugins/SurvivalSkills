@@ -71,10 +71,10 @@ public class Boss extends BukkitRunnable {
         if (!appliedAttributes) return;
         int properStage = (int) Math.ceil((1 - getHealthPercentage()) / (1d / maxStage));
         if (stage >= properStage) return;
+        stage = properStage;
         if (crySound != null) {
             boss.getWorld().playSound(boss.getLocation(), crySound, 1, 1);
             if (crySound.equals(Sound.ENTITY_ENDER_DRAGON_GROWL)) {
-                stage = properStage;
                 if (stage == 2) {
                     Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
                             + ChatColor.RESET + "Time to step it up a notch!");
@@ -83,7 +83,6 @@ public class Boss extends BukkitRunnable {
         }
         if (invincibilityFrames) {
             boss.setInvulnerable(true);
-            stage = properStage;
             // Give 5 seconds of invincibility if changing stages for the first time
             new BukkitRunnable() {
                 private int count = 0;

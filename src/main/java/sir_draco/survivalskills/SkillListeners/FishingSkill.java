@@ -3,6 +3,7 @@ package sir_draco.survivalskills.SkillListeners;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Drowned;
 import org.bukkit.entity.ExperienceOrb;
@@ -13,6 +14,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.*;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -369,6 +371,21 @@ public class FishingSkill implements Listener {
             if (!trash.getTrashMaterials().contains(item.getType())) return;
             e.setCancelled(true);
             e.getItem().remove();
+        }
+    }
+
+    @EventHandler
+    public void onBucketUse(PlayerBucketEmptyEvent e) {
+        ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
+        if (!ItemStackGenerator.isCustomItem(hand)) return;
+
+        if (hand.getType().equals(Material.WATER_BUCKET)) {
+            e.setCancelled(true);
+            e.getBlockClicked().getRelative(e.getBlockFace()).setType(Material.WATER);
+        }
+        else if (hand.getType().equals(Material.LAVA_BUCKET)) {
+            e.setCancelled(true);
+            e.getBlockClicked().getRelative(e.getBlockFace()).setType(Material.LAVA);
         }
     }
 

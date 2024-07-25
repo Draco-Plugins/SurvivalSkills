@@ -264,18 +264,17 @@ public class FightingSkill implements Listener {
     @EventHandler
     public void bossDamage(EntityDamageEvent e) {
         if (!isBoss(e.getEntity())) return;
+        if (e.getEntity().getType().equals(EntityType.VILLAGER)) {
+            if (e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION)) e.setCancelled(true);
+            return;
+        }
+
         if (e.getEntity().getType().equals(EntityType.ZOMBIE))
             if (e.getCause().equals(EntityDamageEvent.DamageCause.FALL)) e.setCancelled(true);
         else if (e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
             if (e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION)) e.setCancelled(true);
             else if (e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) e.setCancelled(true);
             else if (e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING)) e.setCancelled(true);
-        }
-        else if (e.getEntity().getType().equals(EntityType.VILLAGER)) {
-            if (e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING)) e.setCancelled(true);
-            else if (e.getCause().equals(EntityDamageEvent.DamageCause.FALL)) e.setCancelled(true);
-            else if (e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION)) e.setCancelled(true);
-            else if (e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) e.setCancelled(true);
         }
     }
 
@@ -289,12 +288,7 @@ public class FightingSkill implements Listener {
             boss = villager;
             break;
         }
-
         if (boss == null) return;
-        if (e.getDamager() instanceof Arrow) boss.incrementArrow();
-        if (boss.isHitPhase()) return;
-        if (boss.isHealing()) return;
-        e.setCancelled(true);
 
         Player p = null;
         if (e.getDamager() instanceof Arrow) {
@@ -315,7 +309,17 @@ public class FightingSkill implements Listener {
         }
         else if (e.getDamager() instanceof Player) p = (Player) e.getDamager();
 
+        if (boss.isHitPhase()) return;
+        if (boss.isHealing()) {
+            if (p == null) return;
+            if (e.getDamager() instanceof Arrow) boss.incrementArrow();
+            e.setDamage(1);
+            return;
+        }
+
         if (p == null) return;
+        if (e.getDamager() instanceof Arrow) boss.incrementArrow();
+        e.setCancelled(true);
         p.sendRawMessage(ChatColor.YELLOW.toString() + ChatColor.BOLD + "The Exiled One's magic shield prevents damage!");
         p.playSound(p, Sound.BLOCK_ANVIL_LAND, 1, 1);
     }

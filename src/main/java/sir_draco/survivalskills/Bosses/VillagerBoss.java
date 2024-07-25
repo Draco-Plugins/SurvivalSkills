@@ -1,5 +1,7 @@
 package sir_draco.survivalskills.Bosses;
 
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.*;
@@ -32,6 +34,7 @@ public class VillagerBoss extends Boss {
     private int shieldParticleCounter = 0;
     private int teleportCooldown = 80;
     private int arrowCount = 0;
+    private int deathTimer = 18000;
     private ExiledBossMusic music;
 
     public VillagerBoss(Location loc, Player summoner) {
@@ -70,6 +73,7 @@ public class VillagerBoss extends Boss {
 
     @Override
     public void run() {
+        deathTimer--;
         if (!isSpawnSuccess() || villager.isDead()) {
             cancel();
             return;
@@ -102,6 +106,22 @@ public class VillagerBoss extends Boss {
         bossMusic();
         if (isDisableAttack()) return;
         attack();
+
+        if (deathTimer <= 0) {
+            summoner.damage(1000);
+            summoner.sendRawMessage(ChatColor.RED.toString() + ChatColor.BOLD + "You ran out of time!");
+        }
+        else if (deathTimer == 200)
+            summoner.sendTitle(ChatColor.RED.toString() + ChatColor.BOLD + "10 Seconds Left!", "", 10, 40, 10);
+        else if (deathTimer == 1200)
+            summoner.sendTitle(ChatColor.RED.toString() + ChatColor.BOLD + "1 Minute Left!", "", 10, 40, 10);
+        else if (deathTimer == 6000)
+            summoner.sendTitle(ChatColor.RED.toString() + ChatColor.BOLD + "5 Minutes Left!", "", 10, 40, 10);
+
+        int minutes = deathTimer / 1200;
+        int seconds = (deathTimer % 1200) / 20;
+        String timeLeft = ChatColor.GRAY + String.format("%02d:%02d", minutes, seconds);
+        sendActionBarMessage(summoner, timeLeft);
     }
 
     @Override
@@ -116,7 +136,7 @@ public class VillagerBoss extends Boss {
         }
         else {
             shieldParticles();
-            if (attackCount >= getStage() * 5) {
+            if (attackCount >= Math.pow(2, getStage())) {
                 if (inAction) return;
 
                 // Allow the exiled one to be hit
@@ -191,9 +211,7 @@ public class VillagerBoss extends Boss {
             else heal();
         } else if (getStage() == 4) {
             if (!mobAttackCalled) {
-                villager.setHealth(getMaxHealth() / 2);
                 mobAttack();
-                mobAttackCalled = true;
                 return;
             }
 
@@ -208,17 +226,15 @@ public class VillagerBoss extends Boss {
             if (defaultCooldown != 5) defaultCooldown = 5;
             if (!mobAttackCalled) {
                 mobAttack();
-                mobAttackCalled = true;
                 return;
             }
 
             double type = Math.random();
-            if (type >= 0.857) cowCannon();
-            else if (type >= 0.714) slowRay();
-            else if (type >= 0.571) fireChargeSpray();
-            else if (type >= 0.423) poisonSpray();
-            else if (type >= 0.286) explosion();
-            else if (type >= 0.143) emeraldAttack(true);
+            if (type >= 0.833) cowCannon();
+            else if (type >= 0.666) slowRay();
+            else if (type >= 0.5) fireChargeSpray();
+            else if (type >= 0.333) poisonSpray();
+            else if (type >= 0.166) emeraldAttack(true);
             else heal();
         }
 
@@ -360,6 +376,7 @@ public class VillagerBoss extends Boss {
     public void slowRay() {
         Location loc = villager.getLocation().clone().add(0, 1, 0);
         teleportLater(65, false, true, 0);
+        inAction = true;
 
         // Draw a line of particles from the villager to the player over 2 ticks
         summoner.playSound(summoner, Sound.BLOCK_BEACON_ACTIVATE, 1, 1);
@@ -371,12 +388,15 @@ public class VillagerBoss extends Boss {
                     summoner.playSound(summoner, Sound.BLOCK_BEACON_DEACTIVATE, 1, 1);
                     if (!villager.hasLineOfSight(summoner)) {
                         cancel();
+                        inAction = false;
                         return;
                     }
-                    summoner.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 600, 3));
+                    if (!summoner.isOnline() || summoner.isDead()) return;
+                    summoner.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 300, 3));
                 }
 
                 if (count >= 3) {
+                    inAction = false;
                     cancel();
                     return;
                 }
@@ -404,6 +424,7 @@ public class VillagerBoss extends Boss {
                 if (villager.getHealth() < startingHealth) {
                     villager.getWorld().playSound(villager.getLocation(), Sound.ENTITY_PILLAGER_AMBIENT, 10, 1);
                     teleportFinder(false, true, null, 0);
+                    healing = false;
                     cancel();
                     return;
                 }
@@ -431,6 +452,8 @@ public class VillagerBoss extends Boss {
     }
 
     public void mobAttack() {
+        villager.setHealth(getMaxHealth() / 1.5);
+        mobAttackCalled = true;
         World world = villager.getWorld();
         Location loc = villager.getLocation();
         world.playSound(loc, Sound.ENTITY_WITHER_SPAWN, 10, 1);
@@ -467,7 +490,6 @@ public class VillagerBoss extends Boss {
     }
 
     public void explosion() {
-        // Pull people within a 20 block radius in gently for 4 seconds
         activeAttack = true;
         attackCooldown = 200;
         teleportFinder(false, false, null, 5);
@@ -540,31 +562,47 @@ public class VillagerBoss extends Boss {
     }
 
     public void fireChargeSpray() {
+        inAction = true;
         new BukkitRunnable() {
+            int count = 0;
             @Override
             public void run() {
-                for (int i = 0; i < 30; i++) {
-                    villager.getWorld().playSound(villager.getLocation(), Sound.ENTITY_BLAZE_SHOOT, 5, 1);
-                    double x = (Math.random() - 0.5) * 3;
-                    double y = (Math.random() - 0.5) * 3;
-                    double z = (Math.random() - 0.5) * 3;
-                    Vector v = new Vector(x, y, z);
-                    Fireball fireball = villager.launchProjectile(Fireball.class, v);
-                    fireball.setDirection(v);
-                    fireball.setIsIncendiary(true);
-                    fireball.setYield(3);
+                if (count >= 15) {
+                    inAction = false;
+                    cancel();
+                    return;
                 }
+
+                villager.getWorld().playSound(villager.getLocation(), Sound.ENTITY_BLAZE_SHOOT, 5, 1);
+                double x = (Math.random() - 0.5) * 3;
+                double y = (Math.random() - 0.5) * 3;
+                double z = (Math.random() - 0.5) * 3;
+                Vector v = new Vector(x, y, z);
+                Fireball fireball = villager.launchProjectile(Fireball.class, v);
+                fireball.setDirection(v);
+                fireball.setIsIncendiary(true);
+                fireball.setYield(3);
+                count++;
             }
         }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 3);
     }
 
     public void poisonSpray() {
+        inAction = true;
         new BukkitRunnable() {
+            int count = 0;
             @Override
             public void run() {
-                for (int i = 0; i < 10; i++) poisonProjectile();
+                if (count >= 10) {
+                    inAction = false;
+                    cancel();
+                    return;
+                }
+
+                poisonProjectile();
+                count++;
             }
-        }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 10);
+        }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 5);
     }
 
     public void poisonProjectile() {
@@ -576,7 +614,7 @@ public class VillagerBoss extends Boss {
         Item item = villager.getWorld().dropItem(villager.getLocation(), new ItemStack(Material.SLIME_BALL));
         item.setOwner(UUID.fromString("00000000-0000-0000-0000-000000000000"));
         item.setGravity(false);
-        item.setVelocity(v.multiply(0.25));
+        item.setVelocity(v.multiply(0.35));
 
         new BukkitRunnable() {
             private int count = 0;
@@ -587,23 +625,13 @@ public class VillagerBoss extends Boss {
                     cancel();
                     return;
                 }
-                List<Entity> hitPlayers = item.getNearbyEntities(2, 2, 2);
-                if (!hitPlayers.isEmpty()) {
-                    for (Entity ent : hitPlayers) {
-                        if (!(ent instanceof Player)) continue;
-                        Player p = (Player) ent;
 
-                        double distance = Math.sqrt(Math.pow(p.getLocation().getX() - item.getLocation().getX(), 2) +
-                                Math.pow(p.getLocation().getZ() - item.getLocation().getZ(), 2));
-                        double yDist = Math.abs(p.getLocation().getY() + 1 - item.getLocation().getY());
-
-                        if (distance > 0.5 || yDist > 1) continue;
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 200, 4));
-                        p.damage(10);
-                        p.playSound(p, Sound.BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT, 1, 1);
-                    }
-                }
                 count++;
+                double distance = item.getLocation().distance(summoner.getLocation());
+                if (distance > 2.0) return;
+                summoner.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 200, 4));
+                summoner.damage(60);
+                summoner.playSound(summoner, Sound.BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT, 1, 1);
             }
         }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 1);
     }
@@ -660,7 +688,9 @@ public class VillagerBoss extends Boss {
                 return true;
             }
 
-            Location loc = randomLocation();
+            Location loc;
+            if (getStage() > 3) loc = locationNearPlayer();
+            else loc = randomLocation();
             boolean isAir = loc.getBlock().isEmpty();
             boolean isAirAbove = loc.getBlock().getRelative(0, 1, 0).isEmpty();
             if (!isAir && isAirAbove) return teleportFinder(false, true, loc.add(0, 1, 0), 0);
@@ -703,6 +733,13 @@ public class VillagerBoss extends Boss {
         double offsetY = (Math.random() - 0.5) * 5;
         double offsetZ = (Math.random() - 0.5) * 10;
         return villager.getLocation().clone().add(offsetX, offsetY, offsetZ);
+    }
+
+    public Location locationNearPlayer() {
+        double offsetX = (Math.random() - 0.5) * 10;
+        double offsetY = (Math.random() - 0.5) * 5;
+        double offsetZ = (Math.random() - 0.5) * 10;
+        return summoner.getLocation().clone().add(offsetX, offsetY, offsetZ);
     }
 
     public ArrayList<Player> getNearbyPlayers(int radius) {
@@ -789,6 +826,10 @@ public class VillagerBoss extends Boss {
             if (ent.isDead()) continue;
             ent.remove();
         }
+    }
+
+    public static void sendActionBarMessage(Player p, String message) {
+        p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(message));
     }
 
     public void incrementArrow() {

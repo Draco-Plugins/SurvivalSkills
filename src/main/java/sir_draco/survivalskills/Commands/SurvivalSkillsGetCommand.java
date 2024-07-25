@@ -161,6 +161,10 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
                 return ItemStackGenerator.getSortWand();
             case "unlimitedtropicalfishbucket":
                 return ItemStackGenerator.getUnlimitedTropicalFishBucket();
+            case "unlimitedwaterbucket":
+                return ItemStackGenerator.getUnlimitedWaterBucket();
+            case "unlimitedlavabucket":
+                return ItemStackGenerator.getUnlimitedLavaBucket();
             default:
                 return null;
         }

@@ -91,6 +91,8 @@ public class TabCompleter implements Listener {
         words.add("fireworkcannon");
         words.add("sortwand");
         words.add("unlimitedtropicalfishbucket");
+        words.add("unlimitedwaterbucket");
+        words.add("unlimitedlavabucket");
         e.setCompletions(getCompletions(buffer, words));
     }
 

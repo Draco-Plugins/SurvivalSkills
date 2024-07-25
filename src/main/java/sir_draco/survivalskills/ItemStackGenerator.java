@@ -567,4 +567,18 @@ public class ItemStackGenerator {
         String lore = ChatColor.GRAY + "Shoots a firework in the direction you are looking";
         return createCustomItem(Material.CAMPFIRE, 1, name, null, lore, null, 18, false, null);
     }
+
+    public static ItemStack getUnlimitedWaterBucket() {
+        String name = ColorParser.colorizeString("Unlimited Water Bucket",
+                ColorParser.generateGradient("#08C8FB", "#1D5E67", "Unlimited Water Bucket"), true);
+        String lore = ChatColor.GRAY + "Infinite water";
+        return createCustomItem(Material.WATER_BUCKET, 1, name, null, lore, null, 20, false, null);
+    }
+
+    public static ItemStack getUnlimitedLavaBucket() {
+        String name = ColorParser.colorizeString("Unlimited Lava Bucket",
+                ColorParser.generateGradient("#FB5908", "#DA0A0A", "Unlimited Lava Bucket"), true);
+        String lore = ChatColor.GRAY + "Infinite lava";
+        return createCustomItem(Material.LAVA_BUCKET, 1, name, null, lore, null, 21, false, null);
+    }
 }
