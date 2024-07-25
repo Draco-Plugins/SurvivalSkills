@@ -19,6 +19,9 @@ import org.joml.Quaternionf;
 import sir_draco.survivalskills.ColorParser;
 import sir_draco.survivalskills.SurvivalSkills;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+
 public class GodTrophyEffects {
 
     private final double centerX;
@@ -138,13 +141,12 @@ public class GodTrophyEffects {
         SkinTrait skin = npcPlayer.getOrAddTrait(SkinTrait.class);
         skin.setSkinName(name, true);
 
-        npcPlayer.data().set(NPC.Metadata.NAMEPLATE_VISIBLE, false);
         getText(name);
-        LookClose look = npcPlayer.getOrAddTrait(LookClose.class);
 
         new BukkitRunnable() {
             @Override
             public void run() {
+                LookClose look = npcPlayer.getOrAddTrait(LookClose.class);
                 look.lookClose(true);
             }
         }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 20);
@@ -152,9 +154,10 @@ public class GodTrophyEffects {
 
     private void getText(String name) {
         Text text = npcPlayer.getOrAddTrait(Text.class);
-        text.toggleSpeechBubbles();
         text.toggleTalkClose();
-        text.setRange(15.0);
+        text.setRange(10.0);
+        text.setDelay(20 * 15);
+        text.getTexts().clear();
         text.add(ChatColor.AQUA + "What a nice day");
         text.add(ChatColor.AQUA + name + " sure is impressive");
         text.add(ChatColor.AQUA + "Who put me up here?");
@@ -165,6 +168,12 @@ public class GodTrophyEffects {
         text.add(ChatColor.AQUA + "You should definitely try to break these crystals");
         text.add(ChatColor.AQUA + "Let's be honest, " + name + " is the best player on the server");
         text.add(ChatColor.GOLD + "I hear there is a secret hidden in this world");
+        text.add(ChatColor.GOLD + "Right click me to start the " + ChatColor.BOLD + "God Quest");
+
+        // Get the current day of the week
+        LocalDate currentDate = LocalDate.now();
+        DayOfWeek dayOfWeek = currentDate.getDayOfWeek();
+        text.add(ChatColor.AQUA + "Happy " + dayOfWeek.name());
     }
 
     public void removePlayer() {
@@ -177,7 +186,7 @@ public class GodTrophyEffects {
         World world = trophyLoc.getWorld();
         if (world == null) return;
         crystal = (EnderCrystal) world.spawnEntity(new Location(trophyLoc.getWorld(), x, y, z), EntityType.END_CRYSTAL);
-        crystal.setBeamTarget(trophyLoc.clone().add(0.5, 1.5, 0.5));
+        crystal.setBeamTarget(trophyLoc.clone().add(0.5, 2, 0.5));
         crystal.setMetadata("trophy", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
         crystal.setShowingBottom(false);
         crystal.setInvulnerable(true);

@@ -140,7 +140,6 @@ public class Skill {
      */
     public boolean changeExperience(double experience, int currentMaxLevel) {
         if (level >= maxLevel) return false;
-
         if (level >= currentMaxLevel) return false;
 
         if (this.experience + experience > maxExperience) this.experience = maxExperience;
@@ -204,7 +203,10 @@ public class Skill {
         double sum = 0;
         for (int i = 1; i <= level; i++) sum += Math.log(i) * scalar;
 
-        if (skillName.equals("Main")) return (int) Math.floor(sum) + 1;
+        if (skillName.equals("Main")) {
+            if (level >= 100) return 1000000;
+            return (int) Math.floor(sum) + 1;
+        }
         return (int) Math.floor(sum);
     }
 
@@ -231,7 +233,9 @@ public class Skill {
      */
     public int totalExperienceForNextLevel(int currentLevel) {
         if (currentLevel == 1) return experienceForNextLevel(currentLevel);
-        return experienceForNextLevel(currentLevel) - ((int) experience - totalExperienceForLevel(currentLevel));
+        int soFar = (int) experience - totalExperienceForLevel(currentLevel);
+        if (soFar < 0) return experienceForNextLevel(currentLevel);
+        return experienceForNextLevel(currentLevel) - soFar;
     }
 
     public void setExperienceSoFarInLevel() {
@@ -251,14 +255,12 @@ public class Skill {
         int level = 1;
         double sum = 0;
         while (level <= 100) {
-            sum += Math.log(level) * scalar;
-            if (sum > exp) {
-                if (sum > 1000000) level++;
-                break;
-            }
+            sum += Math.log(level + 1) * scalar;
+            int sumCheck = (int) Math.floor(sum);
+            if (sumCheck > exp) break;
             level++;
         }
-        return level - 1;
+        return Math.min(level, maxLevel);
     }
 
     public void printStats(Player p, boolean isPlayer) {

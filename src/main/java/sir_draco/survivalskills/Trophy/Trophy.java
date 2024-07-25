@@ -48,10 +48,10 @@ public class Trophy {
     }
 
     public void shutdownTrophy() {
+        if (effects.getGodTrophy() != null) effects.getGodTrophy().removePlayer();
         if (loc.getWorld() == null) return;
         loc.getBlock().setType(Material.AIR);
         loc.getBlock().getState().update();
-        if (effects.getGodTrophy() != null) effects.getGodTrophy().removePlayer();
         effects.removeItem();
         effects.cancel();
     }

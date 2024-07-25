@@ -700,7 +700,6 @@ public class FishingSkill implements Listener {
             String[] split = line.split(":");
             if (split.length < 2) return true;
             String timeString = split[1].replace(" ", "");
-            Bukkit.getLogger().info(timeString);
             if (timeString.equalsIgnoreCase("never")) return false;
             long time = Long.parseLong(timeString);
             if (time == 0) return false;

@@ -94,6 +94,13 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
+            if (strings[2].equalsIgnoreCase("all")) {
+                for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(target.getUniqueId())) {
+                    handleLevel(p, target, skill, strings);
+                    updateRewards(target, skill);
+                }
+                return true;
+            }
             if (isNotSkill(p.getUniqueId(), strings[2])) {
                 p.sendRawMessage(ChatColor.RED + "Skill not found.");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -310,20 +317,29 @@ public class SurvivalSkillsCommand implements CommandExecutor {
             skill.changeExperience(amount, skill.getMaxLevel());
             target.sendMessage(ChatColor.GREEN + "Added " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP to " + ChatColor.GRAY + skill.getSkillName());
             target.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            p.sendRawMessage(ChatColor.GREEN + "Added " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP to "
+                    + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
+            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         else if (strings[3].equalsIgnoreCase("remove")) {
             skill.changeExperience(-amount, skill.getMaxLevel());
             target.sendMessage(ChatColor.GREEN + "Removed " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP from " + ChatColor.GRAY + skill.getSkillName());
             target.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            p.sendRawMessage(ChatColor.GREEN + "Removed " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP from "
+                    + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
+            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         else if (strings[3].equalsIgnoreCase("set")) {
             skill.setExperience(amount);
             target.sendMessage(ChatColor.GREEN + "Set " + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN + " XP to " + ChatColor.GRAY + amount);
             target.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            p.sendRawMessage(ChatColor.GREEN + "Set " + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN
+                    + " XP to " + ChatColor.GRAY + amount + " for " + ChatColor.GREEN + target.getName());
+            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         else {
-            target.sendMessage(ChatColor.RED + "Correct usage: " + ChatColor.GRAY + "/survivalskills xp <skill> add/remove/set <amount>");
-            target.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            p.sendRawMessage(ChatColor.RED + "Correct usage: " + ChatColor.GRAY + "/survivalskills xp <skill> add/remove/set <amount>");
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
         }
     }
 
@@ -347,16 +363,25 @@ public class SurvivalSkillsCommand implements CommandExecutor {
             skill.changeLevel(amount);
             target.sendMessage(ChatColor.GREEN + "Added " + ChatColor.GRAY + amount + ChatColor.GREEN + " levels to " + ChatColor.GRAY + skill.getSkillName());
             target.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            p.sendRawMessage(ChatColor.GREEN + "Added " + ChatColor.GRAY + amount + ChatColor.GREEN + " levels to "
+                    + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
+            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         else if (strings[3].equalsIgnoreCase("remove")) {
             skill.changeLevel(-amount);
             target.sendMessage(ChatColor.GREEN + "Removed " + ChatColor.GRAY + amount + ChatColor.GREEN + " levels from " + ChatColor.GRAY + skill.getSkillName());
             target.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            p.sendRawMessage(ChatColor.GREEN + "Removed " + ChatColor.GRAY + amount + ChatColor.GREEN + " levels from "
+                    + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
+            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         else if (strings[3].equalsIgnoreCase("set")) {
             skill.setLevel(amount);
             target.sendMessage(ChatColor.GREEN + "Set " + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN + " level to " + ChatColor.GRAY + amount);
             target.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            p.sendRawMessage(ChatColor.GREEN + "Set " + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN
+                    + " level to " + ChatColor.GRAY + amount + " for " + ChatColor.GREEN + target.getName());
+            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         else {
             p.sendMessage(ChatColor.RED + "Correct usage: " + ChatColor.GRAY + "/survivalskills level <skill> add/remove/set <amount>");
