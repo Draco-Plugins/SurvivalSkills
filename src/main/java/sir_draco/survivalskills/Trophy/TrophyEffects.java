@@ -610,14 +610,11 @@ public class TrophyEffects extends BukkitRunnable {
     public void championParticles() {
         //if (cycle % 5 != 0) return;
         if (cycle == 360) cycle = 1;
-        if (mobTrophyOrbital.tooFar(itemList.get(0).getLocation())) {
-            mobTrophyOrbital.createLocations(mobTrophyOrbital.getAngle(itemList.get(0).getLocation()) + 0.01);
-            resetLocation();
-        }
         moveChampionItems();
     }
 
     public void resetLocation() {
+        mobTrophyOrbital.createLocations(mobTrophyOrbital.getAngle(itemList.get(0).getLocation()) + 0.01);
         for (int i = 0; i < itemList.size(); i++) {
             Item item = itemList.get(i);
             item.teleport(mobTrophyOrbital.getLocation(i));
@@ -625,7 +622,10 @@ public class TrophyEffects extends BukkitRunnable {
     }
 
     public void moveChampionItems() {
-        for (Item item : itemList) item.setVelocity(mobTrophyOrbital.getVelocityVector(item.getLocation(), 0.04));
+        for (Item item : itemList) {
+            item.setVelocity(mobTrophyOrbital.getVelocityVector(item.getLocation(), 0.04));
+            if (mobTrophyOrbital.tooFar(item.getLocation())) resetLocation();
+        }
     }
 
     public void populateItemList() {
