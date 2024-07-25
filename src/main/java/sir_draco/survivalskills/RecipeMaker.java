@@ -337,6 +337,10 @@ public class RecipeMaker {
         NamespacedKey travelerChestplateKey = createKey("travelerchestplate", plugin);
         NamespacedKey travelerLeggingsKey = createKey("travelerleggings", plugin);
         NamespacedKey travelerBootsKey = createKey("travelerboots", plugin);
+        NamespacedKey gillHelmetKey = createKey("gillhelmet", plugin);
+        NamespacedKey gillChestplateKey = createKey("gillchestplate", plugin);
+        NamespacedKey gillLeggingsKey = createKey("gillleggings", plugin);
+        NamespacedKey gillBootsKey = createKey("gillboots", plugin);
         NamespacedKey adventurerHelmetKey = createKey("adventurerhelmet", plugin);
         NamespacedKey adventurerChestplateKey = createKey("adventurerchestplate", plugin);
         NamespacedKey adventurerLeggingsKey = createKey("adventurerleggings", plugin);
@@ -370,6 +374,10 @@ public class RecipeMaker {
         recipeKeys.add(travelerChestplateKey);
         recipeKeys.add(travelerLeggingsKey);
         recipeKeys.add(travelerBootsKey);
+        recipeKeys.add(gillHelmetKey);
+        recipeKeys.add(gillChestplateKey);
+        recipeKeys.add(gillLeggingsKey);
+        recipeKeys.add(gillBootsKey);
         recipeKeys.add(adventurerHelmetKey);
         recipeKeys.add(adventurerChestplateKey);
         recipeKeys.add(adventurerLeggingsKey);
@@ -421,6 +429,17 @@ public class RecipeMaker {
                 ItemStackGenerator.getWandererLeggings(), null, null, null, Material.DIAMOND, null);
         ItemStackGenerator.createSmallShapedRecipe(travelerBootsKey, ItemStackGenerator.getTravelerBoots(), "DDD:BAB:B B",
                 ItemStackGenerator.getWandererBoots(), null, null, null, Material.DIAMOND, null);
+
+        ItemStack shells = new ItemStack(Material.NAUTILUS_SHELL, 64);
+        ItemStack heartOfTheSeas = new ItemStack(Material.HEART_OF_THE_SEA, 64);
+        ItemStackGenerator.createSmallShapedRecipe(gillHelmetKey, ItemStackGenerator.getGillHelmet(), "AAA:B B:DDD",
+                shells, heartOfTheSeas, null, null, null, null);
+        ItemStackGenerator.createSmallShapedRecipe(gillChestplateKey, ItemStackGenerator.getGillChestplate(), "A A:BBB:AAA",
+                shells, heartOfTheSeas, null, null, null, null);
+        ItemStackGenerator.createSmallShapedRecipe(gillLeggingsKey, ItemStackGenerator.getGillLeggings(), "AAA:A A:B B",
+                shells, heartOfTheSeas, null, null, null, null);
+        ItemStackGenerator.createSmallShapedRecipe(gillBootsKey, ItemStackGenerator.getGillBoots(), "DDD:A A:B B",
+                shells, heartOfTheSeas, null, null, null, null);
 
         ItemStackGenerator.createSmallShapedRecipe(adventurerHelmetKey, ItemStackGenerator.getAdventurerHelmet(), "BAB:C C:DDD",
                 ItemStackGenerator.getTravelerHelmet(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);

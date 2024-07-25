@@ -163,6 +163,11 @@ public class RewardNotifications {
                         p.sendRawMessage(ChatColor.GREEN + "Adventurer Armor lets you travel even faster and you won't take fall damage!");
                         p.sendRawMessage(ChatColor.GRAY + "See the crafting recipe by using the command" + ChatColor.AQUA + " /skills recipes");
                         break;
+                    case "GillArmor":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now craft Gill Armor");
+                        p.sendRawMessage(ChatColor.GREEN + "Gill Armor lets you breathe underwater and swim at hyper speed!");
+                        p.sendRawMessage(ChatColor.GRAY + "See the crafting recipe by using the command" + ChatColor.AQUA + " /skills recipes");
+                        break;
                 }
                 break;
             case "Farming":
@@ -811,6 +816,7 @@ public class RewardNotifications {
                     case "WandererArmor":
                     case "TravelerArmor":
                     case "AdventurerArmor":
+                    case "GillArmor":
                         return ChatColor.GRAY + "Craftable Item";
                     case "SwimI":
                         return ChatColor.GRAY + "You now have a " + ChatColor.AQUA + "40%" + ChatColor.GRAY + " swim speed boost";
