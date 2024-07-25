@@ -93,6 +93,8 @@ public class TabCompleter implements Listener {
         words.add("unlimitedtropicalfishbucket");
         words.add("unlimitedwaterbucket");
         words.add("unlimitedlavabucket");
+        words.add("weatherartifact");
+        words.add("timeartifact");
         e.setCompletions(getCompletions(buffer, words));
     }
 

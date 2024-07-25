@@ -3,7 +3,6 @@ package sir_draco.survivalskills.SkillListeners;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Drowned;
 import org.bukkit.entity.ExperienceOrb;
@@ -11,14 +10,13 @@ import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.*;
-import org.bukkit.event.player.PlayerBucketEmptyEvent;
-import org.bukkit.event.player.PlayerExpChangeEvent;
-import org.bukkit.event.player.PlayerFishEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.event.weather.WeatherChangeEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -36,6 +34,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 public class FishingSkill implements Listener {
@@ -386,6 +385,72 @@ public class FishingSkill implements Listener {
         else if (hand.getType().equals(Material.LAVA_BUCKET)) {
             e.setCancelled(true);
             e.getBlockClicked().getRelative(e.getBlockFace()).setType(Material.LAVA);
+        }
+    }
+
+    @EventHandler
+    public void onArtifactUse(PlayerInteractEvent e) {
+        if (e.getHand() == null || e.getHand().equals(EquipmentSlot.OFF_HAND)) return;
+        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && !e.getAction().equals(Action.RIGHT_CLICK_AIR)) return;
+        ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
+        if (!ItemStackGenerator.isCustomItem(hand)) return;
+
+        Player p = e.getPlayer();
+        if (hand.getType().equals(Material.BREEZE_ROD)) {
+            if (itemIsOnCooldown(hand)) {
+                int time = getSecondsTillCooldown(hand);
+                int minutes = time / 60;
+                int seconds = time % 60;
+                String formattedTime = String.format("%02d:%02d", minutes, seconds);
+                p.sendRawMessage(ChatColor.RED + "This item is on cooldown for " + formattedTime + "!");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return;
+            }
+            World world = p.getWorld();
+            if (world.hasStorm()) {
+                p.sendRawMessage(ChatColor.RED + "It is already raining!");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return;
+            }
+
+            world.setStorm(true);
+            p.sendRawMessage(ChatColor.GREEN + "You have summoned a storm!");
+            p.playSound(p, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1, 1);
+
+            // Update the time in the lore of the item
+            ItemMeta meta = hand.getItemMeta();
+            if (meta == null) return;
+            List<String> lore = meta.getLore();
+            if (lore == null) return;
+            long time = System.currentTimeMillis();
+            lore.set(lore.size() - 1, ChatColor.GRAY + "Last Used: " + time);
+            meta.setLore(lore);
+            hand.setItemMeta(meta);
+        }
+        else if (hand.getType().equals(Material.CLOCK)) {
+            if (itemIsOnCooldown(hand)) {
+                int time = getSecondsTillCooldown(hand);
+                int minutes = time / 60;
+                int seconds = time % 60;
+                String formattedTime = String.format("%02d:%02d", minutes, seconds);
+                p.sendRawMessage(ChatColor.RED + "This item is on cooldown for " + formattedTime + "!");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return;
+            }
+            World world = p.getWorld();
+            // Set the time to day if it is night, and night if it is day
+            if (world.getTime() >= 13000) world.setTime(0);
+            else world.setTime(13000);
+
+            // Update the time in the lore of the item
+            ItemMeta meta = hand.getItemMeta();
+            if (meta == null) return;
+            List<String> lore = meta.getLore();
+            if (lore == null) return;
+            long time = System.currentTimeMillis();
+            lore.set(lore.size() - 1, ChatColor.GRAY + "Last Used: " + time);
+            meta.setLore(lore);
+            hand.setItemMeta(meta);
         }
     }
 
@@ -745,6 +810,47 @@ public class FishingSkill implements Listener {
         boss.setHealth(100);
         AttributeInstance speedInstance = boss.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
         if (speedInstance != null) speedInstance.setBaseValue(0.35);
+    }
+
+    public boolean itemIsOnCooldown(ItemStack hand) {
+        if (hand == null) return true;
+        ItemMeta meta = hand.getItemMeta();
+        if (meta == null) return true;
+        if (!meta.hasLore()) return true;
+        List<String> lore = meta.getLore();
+        if (lore == null) return true;
+        for (String line : lore) {
+            if (!line.contains("Last Used:")) continue;
+            String[] split = line.split(":");
+            if (split.length < 2) return true;
+            String timeString = split[1].replace(" ", "");
+            Bukkit.getLogger().info(timeString);
+            if (timeString.equalsIgnoreCase("never")) return false;
+            long time = Long.parseLong(timeString);
+            if (time == 0) return false;
+            return (System.currentTimeMillis() - time) < 3600000;
+        }
+        return true;
+    }
+
+    public int getSecondsTillCooldown(ItemStack hand) {
+        if (hand == null) return 0;
+        ItemMeta meta = hand.getItemMeta();
+        if (meta == null) return 0;
+        if (!meta.hasLore()) return 0;
+        List<String> lore = meta.getLore();
+        if (lore == null) return 0;
+        for (String line : lore) {
+            if (!line.contains("Last Used:")) continue;
+            String[] split = line.split(":");
+            if (split.length < 2) return 0;
+            String timeString = split[1].replace(" ", "");
+            if (timeString.equalsIgnoreCase("never")) return 0;
+            long time = Long.parseLong(timeString);
+            if (time == 0) return 0;
+            return 3600 - (int) ((System.currentTimeMillis() - time) / 1000);
+        }
+        return 0;
     }
 
     public ArrayList<Player> getWaterBreathers() {

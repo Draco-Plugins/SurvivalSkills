@@ -165,6 +165,10 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
                 return ItemStackGenerator.getUnlimitedWaterBucket();
             case "unlimitedlavabucket":
                 return ItemStackGenerator.getUnlimitedLavaBucket();
+            case "weatherartifact":
+                return ItemStackGenerator.getWeatherArtifact();
+            case "timeartifact":
+                return ItemStackGenerator.getTimeArtifact();
             default:
                 return null;
         }

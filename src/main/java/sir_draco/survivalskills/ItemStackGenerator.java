@@ -581,4 +581,24 @@ public class ItemStackGenerator {
         String lore = ChatColor.GRAY + "Infinite lava";
         return createCustomItem(Material.LAVA_BUCKET, 1, name, null, lore, null, 21, false, null);
     }
+
+    public static ItemStack getWeatherArtifact() {
+        String name = ColorParser.colorizeString("Weather Artifact",
+                ColorParser.generateGradient("#FFF000", "#2E3435", "Weather Artifact"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Right click to change the weather");
+        loreList.add(ChatColor.GRAY + "1 Hour Cooldown");
+        loreList.add(ChatColor.GRAY + "Last Used: Never");
+        return createCustomItem(Material.BREEZE_ROD, 1, name, null, null, loreList, 22, false, null);
+    }
+
+    public static ItemStack getTimeArtifact() {
+        String name = ColorParser.colorizeString("Time Artifact",
+                ColorParser.generateGradient("#FFFFFF", "#000000", "Time Artifact"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Right click to change the time");
+        loreList.add(ChatColor.GRAY + "1 Hour Cooldown");
+        loreList.add(ChatColor.GRAY + "Last Used: Never");
+        return createCustomItem(Material.CLOCK, 1, name, null, null, loreList, 23, false, null);
+    }
 }
