@@ -54,6 +54,7 @@ public class FishingSkill implements Listener {
     private final HashMap<Enchantment, Integer> epicEnchantments = new HashMap<>();
     private final ArrayList<Material> legendaryLootTable = new ArrayList<>();
     private final HashMap<Enchantment, Integer> legendaryEnchantments = new HashMap<>();
+    private final ArrayList<ItemStack> exoticLootTable = new ArrayList<>();
 
     private int id = 1;
 
@@ -63,6 +64,7 @@ public class FishingSkill implements Listener {
         createRareLootTable();
         createEpicLootTable();
         createLegendaryLootTable();
+        createExoticLootTable();
     }
 
     @EventHandler
@@ -454,140 +456,6 @@ public class FishingSkill implements Listener {
         }
     }
 
-    public void createCommonLootTable() {
-        commonLootTable.add(Material.BAMBOO);
-        commonLootTable.add(Material.BONE);
-        commonLootTable.add(Material.BOOK);
-        commonLootTable.add(Material.BOWL);
-        commonLootTable.add(Material.COAL);
-        commonLootTable.add(Material.COD);
-        commonLootTable.add(Material.INK_SAC);
-        commonLootTable.add(Material.LEATHER);
-        commonLootTable.add(Material.PUFFERFISH);
-        commonLootTable.add(Material.ROTTEN_FLESH);
-        commonLootTable.add(Material.SALMON);
-        commonLootTable.add(Material.STICK);
-        commonLootTable.add(Material.STRING);
-        commonLootTable.add(Material.TROPICAL_FISH);
-        commonLootTable.add(Material.GLASS_BOTTLE);
-        commonLootTable.add(Material.DIRT);
-    }
-
-    public void createRareLootTable() {
-        rareLootTable.add(Material.ENCHANTED_BOOK);
-        rareLootTable.add(Material.ENCHANTED_BOOK);
-        rareLootTable.add(Material.ENDER_PEARL);
-        rareLootTable.add(Material.EXPERIENCE_BOTTLE);
-        rareLootTable.add(Material.GOLD_INGOT);
-        rareLootTable.add(Material.IRON_INGOT);
-        rareLootTable.add(Material.LAPIS_LAZULI);
-        rareLootTable.add(Material.LEATHER_HORSE_ARMOR);
-        rareLootTable.add(Material.LILY_PAD);
-        rareLootTable.add(Material.NAME_TAG);
-        rareLootTable.add(Material.REDSTONE);
-        rareLootTable.add(Material.SADDLE);
-        rareLootTable.add(Material.SLIME_BALL);
-        rareLootTable.add(Material.TNT);
-
-        rareEnchantments.put(Enchantment.POWER, 2);
-        rareEnchantments.put(Enchantment.PUNCH, 1);
-        rareEnchantments.put(Enchantment.SHARPNESS, 2);
-        rareEnchantments.put(Enchantment.BANE_OF_ARTHROPODS, 2);
-        rareEnchantments.put(Enchantment.SMITE, 2);
-        rareEnchantments.put(Enchantment.DEPTH_STRIDER, 1);
-        rareEnchantments.put(Enchantment.EFFICIENCY, 2);
-        rareEnchantments.put(Enchantment.UNBREAKING, 1);
-        rareEnchantments.put(Enchantment.FROST_WALKER, 1);
-        rareEnchantments.put(Enchantment.IMPALING, 2);
-        rareEnchantments.put(Enchantment.KNOCKBACK, 1);
-        rareEnchantments.put(Enchantment.LUCK_OF_THE_SEA, 1);
-        rareEnchantments.put(Enchantment.LURE, 1);
-        rareEnchantments.put(Enchantment.RESPIRATION, 1);
-        rareEnchantments.put(Enchantment.PIERCING, 1);
-        rareEnchantments.put(Enchantment.PROTECTION, 2);
-        rareEnchantments.put(Enchantment.BLAST_PROTECTION, 2);
-        rareEnchantments.put(Enchantment.FEATHER_FALLING, 2);
-        rareEnchantments.put(Enchantment.FIRE_PROTECTION, 2);
-        rareEnchantments.put(Enchantment.PROJECTILE_PROTECTION, 2);
-        rareEnchantments.put(Enchantment.QUICK_CHARGE, 1);
-        rareEnchantments.put(Enchantment.RIPTIDE, 1);
-        rareEnchantments.put(Enchantment.SOUL_SPEED, 1);
-        rareEnchantments.put(Enchantment.SWEEPING_EDGE, 1);
-    }
-
-    public void createEpicLootTable() {
-        epicLootTable.add(Material.DIAMOND);
-        epicLootTable.add(Material.EMERALD);
-        epicLootTable.add(Material.ENCHANTED_BOOK);
-        epicLootTable.add(Material.ENCHANTED_BOOK);
-        epicLootTable.add(Material.EXPERIENCE_BOTTLE);
-        epicLootTable.add(Material.GHAST_TEAR);
-        epicLootTable.add(Material.GLOWSTONE_DUST);
-        epicLootTable.add(Material.GOLDEN_APPLE);
-        epicLootTable.add(Material.GOLDEN_HORSE_ARMOR);
-        epicLootTable.add(Material.GUNPOWDER);
-        epicLootTable.add(Material.HEART_OF_THE_SEA);
-        epicLootTable.add(Material.IRON_HORSE_ARMOR);
-        epicLootTable.add(Material.NAUTILUS_SHELL);
-        epicLootTable.add(Material.QUARTZ);
-        epicLootTable.add(Material.EXPERIENCE_BOTTLE);
-
-        epicEnchantments.put(Enchantment.POWER, 5);
-        epicEnchantments.put(Enchantment.FLAME, 1);
-        epicEnchantments.put(Enchantment.PUNCH, 2);
-        epicEnchantments.put(Enchantment.CHANNELING, 1);
-        epicEnchantments.put(Enchantment.SHARPNESS, 4);
-        epicEnchantments.put(Enchantment.BANE_OF_ARTHROPODS, 5);
-        epicEnchantments.put(Enchantment.SMITE, 5);
-        epicEnchantments.put(Enchantment.DEPTH_STRIDER, 3);
-        epicEnchantments.put(Enchantment.EFFICIENCY, 5);
-        epicEnchantments.put(Enchantment.UNBREAKING, 3);
-        epicEnchantments.put(Enchantment.FIRE_ASPECT, 2);
-        epicEnchantments.put(Enchantment.FROST_WALKER, 2);
-        epicEnchantments.put(Enchantment.IMPALING, 5);
-        epicEnchantments.put(Enchantment.KNOCKBACK, 2);
-        epicEnchantments.put(Enchantment.FORTUNE, 3);
-        epicEnchantments.put(Enchantment.LOOTING, 3);
-        epicEnchantments.put(Enchantment.LOYALTY, 3);
-        epicEnchantments.put(Enchantment.LUCK_OF_THE_SEA, 3);
-        epicEnchantments.put(Enchantment.LURE, 3);
-        epicEnchantments.put(Enchantment.MULTISHOT, 1);
-        epicEnchantments.put(Enchantment.RESPIRATION, 3);
-        epicEnchantments.put(Enchantment.PIERCING, 4);
-        epicEnchantments.put(Enchantment.PROTECTION, 4);
-        epicEnchantments.put(Enchantment.BLAST_PROTECTION, 4);
-        epicEnchantments.put(Enchantment.FEATHER_FALLING, 4);
-        epicEnchantments.put(Enchantment.FIRE_PROTECTION, 4);
-        epicEnchantments.put(Enchantment.PROJECTILE_PROTECTION, 4);
-        epicEnchantments.put(Enchantment.QUICK_CHARGE, 3);
-        epicEnchantments.put(Enchantment.RIPTIDE, 3);
-        epicEnchantments.put(Enchantment.SILK_TOUCH, 1);
-        epicEnchantments.put(Enchantment.SOUL_SPEED, 3);
-        epicEnchantments.put(Enchantment.SWEEPING_EDGE, 3);
-        epicEnchantments.put(Enchantment.SWIFT_SNEAK, 3);
-        epicEnchantments.put(Enchantment.THORNS, 3);
-        epicEnchantments.put(Enchantment.AQUA_AFFINITY, 1);
-    }
-
-    public void createLegendaryLootTable() {
-        legendaryLootTable.add(Material.BEACON);
-        legendaryLootTable.add(Material.DIAMOND_HORSE_ARMOR);
-        legendaryLootTable.add(Material.DRAGON_BREATH);
-        legendaryLootTable.add(Material.SHULKER_SHELL);
-        legendaryLootTable.add(Material.ENCHANTED_BOOK);
-        legendaryLootTable.add(Material.ENCHANTED_GOLDEN_APPLE);
-        legendaryLootTable.add(Material.NETHERITE_INGOT);
-        legendaryLootTable.add(Material.TOTEM_OF_UNDYING);
-        legendaryLootTable.add(Material.TRIDENT);
-        legendaryLootTable.add(Material.EXPERIENCE_BOTTLE);
-        legendaryLootTable.add(Material.ELYTRA);
-
-        legendaryEnchantments.put(Enchantment.POWER, 5);
-        legendaryEnchantments.put(Enchantment.INFINITY, 1);
-        legendaryEnchantments.put(Enchantment.SHARPNESS, 5);
-        legendaryEnchantments.put(Enchantment.MENDING, 1);
-    }
-
     public ItemStack getEnchantedBook(HashMap<Enchantment, Integer> enchantments, boolean isEpic, boolean isLegendary) {
         int random = getRandomPositiveInteger(enchantments.size());
         int i = 1;
@@ -633,6 +501,7 @@ public class FishingSkill implements Listener {
         double rarePercentage = rewards.getRareFishingLootChance() + (luckLevel * 0.1);
         double epicPercentage = rewards.getEpicFishingLootChance() + (luckLevel * 0.05);
         double legendaryPercentage = rewards.getLegendaryFishingLootChance() + (luckLevel * 0.01);
+        double exoticPercentage = rewards.getExoticFishingLootChance() + (luckLevel * 0.00005);
 
         if (rewards.getCommonFishingLootChance() == 0) commonPercentage = 0;
         if (rewards.getRareFishingLootChance() == 0) rarePercentage = 0;
@@ -641,7 +510,14 @@ public class FishingSkill implements Listener {
 
         for (int i = 1; i <= lineNumber; i++) {
             double chance = Math.random();
-            if (legendaryPercentage != 0 && chance < legendaryPercentage) {
+            if (chance < exoticPercentage) {
+                ItemStack item = exoticLootTable.get(getRandomPositiveInteger(exoticLootTable.size()) - 1);
+                items.add(item);
+                p.sendRawMessage(ChatColor.LIGHT_PURPLE + "You have caught an exotic item!");
+                p.playSound(p, Sound.ENTITY_DOLPHIN_ATTACK, 1, 1);
+                p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+            }
+            else if (legendaryPercentage != 0 && chance < legendaryPercentage) {
                 Material mat = getMaterial(p, 1);
                 if (mat.equals(Material.ENCHANTED_BOOK)) {
                     items.add(getEnchantedBook(legendaryEnchantments, false, true));
@@ -851,6 +727,147 @@ public class FishingSkill implements Listener {
             return 3600 - (int) ((System.currentTimeMillis() - time) / 1000);
         }
         return 0;
+    }
+
+    public void createCommonLootTable() {
+        commonLootTable.add(Material.BAMBOO);
+        commonLootTable.add(Material.BONE);
+        commonLootTable.add(Material.BOOK);
+        commonLootTable.add(Material.BOWL);
+        commonLootTable.add(Material.COAL);
+        commonLootTable.add(Material.COD);
+        commonLootTable.add(Material.INK_SAC);
+        commonLootTable.add(Material.LEATHER);
+        commonLootTable.add(Material.PUFFERFISH);
+        commonLootTable.add(Material.ROTTEN_FLESH);
+        commonLootTable.add(Material.SALMON);
+        commonLootTable.add(Material.STICK);
+        commonLootTable.add(Material.STRING);
+        commonLootTable.add(Material.TROPICAL_FISH);
+        commonLootTable.add(Material.GLASS_BOTTLE);
+        commonLootTable.add(Material.DIRT);
+    }
+
+    public void createRareLootTable() {
+        rareLootTable.add(Material.ENCHANTED_BOOK);
+        rareLootTable.add(Material.ENCHANTED_BOOK);
+        rareLootTable.add(Material.ENDER_PEARL);
+        rareLootTable.add(Material.EXPERIENCE_BOTTLE);
+        rareLootTable.add(Material.GOLD_INGOT);
+        rareLootTable.add(Material.IRON_INGOT);
+        rareLootTable.add(Material.LAPIS_LAZULI);
+        rareLootTable.add(Material.LEATHER_HORSE_ARMOR);
+        rareLootTable.add(Material.LILY_PAD);
+        rareLootTable.add(Material.NAME_TAG);
+        rareLootTable.add(Material.REDSTONE);
+        rareLootTable.add(Material.SADDLE);
+        rareLootTable.add(Material.SLIME_BALL);
+        rareLootTable.add(Material.TNT);
+
+        rareEnchantments.put(Enchantment.POWER, 2);
+        rareEnchantments.put(Enchantment.PUNCH, 1);
+        rareEnchantments.put(Enchantment.SHARPNESS, 2);
+        rareEnchantments.put(Enchantment.BANE_OF_ARTHROPODS, 2);
+        rareEnchantments.put(Enchantment.SMITE, 2);
+        rareEnchantments.put(Enchantment.DEPTH_STRIDER, 1);
+        rareEnchantments.put(Enchantment.EFFICIENCY, 2);
+        rareEnchantments.put(Enchantment.UNBREAKING, 1);
+        rareEnchantments.put(Enchantment.FROST_WALKER, 1);
+        rareEnchantments.put(Enchantment.IMPALING, 2);
+        rareEnchantments.put(Enchantment.KNOCKBACK, 1);
+        rareEnchantments.put(Enchantment.LUCK_OF_THE_SEA, 1);
+        rareEnchantments.put(Enchantment.LURE, 1);
+        rareEnchantments.put(Enchantment.RESPIRATION, 1);
+        rareEnchantments.put(Enchantment.PIERCING, 1);
+        rareEnchantments.put(Enchantment.PROTECTION, 2);
+        rareEnchantments.put(Enchantment.BLAST_PROTECTION, 2);
+        rareEnchantments.put(Enchantment.FEATHER_FALLING, 2);
+        rareEnchantments.put(Enchantment.FIRE_PROTECTION, 2);
+        rareEnchantments.put(Enchantment.PROJECTILE_PROTECTION, 2);
+        rareEnchantments.put(Enchantment.QUICK_CHARGE, 1);
+        rareEnchantments.put(Enchantment.RIPTIDE, 1);
+        rareEnchantments.put(Enchantment.SOUL_SPEED, 1);
+        rareEnchantments.put(Enchantment.SWEEPING_EDGE, 1);
+    }
+
+    public void createEpicLootTable() {
+        epicLootTable.add(Material.DIAMOND);
+        epicLootTable.add(Material.EMERALD);
+        epicLootTable.add(Material.ENCHANTED_BOOK);
+        epicLootTable.add(Material.ENCHANTED_BOOK);
+        epicLootTable.add(Material.EXPERIENCE_BOTTLE);
+        epicLootTable.add(Material.GHAST_TEAR);
+        epicLootTable.add(Material.GLOWSTONE_DUST);
+        epicLootTable.add(Material.GOLDEN_APPLE);
+        epicLootTable.add(Material.GOLDEN_HORSE_ARMOR);
+        epicLootTable.add(Material.GUNPOWDER);
+        epicLootTable.add(Material.HEART_OF_THE_SEA);
+        epicLootTable.add(Material.IRON_HORSE_ARMOR);
+        epicLootTable.add(Material.NAUTILUS_SHELL);
+        epicLootTable.add(Material.QUARTZ);
+        epicLootTable.add(Material.EXPERIENCE_BOTTLE);
+
+        epicEnchantments.put(Enchantment.POWER, 5);
+        epicEnchantments.put(Enchantment.FLAME, 1);
+        epicEnchantments.put(Enchantment.PUNCH, 2);
+        epicEnchantments.put(Enchantment.CHANNELING, 1);
+        epicEnchantments.put(Enchantment.SHARPNESS, 4);
+        epicEnchantments.put(Enchantment.BANE_OF_ARTHROPODS, 5);
+        epicEnchantments.put(Enchantment.SMITE, 5);
+        epicEnchantments.put(Enchantment.DEPTH_STRIDER, 3);
+        epicEnchantments.put(Enchantment.EFFICIENCY, 5);
+        epicEnchantments.put(Enchantment.UNBREAKING, 3);
+        epicEnchantments.put(Enchantment.FIRE_ASPECT, 2);
+        epicEnchantments.put(Enchantment.FROST_WALKER, 2);
+        epicEnchantments.put(Enchantment.IMPALING, 5);
+        epicEnchantments.put(Enchantment.KNOCKBACK, 2);
+        epicEnchantments.put(Enchantment.FORTUNE, 3);
+        epicEnchantments.put(Enchantment.LOOTING, 3);
+        epicEnchantments.put(Enchantment.LOYALTY, 3);
+        epicEnchantments.put(Enchantment.LUCK_OF_THE_SEA, 3);
+        epicEnchantments.put(Enchantment.LURE, 3);
+        epicEnchantments.put(Enchantment.MULTISHOT, 1);
+        epicEnchantments.put(Enchantment.RESPIRATION, 3);
+        epicEnchantments.put(Enchantment.PIERCING, 4);
+        epicEnchantments.put(Enchantment.PROTECTION, 4);
+        epicEnchantments.put(Enchantment.BLAST_PROTECTION, 4);
+        epicEnchantments.put(Enchantment.FEATHER_FALLING, 4);
+        epicEnchantments.put(Enchantment.FIRE_PROTECTION, 4);
+        epicEnchantments.put(Enchantment.PROJECTILE_PROTECTION, 4);
+        epicEnchantments.put(Enchantment.QUICK_CHARGE, 3);
+        epicEnchantments.put(Enchantment.RIPTIDE, 3);
+        epicEnchantments.put(Enchantment.SILK_TOUCH, 1);
+        epicEnchantments.put(Enchantment.SOUL_SPEED, 3);
+        epicEnchantments.put(Enchantment.SWEEPING_EDGE, 3);
+        epicEnchantments.put(Enchantment.SWIFT_SNEAK, 3);
+        epicEnchantments.put(Enchantment.THORNS, 3);
+        epicEnchantments.put(Enchantment.AQUA_AFFINITY, 1);
+    }
+
+    public void createLegendaryLootTable() {
+        legendaryLootTable.add(Material.BEACON);
+        legendaryLootTable.add(Material.DIAMOND_HORSE_ARMOR);
+        legendaryLootTable.add(Material.DRAGON_BREATH);
+        legendaryLootTable.add(Material.SHULKER_SHELL);
+        legendaryLootTable.add(Material.ENCHANTED_BOOK);
+        legendaryLootTable.add(Material.ENCHANTED_GOLDEN_APPLE);
+        legendaryLootTable.add(Material.NETHERITE_INGOT);
+        legendaryLootTable.add(Material.TOTEM_OF_UNDYING);
+        legendaryLootTable.add(Material.TRIDENT);
+        legendaryLootTable.add(Material.EXPERIENCE_BOTTLE);
+        legendaryLootTable.add(Material.ELYTRA);
+
+        legendaryEnchantments.put(Enchantment.POWER, 5);
+        legendaryEnchantments.put(Enchantment.INFINITY, 1);
+        legendaryEnchantments.put(Enchantment.SHARPNESS, 5);
+        legendaryEnchantments.put(Enchantment.MENDING, 1);
+    }
+
+    public void createExoticLootTable() {
+        exoticLootTable.add(ItemStackGenerator.getWeatherArtifact());
+        exoticLootTable.add(ItemStackGenerator.getTimeArtifact());
+        exoticLootTable.add(ItemStackGenerator.getUnlimitedWaterBucket());
+        exoticLootTable.add(ItemStackGenerator.getUnlimitedLavaBucket());
     }
 
     public ArrayList<Player> getWaterBreathers() {

@@ -27,6 +27,7 @@ public class PlayerRewards {
     private double rareFishingLootChance = 0;
     private double epicFishingLootChance = 0;
     private double legendaryFishingLootChance = 0;
+    private double exoticFishingLootChance = 0.0002;
     private double experienceMultiplier = 1;
     private double materialsBack = 0;
     private double extraOutput = 0;
@@ -905,6 +906,10 @@ public class PlayerRewards {
 
     public void setLegendaryFishingLootChance(double legendaryFishingLootChance) {
         this.legendaryFishingLootChance = legendaryFishingLootChance;
+    }
+
+    public double getExoticFishingLootChance() {
+        return exoticFishingLootChance;
     }
 
     public double getExperienceMultiplier() {
