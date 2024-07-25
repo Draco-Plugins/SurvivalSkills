@@ -11,6 +11,7 @@ import org.bukkit.*;
 import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -173,7 +174,16 @@ public class GodTrophyEffects {
         // Get the current day of the week
         LocalDate currentDate = LocalDate.now();
         DayOfWeek dayOfWeek = currentDate.getDayOfWeek();
-        text.add(ChatColor.AQUA + "Happy " + dayOfWeek.name());
+        String day = dayOfWeek.name().toLowerCase();
+        day = day.substring(0, 1).toUpperCase() + day.substring(1);
+        text.add(ChatColor.AQUA + "Happy " + day);
+
+        // Get the playtime of the player
+        Player player = Bukkit.getPlayer(name);
+        if (player != null) {
+            long playtime = player.getStatistic(Statistic.PLAY_ONE_MINUTE) / 20 / 60;
+            text.add(ChatColor.GREEN + name + " has played for " + ChatColor.AQUA + playtime + " minutes!");
+        }
     }
 
     public void removePlayer() {
