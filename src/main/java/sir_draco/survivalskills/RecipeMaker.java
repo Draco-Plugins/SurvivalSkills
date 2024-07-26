@@ -384,13 +384,13 @@ public class RecipeMaker {
                 ItemStackGenerator.getFireResistancePotion(), null, null, null, Material.LEATHER_BOOTS, Material.DIAMOND_BLOCK);
 
         ItemStackGenerator.createSmallShapedRecipe(beaconHelmetKey, ItemStackGenerator.getBeaconHelmet(), "AAA:ABA:DDD",
-                null, null, null, null, Material.BEACON, Material.NETHERITE_HELMET);
+                null, null, null, Material.BEACON, Material.NETHERITE_HELMET, null);
         ItemStackGenerator.createSmallShapedRecipe(beaconChestplateKey, ItemStackGenerator.getBeaconChestplate(), "ABA:AAA:AAA",
-                null, null, null, null, Material.BEACON, Material.NETHERITE_CHESTPLATE);
+                null, null, null, Material.BEACON, Material.NETHERITE_CHESTPLATE, null);
         ItemStackGenerator.createSmallShapedRecipe(beaconLeggingsKey, ItemStackGenerator.getBeaconLeggings(), "AAA:ABA:A A",
-                null, null, null, null, Material.BEACON, Material.NETHERITE_LEGGINGS);
+                null, null, null, Material.BEACON, Material.NETHERITE_LEGGINGS, null);
         ItemStackGenerator.createSmallShapedRecipe(beaconBootsKey, ItemStackGenerator.getBeaconBoots(), "DDD:ABA:A A",
-                null, null, null, null, Material.BEACON, Material.NETHERITE_BOOTS);
+                null, null, null, Material.BEACON, Material.NETHERITE_BOOTS, null);
 
         ItemStackGenerator.createSmallShapedRecipe(jumpBootsKey, ItemStackGenerator.getJumpingBoots(), "ABA:C C:DDD",
                 ItemStackGenerator.getJumpPowerPotion(), null, null, null, Material.IRON_BOOTS, Material.SLIME_BLOCK);

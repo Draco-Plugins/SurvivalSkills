@@ -71,8 +71,15 @@ public class RainbowArmor extends BukkitRunnable {
     }
 
     private ItemStack colorArmor(ItemStack armor, Color armorColor) {
+        if (armor.getItemMeta() == null) {
+            playersWearingBeaconArmor.remove(p.getUniqueId());
+            return armor;
+        }
+        if (!(armor.getItemMeta() instanceof LeatherArmorMeta)) {
+            playersWearingBeaconArmor.remove(p.getUniqueId());
+            return armor;
+        }
         LeatherArmorMeta meta = (LeatherArmorMeta) armor.getItemMeta();
-        if (meta == null) return armor;
         meta.setColor(armorColor);
         armor.setItemMeta(meta);
         return armor;

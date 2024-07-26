@@ -651,10 +651,14 @@ public class ItemStackGenerator {
         // Set the color of the helmet and armor value
         if (meta instanceof LeatherArmorMeta) {
             LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
-            NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconHelmet");
-            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifier =
-                    new AttributeModifier(key, 3, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
-            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
+            NamespacedKey defenseKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconHelmetDefense");
+            NamespacedKey knockbackKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconHelmetKnockback");
+            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierDefense =
+                    new AttributeModifier(defenseKey, 4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
+            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierKnockback =
+                    new AttributeModifier(knockbackKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
+            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifierDefense);
+            leatherMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, modifierKnockback);
             leatherMeta.setColor(Color.WHITE);
         }
 
@@ -679,10 +683,14 @@ public class ItemStackGenerator {
         // Set the color of the chestplate and armor value
         if (meta instanceof LeatherArmorMeta) {
             LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
-            NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconChestplate");
-            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifier =
-                    new AttributeModifier(key, 6, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST);
-            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
+            NamespacedKey defenseKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconChestplateDefense");
+            NamespacedKey knockbackKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconChestplateKnockback");
+            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierDefense =
+                    new AttributeModifier(defenseKey, 9, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST);
+            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierKnockback =
+                    new AttributeModifier(knockbackKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST);
+            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifierDefense);
+            leatherMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, modifierKnockback);
             leatherMeta.setColor(Color.WHITE);
         }
 
@@ -707,10 +715,14 @@ public class ItemStackGenerator {
         // Set the color of the leggings and armor value
         if (meta instanceof LeatherArmorMeta) {
             LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
-            NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconLeggings");
-            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifier =
-                    new AttributeModifier(key, 5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.LEGS);
-            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
+            NamespacedKey defenseKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconLeggingsDefense");
+            NamespacedKey knockbackKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconLeggingsKnockback");
+            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierDefense =
+                    new AttributeModifier(defenseKey, 7, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.LEGS);
+            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierKnockback =
+                    new AttributeModifier(knockbackKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.LEGS);
+            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifierDefense);
+            leatherMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, modifierKnockback);
             leatherMeta.setColor(Color.WHITE);
         }
 
@@ -735,10 +747,14 @@ public class ItemStackGenerator {
         // Set the color of the boots and armor value
         if (meta instanceof LeatherArmorMeta) {
             LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
-            NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconBoots");
-            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifier =
-                    new AttributeModifier(key, 3, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
-            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
+            NamespacedKey defenseKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconBootsDefense");
+            NamespacedKey knockbackKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconBootsKnockback");
+            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierDefense =
+                    new AttributeModifier(defenseKey, 4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
+            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierKnockback =
+                    new AttributeModifier(knockbackKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
+            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifierDefense);
+            leatherMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, modifierKnockback);
             leatherMeta.setColor(Color.WHITE);
         }
 

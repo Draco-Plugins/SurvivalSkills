@@ -61,6 +61,7 @@ public final class SurvivalSkills extends JavaPlugin {
     private CraftingSkill craftingListener;
     private MainSkill mainListener;
     private PlayerListener playerListener;
+    private ArmorListener armorListener;
 
     // Configs
     private FileConfiguration config;
@@ -299,6 +300,7 @@ public final class SurvivalSkills extends JavaPlugin {
         craftingListener = new CraftingSkill(this);
         mainListener = new MainSkill(this);
         playerListener = new PlayerListener(this);
+        armorListener = new ArmorListener(this);
         TrophyListener trophyListener = new TrophyListener(this);
         TabCompleter tabCompleter = new TabCompleter(this);
 
@@ -313,6 +315,7 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(playerListener, this);
         getServer().getPluginManager().registerEvents(trophyListener, this);
         getServer().getPluginManager().registerEvents(tabCompleter, this);
+        getServer().getPluginManager().registerEvents(armorListener, this);
     }
 
     public void loadData(Player p, FileConfiguration data) {
@@ -630,8 +633,7 @@ public final class SurvivalSkills extends JavaPlugin {
         Leaderboard.leaderboardJoin(this, p);
         loadPermaTrash(p);
         getMiningListener().hideGlowForPlayer(p);
-
-        // Check for active XP multipliers
+        armorListener.playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
 
         // Handle the scoreboard
         if (newPlayer) SkillScoreboard.initializeScoreboard(this, p);

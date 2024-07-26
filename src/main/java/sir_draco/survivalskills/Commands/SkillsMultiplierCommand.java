@@ -38,7 +38,7 @@ public class SkillsMultiplierCommand implements CommandExecutor {
 
         double multiplier;
         try {
-            multiplier = Double.parseDouble(strings[2]);
+            multiplier = Double.parseDouble(strings[1]);
         }
         catch (NumberFormatException e) {
             if (sender instanceof Player) {

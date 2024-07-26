@@ -83,6 +83,8 @@ public class FightingSkill implements Listener {
         if (p == null && !e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) return;
 
         if (isBoss(e.getEntity()) || e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
+            summonTracker.remove(p);
+
             ItemStack drop = new ItemStack(Material.AIR);
             switch (e.getEntity().getType()) {
                 case ZOMBIE:
