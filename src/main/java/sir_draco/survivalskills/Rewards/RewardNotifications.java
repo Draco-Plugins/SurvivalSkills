@@ -91,6 +91,11 @@ public class RewardNotifications {
                         p.sendRawMessage(ChatColor.GREEN + "You can now craft a Zap Wand");
                         p.sendRawMessage(ChatColor.GRAY + "See the crafting recipe by using the command" + ChatColor.AQUA + " /skills recipes");
                         break;
+                    case "BeaconArmor":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now craft Beacon Armor");
+                        p.sendRawMessage(ChatColor.GREEN + "Beacon Armor gives you and those nearby beacon effects!");
+                        p.sendRawMessage(ChatColor.GRAY + "See the crafting recipe by using the command" + ChatColor.AQUA + " /skills recipes");
+                        break;
                 }
                 break;
             case "Exploring":
@@ -752,6 +757,7 @@ public class RewardNotifications {
                     case "UnlimitedTorch":
                     case "MiningArmor":
                     case "ZapWand":
+                    case "BeaconArmor":
                         return ChatColor.GRAY + "Craftable Item";
                     case "FortuneI":
                         return ChatColor.GRAY + "You now have a " + ChatColor.AQUA + "20%" + ChatColor.GRAY

@@ -640,6 +640,10 @@ public class SkillStatsCommand implements CommandExecutor {
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningChestplate(), "Mining", "MiningArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningLeggings(), "Mining", "MiningArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningBoots(), "Mining", "MiningArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconHelmet(), "Mining", "BeaconArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconChestplate(), "Mining", "BeaconArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconLeggings(), "Mining", "BeaconArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconBoots(), "Mining", "BeaconArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getJumpingBoots(), "Exploring", "JumpingBoots"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererHelmet(), "Exploring", "WandererArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererChestplate(), "Exploring", "WandererArmor"));

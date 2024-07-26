@@ -78,6 +78,10 @@ Mining:
     Enabled: true
     Level: 70
     Type: 'State'
+  BeaconArmor:
+    Enabled: true
+    Level: 72
+    Type: 'Crafting'
   NightVisionII:
     Enabled: true
     Level: 75

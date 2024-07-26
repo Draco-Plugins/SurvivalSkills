@@ -329,6 +329,10 @@ public class RecipeMaker {
         NamespacedKey mineChestplateKey = createKey("minechestplate", plugin);
         NamespacedKey mineLeggingsKey = createKey("mineleggings", plugin);
         NamespacedKey mineBootsKey = createKey("mineboots", plugin);
+        NamespacedKey beaconHelmetKey = createKey("beaconhelmet", plugin);
+        NamespacedKey beaconChestplateKey = createKey("beaconchestplate", plugin);
+        NamespacedKey beaconLeggingsKey = createKey("beaconleggings", plugin);
+        NamespacedKey beaconBootsKey = createKey("beaconboots", plugin);
         NamespacedKey jumpBootsKey = createKey("jumpboots", plugin);
         NamespacedKey jumpBootsKey2 = createKey("jumpboots2", plugin);
         NamespacedKey wandererHelmetKey = createKey("wandererhelmet", plugin);
@@ -378,6 +382,15 @@ public class RecipeMaker {
                 null, null, null, Material.CAKE, Material.LEATHER_LEGGINGS, Material.DIAMOND_BLOCK);
         ItemStackGenerator.createSmallShapedRecipe(mineBootsKey, ItemStackGenerator.getMiningBoots(), "DDD:ABA:C C",
                 ItemStackGenerator.getFireResistancePotion(), null, null, null, Material.LEATHER_BOOTS, Material.DIAMOND_BLOCK);
+
+        ItemStackGenerator.createSmallShapedRecipe(beaconHelmetKey, ItemStackGenerator.getBeaconHelmet(), "AAA:ABA:DDD",
+                null, null, null, null, Material.BEACON, Material.NETHERITE_HELMET);
+        ItemStackGenerator.createSmallShapedRecipe(beaconChestplateKey, ItemStackGenerator.getBeaconChestplate(), "ABA:AAA:AAA",
+                null, null, null, null, Material.BEACON, Material.NETHERITE_CHESTPLATE);
+        ItemStackGenerator.createSmallShapedRecipe(beaconLeggingsKey, ItemStackGenerator.getBeaconLeggings(), "AAA:ABA:A A",
+                null, null, null, null, Material.BEACON, Material.NETHERITE_LEGGINGS);
+        ItemStackGenerator.createSmallShapedRecipe(beaconBootsKey, ItemStackGenerator.getBeaconBoots(), "DDD:ABA:A A",
+                null, null, null, null, Material.BEACON, Material.NETHERITE_BOOTS);
 
         ItemStackGenerator.createSmallShapedRecipe(jumpBootsKey, ItemStackGenerator.getJumpingBoots(), "ABA:C C:DDD",
                 ItemStackGenerator.getJumpPowerPotion(), null, null, null, Material.IRON_BOOTS, Material.SLIME_BLOCK);

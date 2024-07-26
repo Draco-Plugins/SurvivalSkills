@@ -1,11 +1,10 @@
 package sir_draco.survivalskills;
 
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.RecipeChoice;
-import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -633,5 +632,117 @@ public class ItemStackGenerator {
     public static ItemStack getBronzeIngot() {
         String name = ChatColor.GOLD.toString() + ChatColor.BOLD + "Bronze Ingot";
         return createCustomItem(Material.COPPER_INGOT, 1, name, null, null, null, 28, false, null);
+    }
+
+    public static ItemStack getBeaconHelmet() {
+        List<List<String>> colors = new ArrayList<>();
+        colors.add(ColorParser.generateGradient("#FF0000", "#00FF00", "Beacon "));
+        colors.add(ColorParser.generateGradient("#00FF00", "#0000FF", "Helmet"));
+        String name = ColorParser.colorizeString("Beacon Helmet", ColorParser.gradientConnector(colors), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add("");
+        loreList.add(ChatColor.GRAY + "Beacon Effect Everywhere");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        ItemStack helmet = createCustomItem(Material.LEATHER_HELMET, 1, name, null, null, loreList, 29, false, null);
+        ItemMeta meta = helmet.getItemMeta();
+        if (meta == null) return helmet;
+        meta.setUnbreakable(true);
+
+        // Set the color of the helmet and armor value
+        if (meta instanceof LeatherArmorMeta) {
+            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+            NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconHelmet");
+            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifier =
+                    new AttributeModifier(key, 3, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
+            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
+            leatherMeta.setColor(Color.WHITE);
+        }
+
+        helmet.setItemMeta(meta);
+        return helmet;
+    }
+
+    public static ItemStack getBeaconChestplate() {
+        List<List<String>> colors = new ArrayList<>();
+        colors.add(ColorParser.generateGradient("#FF0000", "#00FF00", "Beacon "));
+        colors.add(ColorParser.generateGradient("#00FF00", "#0000FF", "Chestplate"));
+        String name = ColorParser.colorizeString("Beacon Chestplate", ColorParser.gradientConnector(colors), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add("");
+        loreList.add(ChatColor.GRAY + "Beacon Effect Everywhere");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        ItemStack chestplate = createCustomItem(Material.LEATHER_CHESTPLATE, 1, name, null, null, loreList, 29, false, null);
+        ItemMeta meta = chestplate.getItemMeta();
+        if (meta == null) return chestplate;
+        meta.setUnbreakable(true);
+
+        // Set the color of the chestplate and armor value
+        if (meta instanceof LeatherArmorMeta) {
+            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+            NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconChestplate");
+            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifier =
+                    new AttributeModifier(key, 6, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST);
+            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
+            leatherMeta.setColor(Color.WHITE);
+        }
+
+        chestplate.setItemMeta(meta);
+        return chestplate;
+    }
+
+    public static ItemStack getBeaconLeggings() {
+        List<List<String>> colors = new ArrayList<>();
+        colors.add(ColorParser.generateGradient("#FF0000", "#00FF00", "Beacon "));
+        colors.add(ColorParser.generateGradient("#00FF00", "#0000FF", "Leggings"));
+        String name = ColorParser.colorizeString("Beacon Leggings", ColorParser.gradientConnector(colors), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add("");
+        loreList.add(ChatColor.GRAY + "Beacon Effect Everywhere");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        ItemStack leggings = createCustomItem(Material.LEATHER_LEGGINGS, 1, name, null, null, loreList, 29, false, null);
+        ItemMeta meta = leggings.getItemMeta();
+        if (meta == null) return leggings;
+        meta.setUnbreakable(true);
+
+        // Set the color of the leggings and armor value
+        if (meta instanceof LeatherArmorMeta) {
+            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+            NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconLeggings");
+            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifier =
+                    new AttributeModifier(key, 5, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.LEGS);
+            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
+            leatherMeta.setColor(Color.WHITE);
+        }
+
+        leggings.setItemMeta(meta);
+        return leggings;
+    }
+
+    public static ItemStack getBeaconBoots() {
+        List<List<String>> colors = new ArrayList<>();
+        colors.add(ColorParser.generateGradient("#FF0000", "#00FF00", "Beacon "));
+        colors.add(ColorParser.generateGradient("#00FF00", "#0000FF", "Boots"));
+        String name = ColorParser.colorizeString("Beacon Boots", ColorParser.gradientConnector(colors), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add("");
+        loreList.add(ChatColor.GRAY + "Beacon Effect Everywhere");
+        loreList.add(ChatColor.GRAY + "Must wear the full set");
+        ItemStack boots = createCustomItem(Material.LEATHER_BOOTS, 1, name, null, null, loreList, 29, false, null);
+        ItemMeta meta = boots.getItemMeta();
+        if (meta == null) return boots;
+        meta.setUnbreakable(true);
+
+        // Set the color of the boots and armor value
+        if (meta instanceof LeatherArmorMeta) {
+            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+            NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconBoots");
+            @SuppressWarnings("UnstableApiUsage") AttributeModifier modifier =
+                    new AttributeModifier(key, 3, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
+            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
+            leatherMeta.setColor(Color.WHITE);
+        }
+
+        boots.setItemMeta(meta);
+        return boots;
     }
 }

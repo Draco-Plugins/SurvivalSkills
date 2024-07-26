@@ -78,8 +78,12 @@ public final class SurvivalSkills extends JavaPlugin {
     private boolean worldGuardEnabled = false;
     private RegionContainer container = null;
 
+    private static SurvivalSkills instance;
+
     @Override
     public void onEnable() {
+        instance = this;
+
         // Make sure there are no stragglers from before
         World world = Bukkit.getWorld("world");
         if (world != null) {
@@ -97,7 +101,7 @@ public final class SurvivalSkills extends JavaPlugin {
         config = YamlConfiguration.loadConfiguration(configFile);
 
         // See if an update needs to be made to the config
-        if (config.get("Version") == null || config.getDouble("Version") != 1.95) updateConfig();
+        if (config.get("Version") == null || config.getDouble("Version") != 1.96) updateConfig();
         skillManager = new SkillManager(this);
 
         trophyFile = new File(getDataFolder(), "trophydata.yml");
@@ -813,5 +817,9 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public SkillManager getSkillManager() {
         return skillManager;
+    }
+
+    public static SurvivalSkills getInstance() {
+        return instance;
     }
 }
