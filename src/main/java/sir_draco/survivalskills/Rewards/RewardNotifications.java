@@ -87,6 +87,10 @@ public class RewardNotifications {
                         p.sendRawMessage(ChatColor.GREEN + "You now take " + ChatColor.AQUA + "20%" + ChatColor.GREEN
                                 + " less damage from all sources");
                         break;
+                    case "ZapWand":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now craft a Zap Wand");
+                        p.sendRawMessage(ChatColor.GRAY + "See the crafting recipe by using the command" + ChatColor.AQUA + " /skills recipes");
+                        break;
                 }
                 break;
             case "Exploring":
@@ -747,6 +751,7 @@ public class RewardNotifications {
                 switch (reward) {
                     case "UnlimitedTorch":
                     case "MiningArmor":
+                    case "ZapWand":
                         return ChatColor.GRAY + "Craftable Item";
                     case "FortuneI":
                         return ChatColor.GRAY + "You now have a " + ChatColor.AQUA + "20%" + ChatColor.GRAY

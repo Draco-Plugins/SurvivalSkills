@@ -208,6 +208,12 @@ public class PlayerListener implements Listener {
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
                         + rewards.getReward("Exploring", "GillArmor").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            case 27:
+                if (rewards.getReward("Mining", "ZapWand").isApplied()) return;
+                e.setCancelled(true);
+                p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
+                        + rewards.getReward("Mining", "ZapWand").getLevel() + ChatColor.RED + " to craft this");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 999:
                 if (result.getType().equals(Material.WHITE_WOOL)) return;
                 if (result.getType().equals(Material.BLACK_WOOL)) return;

@@ -171,6 +171,8 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
                 return ItemStackGenerator.getTimeArtifact();
             case "xpvoucher":
                 return ItemStackGenerator.getExperienceMultiplierVoucher();
+            case "zapwand":
+                return ItemStackGenerator.getZapWand();
             default:
                 return null;
         }

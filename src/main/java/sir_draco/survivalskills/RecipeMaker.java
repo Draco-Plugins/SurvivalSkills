@@ -323,6 +323,8 @@ public class RecipeMaker {
 
     public static void rewardRecipes(SurvivalSkills plugin) {
         NamespacedKey torchKey = createKey("torch", plugin);
+        NamespacedKey bronzeKey = createKey("bronze", plugin);
+        NamespacedKey zapWandKey = createKey("zapwand", plugin);
         NamespacedKey mineHelmetKey = createKey("minehelmet", plugin);
         NamespacedKey mineChestplateKey = createKey("minechestplate", plugin);
         NamespacedKey mineLeggingsKey = createKey("mineleggings", plugin);
@@ -359,48 +361,14 @@ public class RecipeMaker {
         NamespacedKey fireworkcannon = createKey("fireworkcannon", plugin);
         NamespacedKey sortwand = createKey("sortwand", plugin);
 
-        ArrayList<NamespacedKey> recipeKeys = plugin.getRecipeKeys();
-
-        recipeKeys.add(torchKey);
-        recipeKeys.add(sortOfStonePick);
-        recipeKeys.add(mineHelmetKey);
-        recipeKeys.add(mineChestplateKey);
-        recipeKeys.add(mineLeggingsKey);
-        recipeKeys.add(mineBootsKey);
-        recipeKeys.add(jumpBootsKey);
-        recipeKeys.add(wandererHelmetKey);
-        recipeKeys.add(wandererChestplateKey);
-        recipeKeys.add(wandererLeggingsKey);
-        recipeKeys.add(wandererBootsKey);
-        recipeKeys.add(travelerHelmetKey);
-        recipeKeys.add(travelerChestplateKey);
-        recipeKeys.add(travelerLeggingsKey);
-        recipeKeys.add(travelerBootsKey);
-        recipeKeys.add(hardNautilusShellKey);
-        recipeKeys.add(hardHeartOfTheSeaKey);
-        recipeKeys.add(gillHelmetKey);
-        recipeKeys.add(gillChestplateKey);
-        recipeKeys.add(gillLeggingsKey);
-        recipeKeys.add(gillBootsKey);
-        recipeKeys.add(adventurerHelmetKey);
-        recipeKeys.add(adventurerChestplateKey);
-        recipeKeys.add(adventurerLeggingsKey);
-        recipeKeys.add(adventurerBootsKey);
-        recipeKeys.add(caveFinder);
-        recipeKeys.add(wateringCanKey);
-        recipeKeys.add(unlimitedBoneMealKey);
-        recipeKeys.add(harvesterKey);
-        recipeKeys.add(gapple);
-        recipeKeys.add(fireworkcannon);
-        recipeKeys.add(sortwand);
-        recipeKeys.add(giantBoss);
-        recipeKeys.add(broodMotherBoss);
-        recipeKeys.add(villagerboss);
-
         ItemStackGenerator.createSmallShapedRecipe(torchKey, ItemStackGenerator.getUnlimitedTorch(), "ABA:BCB:ABA",
                 null, null, null, Material.LAVA_BUCKET, Material.COAL_BLOCK, Material.TORCH);
         ItemStackGenerator.createSmallShapedRecipe(sortOfStonePick, ItemStackGenerator.getSortOfStonePick(), "AAA: B : B ",
                 null, null, null, Material.COBBLED_DEEPSLATE, Material.STICK, null);
+        ItemStackGenerator.createSmallShapedRecipe(bronzeKey, ItemStackGenerator.getBronzeIngot(), "AAA:ABA:AAA",
+                null, null, null, Material.COPPER_BLOCK, Material.GOLD_BLOCK, null);
+        ItemStackGenerator.createSmallShapedRecipe(zapWandKey, ItemStackGenerator.getZapWand(), "DDD:AAA:DDD",
+                ItemStackGenerator.getBronzeIngot(), null, null, null, null, null);
 
         ItemStackGenerator.createSmallShapedRecipe(mineHelmetKey, ItemStackGenerator.getMiningHelmet(), "ABA:C C:DDD",
                 ItemStackGenerator.getFireResistancePotion(), null, null, null, Material.LEATHER_HELMET, Material.DIAMOND_BLOCK);
@@ -486,6 +454,8 @@ public class RecipeMaker {
     public static NamespacedKey createKey(String name, SurvivalSkills plugin) {
         NamespacedKey key = new NamespacedKey(plugin, name);
         if (plugin.getServer().getRecipe(key) != null) plugin.getServer().removeRecipe(key);
+        ArrayList<NamespacedKey> recipeKeys = plugin.getRecipeKeys();
+        recipeKeys.add(key);
         return key;
     }
 }

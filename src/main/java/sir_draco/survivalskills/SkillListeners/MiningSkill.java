@@ -129,6 +129,27 @@ public class MiningSkill implements Listener {
     }
 
     @EventHandler
+    public void useZapWand(PlayerInteractEvent e) {
+        if (e.getHand() == null) return;
+        if (e.getHand().equals(EquipmentSlot.OFF_HAND)) return;
+        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+        if (e.getClickedBlock() == null) return;
+        Player p = e.getPlayer();
+        ItemStack hand = p.getInventory().getItemInMainHand();
+        if (!ItemStackGenerator.isCustomItem(hand, 27)) return;
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "ZapWand").isApplied()) {
+             e.setCancelled(true);
+             p.sendRawMessage(ChatColor.RED + "You are not a high enough level to use this item");
+             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return;
+        }
+
+        World world = e.getClickedBlock().getWorld();
+        Location loc = e.getClickedBlock().getLocation();
+        world.strikeLightning(loc);
+    }
+
+    @EventHandler
     public void toolDamage(PlayerItemDamageEvent e) {
         Player p = e.getPlayer();
         if (!plugin.getSkillManager().getPlayerRewards(p).isUnbreakableTools()) return;

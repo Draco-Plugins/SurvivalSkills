@@ -635,6 +635,7 @@ public class SkillStatsCommand implements CommandExecutor {
 
     public void createItemLevelInfo() {
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getUnlimitedTorch(), "Mining", "UnlimitedTorch"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getZapWand(), "Mining", "ZapWand"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningHelmet(), "Mining", "MiningArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningChestplate(), "Mining", "MiningArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningLeggings(), "Mining", "MiningArmor"));
@@ -648,6 +649,10 @@ public class SkillStatsCommand implements CommandExecutor {
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerChestplate(), "Exploring", "TravelerArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerLeggings(), "Exploring", "TravelerArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerBoots(), "Exploring", "TravelerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillHelmet(), "Exploring", "GillArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillChestplate(), "Exploring", "GillArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillLeggings(), "Exploring", "GillArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillBoots(), "Exploring", "GillArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerHelmet(), "Exploring", "AdventurerArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerChestplate(), "Exploring", "AdventurerArmor"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerLeggings(), "Exploring", "AdventurerArmor"));

@@ -623,4 +623,15 @@ public class ItemStackGenerator {
         loreList.add(ChatColor.GRAY + "Doubles Skill XP gained for 1 hour");
         return createCustomItem(Material.PAPER, 1, name, null, null, loreList, 26, false, null);
     }
+
+    public static ItemStack getZapWand() {
+        String name = ChatColor.GOLD.toString() + ChatColor.BOLD + "Zap Wand";
+        String lore = ChatColor.GRAY + "Right click the ground to throw lightning";
+        return createCustomItem(Material.LIGHTNING_ROD, 1, name, null, lore, null, 27, false, null);
+    }
+
+    public static ItemStack getBronzeIngot() {
+        String name = ChatColor.GOLD.toString() + ChatColor.BOLD + "Bronze Ingot";
+        return createCustomItem(Material.COPPER_INGOT, 1, name, null, null, null, 28, false, null);
+    }
 }
