@@ -47,7 +47,14 @@ public class Skill {
     }
 
     public static void experienceEvent(SurvivalSkills plugin, Player p, double xp, String skillName) {
+        // Handle multipliers
         xp = xp * plugin.getSkillManager().getMultiplier();
+        if (plugin.getSkillManager().getSkillMultipliers().containsKey(p)) {
+            if (plugin.getAbilityManager().getAbility(p, "XPVoucher") != null)
+                xp *= plugin.getSkillManager().getSkillMultipliers().get(p);
+            else plugin.getSkillManager().getSkillMultipliers().remove(p);
+        }
+
         UUID uuid = p.getUniqueId();
         Skill skill = plugin.getSkillManager().getSkill(uuid, skillName);
         if (skill.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) {

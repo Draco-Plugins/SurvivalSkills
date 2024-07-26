@@ -615,4 +615,12 @@ public class ItemStackGenerator {
         String name = ChatColor.YELLOW.toString() + ChatColor.BOLD + "Hard Heart Of The Sea";
         return createCustomItem(Material.HEART_OF_THE_SEA, 1, name, null, null, null, 25, false, null);
     }
+
+    public static ItemStack getExperienceMultiplierVoucher() {
+        String name = ColorParser.colorizeString("Double Skill XP Voucher",
+                ColorParser.generateGradient("#FFC600", "#FFF080", "Double Skill XP Voucher"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Doubles Skill XP gained for 1 hour");
+        return createCustomItem(Material.PAPER, 1, name, null, null, loreList, 26, false, null);
+    }
 }

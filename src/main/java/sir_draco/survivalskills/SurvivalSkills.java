@@ -428,6 +428,7 @@ public final class SurvivalSkills extends JavaPlugin {
         else data.set(uuid + ".PeacefulMiner", false);
 
         skillManager.savePlayerSkillData(uuid, data);
+        skillManager.savePlayerMultiplier(p, data);
         savePermaTrash(p);
 
         try {
@@ -467,6 +468,8 @@ public final class SurvivalSkills extends JavaPlugin {
 
             if (miningListener.getPeacefulMiners().contains(p)) data.set(uuid + ".PeacefulMiner", true);
             else data.set(uuid + ".PeacefulMiner", false);
+
+            skillManager.savePlayerMultiplier(p, data);
         }
 
         data.save(dataFile);
@@ -619,9 +622,12 @@ public final class SurvivalSkills extends JavaPlugin {
         // Load their perma trash inventory, and hide any glowing blocks from other player's spelunker ability
         skillManager.checkMainXP(p);
         skillManager.loadPlayerRewards(p);
+        skillManager.loadPlayerMultiplier(p, data);
         Leaderboard.leaderboardJoin(this, p);
         loadPermaTrash(p);
         getMiningListener().hideGlowForPlayer(p);
+
+        // Check for active XP multipliers
 
         // Handle the scoreboard
         if (newPlayer) SkillScoreboard.initializeScoreboard(this, p);

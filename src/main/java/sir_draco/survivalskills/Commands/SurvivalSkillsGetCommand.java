@@ -169,6 +169,8 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
                 return ItemStackGenerator.getWeatherArtifact();
             case "timeartifact":
                 return ItemStackGenerator.getTimeArtifact();
+            case "xpvoucher":
+                return ItemStackGenerator.getExperienceMultiplierVoucher();
             default:
                 return null;
         }

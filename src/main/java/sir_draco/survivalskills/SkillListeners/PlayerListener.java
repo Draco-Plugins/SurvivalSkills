@@ -6,6 +6,7 @@ import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.*;
 import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
@@ -16,9 +17,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import sir_draco.survivalskills.Abilities.AbilityTimer;
 import sir_draco.survivalskills.ItemStackGenerator;
 import sir_draco.survivalskills.Boards.LeaderboardPlayer;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
+import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -364,6 +367,35 @@ public class PlayerListener implements Listener {
                 }
             }
         }.runTaskLater(plugin, 1);
+    }
+
+    @EventHandler
+    public void useXPVoucher(PlayerInteractEvent e) {
+        if (e.getHand() == null) return;
+        if (e.getHand().equals(EquipmentSlot.OFF_HAND)) return;
+        if (e.getAction().equals(Action.RIGHT_CLICK_BLOCK) || e.getAction().equals(Action.RIGHT_CLICK_AIR)) return;
+        Player p = e.getPlayer();
+        ItemStack hand = p.getInventory().getItemInMainHand();
+        if (!ItemStackGenerator.isCustomItem(hand, 26)) return;
+
+        AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "XPVoucher");
+        if (timer != null) {
+            p.sendRawMessage(ChatColor.RED + "You already have an XP Voucher active");
+            p.sendRawMessage(ChatColor.RED + "You have: " + ChatColor.AQUA
+                    + RewardNotifications.cooldown(timer.getActiveTimeLeft()) + ChatColor.RED + " seconds left");
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return;
+        }
+
+        timer = new AbilityTimer(plugin, "XPVoucher", p, 3600, 0);
+        timer.runTaskTimerAsynchronously(plugin, 0, 20);
+        plugin.getAbilityManager().addAbility(p, timer);
+        plugin.getSkillManager().getSkillMultipliers().put(p, 2.0);
+        p.sendRawMessage(ChatColor.GREEN + "You have activated an XP Voucher");
+        p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+
+        hand.setAmount(hand.getAmount() - 1);
+        p.getInventory().setItemInMainHand(hand);
     }
 
     public HashMap<String, Boolean> enterTrophy(HashMap<String, Boolean> trophies, String trophyName) {

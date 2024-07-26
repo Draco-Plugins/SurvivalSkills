@@ -5,6 +5,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import sir_draco.survivalskills.Abilities.AbilityTimer;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -23,6 +24,7 @@ public class SkillManager {
     private final HashMap<UUID, ArrayList<Skill>> playerSkills = new HashMap<>();
     private final HashMap<Player, PlayerRewards> rewardTracker = new HashMap<>();
     private final HashMap<Player, Boolean> maxSkillMessage = new HashMap<>();
+    private final HashMap<Player, Double> skillMultipliers = new HashMap<>();
 
     private PlayerRewards playerRewards; // Holds the default information for rewards
     private double buildingXP;
@@ -108,6 +110,23 @@ public class SkillManager {
         });
     }
 
+    public void loadPlayerMultiplier(Player p, FileConfiguration data) {
+        // Get multiplier
+        UUID uuid = p.getUniqueId();
+        if (!data.contains(uuid.toString())) return;
+        if (!data.contains(uuid + ".Multiplier")) return;
+        skillMultipliers.put(p, data.getDouble(uuid + ".Multiplier"));
+
+        // Get time left
+        int time = 3600;
+        if (data.contains(uuid + ".MultiplierTimer"))
+            time = data.getInt(uuid + ".MultiplierTimer");
+
+        AbilityTimer timer = new AbilityTimer(plugin, "XPVoucher", p, time, 0);
+        timer.runTaskTimerAsynchronously(plugin, 0, 20);
+        plugin.getAbilityManager().addAbility(p, timer);
+    }
+
     public void saveSkillData(FileConfiguration data) {
         for (Map.Entry<UUID, ArrayList<Skill>> player : playerSkills.entrySet()) {
             UUID uuid = player.getKey();
@@ -126,6 +145,18 @@ public class SkillManager {
             }
         }
         else Bukkit.getLogger().warning("UUID " + uuid + " does not have any skills");
+    }
+
+    public void savePlayerMultiplier(Player p, FileConfiguration data) {
+        AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "XPVoucher");
+        if (timer != null) data.set(p.getUniqueId() + ".MultiplierTimer", timer.getActiveTimeLeft());
+        else {
+            data.set(p.getUniqueId() + ".Multiplier", null);
+            data.set(p.getUniqueId() + ".MultiplierTimer", null);
+            return;
+        }
+
+        data.set(p.getUniqueId() + ".Multiplier", skillMultipliers.getOrDefault(p, 1.0));
     }
 
     /**
@@ -279,5 +310,9 @@ public class SkillManager {
 
     public HashMap<Player, Boolean> getMaxSkillMessage() {
         return maxSkillMessage;
+    }
+
+    public HashMap<Player, Double> getSkillMultipliers() {
+        return skillMultipliers;
     }
 }

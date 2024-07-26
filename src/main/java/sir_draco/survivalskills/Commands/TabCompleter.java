@@ -95,6 +95,7 @@ public class TabCompleter implements Listener {
         words.add("unlimitedlavabucket");
         words.add("weatherartifact");
         words.add("timeartifact");
+        words.add("xpvoucher");
         e.setCompletions(getCompletions(buffer, words));
     }
 
@@ -169,6 +170,7 @@ public class TabCompleter implements Listener {
         words.add("fishing");
         words.add("crafting");
         words.add("main");
+        words.add("all");
         e.setCompletions(getCompletions(buffer, words));
     }
 
