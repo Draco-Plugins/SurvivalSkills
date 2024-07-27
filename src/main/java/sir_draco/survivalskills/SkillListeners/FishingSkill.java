@@ -499,9 +499,9 @@ public class FishingSkill implements Listener {
         int lineNumber = getFishingLineNumber(p);
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
         double commonPercentage = rewards.getCommonFishingLootChance() + (luckLevel * 0.15);
-        double rarePercentage = rewards.getRareFishingLootChance() + (luckLevel * 0.1);
-        double epicPercentage = rewards.getEpicFishingLootChance() + (luckLevel * 0.05);
-        double legendaryPercentage = rewards.getLegendaryFishingLootChance() + (luckLevel * 0.01);
+        double rarePercentage = rewards.getRareFishingLootChance() + (luckLevel * 0.05);
+        double epicPercentage = rewards.getEpicFishingLootChance() + (luckLevel * 0.025);
+        double legendaryPercentage = rewards.getLegendaryFishingLootChance() + (luckLevel * 0.005);
         double exoticPercentage = rewards.getExoticFishingLootChance() + (luckLevel * 0.00005);
 
         if (rewards.getCommonFishingLootChance() == 0) commonPercentage = 0;
