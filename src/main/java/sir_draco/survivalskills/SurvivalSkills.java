@@ -174,6 +174,7 @@ public final class SurvivalSkills extends JavaPlugin {
         }
 
         abilityManager.saveToolBelts();
+        abilityManager.removeGlowFromScannedMobs();
 
         getMiningListener().endSpelunkerAll();
     }

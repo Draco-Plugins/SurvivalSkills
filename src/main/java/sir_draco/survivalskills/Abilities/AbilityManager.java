@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -20,6 +21,7 @@ public class AbilityManager {
     private final HashMap<Player, ArrayList<AbilityTimer>> timerTracker = new HashMap<>();
     private final HashMap<Player, TrailEffect> trailTracker = new HashMap<>();
     private final HashMap<String, Particle> trails = new HashMap<>();
+    private final ArrayList<Entity> mobsScanned = new ArrayList<>();
 
     public AbilityManager(SurvivalSkills plugin) {
         this.plugin = plugin;
@@ -92,6 +94,18 @@ public class AbilityManager {
         return null;
     }
 
+    public void addScannedMobs(ArrayList<Entity> entities) {
+        mobsScanned.addAll(entities);
+    }
+
+    public void removeScannedMobs(ArrayList<Entity> entities) {
+        mobsScanned.removeAll(entities);
+    }
+
+    public void removeGlowFromScannedMobs() {
+        for (Entity entity : mobsScanned) entity.setGlowing(false);
+    }
+
     public void createTrails() {
         trails.put("Dust", Particle.DUST);
         trails.put("Water", Particle.SPLASH);
@@ -117,5 +131,9 @@ public class AbilityManager {
 
     public HashMap<Player, ArrayList<AbilityTimer>> getTimerTracker() {
         return timerTracker;
+    }
+
+    public ArrayList<Entity> getMobsScanned() {
+        return mobsScanned;
     }
 }

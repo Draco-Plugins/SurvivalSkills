@@ -52,17 +52,18 @@ public class MobScannerCommand implements CommandExecutor {
             if (ent instanceof Player) continue;
             if (!(ent instanceof LivingEntity)) continue;
             if (ent.getType().equals(EntityType.ITEM)) continue;
-            if (ent.isGlowing()) continue;
             ent.setGlowing(true);
             glowingEntities.add(ent);
         }
 
+        // Add the mobs to the list of scanned mobs
+        plugin.getAbilityManager().addScannedMobs(glowingEntities);
+
         new BukkitRunnable() {
             @Override
             public void run() {
-                for (Entity ent : glowingEntities) {
-                    ent.setGlowing(false);
-                }
+                for (Entity ent : glowingEntities) ent.setGlowing(false);
+                plugin.getAbilityManager().removeScannedMobs(glowingEntities);
             }
         }.runTaskLater(plugin, 20 * 60);
 

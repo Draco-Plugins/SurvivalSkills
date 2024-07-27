@@ -83,8 +83,14 @@ public class Skill {
                     setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, skill.getSkillName());
                 }
             }
+
+            // Check the main skill
             Skill main = plugin.getSkillManager().getSkill(uuid, "Main");
-            if (main.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) return;
+            if (main.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) {
+                plugin.getSkillManager().checkMainXP(p);
+                SkillScoreboard.updateScoreboard(plugin, p, skillName);
+                return;
+            }
             if (main.changeExperience(xp / 7.0, plugin.getTrophyManager().playerMaxSkillLevel(uuid))) {
                 main.levelUpNotification(p);
                 plugin.getSkillManager().getPlayerRewards(p).handleReward(plugin, p, main, "Main", true);
@@ -93,9 +99,9 @@ public class Skill {
                     trophies.put("GodTrophy", true);
                     plugin.getTrophyManager().getTrophyTracker().put(p.getUniqueId(), trophies);
 
-                    if (!p.getLocation().getBlock().getRelative(0, -1, 0).isEmpty())
+                    // Add the god trophy to the player's inventory, if their inventory is full drop it
+                    if (!p.getInventory().addItem(plugin.getTrophyManager().getTrophyItem(10)).isEmpty())
                         p.getWorld().dropItem(p.getLocation(), plugin.getTrophyManager().getTrophyItem(10));
-                    else p.getInventory().addItem(plugin.getTrophyManager().getTrophyItem(10));
 
                     plugin.getServer().broadcastMessage(ChatColor.AQUA + p.getName() + " has maxed out all of their skills!");
                     plugin.getServer().broadcastMessage(ChatColor.GREEN + "Congratulate the hard work they put in!");
