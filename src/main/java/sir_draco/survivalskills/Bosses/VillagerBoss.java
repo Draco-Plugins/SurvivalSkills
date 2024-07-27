@@ -164,7 +164,7 @@ public class VillagerBoss extends Boss {
         }
 
         if (inAction) return;
-        if (arrowCount >= 10) {
+        if (arrowCount >= 5) {
             arrowCount = 0;
             explosion();
             return;

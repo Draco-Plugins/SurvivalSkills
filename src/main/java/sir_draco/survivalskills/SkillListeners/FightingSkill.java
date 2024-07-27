@@ -320,7 +320,6 @@ public class FightingSkill implements Listener {
         }
 
         if (p == null) return;
-        if (e.getDamager() instanceof Arrow) boss.incrementArrow();
         e.setCancelled(true);
         p.sendRawMessage(ChatColor.YELLOW.toString() + ChatColor.BOLD + "The Exiled One's magic shield prevents damage!");
         p.playSound(p, Sound.BLOCK_ANVIL_LAND, 1, 1);
