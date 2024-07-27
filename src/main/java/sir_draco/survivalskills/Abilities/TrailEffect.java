@@ -14,12 +14,7 @@ public class TrailEffect extends BukkitRunnable {
     private final String trailName;
 
     private Location location = null;
-    private int r = 120;
-    private int g = 0;
-    private int b = 0;
-    private boolean r1 = true;
-    private boolean g1 = false;
-    private boolean b1 = false;
+    private int count = 0;
 
 
     public TrailEffect(Player p, Particle particle, int dustType, String trailName) {
@@ -39,79 +34,16 @@ public class TrailEffect extends BukkitRunnable {
         else {
             Color color = getNextColor();
             p.getWorld().spawnParticle(particle, loc, 2, 0, 0, 0, new Particle.DustOptions(color, 2));
+            count++;
+            if (count >= 500) count = 0;
         }
     }
 
     public Color getNextColor() {
-        // Increment Colors
-        if (r1) {
-            r+=10;
-            if (r > 255) r = 255;
-        }
-        if (g1) {
-            g+=10;
-            if (g > 255) g = 255;
-        }
-        if (b1) {
-            b+=10;
-            if (b > 255) b = 255;
-        }
-
-        if (r == 255 && r1 && !g1 && !b1) {
-            r1 = false;
-            g1 = true;
-            r = 0;
-            g = 120;
-            return Color.fromRGB(r, g, b);
-        }
-        if (g == 255 && !r1 && g1 && !b1) {
-            g1 = false;
-            b1 = true;
-            g = 0;
-            b = 120;
-            return Color.fromRGB(r, g, b);
-        }
-        if (b == 255 && !r1 && !g1 && b1) {
-            r1 = true;
-            g1 = true;
-            b1 = false;
-            r = 120;
-            g = 120;
-            b = 0;
-            return Color.fromRGB(r, g, b);
-        }
-        if (r == 255 && r1 && g1 && !b1) {
-            r1 = false;
-            b1 = true;
-            r = 0;
-            g = 120;
-            b = 120;
-            return Color.fromRGB(r, g, b);
-        }
-        if (g == 255 && !r1 && g1) {
-            r1 = true;
-            g1 = false;
-            r = 120;
-            g = 0;
-            b = 120;
-            return Color.fromRGB(r, g, b);
-        }
-        if (r == 255 && r1 && !g1) {
-            g1 = true;
-            r = 120;
-            g = 120;
-            b = 120;
-            return Color.fromRGB(r, g, b);
-        }
-        if (r == 255 && r1) {
-            g1 = false;
-            b1 = false;
-            r = 120;
-            g = 0;
-            b = 0;
-        }
-
-        return Color.fromRGB(r, g, b);
+        int red = (int) (Math.sin(count * 0.01) * 127 + 128);
+        int green = (int) (Math.sin(count * 0.01 + 2) * 127 + 128);
+        int blue = (int) (Math.sin(count * 0.01 + 4) * 127 + 128);
+        return Color.fromRGB(red, green, blue);
     }
 
     public String getTrailName() {
