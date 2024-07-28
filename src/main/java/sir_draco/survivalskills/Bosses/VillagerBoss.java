@@ -177,6 +177,7 @@ public class VillagerBoss extends Boss {
         double emeraldChance = Math.random();
         double teleportChance = Math.random();
         double rate = Math.max(0.01, (1 - getHealthPercentage()) * 0.1);
+        rate += getStage() * 0.1;
         if (teleportCooldown <= 0 && teleportChance < rate) {
             teleportCooldown = 60;
             teleportFinder(false, true, null, 0);
