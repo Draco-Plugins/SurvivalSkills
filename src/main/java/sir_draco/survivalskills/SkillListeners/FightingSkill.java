@@ -168,10 +168,7 @@ public class FightingSkill implements Listener {
             if (e.getClickedBlock() == null) return;
             Location loc = e.getClickedBlock().getLocation().clone().add(0, 1, 0);
             if (mainHand.getType().equals(Material.ZOMBIE_SPAWN_EGG)) spawnBoss("Giant", loc, p, mainHand);
-            else if (mainHand.getType().equals(Material.SPIDER_SPAWN_EGG)) {
-                e.setCancelled(true);
-                spawnBoss("BroodMother", loc, p, mainHand);
-            }
+            else if (mainHand.getType().equals(Material.SPIDER_SPAWN_EGG)) spawnBoss("BroodMother", loc, p, mainHand);
             else if (mainHand.getType().equals(Material.VILLAGER_SPAWN_EGG)) spawnBoss("The Exiled One", loc, p, mainHand);
             return;
         }

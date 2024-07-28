@@ -136,13 +136,14 @@ public class VillagerBoss extends Boss {
         }
         else {
             shieldParticles();
-            if (attackCount >= Math.pow(2, getStage())) {
+            if (attackCount >= Math.min(16, Math.pow(2, getStage()))) {
                 if (inAction) return;
 
                 // Allow the exiled one to be hit
                 hitPhase = true;
                 teleportFinder(true, false, null, -1);
                 attackCount = 0;
+                inAction = true;
 
                 // Play a sound a send a message to all nearby players
                 ArrayList<Player> players = getNearbyPlayers(50);
@@ -155,6 +156,7 @@ public class VillagerBoss extends Boss {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
+                        inAction = false;
                         hitPhase = false;
                         teleportFinder(false, false, null, 5);
                     }
@@ -423,7 +425,6 @@ public class VillagerBoss extends Boss {
             public void run() {
                 if (villager.getHealth() < startingHealth) {
                     villager.getWorld().playSound(villager.getLocation(), Sound.ENTITY_PILLAGER_AMBIENT, 10, 1);
-                    teleportFinder(false, true, null, 0);
                     healing = false;
                     cancel();
                     return;
