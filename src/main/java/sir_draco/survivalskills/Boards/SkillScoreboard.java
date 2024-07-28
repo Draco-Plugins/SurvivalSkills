@@ -102,8 +102,12 @@ public class SkillScoreboard {
             else team.setPrefix(colorString + "(" + playerMainSkill.getLevel() + ") ");
         }
 
+        if (skillName.equals("Main")) {
+            p.setScoreboard(board);
+            return;
+        }
+
         // Handle another skill being displayed
-        if (skillName.equals("Main")) return;
         Skill sideSkill = plugin.getSkillManager().getSkill(p.getUniqueId(), skillName);
         int skillLevel = sideSkill.getLevel();
         String skillXPNext;
@@ -118,7 +122,6 @@ public class SkillScoreboard {
         newTeam(board, "SkillXPNext", ChatColor.BLUE.toString(), ChatColor.GRAY + skillXPNext, 1);
         newTeam(board, "Skill", ChatColor.GRAY.toString(), ChatColor.GOLD + skillName + " Level " + ChatColor.AQUA + "(" + skillLevel + ")", 2);
         newTeam(board, "Empty", ChatColor.DARK_PURPLE.toString(), ChatColor.GRAY + "----------------", 3);
-        p.setScoreboard(board);
     }
 
     /**
