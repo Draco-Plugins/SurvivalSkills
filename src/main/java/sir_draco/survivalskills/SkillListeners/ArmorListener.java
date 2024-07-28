@@ -91,7 +91,12 @@ public class ArmorListener implements Listener {
         // Check if the player puts a beacon armor piece in their armor slot
         if (isPlayerInventory(clickedInventory) && e.getSlotType().equals(InventoryType.SlotType.ARMOR)) {
             PlayerInventory playerInventory = p.getInventory();
-            playerWearingBeaconArmor(p, playerInventory.getArmorContents());
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
+                }
+            }.runTaskLater(plugin, 1);
             return;
         }
 
