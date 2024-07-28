@@ -12,10 +12,13 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.Abilities.AbilityTimer;
 import sir_draco.survivalskills.Abilities.BerserkerEffects;
@@ -38,6 +41,7 @@ public class FightingSkill implements Listener {
     private final ArrayList<BroodMotherBoss> broodMothers = new ArrayList<>();
     private final ArrayList<VillagerBoss> villagers = new ArrayList<>();
     private final ArrayList<Player> noPhantomSpawns = new ArrayList<>();
+    private final ArrayList<Player> fixSlownessEffect = new ArrayList<>();
     private final HashMap<Player, Boss> summonTracker = new HashMap<>();
     private final HashMap<EntityType, Double> mobXP = new HashMap<>();
 
@@ -65,6 +69,7 @@ public class FightingSkill implements Listener {
                             ExiledBossMusic music = villager.getMusic();
                             if (music != null) music.setDead(true);
                             villager.removeBossSummonedMobs();
+                            fixSlownessEffect.add(p);
                         }
                     }
 
@@ -455,6 +460,14 @@ public class FightingSkill implements Listener {
                 e.getEntity().getType(), e.getLocation(), (LivingEntity) e.getEntity());
         dragonBoss.runTaskTimer(plugin, 0, 1);
         dragonBoss.setCanAttackPlayers(players);
+    }
+
+    @EventHandler
+    public void playerRespawn(PlayerRespawnEvent e) {
+        Player p = e.getPlayer();
+        if (fixSlownessEffect.contains(p)) return;
+        fixSlownessEffect.remove(p);
+        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 20, 0));
     }
 
     public void handleExperience(Player p, Entity ent) {
