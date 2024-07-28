@@ -404,6 +404,19 @@ public class PlayerListener implements Listener {
         p.getInventory().setItemInMainHand(hand);
     }
 
+    @EventHandler
+    public void useUnlimitedRocket(PlayerInteractEvent e) {
+        Player p = e.getPlayer();
+        if (!p.isGliding()) return;
+
+        ItemStack item = e.getItem();
+        if (!ItemStackGenerator.isCustomItem(item, 31)) return;
+        e.setCancelled(true);
+        // Apply the speed boost to the player
+        p.setVelocity(p.getLocation().getDirection().multiply(1.5));
+        p.getWorld().playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 1.0f, 1.0f);
+    }
+
     public HashMap<String, Boolean> enterTrophy(HashMap<String, Boolean> trophies, String trophyName) {
         if (trophies == null) {
             trophies = new HashMap<>();

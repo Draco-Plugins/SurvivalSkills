@@ -761,4 +761,18 @@ public class ItemStackGenerator {
         boots.setItemMeta(meta);
         return boots;
     }
+
+    public static ItemStack getUnlimitedEmptyBucket() {
+        String name = ColorParser.colorizeString("Unlimited Empty Bucket",
+                ColorParser.generateGradient("#FFFFFF", "#777777", "Unlimited Empty Bucket"), true);
+        String lore = ChatColor.GRAY + "Infinite empty bucket";
+        return createCustomItem(Material.BUCKET, 1, name, null, lore, null, 30, false, null);
+    }
+
+    public static ItemStack getUnlimitedRocket() {
+        String name = ColorParser.colorizeString("Unlimited Rocket",
+                ColorParser.generateGradient("#FF0000", "#FFFFFF", "Unlimited Rocket"), true);
+        String lore = ChatColor.GRAY + "Infinite rocket";
+        return createCustomItem(Material.FIREWORK_ROCKET, 1, name, null, lore, null, 31, false, null);
+    }
 }

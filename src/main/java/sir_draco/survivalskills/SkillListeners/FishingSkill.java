@@ -377,6 +377,17 @@ public class FishingSkill implements Listener {
     }
 
     @EventHandler
+    public void onBucketPickup(PlayerBucketFillEvent e) {
+        ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
+        if (!ItemStackGenerator.isCustomItem(hand, 30)) return;
+        Material type = e.getBlockClicked().getType();
+        if (!type.equals(Material.WATER) && !type.equals(Material.LAVA)) return;
+
+        e.setCancelled(true);
+        e.getBlockClicked().setType(Material.AIR);
+    }
+
+    @EventHandler
     public void onBucketUse(PlayerBucketEmptyEvent e) {
         ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
         if (!ItemStackGenerator.isCustomItem(hand)) return;
@@ -868,6 +879,9 @@ public class FishingSkill implements Listener {
         exoticLootTable.add(ItemStackGenerator.getTimeArtifact());
         exoticLootTable.add(ItemStackGenerator.getUnlimitedWaterBucket());
         exoticLootTable.add(ItemStackGenerator.getUnlimitedLavaBucket());
+        exoticLootTable.add(ItemStackGenerator.getUnlimitedEmptyBucket());
+        exoticLootTable.add(ItemStackGenerator.getUnlimitedRocket());
+        // exoticLootTable.add(ItemStackGenerator.getExperienceMultiplierVoucher());
     }
 
     public ArrayList<Player> getWaterBreathers() {
