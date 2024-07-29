@@ -464,7 +464,12 @@ public class FightingSkill implements Listener {
         Player p = e.getPlayer();
         if (fixSlownessEffect.contains(p)) return;
         fixSlownessEffect.remove(p);
-        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 20, 0));
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 20, 0));
+            }
+        }.runTaskLater(plugin, 40);
     }
 
     public void handleExperience(Player p, Entity ent) {

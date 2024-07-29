@@ -4,7 +4,10 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -136,7 +139,7 @@ public class VillagerBoss extends Boss {
         }
         else {
             shieldParticles();
-            if (attackCount >= Math.min(16, Math.pow(2, getStage()))) {
+            if (attackCount >= Math.max(2, 16 * (1 - getHealthPercentage()))) {
                 if (inAction) return;
 
                 // Allow the exiled one to be hit
@@ -177,7 +180,6 @@ public class VillagerBoss extends Boss {
         double emeraldChance = Math.random();
         double teleportChance = Math.random();
         double rate = Math.max(0.01, (1 - getHealthPercentage()) * 0.1);
-        rate += getStage() * 0.1;
         if (teleportCooldown <= 0 && teleportChance < rate) {
             teleportCooldown = 60;
             teleportFinder(false, true, null, 0);
@@ -270,26 +272,17 @@ public class VillagerBoss extends Boss {
                 removeDeathEntitiesLater(dummy, dragon);
             }
         }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 80);
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < 20; i++) {
-                    // Strike lightning nearby
-                    Location loc = dummy.getLocation().clone().add(Math.random() * 10 - 5, 0, Math.random() * 10 - 5);
-                    dummy.getWorld().strikeLightning(loc);
-                }
-            }
-        }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 180, 100);
     }
 
     public void emeraldAttack(boolean machineGun) {
         if (machineGun) {
+            inAction = true;
             new BukkitRunnable() {
                 private int count = 0;
                 @Override
                 public void run() {
                     if (count >= 10) {
+                        inAction = false;
                         cancel();
                         return;
                     }
@@ -309,6 +302,7 @@ public class VillagerBoss extends Boss {
         item.setGravity(false);
         item.setOwner(UUID.fromString("00000000-0000-0000-0000-000000000000"));
         item.setVelocity(ProjectileCalculator.getNoGravityVector(loc, summoner.getLocation().clone().add(0, 1, 0), 2));
+        item.setCustomName("Emerald Bullet");
         summoner.playSound(summoner, Sound.ENTITY_SHULKER_SHOOT, 1, 1);
 
         // Create a bukkit runnable that checks if the emerald is inside the target's hit-box
@@ -336,7 +330,7 @@ public class VillagerBoss extends Boss {
                         if (distance > 0.85 || yDist > 1.5) continue;
                         if (alreadyHitPlayers.contains(p)) continue;
                         alreadyHitPlayers.add(p);
-                        p.damage(40);
+                        p.damage(40, item);
                         p.playSound(p, Sound.BLOCK_ANVIL_HIT, 1, 1);
                     }
                 }
@@ -418,6 +412,7 @@ public class VillagerBoss extends Boss {
     public void heal() {
         // Spawn healing particles around the villager
         healing = true;
+        inAction = true;
         new BukkitRunnable() {
             private final double startingHealth = villager.getHealth();
             private int count = 0;
@@ -427,12 +422,14 @@ public class VillagerBoss extends Boss {
                 if (villager.getHealth() < startingHealth) {
                     villager.getWorld().playSound(villager.getLocation(), Sound.ENTITY_PILLAGER_AMBIENT, 10, 1);
                     healing = false;
+                    inAction = false;
                     cancel();
                     return;
                 }
 
                 if (count == 3) {
                     healing = false;
+                    inAction = false;
                     villager.setHealth(Math.min(villager.getHealth() + villager.getHealth() * 0.5, getMaxHealth()));
                     for (int i = 0; i < 10; i++) {
                         Location loc = villager.getLocation().clone().add(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
@@ -617,6 +614,7 @@ public class VillagerBoss extends Boss {
         item.setOwner(UUID.fromString("00000000-0000-0000-0000-000000000000"));
         item.setGravity(false);
         item.setVelocity(v.multiply(0.35));
+        item.setCustomName("Poison Projectile");
 
         new BukkitRunnable() {
             private int count = 0;
@@ -632,7 +630,7 @@ public class VillagerBoss extends Boss {
                 double distance = item.getLocation().distance(summoner.getLocation());
                 if (distance > 2.0) return;
                 summoner.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 200, 4));
-                summoner.damage(60);
+                summoner.damage(60, item);
                 summoner.playSound(summoner, Sound.BLOCK_BUBBLE_COLUMN_UPWARDS_AMBIENT, 1, 1);
             }
         }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 1);
@@ -648,7 +646,6 @@ public class VillagerBoss extends Boss {
         fireball.setDirection(direction);
 
         new BukkitRunnable() {
-
             @Override
             public void run() {
                 if (fireball.isDead()) {
