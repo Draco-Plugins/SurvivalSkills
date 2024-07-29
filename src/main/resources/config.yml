@@ -404,6 +404,10 @@ Fighting:
     Type: 'State'
   BerserkerVII:
     Enabled: true
+    Level: 97
+    Type: 'State'
+  BloodyDomain:
+    Enabled: true
     Level: 100
     Type: 'State'
 # Fishing Rewards Tree

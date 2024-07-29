@@ -69,6 +69,9 @@ commands:
   deathreturn:
     description: Allows a player to return to their death location
     permission: survivalskills.default
+  togglebloodydomain:
+    description: Allows a player to enable or disable Bloody Domain
+    permission: survivalskills.default
 
   gettrophy:
     description: Gives a specified trophy

@@ -22,6 +22,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.*;
 import sir_draco.survivalskills.Abilities.AbilityManager;
 import sir_draco.survivalskills.Abilities.AutoTrash;
+import sir_draco.survivalskills.Abilities.BloodyDomain;
 import sir_draco.survivalskills.Abilities.TrailEffect;
 import sir_draco.survivalskills.Commands.*;
 import sir_draco.survivalskills.Boards.Leaderboard;
@@ -201,6 +202,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new ToolBeltCommand(this);
         new VeinminerCommand(this);
         new WaterBreathingCommand(this);
+        new ToggleBloodyDomainCommand();
 
         // Admin Commands
         new BossCommand(this);
@@ -396,6 +398,11 @@ public final class SurvivalSkills extends JavaPlugin {
             boolean maxSkillMessage = data.getBoolean(uuid + ".MaxSkillMessage");
             skillManager.getMaxSkillMessage().put(p, maxSkillMessage);
         }
+
+        if (data.contains(uuid + ".BloodyDomain")) {
+            boolean bloodyDomain = data.getBoolean(uuid + ".BloodyDomain");
+            if (bloodyDomain) abilityManager.startBloodyDomain(p);
+        }
     }
 
     public void loadScoreboardSetting(UUID uuid, FileConfiguration data) {
@@ -434,6 +441,9 @@ public final class SurvivalSkills extends JavaPlugin {
 
         if (miningListener.getPeacefulMiners().contains(p)) data.set(uuid + ".PeacefulMiner", true);
         else data.set(uuid + ".PeacefulMiner", false);
+
+        if (abilityManager.getBloodyDomainTracker().containsKey(p)) data.set(uuid + ".BloodyDomain", true);
+        else data.set(uuid + ".BloodyDomain", false);
 
         skillManager.savePlayerSkillData(uuid, data);
         skillManager.savePlayerMultiplier(p, data);
@@ -476,6 +486,9 @@ public final class SurvivalSkills extends JavaPlugin {
 
             if (miningListener.getPeacefulMiners().contains(p)) data.set(uuid + ".PeacefulMiner", true);
             else data.set(uuid + ".PeacefulMiner", false);
+
+            if (abilityManager.getBloodyDomainTracker().containsKey(p)) data.set(uuid + ".BloodyDomain", true);
+            else data.set(uuid + ".BloodyDomain", false);
 
             skillManager.savePlayerMultiplier(p, data);
         }
@@ -635,6 +648,7 @@ public final class SurvivalSkills extends JavaPlugin {
         loadPermaTrash(p);
         getMiningListener().hideGlowForPlayer(p);
         armorListener.playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
+        abilityManager.startBloodyDomain(p);
 
         // Handle the scoreboard
         if (newPlayer) SkillScoreboard.initializeScoreboard(this, p);
@@ -644,7 +658,6 @@ public final class SurvivalSkills extends JavaPlugin {
     }
 
     public void createFarmingList() {
-        //farmingList.add(Material.SUGAR_CANE); // Needs to be bug prevented || cactus, bamboo, seaweed
         farmingList.add(Material.SUGAR_CANE);
         farmingList.add(Material.CACTUS);
         farmingList.add(Material.KELP_PLANT);

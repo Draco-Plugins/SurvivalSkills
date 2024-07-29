@@ -5,9 +5,11 @@ import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
@@ -17,15 +19,19 @@ import java.util.Map;
 
 public class AbilityManager {
 
+    private static final ArrayList<EntityType> domainMobs = new ArrayList<>();
+
     private final SurvivalSkills plugin;
     private final HashMap<Player, ArrayList<AbilityTimer>> timerTracker = new HashMap<>();
     private final HashMap<Player, TrailEffect> trailTracker = new HashMap<>();
     private final HashMap<String, Particle> trails = new HashMap<>();
+    private final HashMap<Player, BloodyDomain> bloodyDomainTracker = new HashMap<>();
     private final ArrayList<Entity> mobsScanned = new ArrayList<>();
 
     public AbilityManager(SurvivalSkills plugin) {
         this.plugin = plugin;
         createTrails();
+        createDomainMobs();
     }
 
     public Inventory loadToolBelt(Player p) {
@@ -71,6 +77,15 @@ public class AbilityManager {
             saveToolBelt(toolBelt.getKey(), toolBelt.getValue());
 
         saveToolBeltFile(file, data);
+    }
+
+    public void startBloodyDomain(Player p) {
+        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Fighting", "BloodyDomain");
+        if (reward == null || !reward.isApplied()) return;
+
+        BloodyDomain domain = new BloodyDomain(p);
+        domain.runTaskTimerAsynchronously(plugin, 0, 20);
+        bloodyDomainTracker.put(p, domain);
     }
 
     public void endPlayerTimers(Player p) {
@@ -121,6 +136,42 @@ public class AbilityManager {
         trails.put("Rainbow", Particle.DUST);
     }
 
+    public void createDomainMobs() {
+        domainMobs.add(EntityType.BLAZE);
+        domainMobs.add(EntityType.BOGGED);
+        domainMobs.add(EntityType.BREEZE);
+        domainMobs.add(EntityType.CAVE_SPIDER);
+        domainMobs.add(EntityType.CREEPER);
+        domainMobs.add(EntityType.DROWNED);
+        domainMobs.add(EntityType.ENDERMAN);
+        domainMobs.add(EntityType.ENDERMITE);
+        domainMobs.add(EntityType.EVOKER);
+        domainMobs.add(EntityType.GHAST);
+        domainMobs.add(EntityType.GUARDIAN);
+        domainMobs.add(EntityType.HOGLIN);
+        domainMobs.add(EntityType.HUSK);
+        domainMobs.add(EntityType.ILLUSIONER);
+        domainMobs.add(EntityType.MAGMA_CUBE);
+        domainMobs.add(EntityType.PHANTOM);
+        domainMobs.add(EntityType.PIGLIN);
+        domainMobs.add(EntityType.PIGLIN_BRUTE);
+        domainMobs.add(EntityType.PILLAGER);
+        domainMobs.add(EntityType.RAVAGER);
+        domainMobs.add(EntityType.SHULKER);
+        domainMobs.add(EntityType.SILVERFISH);
+        domainMobs.add(EntityType.SKELETON);
+        domainMobs.add(EntityType.SLIME);
+        domainMobs.add(EntityType.SPIDER);
+        domainMobs.add(EntityType.STRAY);
+        domainMobs.add(EntityType.VEX);
+        domainMobs.add(EntityType.VINDICATOR);
+        domainMobs.add(EntityType.WITCH);
+        domainMobs.add(EntityType.WITHER_SKELETON);
+        domainMobs.add(EntityType.ZOGLIN);
+        domainMobs.add(EntityType.ZOMBIE);
+        domainMobs.add(EntityType.ZOMBIE_VILLAGER);
+    }
+
     public HashMap<String, Particle> getTrails() {
         return trails;
     }
@@ -135,5 +186,13 @@ public class AbilityManager {
 
     public ArrayList<Entity> getMobsScanned() {
         return mobsScanned;
+    }
+
+    public static ArrayList<EntityType> getDomainMobs() {
+        return domainMobs;
+    }
+
+    public HashMap<Player, BloodyDomain> getBloodyDomainTracker() {
+        return bloodyDomainTracker;
     }
 }

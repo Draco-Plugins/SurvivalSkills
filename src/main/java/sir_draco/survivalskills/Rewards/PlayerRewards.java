@@ -14,6 +14,8 @@ import java.util.Map;
 public class PlayerRewards {
 
     private final HashMap<String, ArrayList<Reward>> rewardList = new HashMap<>();
+    private final double exoticFishingLootChance = 0.0001;
+
     private boolean unbreakableTools = false;
     private boolean addedDeathResistance = false;
     private double fortuneChance = 0;
@@ -27,7 +29,6 @@ public class PlayerRewards {
     private double rareFishingLootChance = 0;
     private double epicFishingLootChance = 0;
     private double legendaryFishingLootChance = 0;
-    private double exoticFishingLootChance = 0.0001;
     private double experienceMultiplier = 1;
     private double materialsBack = 0;
     private double extraOutput = 0;
@@ -616,6 +617,9 @@ public class PlayerRewards {
                         break;
                     case "CriticalII":
                         setCriticalChance(0.2);
+                        break;
+                    case "BloodyDomain":
+                        plugin.getAbilityManager().startBloodyDomain(p);
                         break;
                 }
                 break;
