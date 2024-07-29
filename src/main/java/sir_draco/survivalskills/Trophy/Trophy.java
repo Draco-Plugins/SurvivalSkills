@@ -16,6 +16,7 @@ public class Trophy {
     private final int id;
     private final String playerName;
     private TrophyEffects effects;
+    private int npcID = -1;
 
     public Trophy(Location loc, UUID uuid, String type, int id, String playerName) {
         this.loc = loc;
@@ -34,6 +35,19 @@ public class Trophy {
         int type = getTrophyType();
         // Item Entity
         effects = new TrophyEffects(plugin, loc, type, this, playerName);
+        effects.runTaskTimer(plugin, 20, 2);
+    }
+
+    public void spawnTrophy(SurvivalSkills plugin, int npcID) {
+        // Block
+        Block block = loc.getBlock();
+        block.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
+        block.getState().update();
+
+        this.npcID = npcID;
+        int type = getTrophyType();
+        // Item Entity
+        effects = new TrophyEffects(plugin, loc, type, this, playerName, npcID);
         effects.runTaskTimer(plugin, 20, 2);
     }
 
@@ -114,5 +128,9 @@ public class Trophy {
 
     public String getPlayerName() {
         return playerName;
+    }
+
+    public int getNPCID() {
+        return npcID;
     }
 }

@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.Rewards.Reward;
@@ -21,6 +22,7 @@ public class TrophyManager {
     private final HashMap<UUID, HashMap<String, Boolean>> trophyTracker = new HashMap<>();
     private final HashMap<Location, Trophy> trophies = new HashMap<>();
     private final HashMap<Integer, ItemStack> trophyItems = new HashMap<>();
+    private final HashMap<Player, Integer> godNPCIDs = new HashMap<>();
 
     public TrophyManager(SurvivalSkills plugin) {
         this.plugin = plugin;
@@ -47,9 +49,21 @@ public class TrophyManager {
                 UUID uuid = UUID.fromString(uuidString);
                 String type = trophyData.getString(key + ".Type");
                 String playerName = trophyData.getString(key + ".PlayerName");
-                Trophy trophy = new Trophy(loc, uuid, type, id, playerName);
-                trophy.spawnTrophy(plugin);
-                trophies.put(loc, trophy);
+
+                if (type != null && type.equalsIgnoreCase("godtrophy")) {
+                    int npcID = -1;
+                    if (trophyData.contains(key + ".NPCID")) npcID = trophyData.getInt(key + ".NPCID");
+                    getGodNPCIDs().put(Bukkit.getPlayer(uuid), npcID);
+
+                    Trophy trophy = new Trophy(loc, uuid, type, id, playerName);
+                    trophy.spawnTrophy(plugin, npcID);
+                    trophies.put(loc, trophy);
+                }
+                else {
+                    Trophy trophy = new Trophy(loc, uuid, type, id, playerName);
+                    trophy.spawnTrophy(plugin);
+                    trophies.put(loc, trophy);
+                }
             }
         });
     }
@@ -85,6 +99,9 @@ public class TrophyManager {
             trophyData.set(trophy.getValue().getID() + ".UUID", trophy.getValue().getUUID().toString());
             trophyData.set(trophy.getValue().getID() + ".Type", trophy.getValue().getType());
             trophyData.set(trophy.getValue().getID() + ".PlayerName", trophy.getValue().getPlayerName());
+
+            if (trophy.getValue().getType().equalsIgnoreCase("godtrophy"))
+                trophyData.set(trophy.getValue().getID() + ".NPCID", trophy.getValue().getNPCID());
         }
 
         trophyData.save(plugin.getTrophyFile());
@@ -173,5 +190,9 @@ public class TrophyManager {
 
     public HashMap<Location, Trophy> getTrophies() {
         return trophies;
+    }
+
+    public HashMap<Player, Integer> getGodNPCIDs() {
+        return godNPCIDs;
     }
 }

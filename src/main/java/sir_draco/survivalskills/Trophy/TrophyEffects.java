@@ -24,6 +24,7 @@ public class TrophyEffects extends BukkitRunnable {
 
     private int cycle = 1;
     private int playerCheckTimer = 1;
+    private int npcID = -1;
     private Item entity;
     private Entity mob;
     private CircularRotationObject mobTrophyOrbital = null;
@@ -37,6 +38,25 @@ public class TrophyEffects extends BukkitRunnable {
         this.loc = loc;
         this.type = type;
         this.trophy = trophy;
+        if (type == 10) {
+            this.playerName = playerName;
+            if (plugin.getServer().getPluginManager().getPlugin("Citizens") == null) {
+                plugin.getLogger().warning("Citizens not found, disabling God Trophy");
+                return;
+            }
+            if (plugin.getServer().getPluginManager().isPluginEnabled("Citizens")) citizensEnabled = true;
+            return;
+        }
+        spawnItem(0.5, 1.0, 0.5);
+        typeSpecificStart();
+    }
+
+    public TrophyEffects(SurvivalSkills plugin, Location loc, int type, Trophy trophy, String playerName, int npcID) {
+        this.plugin = plugin;
+        this.loc = loc;
+        this.type = type;
+        this.trophy = trophy;
+        this.npcID = npcID;
         if (type == 10) {
             this.playerName = playerName;
             if (plugin.getServer().getPluginManager().getPlugin("Citizens") == null) {
@@ -676,7 +696,10 @@ public class TrophyEffects extends BukkitRunnable {
 
     public void godParticles() {
         if (!citizensEnabled) return;
-        if (cycle == 1) godTrophy = new GodTrophyEffects(loc);
+        if (cycle == 1) {
+            if (npcID == - 1) godTrophy = new GodTrophyEffects(loc);
+            else godTrophy = new GodTrophyEffects(loc, npcID);
+        }
 
         if (cycle < 122) {
             // Spawn grass block item and send it to the sky

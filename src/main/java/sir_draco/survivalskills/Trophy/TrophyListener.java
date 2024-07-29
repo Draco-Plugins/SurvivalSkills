@@ -151,9 +151,17 @@ public class TrophyListener implements Listener {
         }
         else if (hand.getType().equals(Material.GRASS_BLOCK)) {
             above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "GodTrophy", plugin.getTrophyManager().generateTrophyID(), playerName);
-            trophy.spawnTrophy(plugin);
-            plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
+
+            if (plugin.getTrophyManager().getGodNPCIDs().containsKey(p)) {
+                trophy = new Trophy(above.getLocation(), p.getUniqueId(), "GodTrophy", plugin.getTrophyManager().generateTrophyID(), playerName);
+                trophy.spawnTrophy(plugin, plugin.getTrophyManager().getGodNPCIDs().get(p));
+                plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
+            }
+            else {
+                trophy = new Trophy(above.getLocation(), p.getUniqueId(), "GodTrophy", plugin.getTrophyManager().generateTrophyID(), playerName);
+                trophy.spawnTrophy(plugin);
+                plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
+            }
         }
     }
 
@@ -186,12 +194,14 @@ public class TrophyListener implements Listener {
             e.setCancelled(true);
             return;
         }
+
         if (plugin.getTrophyManager().getTrophies().containsKey(loc.clone().add(0, 1, 0))) {
             e.getPlayer().sendRawMessage(ChatColor.RED + "There is a trophy on this block");
             e.getPlayer().playSound(e.getPlayer(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             e.setCancelled(true);
             return;
         }
+
         if (!plugin.getTrophyManager().getTrophies().containsKey(loc)) return;
         e.setCancelled(true);
         Trophy trophy = plugin.getTrophyManager().getTrophies().get(loc);

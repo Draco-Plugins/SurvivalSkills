@@ -36,12 +36,22 @@ public class GodTrophyEffects {
     private boolean movingUp = false;
     private NPC npcPlayer;
     private double crystalRadians = 0;
+    private int npcID;
 
     public GodTrophyEffects(Location trophyLoc) {
         this.trophyLoc = trophyLoc;
         centerX = trophyLoc.getX() + 0.5;
         centerY = trophyLoc.getY() + 1.5;
         centerZ = trophyLoc.getZ() + 0.5;
+        this.npcID = -1;
+    }
+
+    public GodTrophyEffects(Location trophyLoc, int npcID) {
+        this.trophyLoc = trophyLoc;
+        centerX = trophyLoc.getX() + 0.5;
+        centerY = trophyLoc.getY() + 1.5;
+        centerZ = trophyLoc.getZ() + 0.5;
+        this.npcID = npcID;
     }
 
     public void startAnimation() {
@@ -129,6 +139,13 @@ public class GodTrophyEffects {
     }
 
     public void spawnPlayer(String name) {
+        if (npcID != -1) {
+            npcPlayer = CitizensAPI.getNPCRegistry().getById(npcID);
+            if (npcPlayer == null) return;
+            npcPlayer.spawn(trophyLoc.clone().add(0.5, 2.0, 0.5));
+            return;
+        }
+
         String npcName = ColorParser.colorizeString("God Trophy", ColorParser.generateGradient("#FFFF00", "#FFFFFF", 10), true);
         npcPlayer = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, npcName);
         if (npcPlayer == null) return;
@@ -140,13 +157,12 @@ public class GodTrophyEffects {
         gravity.toggle();
 
         SkinTrait skin = npcPlayer.getOrAddTrait(SkinTrait.class);
-        skin.setSkinName(name, true);
-
-        getText(name);
+        skin.setSkinName(name, false);
 
         new BukkitRunnable() {
             @Override
             public void run() {
+                getText(name);
                 LookClose look = npcPlayer.getOrAddTrait(LookClose.class);
                 look.lookClose(true);
             }
@@ -188,8 +204,7 @@ public class GodTrophyEffects {
 
     public void removePlayer() {
         if (npcPlayer == null) return;
-        npcPlayer.destroy();
-        npcPlayer = null;
+        npcPlayer.despawn();
     }
 
     public void spawnCrystal(double x, double y, double z) {
