@@ -84,7 +84,7 @@ public class AbilityManager {
         if (reward == null || !reward.isApplied()) return;
 
         BloodyDomain domain = new BloodyDomain(p);
-        domain.runTaskTimerAsynchronously(plugin, 0, 20);
+        domain.runTaskTimer(plugin, 0, 20);
         bloodyDomainTracker.put(p, domain);
     }
 

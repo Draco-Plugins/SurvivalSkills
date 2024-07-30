@@ -22,7 +22,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scoreboard.*;
 import sir_draco.survivalskills.Abilities.AbilityManager;
 import sir_draco.survivalskills.Abilities.AutoTrash;
-import sir_draco.survivalskills.Abilities.BloodyDomain;
 import sir_draco.survivalskills.Abilities.TrailEffect;
 import sir_draco.survivalskills.Commands.*;
 import sir_draco.survivalskills.Boards.Leaderboard;
@@ -648,7 +647,6 @@ public final class SurvivalSkills extends JavaPlugin {
         loadPermaTrash(p);
         getMiningListener().hideGlowForPlayer(p);
         armorListener.playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
-        abilityManager.startBloodyDomain(p);
 
         // Handle the scoreboard
         if (newPlayer) SkillScoreboard.initializeScoreboard(this, p);

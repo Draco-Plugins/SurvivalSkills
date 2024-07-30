@@ -411,6 +411,10 @@ public class RewardNotifications {
                         p.sendRawMessage(ChatColor.GREEN + "You can now use Mob Scanner by using" + ChatColor.AQUA + " /mobscanner");
                         p.sendRawMessage(ChatColor.GREEN + "Mob Scanner will show you where nearby mobs are");
                         break;
+                    case "BloodyDomain":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now use Bloody Domain by using" + ChatColor.AQUA + " /togglebloodydomain");
+                        p.sendRawMessage(ChatColor.GREEN + "Bloody Domain will kill all weak mobs within a 10 block radius");
+                        break;
                 }
                 break;
             case "Fishing":
@@ -1018,6 +1022,9 @@ public class RewardNotifications {
                     case "MobScanner":
                         return ChatColor.GRAY + "You can now use Mob Scanner by using" + ChatColor.AQUA + " /mobscanner\n" +
                                 ChatColor.GRAY + "Mob Scanner will show you where nearby mobs are";
+                    case "BloodyDomain":
+                        return ChatColor.GRAY + "You can now use Bloody Domain by using" + ChatColor.AQUA + " /togglebloodydomain\n" +
+                                ChatColor.GRAY + "Bloody Domain will kill all weak mobs in a 10 block radius";
                 }
                 break;
             case "Fishing":
