@@ -16,11 +16,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import sir_draco.survivalskills.Abilities.AbilityTimer;
 import sir_draco.survivalskills.Abilities.FlyingTimer;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.Skills.Skill;
@@ -124,6 +126,16 @@ public class BuildingSkill implements Listener {
         sortChestInventory(chestInventory.getContents().clone(), chestInventory);
         p.sendRawMessage(ChatColor.GREEN + "Chest sorted!");
         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+    }
+
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent e) {
+        AbilityTimer timer = plugin.getAbilityManager().getAbility(e.getPlayer(), "Flight");
+        if (timer == null || !timer.isActive()) return;
+        Player p = e.getPlayer();
+        p.setAllowFlight(true);
+        p.setFlying(true);
+        p.setFlySpeed(timer.getFlightSpeed());
     }
 
     public void sortChestInventory(ItemStack[] inventoryItems, Inventory chest) {
@@ -381,5 +393,6 @@ public class BuildingSkill implements Listener {
         brokenBlocks.add("GLOW_LICHEN_PLANT");
         brokenBlocks.add("GLOW_BERRIES");
         brokenBlocks.add("DRAGON_WALL_HEAD");
+        brokenBlocks.add("TRIPWIRE");
     }
 }

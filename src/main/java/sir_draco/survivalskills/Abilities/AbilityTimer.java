@@ -9,9 +9,11 @@ public class AbilityTimer extends BukkitRunnable {
     private final SurvivalSkills plugin;
     private final String name;
     private final Player p;
-    private int activeTimeLeft;
+
     private boolean active = true;
+    private int activeTimeLeft;
     private int timeTillReset;
+    private float flightSpeed;
 
     public AbilityTimer(SurvivalSkills plugin, String name, Player p, int activeTimeLeft, int timeTillReset) {
         this.plugin = plugin;
@@ -65,5 +67,13 @@ public class AbilityTimer extends BukkitRunnable {
     public void endCooldown() {
         timeTillReset = 0;
         this.cancel();
+    }
+
+    public void setFlightSpeed(float flightSpeed) {
+        this.flightSpeed = flightSpeed;
+    }
+
+    public float getFlightSpeed() {
+        return flightSpeed;
     }
 }

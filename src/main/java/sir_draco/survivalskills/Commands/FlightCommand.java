@@ -100,6 +100,7 @@ public class FlightCommand implements CommandExecutor {
         p.setFlying(true);
         p.setFlySpeed(baseSpeed * speed);
         AbilityTimer abilityTimer = new AbilityTimer(plugin, "Flight", p, activeTime, resetTime);
+        abilityTimer.setFlightSpeed(baseSpeed * speed);
         abilityTimer.runTaskTimerAsynchronously(plugin, 0, 20);
         plugin.getAbilityManager().addAbility(p, abilityTimer);
         FlyingTimer flyingTimer = new FlyingTimer(plugin, p, activeTime);
