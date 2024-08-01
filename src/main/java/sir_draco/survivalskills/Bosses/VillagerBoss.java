@@ -4,10 +4,7 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
-import org.bukkit.damage.DamageSource;
-import org.bukkit.damage.DamageType;
 import org.bukkit.entity.*;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -670,19 +667,23 @@ public class VillagerBoss extends Boss {
     }
 
     public void teleport(Location loc) {
-        ProjectileCalculator.particleLine(villager.getLocation(), loc, Particle.DUST, Color.AQUA);
-        villager.teleport(loc);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                ProjectileCalculator.particleLine(villager.getLocation(), loc, Particle.DUST, Color.AQUA);
+                villager.teleport(loc);
+            }
+        }.runTask(SurvivalSkills.getPlugin(SurvivalSkills.class));
     }
 
-    public boolean teleportFinder(boolean findGround, boolean random, Location randomLoc, int relativeY) {
-        if (inAction) return false;
+    public boolean teleport(boolean findGround, boolean random, Location randomLoc, int relativeY) {
         if (random) {
             if (randomLoc != null) {
                 Location loc = randomLoc.add(0, 1, 0);
                 boolean isAir = loc.getBlock().isEmpty();
                 boolean isAirAbove = loc.getBlock().getRelative(0, 1, 0).isEmpty();
-                if (!isAir && isAirAbove) return teleportFinder(false, true, loc.add(0, 1, 0), 0);
-                else if (!isAir) return teleportFinder(false, true, loc.add(0, 2, 0), 0);
+                if (!isAir && isAirAbove) return teleport(false, true, loc.add(0, 1, 0), 0);
+                else if (!isAir) return teleport(false, true, loc.add(0, 2, 0), 0);
                 teleport(loc);
                 return true;
             }
@@ -692,14 +693,14 @@ public class VillagerBoss extends Boss {
             else loc = randomLocation();
             boolean isAir = loc.getBlock().isEmpty();
             boolean isAirAbove = loc.getBlock().getRelative(0, 1, 0).isEmpty();
-            if (!isAir && isAirAbove) return teleportFinder(false, true, loc.add(0, 1, 0), 0);
-            else if (!isAir) return teleportFinder(false, true, loc.add(0, 2, 0), 0);
+            if (!isAir && isAirAbove) return teleport(false, true, loc.add(0, 1, 0), 0);
+            else if (!isAir) return teleport(false, true, loc.add(0, 2, 0), 0);
             teleport(loc);
             return true;
         }
         else if (findGround) {
             Location loc = villager.getLocation().clone().add(0, relativeY, 0);
-            if (loc.getBlock().isEmpty()) return teleportFinder(true, false, null, relativeY - 1);
+            if (loc.getBlock().isEmpty()) return teleport(true, false, null, relativeY - 1);
             teleport(loc.add(0, 1, 0));
             return true;
         }
@@ -707,11 +708,22 @@ public class VillagerBoss extends Boss {
             Location loc = villager.getLocation().clone().add(0, relativeY, 0);
             boolean isAir = loc.getBlock().isEmpty();
             boolean isAirAbove = loc.getBlock().getRelative(0, 1, 0).isEmpty();
-            if (!isAir && isAirAbove) return teleportFinder(false, false, null, relativeY + 1);
-            else if (!isAir) return teleportFinder(false, false, null, relativeY + 2);
+            if (!isAir && isAirAbove) return teleport(false, false, null, relativeY + 1);
+            else if (!isAir) return teleport(false, false, null, relativeY + 2);
             teleport(loc);
             return true;
         }
+    }
+
+    public void teleportFinder(boolean findGround, boolean random, Location randomLoc, int relativeY) {
+        if (inAction) return;
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                teleport(findGround, random, randomLoc, relativeY);
+            }
+        }.runTaskAsynchronously(SurvivalSkills.getPlugin(SurvivalSkills.class));
     }
 
     public void teleportLater(int delay, boolean findGround, boolean random, int relativeY) {
