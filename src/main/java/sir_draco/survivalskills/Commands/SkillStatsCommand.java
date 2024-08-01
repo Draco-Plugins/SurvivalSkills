@@ -42,7 +42,8 @@ public class SkillStatsCommand implements CommandExecutor {
         Player p = (Player) sender;
 
         if (strings.length == 0) {
-            for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId())) skill.printStats(p, true);
+            for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId()).getSkills())
+                skill.printStats(p, true);
             return true;
         }
 
@@ -160,7 +161,8 @@ public class SkillStatsCommand implements CommandExecutor {
                 return true;
             }
 
-            for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(play.getUniqueId())) skill.printStats(p, false);
+            for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(play.getUniqueId()).getSkills())
+                skill.printStats(p, false);
             return true;
         }
 

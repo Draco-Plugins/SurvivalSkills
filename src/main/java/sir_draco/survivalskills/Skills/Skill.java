@@ -15,10 +15,10 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class Skill {
+    private static final double scalar = 2749.22119298367;
+    private static String skillName = "";
 
     private final int maxLevel = 100;
-    private final String skillName;
-    private final double scalar = 2749.22119298367;
     private final int maxExperience = 1000000;
 
     private double experience;
@@ -39,7 +39,7 @@ public class Skill {
     public Skill(double experience, int level, String name) {
         this.experience = experience;
         this.level = level;
-        this.skillName = name;
+        skillName = name;
         // Store the total XP to go from the current level to the next level
         setExperienceSoFarInLevel();
         setRawExperienceForNextLevel();
@@ -63,63 +63,65 @@ public class Skill {
             skill.setCurrentMaxMessage(true);
             return;
         }
-        if (skill.getLevel() != 100) {
-            if (plugin.getToggledScoreboard().containsKey(p.getUniqueId()) && plugin.getToggledScoreboard().get(p.getUniqueId())
-                    && xp != 0)
-                sendActionBarMessage(p, ChatColor.GRAY + skillName + ChatColor.YELLOW + " (+" + xp + ")");
-            if (skill.changeExperience(xp, plugin.getTrophyManager().playerMaxSkillLevel(uuid))) {
-                skill.levelUpNotification(p);
-                plugin.getSkillManager().getPlayerRewards(p).handleReward(plugin, p, skill, skillName, true);
-                if (plugin.getLeaderboardTracker().containsKey(p.getUniqueId())) {
-                    LeaderboardPlayer player = plugin.getLeaderboardTracker().get(p.getUniqueId());
-                    setScore(player, p, plugin, skill.getSkillName());
-                    plugin.getLeaderboardTracker().put(p.getUniqueId(), player);
-                }
-                else {
-                    plugin.getLeaderboardTracker().put(p.getUniqueId(), Leaderboard.createLeaderboardPlayer(plugin, p));
-                    setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, skill.getSkillName());
-                }
+
+        if (skill.getLevel() >= 100) return;
+        xp = checkXPCap(skill.getExperience(), xp, plugin.getTrophyManager().playerMaxSkillLevel(uuid));
+
+        if (plugin.getToggledScoreboard().containsKey(p.getUniqueId()) && plugin.getToggledScoreboard().get(p.getUniqueId())
+                && xp != 0)
+            sendActionBarMessage(p, ChatColor.GRAY + skillName + ChatColor.YELLOW + " (+" + xp + ")");
+        if (skill.changeExperience(xp, plugin.getTrophyManager().playerMaxSkillLevel(uuid))) {
+            skill.levelUpNotification(p);
+            plugin.getSkillManager().getPlayerRewards(p).handleReward(plugin, p, skill, skillName, true);
+            if (plugin.getLeaderboardTracker().containsKey(p.getUniqueId())) {
+                LeaderboardPlayer player = plugin.getLeaderboardTracker().get(p.getUniqueId());
+                setScore(player, p, plugin, skill.getSkillName());
+                plugin.getLeaderboardTracker().put(p.getUniqueId(), player);
             }
-
-            // Check the main skill
-            Skill main = plugin.getSkillManager().getSkill(uuid, "Main");
-            if (main.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) {
-                plugin.getSkillManager().checkMainXP(p);
-                SkillScoreboard.updateScoreboard(plugin, p, skillName);
-                return;
+            else {
+                plugin.getLeaderboardTracker().put(p.getUniqueId(), Leaderboard.createLeaderboardPlayer(plugin, p));
+                setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, skill.getSkillName());
             }
-            if (main.changeExperience(xp / 7.0, plugin.getTrophyManager().playerMaxSkillLevel(uuid))) {
-                main.levelUpNotification(p);
-                plugin.getSkillManager().getPlayerRewards(p).handleReward(plugin, p, main, "Main", true);
-                if (main.getLevel() == 100) {
-                    HashMap<String, Boolean> trophies = plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId());
-                    trophies.put("GodTrophy", true);
-                    plugin.getTrophyManager().getTrophyTracker().put(p.getUniqueId(), trophies);
-
-                    // Add the god trophy to the player's inventory, if their inventory is full drop it
-                    if (!p.getInventory().addItem(plugin.getTrophyManager().getTrophyItem(10)).isEmpty())
-                        p.getWorld().dropItem(p.getLocation(), plugin.getTrophyManager().getTrophyItem(10));
-
-                    plugin.getServer().broadcastMessage(ChatColor.AQUA + p.getName() + " has maxed out all of their skills!");
-                    plugin.getServer().broadcastMessage(ChatColor.GREEN + "Congratulate the hard work they put in!");
-                    for (Player player : Bukkit.getOnlinePlayers())
-                        player.playSound(player, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
-                    p.sendRawMessage(ChatColor.GREEN + "You have been awarded a trophy for maxing out all of your skills!");
-                }
-
-                if (plugin.getLeaderboardTracker().containsKey(p.getUniqueId())) {
-                    LeaderboardPlayer player = plugin.getLeaderboardTracker().get(p.getUniqueId());
-                    setScore(player, p, plugin, main.getSkillName());
-                    plugin.getLeaderboardTracker().put(p.getUniqueId(), player);
-                }
-                else {
-                    plugin.getLeaderboardTracker().put(p.getUniqueId(), Leaderboard.createLeaderboardPlayer(plugin, p));
-                    setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, main.getSkillName());
-                }
-            }
-            SkillScoreboard.updateScoreboard(plugin, p, skillName);
-            if (xp != 0) experienceEvent(plugin, p, 0, skillName);
         }
+
+        // Check the main skill
+        Skill main = plugin.getSkillManager().getSkill(uuid, "Main");
+        if (main.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) {
+            plugin.getSkillManager().checkMainXP(p);
+            SkillScoreboard.updateScoreboard(plugin, p, skillName);
+            return;
+        }
+        if (main.changeExperience(xp / 7.0, plugin.getTrophyManager().playerMaxSkillLevel(uuid))) {
+            main.levelUpNotification(p);
+            plugin.getSkillManager().getPlayerRewards(p).handleReward(plugin, p, main, "Main", true);
+            if (main.getLevel() == 100) {
+                HashMap<String, Boolean> trophies = plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId());
+                trophies.put("GodTrophy", true);
+                plugin.getTrophyManager().getTrophyTracker().put(p.getUniqueId(), trophies);
+
+                // Add the god trophy to the player's inventory, if their inventory is full drop it
+                if (!p.getInventory().addItem(plugin.getTrophyManager().getTrophyItem(10)).isEmpty())
+                    p.getWorld().dropItem(p.getLocation(), plugin.getTrophyManager().getTrophyItem(10));
+
+                plugin.getServer().broadcastMessage(ChatColor.AQUA + p.getName() + " has maxed out all of their skills!");
+                plugin.getServer().broadcastMessage(ChatColor.GREEN + "Congratulate the hard work they put in!");
+                for (Player player : Bukkit.getOnlinePlayers())
+                    player.playSound(player, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
+                p.sendRawMessage(ChatColor.GREEN + "You have been awarded a trophy for maxing out all of your skills!");
+            }
+
+            if (plugin.getLeaderboardTracker().containsKey(p.getUniqueId())) {
+                LeaderboardPlayer player = plugin.getLeaderboardTracker().get(p.getUniqueId());
+                setScore(player, p, plugin, main.getSkillName());
+                plugin.getLeaderboardTracker().put(p.getUniqueId(), player);
+            }
+            else {
+                plugin.getLeaderboardTracker().put(p.getUniqueId(), Leaderboard.createLeaderboardPlayer(plugin, p));
+                setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, main.getSkillName());
+            }
+        }
+        SkillScoreboard.updateScoreboard(plugin, p, skillName);
+        if (xp != 0) experienceEvent(plugin, p, 0, skillName);
     }
 
     /**
@@ -209,7 +211,7 @@ public class Skill {
      * Returns the amount of XP needed for all levels up to
      * and including the level inputted
      */
-    public int totalExperienceForLevel(int level) {
+    public static int totalExperienceForLevel(int level) {
         double sum = 0;
         for (int i = 1; i <= level; i++) sum += Math.log(i) * scalar;
 
@@ -254,6 +256,15 @@ public class Skill {
 
     public int getExperienceSoFarInLevel() {
         return expSoFarInLevel;
+    }
+
+    /**
+     * Ensures that the XP cap is not exceeded
+     */
+    public static double checkXPCap(double totalXP, double xp, int levelCap) {
+        double xpForLevel = totalExperienceForLevel(levelCap);
+        if (totalXP + xp > xpForLevel) return xpForLevel - totalXP;
+        return xp;
     }
 
     /**
