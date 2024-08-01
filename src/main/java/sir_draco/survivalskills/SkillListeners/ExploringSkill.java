@@ -14,7 +14,9 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import sir_draco.survivalskills.Abilities.Armor.AdventurerArmor;
 import sir_draco.survivalskills.Abilities.CaveFinderAsync;
 import sir_draco.survivalskills.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
@@ -105,16 +107,7 @@ public class ExploringSkill implements Listener {
     @EventHandler
     public void exploringSkill(PlayerMoveEvent e) {
         Player p = e.getPlayer();
-        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
-        if (rewards == null) return;
-
         if (p.isSwimming()) setSwimSpeed(p);
-        checkJumpBoots(p, rewards);
-        checkWandererArmor(p, rewards);
-        checkHealthRegen(p, rewards);
-        checkTravelerArmor(p, rewards);
-        checkAdventurerArmor(p, rewards);
-        checkGillArmor(p, rewards);
     }
 
     @EventHandler
@@ -123,11 +116,11 @@ public class ExploringSkill implements Listener {
         Player p = (Player) e.getEntity();
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
         if (e.getCause() != EntityDamageEvent.DamageCause.FALL) return;
-        if (isAdventurerArmor(p.getInventory()) && (rewards.getReward("Exploring", "AdventurerArmor").isApplied() || p.hasPermission("survivalskills.op"))) {
+        if (ArmorListener.playersWearingAdventurerArmor.contains(p.getUniqueId())) {
             e.setCancelled(true);
             return;
         }
-        if (isJumpingBoots(p)) {
+        if (ArmorListener.playersWearingJumpingBoots.contains(p.getUniqueId())) {
             e.setCancelled(true);
             return;
         }
@@ -167,7 +160,7 @@ public class ExploringSkill implements Listener {
         double speed = plugin.getSkillManager().getPlayerRewards(p).getSwimSpeed();
         if (speed == 0) return;
 
-        if (checkGillSwim(p, plugin.getSkillManager().getPlayerRewards(p))) {
+        if (ArmorListener.playersWearingGillArmor.contains(p.getUniqueId())) {
             speed *= 0.6;
             Vector v = p.getLocation().getDirection();
             p.setVelocity(v.multiply(speed));
@@ -177,92 +170,5 @@ public class ExploringSkill implements Listener {
             Vector v = p.getLocation().getDirection();
             p.setVelocity(v.multiply(speed));
         }
-    }
-
-    public void giveJumpPotionEffect(Player p) {
-        p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 100, 2, false, false, true));
-    }
-
-    public boolean isWandererArmor(PlayerInventory inv) {
-        if (!ItemStackGenerator.isCustomItem(inv.getBoots(), 5)) return false;
-        if (!ItemStackGenerator.isCustomItem(inv.getLeggings(), 5)) return false;
-        if (!ItemStackGenerator.isCustomItem(inv.getChestplate(), 5)) return false;
-        return ItemStackGenerator.isCustomItem(inv.getHelmet(), 5);
-    }
-
-    public boolean isTravelerArmor(PlayerInventory inv) {
-        if (!ItemStackGenerator.isCustomItem(inv.getBoots(), 7)) return false;
-        if (!ItemStackGenerator.isCustomItem(inv.getLeggings(), 7)) return false;
-        if (!ItemStackGenerator.isCustomItem(inv.getChestplate(), 7)) return false;
-        return ItemStackGenerator.isCustomItem(inv.getHelmet(), 7);
-    }
-
-    public boolean isGillArmor(PlayerInventory inv) {
-        if (!ItemStackGenerator.isCustomItem(inv.getBoots(), 19)) return false;
-        if (!ItemStackGenerator.isCustomItem(inv.getLeggings(), 19)) return false;
-        if (!ItemStackGenerator.isCustomItem(inv.getChestplate(), 19)) return false;
-        return ItemStackGenerator.isCustomItem(inv.getHelmet(), 19);
-    }
-
-    public boolean checkGillSwim(Player p, PlayerRewards rewards) {
-        if (!rewards.getReward("Exploring", "GillArmor").isApplied() && !p.hasPermission("survivalskills.op")) return false;
-        return isGillArmor(p.getInventory());
-    }
-
-    public boolean isAdventurerArmor(PlayerInventory inv) {
-        if (!ItemStackGenerator.isCustomItem(inv.getBoots(), 8)) return false;
-        if (!ItemStackGenerator.isCustomItem(inv.getLeggings(), 8)) return false;
-        if (!ItemStackGenerator.isCustomItem(inv.getChestplate(), 8)) return false;
-        return ItemStackGenerator.isCustomItem(inv.getHelmet(), 8);
-    }
-
-    public boolean isJumpingBoots(Player p) {
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "JumpingBoots").isApplied()
-                && !p.hasPermission("survivalskills.op")) return false;
-        return ItemStackGenerator.isCustomItem(p.getInventory().getBoots(), 4);
-    }
-
-    public void giveSpeedPotionEffect(Player p, int level) {
-        p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, level, false, false, true));
-    }
-
-    public void giveRegenPotionEffect(Player p) {
-        p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 0, false, false, true));
-    }
-
-    public void giveWaterBreathingPotionEffect(Player p) {
-        p.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 100, 0, false, false, true));
-    }
-
-    public void checkJumpBoots(Player p, PlayerRewards rewards) {
-        if (!rewards.getReward("Exploring", "JumpingBoots").isApplied() && !p.hasPermission("survivalskills.op")) return;
-        if (ItemStackGenerator.isCustomItem(p.getInventory().getBoots(), 4)) giveJumpPotionEffect(p);
-    }
-
-    public void checkWandererArmor(Player p, PlayerRewards rewards) {
-        if (!rewards.getReward("Exploring", "WandererArmor").isApplied() && !p.hasPermission("survivalskills.op")) return;
-        if (isWandererArmor(p.getInventory())) giveSpeedPotionEffect(p, 0);
-    }
-
-    public void checkTravelerArmor(Player p, PlayerRewards rewards) {
-        if (!rewards.getReward("Exploring", "TravelerArmor").isApplied() && !p.hasPermission("survivalskills.op")) return;
-        if (isTravelerArmor(p.getInventory())) giveSpeedPotionEffect(p, 1);
-    }
-
-    public void checkGillArmor(Player p, PlayerRewards rewards) {
-        if (!rewards.getReward("Exploring", "GillArmor").isApplied() && !p.hasPermission("survivalskills.op")) return;
-        if (isGillArmor(p.getInventory())) {
-            giveWaterBreathingPotionEffect(p);
-        }
-    }
-
-    public void checkAdventurerArmor(Player p, PlayerRewards rewards) {
-        if (!rewards.getReward("Exploring", "AdventurerArmor").isApplied() && !p.hasPermission("survivalskills.op")) return;
-        if (isAdventurerArmor(p.getInventory())) giveSpeedPotionEffect(p, 2);
-    }
-
-    public void checkHealthRegen(Player p, PlayerRewards rewards) {
-        if (!rewards.getReward("Exploring", "HealthRegen").isApplied()) return;
-        giveRegenPotionEffect(p);
     }
 }

@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.Abilities;
+package sir_draco.survivalskills.Abilities.Armor;
 
 import org.bukkit.Color;
 import org.bukkit.entity.Entity;
