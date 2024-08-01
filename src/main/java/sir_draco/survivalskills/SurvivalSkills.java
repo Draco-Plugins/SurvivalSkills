@@ -51,14 +51,11 @@ public final class SurvivalSkills extends JavaPlugin {
     private SkillManager skillManager;
     private TrophyManager trophyManager;
 
-    // Listeners
-    private BuildingSkill buildingListener;
     private MiningSkill miningListener;
     private FishingSkill fishingListener;
     private ExploringSkill exploringListener;
     private FarmingSkill farmingListener;
     private FightingSkill fightingListener;
-    private CraftingSkill craftingListener;
     private MainSkill mainListener;
     private PlayerListener playerListener;
     private ArmorListener armorListener;
@@ -293,13 +290,14 @@ public final class SurvivalSkills extends JavaPlugin {
         // Keep farming list global for use by multiple listeners
         createFarmingList();
 
-        buildingListener = new BuildingSkill(this);
+        // Listeners
+        BuildingSkill buildingListener = new BuildingSkill(this);
         miningListener = new MiningSkill(this, config.getInt("VeinMinerHungerAmount"));
         fishingListener = new FishingSkill(this);
         exploringListener = new ExploringSkill(this);
         farmingListener = new FarmingSkill(this);
         fightingListener = new FightingSkill(this);
-        craftingListener = new CraftingSkill(this);
+        CraftingSkill craftingListener = new CraftingSkill(this);
         mainListener = new MainSkill(this);
         playerListener = new PlayerListener(this);
         armorListener = new ArmorListener(this);
@@ -490,6 +488,8 @@ public final class SurvivalSkills extends JavaPlugin {
 
             if (abilityManager.getBloodyDomainTracker().containsKey(p)) data.set(uuid + ".BloodyDomain", true);
             else data.set(uuid + ".BloodyDomain", false);
+
+            abilityManager.saveFlightTimer(p, data);
 
             skillManager.savePlayerMultiplier(p, data);
         }
@@ -738,20 +738,12 @@ public final class SurvivalSkills extends JavaPlugin {
         return farmingListener;
     }
 
-    public BuildingSkill getBuildingListener() {
-        return buildingListener;
-    }
-
     public FishingSkill getFishingListener() {
         return fishingListener;
     }
 
     public FightingSkill getFightingListener() {
         return fightingListener;
-    }
-
-    public CraftingSkill getCraftingListener() {
-        return craftingListener;
     }
 
     public ExploringSkill getExploringListener() {
