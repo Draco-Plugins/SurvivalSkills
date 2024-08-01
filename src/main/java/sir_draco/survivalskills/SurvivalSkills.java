@@ -444,6 +444,8 @@ public final class SurvivalSkills extends JavaPlugin {
         if (abilityManager.getBloodyDomainTracker().containsKey(p)) data.set(uuid + ".BloodyDomain", true);
         else data.set(uuid + ".BloodyDomain", false);
 
+        abilityManager.saveFlightTimer(p, data);
+
         skillManager.savePlayerSkillData(uuid, data);
         skillManager.savePlayerMultiplier(p, data);
         savePermaTrash(p);
@@ -603,6 +605,7 @@ public final class SurvivalSkills extends JavaPlugin {
      * scoreboard hashtable
      */
     public void playerQuit(Player p) {
+        abilityManager.endPlayerTimers(p);
         skillManager.getPlayerSkills().remove(p.getUniqueId());
         if (miningListener.getToolBelts().containsKey(p)) {
             abilityManager.saveToolBelt(p, miningListener.getToolBelts().get(p));
@@ -647,6 +650,7 @@ public final class SurvivalSkills extends JavaPlugin {
         loadPermaTrash(p);
         getMiningListener().hideGlowForPlayer(p);
         armorListener.playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
+        abilityManager.loadFlight(p, data);
 
         // Handle the scoreboard
         if (newPlayer) SkillScoreboard.initializeScoreboard(this, p);

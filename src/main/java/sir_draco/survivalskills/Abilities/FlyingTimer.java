@@ -8,12 +8,10 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 public class FlyingTimer extends BukkitRunnable {
 
-    private final SurvivalSkills plugin;
     private final Player p;
     private int timeLeft;
 
-    public FlyingTimer(SurvivalSkills plugin, Player p, int totalTime) {
-        this.plugin = plugin;
+    public FlyingTimer(Player p, int totalTime) {
         this.p = p;
         this.timeLeft = totalTime;
     }
@@ -46,7 +44,7 @@ public class FlyingTimer extends BukkitRunnable {
 
     public void removeFlight(Player p) {
         if (!p.isOnline()) {
-            cancelTimer();
+            cancel();
             return;
         }
 
@@ -54,12 +52,6 @@ public class FlyingTimer extends BukkitRunnable {
         p.setFlying(false);
         p.sendRawMessage(ChatColor.YELLOW + "Your flight time has expired!");
         p.playSound(p, Sound.ENTITY_SHEEP_SHEAR, 1, 1);
-
-        cancelTimer();
-    }
-
-    public void cancelTimer() {
-        plugin.getBuildingListener().getFlyingPlayers().remove(p);
-        this.cancel();
+        cancel();
     }
 }

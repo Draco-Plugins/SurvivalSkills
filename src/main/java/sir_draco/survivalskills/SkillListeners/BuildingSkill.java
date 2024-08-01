@@ -33,7 +33,6 @@ import java.util.*;
 public class BuildingSkill implements Listener {
 
     private final SurvivalSkills plugin;
-    private final HashMap<Player, FlyingTimer> flyingPlayers = new HashMap<>();
     private final HashSet<Material> bannedReturns = new HashSet<>();
     private final HashSet<String> brokenBlocks = new HashSet<>();
 
@@ -283,10 +282,6 @@ public class BuildingSkill implements Listener {
         Enchantment enchant = enchantments.keySet().iterator().next();
         if (enchant == null) return 0;
         return enchantments.get(enchant);
-    }
-
-    public HashMap<Player, FlyingTimer> getFlyingPlayers() {
-        return flyingPlayers;
     }
 
     public boolean isBannedReturn(Material material) {

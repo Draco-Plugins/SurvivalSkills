@@ -52,9 +52,6 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent e) {
         Player p = e.getPlayer();
-        plugin.getAbilityManager().endPlayerTimers(p);
-        if (plugin.getBuildingListener().getFlyingPlayers().containsKey(p))
-            plugin.getBuildingListener().getFlyingPlayers().get(p).removeFlight(p);
         plugin.getSkillManager().updateExploringStats(p.getUniqueId());
         plugin.savePlayerData(p);
         plugin.savePermaTrash(p);

@@ -36,10 +36,7 @@ public class FlightCommand implements CommandExecutor {
         // Check if the player has a cooldown
         AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "Flight");
         if (timer != null) {
-            if (timer.isActive() && plugin.getBuildingListener().getFlyingPlayers().containsKey(p)) {
-                plugin.getBuildingListener().getFlyingPlayers().get(p).removeFlight(p);
-                timer.endAbility();
-            }
+            if (timer.isActive()) timer.endAbility();
             else {
                 p.sendRawMessage(ChatColor.RED + "You can use flight again in: " + RewardNotifications.cooldown(timer.getTimeTillReset()));
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -103,9 +100,8 @@ public class FlightCommand implements CommandExecutor {
         abilityTimer.setFlightSpeed(baseSpeed * speed);
         abilityTimer.runTaskTimerAsynchronously(plugin, 0, 20);
         plugin.getAbilityManager().addAbility(p, abilityTimer);
-        FlyingTimer flyingTimer = new FlyingTimer(plugin, p, activeTime);
+        FlyingTimer flyingTimer = new FlyingTimer(p, activeTime);
         flyingTimer.runTaskTimerAsynchronously(plugin, 0, 20);
-        plugin.getBuildingListener().getFlyingPlayers().put(p, flyingTimer);
         p.sendRawMessage(ChatColor.GREEN + "You have enabled your flight for " + ChatColor.AQUA
                 + (activeTime / 60) + ChatColor.GREEN + " minutes!");
         p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);

@@ -1,6 +1,7 @@
 package sir_draco.survivalskills.Abilities;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -49,6 +50,30 @@ public class AbilityManager {
         return toolBelt;
     }
 
+    public void loadFlight(Player p, FileConfiguration data) {
+        if (!data.contains(p.getUniqueId() + ".Flight")) return;
+
+        int activeTime = data.getInt(p.getUniqueId() + ".Flight.ActiveTime");
+        int cooldownTime = data.getInt(p.getUniqueId() + ".Flight.CooldownTime");
+        float speed = (float) data.getDouble(p.getUniqueId() + ".Flight.Speed");
+
+        AbilityTimer timer = new AbilityTimer(plugin, "Flight", p, activeTime, cooldownTime);
+        timer.runTaskTimerAsynchronously(plugin, 0, 20);
+        timer.setFlightSpeed(speed);
+        addAbility(p, timer);
+
+        if (activeTime <= 0) return;
+        p.setAllowFlight(true);
+        p.setFlying(true);
+        p.setFlySpeed(speed);
+        FlyingTimer flyingTimer = new FlyingTimer(p, activeTime);
+        flyingTimer.runTaskTimerAsynchronously(plugin, 0, 20);
+        int minutes = activeTime / 60;
+        int seconds = activeTime % 60;
+        p.sendRawMessage(ChatColor.GREEN + "Your flight will end in " + ChatColor.AQUA + minutes +
+                ChatColor.GREEN + " minutes " + ChatColor.AQUA + seconds + ChatColor.GREEN + " seconds");
+    }
+
     public void saveToolBelt(Player p, Inventory inv) {
         if (!inv.getViewers().isEmpty()) return;
 
@@ -77,6 +102,18 @@ public class AbilityManager {
             saveToolBelt(toolBelt.getKey(), toolBelt.getValue());
 
         saveToolBeltFile(file, data);
+    }
+
+    public void saveFlightTimer(Player p, FileConfiguration data) {
+        AbilityTimer timer = getAbility(p, "Flight");
+        if (timer == null) {
+            if (data.contains(p.getUniqueId() + ".Flight")) data.set(p.getUniqueId() + ".Flight", null);
+            return;
+        }
+
+        data.set(p.getUniqueId() + ".Flight.ActiveTime", timer.getActiveTimeLeft());
+        data.set(p.getUniqueId() + ".Flight.CooldownTime", timer.getTimeTillReset());
+        data.set(p.getUniqueId() + ".Flight.Speed", timer.getFlightSpeed());
     }
 
     public void startBloodyDomain(Player p) {
@@ -182,10 +219,6 @@ public class AbilityManager {
 
     public HashMap<Player, ArrayList<AbilityTimer>> getTimerTracker() {
         return timerTracker;
-    }
-
-    public ArrayList<Entity> getMobsScanned() {
-        return mobsScanned;
     }
 
     public static ArrayList<EntityType> getDomainMobs() {
