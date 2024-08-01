@@ -21,12 +21,9 @@ public class SkillManager {
     private static final ArrayList<String> skillNames = new ArrayList<>();
 
     private final SurvivalSkills plugin;
-    private final HashMap<UUID, ArrayList<Skill>> playerSkills = new HashMap<>();
-    private final HashMap<Player, PlayerRewards> rewardTracker = new HashMap<>();
-    private final HashMap<Player, Boolean> maxSkillMessage = new HashMap<>();
-    private final HashMap<Player, Double> skillMultipliers = new HashMap<>();
+    private final HashMap<UUID, SkillsHolder> playerSkills = new HashMap<>();
 
-    private PlayerRewards playerRewards; // Holds the default information for rewards
+    private PlayerRewards defaultPlayerRewards; // Holds the default information for rewards
     private double buildingXP;
     private double miningXP;
     private double fishingXP;
@@ -65,27 +62,28 @@ public class SkillManager {
      */
     public void loadDefaultRewards() {
         FileConfiguration config = plugin.getTrueConfig();
-        playerRewards = new PlayerRewards();
+        defaultPlayerRewards = new PlayerRewards();
         for (String skill : skillNames) loadRewardConfig(skill, config);
     }
 
     public void loadPlayerRewards(Player p) {
-        if (playerRewards == null || playerRewards.getRewardList() == null) {
+        if (defaultPlayerRewards == null || defaultPlayerRewards.getRewardList() == null) {
             Bukkit.getLogger().warning("Player rewards are not loaded");
             return;
         }
 
-        if (rewardTracker.containsKey(p)) {
-            rewardTracker.get(p).enableRewards(p, playerSkills.get(p.getUniqueId()));
+        if (!playerSkills.containsKey(p.getUniqueId())) {
+            Bukkit.getLogger().warning("Player " + p.getName() + " does not have any skills");
             return;
         }
 
-        rewardTracker.put(p, new PlayerRewards(playerRewards.getRewardList()));
-        rewardTracker.get(p).enableRewards(p, playerSkills.get(p.getUniqueId()));
+        SkillsHolder holder = playerSkills.get(p.getUniqueId());
+        holder.getPlayerRewards().enableRewards(p, holder.getSkills());
     }
 
     public void loadPlayerSkills(UUID uuid, FileConfiguration data) {
         if (playerSkills.containsKey(uuid)) return;
+
         ArrayList<Skill> skills = new ArrayList<>();
         skills.add(new Skill(data.getDouble(uuid + ".Main.Experience"), data.getInt(uuid + ".Main.Level"), "Main"));
         skills.add(new Skill(data.getDouble(uuid + ".Building.Experience"), data.getInt(uuid + ".Building.Level"), "Building"));
@@ -95,7 +93,9 @@ public class SkillManager {
         skills.add(new Skill(data.getDouble(uuid + ".Farming.Experience"), data.getInt(uuid + ".Farming.Level"), "Farming"));
         skills.add(new Skill(data.getDouble(uuid + ".Fighting.Experience"), data.getInt(uuid + ".Fighting.Level"), "Fighting"));
         skills.add(new Skill(data.getDouble(uuid + ".Crafting.Experience"), data.getInt(uuid + ".Crafting.Level"), "Crafting"));
-        playerSkills.put(uuid, skills);
+
+        SkillsHolder holder = new SkillsHolder(skills, getNewPlayerRewards());
+        playerSkills.put(uuid, holder);
     }
 
     public void loadRewardConfig(String type, FileConfiguration config) {
@@ -106,16 +106,19 @@ public class SkillManager {
             boolean enabled = config.getBoolean(type + "." + key + ".Enabled");
             int level = config.getInt(type + "." + key + ".Level");
             String rewardType = config.getString(type + "." + key + ".Type");
-            playerRewards.addReward(type, new Reward(type, key, rewardType, level, enabled));
+            defaultPlayerRewards.addReward(type, new Reward(type, key, rewardType, level, enabled));
         });
     }
 
     public void loadPlayerMultiplier(Player p, FileConfiguration data) {
+        if (!playerSkills.containsKey(p.getUniqueId())) return;
+
         // Get multiplier
         UUID uuid = p.getUniqueId();
         if (!data.contains(uuid.toString())) return;
         if (!data.contains(uuid + ".Multiplier")) return;
-        skillMultipliers.put(p, data.getDouble(uuid + ".Multiplier"));
+        double multiplier = data.getDouble(uuid + ".Multiplier");
+        playerSkills.get(uuid).setSkillMultiplier(multiplier);
 
         // Get time left
         int time = 3600;
@@ -128,9 +131,9 @@ public class SkillManager {
     }
 
     public void saveSkillData(FileConfiguration data) {
-        for (Map.Entry<UUID, ArrayList<Skill>> player : playerSkills.entrySet()) {
+        for (Map.Entry<UUID, SkillsHolder> player : playerSkills.entrySet()) {
             UUID uuid = player.getKey();
-            for (Skill skill : player.getValue()) {
+            for (Skill skill : player.getValue().getSkills()) {
                 data.set(uuid + "." + skill.getSkillName() + ".Level", skill.getLevel());
                 data.set(uuid + "." + skill.getSkillName() + ".Experience", skill.getExperience());
             }
@@ -139,7 +142,7 @@ public class SkillManager {
 
     public void savePlayerSkillData(UUID uuid, FileConfiguration data) {
         if (playerSkills.containsKey(uuid)) {
-            for (Skill skill : playerSkills.get(uuid)) {
+            for (Skill skill : playerSkills.get(uuid).getSkills()) {
                 data.set(uuid + "." + skill.getSkillName() + ".Level", skill.getLevel());
                 data.set(uuid + "." + skill.getSkillName() + ".Experience", skill.getExperience());
             }
@@ -148,6 +151,8 @@ public class SkillManager {
     }
 
     public void savePlayerMultiplier(Player p, FileConfiguration data) {
+        if (!playerSkills.containsKey(p.getUniqueId())) return;
+
         AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "XPVoucher");
         if (timer != null) data.set(p.getUniqueId() + ".MultiplierTimer", timer.getActiveTimeLeft());
         else {
@@ -156,23 +161,7 @@ public class SkillManager {
             return;
         }
 
-        data.set(p.getUniqueId() + ".Multiplier", skillMultipliers.getOrDefault(p, 1.0));
-    }
-
-    /**
-     * Gets the specified skill of a player
-     */
-    public Skill getSkill(UUID uuid, String skillName) {
-        if (playerSkills.isEmpty()) {
-            ArrayList<Skill> skills = new ArrayList<>();
-            skills.add(new Skill(0, 0, skillName));
-            playerSkills.put(uuid, skills);
-        }
-        if (playerSkills.get(uuid) == null) return new Skill(0, 0, skillName);
-        for (Skill skill : playerSkills.get(uuid)) if (skill.getSkillName().equalsIgnoreCase(skillName)) return skill;
-        Skill skill = new Skill(0, 0, skillName);
-        playerSkills.get(uuid).add(skill);
-        return skill;
+        data.set(p.getUniqueId() + ".Multiplier", playerSkills.get(p.getUniqueId()).getSkillMultiplier());
     }
 
     public void updateExploringStats(UUID uuid) {
@@ -184,13 +173,14 @@ public class SkillManager {
     public void checkMainXP(Player p) {
         if (!playerSkills.containsKey(p.getUniqueId())) return;
         double totalXP = 0;
-        for (Skill skill : playerSkills.get(p.getUniqueId())) {
+        for (Skill skill : playerSkills.get(p.getUniqueId()).getSkills()) {
             if (skill.getSkillName().equalsIgnoreCase("Main")) continue;
             totalXP += skill.getExperience();
         }
 
         totalXP /= 7.0;
         Skill main = getSkill(p.getUniqueId(), "Main");
+
         if (main.getExperience() < totalXP || main.getExperience() > totalXP + 10.0) {
             main.setExperience((int) totalXP);
             plugin.savePlayerData(p);
@@ -228,12 +218,37 @@ public class SkillManager {
         skillNames.add("Main");
     }
 
+    public void setPlayerMultiplier(Player p, double multiplier) {
+        if (!playerSkills.containsKey(p.getUniqueId())) return;
+        playerSkills.get(p.getUniqueId()).setSkillMultiplier(multiplier);
+    }
+
+    public double getPlayerMultiplier(Player p) {
+        if (!playerSkills.containsKey(p.getUniqueId())) return 1.0;
+        return playerSkills.get(p.getUniqueId()).getSkillMultiplier();
+    }
+
+    public Skill getSkill(UUID uuid, String skillName) {
+        if (!playerSkills.containsKey(uuid)) return new Skill(0, 0, skillName);
+        return playerSkills.get(uuid).getSkill(skillName);
+    }
+
     public PlayerRewards getPlayerRewards(Player p) {
-        if (!rewardTracker.containsKey(p)) {
-            loadPlayerRewards(p);
-            return rewardTracker.get(p);
-        }
-        return rewardTracker.get(p);
+        if (!playerSkills.containsKey(p.getUniqueId())) return null;
+        return playerSkills.get(p.getUniqueId()).getPlayerRewards();
+    }
+
+    public PlayerRewards getNewPlayerRewards() {
+        return new PlayerRewards(defaultPlayerRewards.getRewardList());
+    }
+
+    public boolean isMaxSkillMessageEnabled(Player p) {
+        if (!playerSkills.containsKey(p.getUniqueId())) return true;
+        return playerSkills.get(p.getUniqueId()).isMaxSkillMessageEnabled();
+    }
+
+    public HashMap<UUID, SkillsHolder> getPlayerSkills() {
+        return playerSkills;
     }
 
     public double getBuildingXP() {
@@ -301,18 +316,6 @@ public class SkillManager {
     }
 
     public PlayerRewards getDefaultPlayerRewards() {
-        return playerRewards;
-    }
-
-    public HashMap<UUID, ArrayList<Skill>> getPlayerSkills() {
-        return playerSkills;
-    }
-
-    public HashMap<Player, Boolean> getMaxSkillMessage() {
-        return maxSkillMessage;
-    }
-
-    public HashMap<Player, Double> getSkillMultipliers() {
-        return skillMultipliers;
+        return defaultPlayerRewards;
     }
 }

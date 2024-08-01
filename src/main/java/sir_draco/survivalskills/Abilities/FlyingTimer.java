@@ -4,7 +4,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import sir_draco.survivalskills.SurvivalSkills;
 
 public class FlyingTimer extends BukkitRunnable {
 

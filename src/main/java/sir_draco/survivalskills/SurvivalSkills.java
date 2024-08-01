@@ -19,6 +19,7 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 import sir_draco.survivalskills.Abilities.AbilityManager;
 import sir_draco.survivalskills.Abilities.AutoTrash;
@@ -30,6 +31,7 @@ import sir_draco.survivalskills.Boards.SkillScoreboard;
 import sir_draco.survivalskills.SkillListeners.*;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.Skills.SkillManager;
+import sir_draco.survivalskills.Skills.SkillsHolder;
 import sir_draco.survivalskills.Trophy.Trophy;
 import sir_draco.survivalskills.Trophy.TrophyListener;
 import sir_draco.survivalskills.Trophy.TrophyManager;
@@ -39,6 +41,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public final class SurvivalSkills extends JavaPlugin {
+
+    private static SurvivalSkills instance;
 
     private final HashMap<UUID, Boolean> toggledScoreboard = new HashMap<>();
     private final HashMap<Player, Scoreboard> scoreboardTracker = new HashMap<>();
@@ -75,8 +79,6 @@ public final class SurvivalSkills extends JavaPlugin {
     private boolean griefPreventionEnabled = false;
     private boolean worldGuardEnabled = false;
     private RegionContainer container = null;
-
-    private static SurvivalSkills instance;
 
     @Override
     public void onEnable() {
@@ -341,9 +343,13 @@ public final class SurvivalSkills extends JavaPlugin {
             skills.add(new Skill(0, 1, "Farming"));
             skills.add(new Skill(0, 1, "Fighting"));
             skills.add(new Skill(0, 1, "Crafting"));
+
             trophyManager.getTrophyTracker().put(p.getUniqueId(), trophyList);
-            skillManager.getPlayerSkills().put(p.getUniqueId(), skills);
-            skillManager.getMaxSkillMessage().put(p, true);
+            SkillsHolder holder = new SkillsHolder(skills, skillManager.getNewPlayerRewards());
+            holder.setMaxSkillMessageEnabled(true);
+            if (!skillManager.getPlayerSkills().containsKey(p.getUniqueId()))
+                skillManager.getPlayerSkills().put(p.getUniqueId(), holder);
+            else Bukkit.getLogger().warning("Player " + p.getName() + " already has skills loaded");
             toggledScoreboard.put(p.getUniqueId(), true);
 
             savePlayerData(p);
@@ -393,7 +399,8 @@ public final class SurvivalSkills extends JavaPlugin {
 
         if (data.contains(uuid + ".MaxSkillMessage")) {
             boolean maxSkillMessage = data.getBoolean(uuid + ".MaxSkillMessage");
-            skillManager.getMaxSkillMessage().put(p, maxSkillMessage);
+            if (skillManager.getPlayerSkills().containsKey(uuid))
+                skillManager.getPlayerSkills().get(uuid).setMaxSkillMessageEnabled(maxSkillMessage);
         }
 
         if (data.contains(uuid + ".BloodyDomain")) {
@@ -654,8 +661,14 @@ public final class SurvivalSkills extends JavaPlugin {
 
         // Handle the scoreboard
         if (newPlayer) SkillScoreboard.initializeScoreboard(this, p);
-        else if (toggledScoreboard.containsKey(p.getUniqueId()) && toggledScoreboard.get(p.getUniqueId()))
-            SkillScoreboard.initializeScoreboard(this, p);
+        else if (toggledScoreboard.containsKey(p.getUniqueId()) && toggledScoreboard.get(p.getUniqueId())){
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    SkillScoreboard.initializeScoreboard(instance, p);
+                }
+            }.runTaskLater(this, 20);
+        }
         else SkillScoreboard.hideScoreboard(this, p);
     }
 

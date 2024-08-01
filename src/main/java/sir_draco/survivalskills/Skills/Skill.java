@@ -49,18 +49,15 @@ public class Skill {
     public static void experienceEvent(SurvivalSkills plugin, Player p, double xp, String skillName) {
         // Handle multipliers
         xp = xp * plugin.getSkillManager().getMultiplier();
-        if (plugin.getSkillManager().getSkillMultipliers().containsKey(p)) {
-            if (plugin.getAbilityManager().getAbility(p, "XPVoucher") != null)
-                xp *= plugin.getSkillManager().getSkillMultipliers().get(p);
-            else plugin.getSkillManager().getSkillMultipliers().remove(p);
-        }
+        if (plugin.getAbilityManager().getAbility(p, "XPVoucher") != null)
+            xp *= plugin.getSkillManager().getPlayerMultiplier(p);
 
         UUID uuid = p.getUniqueId();
         Skill skill = plugin.getSkillManager().getSkill(uuid, skillName);
         if (skill.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) {
             SkillScoreboard.updateScoreboard(plugin, p, "Main");
             if (skill.getLevel() == 100 || skill.isCurrentMaxMessage()) return;
-            if (plugin.getSkillManager().getMaxSkillMessage().containsKey(p) && !plugin.getSkillManager().getMaxSkillMessage().get(p)) return;
+            if (!plugin.getSkillManager().isMaxSkillMessageEnabled(p)) return;
             p.sendRawMessage(ChatColor.DARK_BLUE + "You have reached your current max level for: " + ChatColor.AQUA + skillName);
             p.playSound(p, Sound.BLOCK_NOTE_BLOCK_BASS, 1, 1);
             skill.setCurrentMaxMessage(true);

@@ -41,12 +41,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                plugin.playerJoin(p, false);
-            }
-        }.runTaskLater(plugin, 60);
+        plugin.playerJoin(p, false);
     }
 
     @EventHandler
@@ -393,7 +388,7 @@ public class PlayerListener implements Listener {
         timer = new AbilityTimer(plugin, "XPVoucher", p, 3600, 0);
         timer.runTaskTimerAsynchronously(plugin, 0, 20);
         plugin.getAbilityManager().addAbility(p, timer);
-        plugin.getSkillManager().getSkillMultipliers().put(p, 2.0);
+        plugin.getSkillManager().setPlayerMultiplier(p, 2.0);
         p.sendRawMessage(ChatColor.GREEN + "You have activated an XP Voucher");
         p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
 

@@ -15,7 +15,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -90,7 +89,6 @@ public class ArmorListener implements Listener {
 
         // Check if the player puts a beacon armor piece in their armor slot
         if (isPlayerInventory(clickedInventory) && e.getSlotType().equals(InventoryType.SlotType.ARMOR)) {
-            PlayerInventory playerInventory = p.getInventory();
             new BukkitRunnable() {
                 @Override
                 public void run() {

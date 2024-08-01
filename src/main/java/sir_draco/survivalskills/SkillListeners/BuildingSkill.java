@@ -23,7 +23,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.Abilities.AbilityTimer;
-import sir_draco.survivalskills.Abilities.FlyingTimer;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
