@@ -428,6 +428,8 @@ public class FishingSkill implements Listener {
             }
 
             world.setStorm(true);
+            Bukkit.broadcastMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "[Server] " + ChatColor.RESET +
+                    ChatColor.GOLD + p.getName() + ChatColor.YELLOW + " has summoned a storm!");
             p.sendRawMessage(ChatColor.GREEN + "You have summoned a storm!");
             p.playSound(p, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1, 1);
 
@@ -453,8 +455,16 @@ public class FishingSkill implements Listener {
             }
             World world = p.getWorld();
             // Set the time to day if it is night, and night if it is day
-            if (world.getTime() >= 13000) world.setTime(0);
-            else world.setTime(13000);
+            if (world.getTime() >= 13000) {
+                world.setTime(0);
+                Bukkit.broadcastMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "[Server] " + ChatColor.RESET +
+                        ChatColor.GOLD + p.getName() + ChatColor.YELLOW + " has set the time to day!");
+            }
+            else {
+                world.setTime(13000);
+                Bukkit.broadcastMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "[Server] " + ChatColor.RESET +
+                        ChatColor.GOLD + p.getName() + ChatColor.YELLOW + " has set the time to night!");
+            }
 
             // Update the time in the lore of the item
             ItemMeta meta = hand.getItemMeta();
