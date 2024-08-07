@@ -775,4 +775,12 @@ public class ItemStackGenerator {
         String lore = ChatColor.GRAY + "Infinite rocket";
         return createCustomItem(Material.FIREWORK_ROCKET, 1, name, null, lore, null, 31, false, null);
     }
+
+    public static ItemStack getMagnet() {
+        String name = ColorParser.colorizeString("Magnet", ColorParser.generateGradient("#FF7400", "#ADF3FD", "Magnet"), true);
+        String lore = ChatColor.GRAY + "Attracts items to you when held in your hand";
+        HashMap<Enchantment, Integer> enchants = new HashMap<>();
+        enchants.put(Enchantment.FORTUNE, 1);
+        return createCustomItem(Material.HOPPER, 1, name, null, lore, null, 32, true, enchants);
+    }
 }

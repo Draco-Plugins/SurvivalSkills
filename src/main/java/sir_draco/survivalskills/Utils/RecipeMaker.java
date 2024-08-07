@@ -364,6 +364,7 @@ public class RecipeMaker {
         NamespacedKey gapple = createKey("gapple", plugin);
         NamespacedKey fireworkcannon = createKey("fireworkcannon", plugin);
         NamespacedKey sortwand = createKey("sortwand", plugin);
+        NamespacedKey magnetKey = createKey("magnet", plugin);
 
         ItemStackGenerator.createSmallShapedRecipe(torchKey, ItemStackGenerator.getUnlimitedTorch(), "ABA:BCB:ABA",
                 null, null, null, Material.LAVA_BUCKET, Material.COAL_BLOCK, Material.TORCH);
@@ -456,19 +457,21 @@ public class RecipeMaker {
         ItemStackGenerator.createSmallShapedRecipe(villagerboss, ItemStackGenerator.getVillagerSummoner(), "AAA:CBC:AAA",
                 null, null, null, Material.EMERALD_BLOCK, Material.EGG, Material.TOTEM_OF_UNDYING);
 
+        // Other
         ItemStackGenerator.createSmallShapedRecipe(gapple, new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), "AAA:ABA:AAA",
                 null, null, null, Material.GOLD_BLOCK, Material.GOLDEN_APPLE, null);
         ItemStackGenerator.createSmallShapedRecipe(fireworkcannon, ItemStackGenerator.getFireworkCannon(), "AAA:ABA:ACA",
                 null, null, null, Material.FIREWORK_ROCKET, Material.CAMPFIRE, Material.BLAZE_POWDER);
         ItemStackGenerator.createSmallShapedRecipe(sortwand, ItemStackGenerator.getSortWand(), "CAC:ABA:CAC",
                 null, null, null, Material.COMPARATOR, Material.BLAZE_ROD, Material.CHEST);
+        ItemStackGenerator.createSmallShapedRecipe(magnetKey, ItemStackGenerator.getMagnet(), "ABA:BCB:ABA",
+                null, null, null, Material.IRON_BLOCK, Material.REDSTONE_BLOCK, Material.COPPER_BLOCK);
     }
 
     public static NamespacedKey createKey(String name, SurvivalSkills plugin) {
         NamespacedKey key = new NamespacedKey(plugin, name);
         if (plugin.getServer().getRecipe(key) != null) plugin.getServer().removeRecipe(key);
-        ArrayList<NamespacedKey> recipeKeys = plugin.getRecipeKeys();
-        recipeKeys.add(key);
+        plugin.getRecipeKeys().add(key);
         return key;
     }
 }
