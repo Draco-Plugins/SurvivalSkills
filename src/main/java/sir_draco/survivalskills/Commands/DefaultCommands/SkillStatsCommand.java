@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
-import sir_draco.survivalskills.ItemStackGenerator;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.Rewards.RewardItemInfo;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
@@ -674,6 +674,7 @@ public class SkillStatsCommand implements CommandExecutor {
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getFishingBossItem(), "Fighting", "FishingKing"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBroodMotherSummoner(), "Fighting", "BroodMotherSummon"));
         recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getVillagerSummoner(), "Fighting", "TheExiledOneSummon"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMagnet(), "Exploring", "Magnet"));
     }
 
     public ItemStack getResult(ItemStack item) {

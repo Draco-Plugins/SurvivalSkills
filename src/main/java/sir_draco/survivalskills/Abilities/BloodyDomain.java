@@ -6,7 +6,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import sir_draco.survivalskills.Bosses.ProjectileCalculator;
+import sir_draco.survivalskills.Utils.ProjectileCalculator;
 
 import java.util.ArrayList;
 

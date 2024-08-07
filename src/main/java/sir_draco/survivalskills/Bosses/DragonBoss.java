@@ -8,6 +8,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Utils.ProjectileCalculator;
 
 import java.util.ArrayList;
 

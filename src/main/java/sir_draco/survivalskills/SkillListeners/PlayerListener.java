@@ -18,7 +18,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.Abilities.AbilityTimer;
-import sir_draco.survivalskills.ItemStackGenerator;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Boards.LeaderboardPlayer;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
@@ -205,6 +205,12 @@ public class PlayerListener implements Listener {
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
                         + rewards.getReward("Mining", "ZapWand").getLevel() + ChatColor.RED + " to craft this");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            case 32:
+                if (rewards.getReward("Exploring", "Magnet").isApplied()) return;
+                e.setCancelled(true);
+                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
+                        + rewards.getReward("Exploring", "Magnet").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 999:
                 if (result.getType().equals(Material.WHITE_WOOL)) return;

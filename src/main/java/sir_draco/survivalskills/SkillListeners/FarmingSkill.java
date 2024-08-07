@@ -17,8 +17,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.HarvesterAsync;
 import sir_draco.survivalskills.Abilities.HarvesterTimer;
-import sir_draco.survivalskills.Bosses.ProjectileCalculator;
-import sir_draco.survivalskills.ItemStackGenerator;
+import sir_draco.survivalskills.Utils.ProjectileCalculator;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 

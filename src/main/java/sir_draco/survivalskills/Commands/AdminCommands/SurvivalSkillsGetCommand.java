@@ -10,7 +10,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import sir_draco.survivalskills.ItemStackGenerator;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.SurvivalSkills;
 
 public class SurvivalSkillsGetCommand implements CommandExecutor {

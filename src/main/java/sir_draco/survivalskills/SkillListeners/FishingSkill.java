@@ -26,8 +26,8 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.AutoTrash;
-import sir_draco.survivalskills.Bosses.ProjectileCalculator;
-import sir_draco.survivalskills.ItemStackGenerator;
+import sir_draco.survivalskills.Utils.ProjectileCalculator;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -42,6 +42,7 @@ public class FishingSkill implements Listener {
     private final SurvivalSkills plugin;
     private final ArrayList<Player> waterBreathers = new ArrayList<>();
     private final ArrayList<Player> openTrashInventories = new ArrayList<>();
+    private final ArrayList<Player> disabledAutoTrash = new ArrayList<>();
     private final HashMap<Player, Integer> rainFishers = new HashMap<>();
     private final HashMap<Player, Integer> nonStackableItems = new HashMap<>();
     private final HashMap<Player, AutoTrash> trashInventories = new HashMap<>();
@@ -327,6 +328,7 @@ public class FishingSkill implements Listener {
     public void onItemPickup(EntityPickupItemEvent e) {
         if (!(e.getEntity() instanceof Player)) return;
         Player p = (Player) e.getEntity();
+        if (disabledAutoTrash.contains(p)) return;
         if (!trashInventories.containsKey(p) && !permaTrash.containsKey(p)) return;
 
         ItemStack item = e.getItem().getItemStack();
@@ -912,5 +914,9 @@ public class FishingSkill implements Listener {
 
     public void addTrashInventory(Player p, AutoTrash trash) {
         trashInventories.put(p, trash);
+    }
+
+    public ArrayList<Player> getDisabledAutoTrash() {
+        return disabledAutoTrash;
     }
 }

@@ -38,6 +38,7 @@ import sir_draco.survivalskills.Skills.SkillsHolder;
 import sir_draco.survivalskills.Trophy.Trophy;
 import sir_draco.survivalskills.Trophy.TrophyListener;
 import sir_draco.survivalskills.Trophy.TrophyManager;
+import sir_draco.survivalskills.Utils.RecipeMaker;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -104,7 +105,7 @@ public final class SurvivalSkills extends JavaPlugin {
         config = YamlConfiguration.loadConfiguration(configFile);
 
         // See if an update needs to be made to the config
-        if (config.get("Version") == null || config.getDouble("Version") != 1.96) updateConfig();
+        if (config.get("Version") == null || config.getDouble("Version") != 1.97) updateConfig();
         skillManager = new SkillManager(this);
 
         trophyFile = new File(getDataFolder(), "trophydata.yml");
@@ -204,6 +205,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new VeinminerCommand(this);
         new WaterBreathingCommand(this);
         new ToggleBloodyDomainCommand();
+        new ToggleTrashCommand(this);
 
         // Admin Commands
         new BossCommand(this);
@@ -571,6 +573,7 @@ public final class SurvivalSkills extends JavaPlugin {
         }
         YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream, StandardCharsets.UTF_8));
         mergeConfigWithOrder(config, defConfig, "");
+        config = defConfig;
 
         // Save the merged configuration
         File file = new File(getDataFolder(), "config.yml");

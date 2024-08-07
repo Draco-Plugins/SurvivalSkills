@@ -93,7 +93,7 @@ public class SkillsMultiplierCommand implements CommandExecutor {
             }
 
             // Add the new multiplier
-            plugin.getSkillManager().getSkillMultipliers().put(p, multiplier);
+            plugin.getSkillManager().setPlayerMultiplier(p, multiplier);
             AbilityTimer newTimer = new AbilityTimer(plugin, "XPVoucher", p, 3600, 0);
             newTimer.runTaskTimerAsynchronously(plugin, 0, 20);
             plugin.getAbilityManager().addAbility(p, newTimer);

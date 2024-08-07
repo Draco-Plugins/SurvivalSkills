@@ -28,7 +28,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import sir_draco.survivalskills.Abilities.SpelunkerAbilitySync;
 import sir_draco.survivalskills.Abilities.VeinMinerAsync;
-import sir_draco.survivalskills.ItemStackGenerator;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 

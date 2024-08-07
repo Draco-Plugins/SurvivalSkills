@@ -17,7 +17,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.Abilities.Armor.*;
-import sir_draco.survivalskills.ItemStackGenerator;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;

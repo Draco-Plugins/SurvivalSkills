@@ -30,26 +30,18 @@ public class ToggleMaxSkillMessageCommand implements CommandExecutor {
         if (!(sender instanceof Player)) return false;
         Player p = (Player) sender;
 
-        if (!plugin.getSkillManager().getMaxSkillMessage().containsKey(p)) {
-            p.sendRawMessage(ChatColor.GREEN + "You will now receive a message when you reach the maximum level of a skill.");
-            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-            plugin.getSkillManager().getMaxSkillMessage().put(p, true);
-            saveStatus(p.getUniqueId().toString(), true);
-            return true;
-        }
-
-        boolean toggle = plugin.getSkillManager().getMaxSkillMessage().get(p);
+        boolean toggle = plugin.getSkillManager().isMaxSkillMessageEnabled(p);
         if (toggle) {
             p.sendRawMessage(ChatColor.GREEN + "You will no longer receive a message when you reach the maximum level of a skill.");
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-            plugin.getSkillManager().getMaxSkillMessage().put(p, false);
+            plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId()).setMaxSkillMessageEnabled(false);
         } else {
             p.sendRawMessage(ChatColor.GREEN + "You will now receive a message when you reach the maximum level of a skill.");
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-            plugin.getSkillManager().getMaxSkillMessage().put(p, true);
+            plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId()).setMaxSkillMessageEnabled(true);
         }
-        saveStatus(p.getUniqueId().toString(), !toggle);
 
+        saveStatus(p.getUniqueId().toString(), !toggle);
         return true;
     }
 

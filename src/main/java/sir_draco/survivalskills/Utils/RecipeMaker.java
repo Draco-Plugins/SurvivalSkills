@@ -1,4 +1,4 @@
-package sir_draco.survivalskills;
+package sir_draco.survivalskills.Utils;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
+import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 import java.util.HashMap;

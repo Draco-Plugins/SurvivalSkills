@@ -17,7 +17,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
-import sir_draco.survivalskills.ColorParser;
+import sir_draco.survivalskills.Utils.ColorParser;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.time.DayOfWeek;

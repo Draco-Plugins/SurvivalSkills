@@ -41,7 +41,7 @@ public class Leaderboard {
         if (skillName.equalsIgnoreCase("All")) {
             int score = 0;
             if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
-            for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId())) score += skill.getLevel();
+            for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId()).getSkills()) score += skill.getLevel();
             return score;
         }
         else if (skillName.equals("Building")) {

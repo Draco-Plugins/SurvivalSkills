@@ -112,6 +112,10 @@ Exploring:
     Enabled: true
     Level: 15
     Type: 'Crafting'
+  Magnet:
+    Enabled: true
+    Level: 18
+    Type: 'Crafting'
   SpeedII:
     Enabled: true
     Level: 20

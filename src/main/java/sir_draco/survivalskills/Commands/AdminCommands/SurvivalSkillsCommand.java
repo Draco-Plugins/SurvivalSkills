@@ -95,7 +95,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 return true;
             }
             if (strings[2].equalsIgnoreCase("all")) {
-                for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(target.getUniqueId())) {
+                for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(target.getUniqueId()).getSkills()) {
                     handleLevel(p, target, skill, strings);
                     updateRewards(target, skill);
                 }
@@ -290,7 +290,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
     }
 
     public boolean isNotSkill(UUID uuid, String skill) {
-        for (Skill s : plugin.getSkillManager().getPlayerSkills().get(uuid)) {
+        for (Skill s : plugin.getSkillManager().getPlayerSkills().get(uuid).getSkills()) {
             if (s.getSkillName().equalsIgnoreCase(skill)) return false;
         }
         return true;

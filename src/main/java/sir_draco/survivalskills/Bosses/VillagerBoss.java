@@ -11,6 +11,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Utils.ExiledBossMusic;
+import sir_draco.survivalskills.Utils.ProjectileCalculator;
 
 import java.util.ArrayList;
 import java.util.List;

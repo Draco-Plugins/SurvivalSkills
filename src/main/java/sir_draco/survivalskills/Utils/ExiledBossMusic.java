@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.Bosses;
+package sir_draco.survivalskills.Utils;
 
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;

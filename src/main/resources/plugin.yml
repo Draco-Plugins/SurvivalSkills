@@ -72,6 +72,9 @@ commands:
   togglebloodydomain:
     description: Allows a player to enable or disable Bloody Domain
     permission: survivalskills.default
+  toggletrash:
+    description: Allows a player to enable or disable trash
+    permission: survivalskills.default
 
   gettrophy:
     description: Gives a specified trophy
@@ -101,6 +104,9 @@ commands:
     permission: survivalskills.op
   toggleoverworldfirstdragon:
     description: Allows for toggling the first dragon in the overworld
+    permission: survivalskills.op
+  dragonstatus:
+    description: Allows for checking the status of the dragon
     permission: survivalskills.op
 
 permissions:

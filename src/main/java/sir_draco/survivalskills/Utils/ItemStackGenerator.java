@@ -1,4 +1,4 @@
-package sir_draco.survivalskills;
+package sir_draco.survivalskills.Utils;
 
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -10,6 +10,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionType;
+import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.*;
 

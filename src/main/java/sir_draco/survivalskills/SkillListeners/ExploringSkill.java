@@ -8,25 +8,26 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import sir_draco.survivalskills.Abilities.Armor.AdventurerArmor;
 import sir_draco.survivalskills.Abilities.CaveFinderAsync;
-import sir_draco.survivalskills.ItemStackGenerator;
+import sir_draco.survivalskills.Abilities.Magnet;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
 public class ExploringSkill implements Listener {
+    public static final ArrayList<Player> activeMagnets = new ArrayList<>();
 
     private final SurvivalSkills plugin;
     private final HashMap<UUID, Location> locationTracker = new HashMap<>();
@@ -140,6 +141,22 @@ public class ExploringSkill implements Listener {
         if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "CaveFinder").isApplied()) return;
         CaveFinderAsync task = new CaveFinderAsync(p, plugin);
         task.runTaskAsynchronously(plugin);
+    }
+
+    @EventHandler
+    public void onItemHandChange(PlayerItemHeldEvent e) {
+        Player p = e.getPlayer();
+        ItemStack mainHand = p.getInventory().getItem(e.getNewSlot());
+        if (!ItemStackGenerator.isCustomItem(mainHand, 32)) {
+            activeMagnets.remove(p);
+            return;
+        }
+
+        if (activeMagnets.contains(p)) return;
+
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "Magnet").isApplied()) return;
+        activeMagnets.add(p);
+        new Magnet(p).runTaskTimer(plugin, 0, 5);
     }
 
     public int getPlayerSteps(UUID uuid) {
