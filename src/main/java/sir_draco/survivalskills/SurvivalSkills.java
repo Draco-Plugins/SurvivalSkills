@@ -28,6 +28,9 @@ import sir_draco.survivalskills.Commands.*;
 import sir_draco.survivalskills.Boards.Leaderboard;
 import sir_draco.survivalskills.Boards.LeaderboardPlayer;
 import sir_draco.survivalskills.Boards.SkillScoreboard;
+import sir_draco.survivalskills.Commands.AdminCommands.*;
+import sir_draco.survivalskills.Commands.DefaultCommands.*;
+import sir_draco.survivalskills.Commands.SkillCommands.*;
 import sir_draco.survivalskills.SkillListeners.*;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.Skills.SkillManager;
@@ -212,6 +215,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new SurvivalSkillsCommand(this);
         new SurvivalSkillsGetCommand(this);
         new ToggleOverworldFirstDragon(this);
+        new DragonStatusCommand();
     }
 
     public void loadLeaderboard() {
