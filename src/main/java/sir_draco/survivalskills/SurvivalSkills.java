@@ -311,6 +311,7 @@ public final class SurvivalSkills extends JavaPlugin {
         armorListener = new ArmorListener(this);
         TrophyListener trophyListener = new TrophyListener(this);
         TabCompleter tabCompleter = new TabCompleter(this);
+        GodListener godListener = new GodListener(this);
 
         getServer().getPluginManager().registerEvents(buildingListener, this);
         getServer().getPluginManager().registerEvents(miningListener, this);
@@ -324,6 +325,7 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(trophyListener, this);
         getServer().getPluginManager().registerEvents(tabCompleter, this);
         getServer().getPluginManager().registerEvents(armorListener, this);
+        getServer().getPluginManager().registerEvents(godListener, this);
     }
 
     public void loadData(Player p, FileConfiguration data) {

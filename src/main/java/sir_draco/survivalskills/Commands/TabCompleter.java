@@ -106,6 +106,8 @@ public class TabCompleter implements Listener {
         words.add("timeartifact");
         words.add("xpvoucher");
         words.add("zapwand");
+        words.add("magnet");
+        words.add("webshooter");
         e.setCompletions(getCompletions(buffer, words));
     }
 

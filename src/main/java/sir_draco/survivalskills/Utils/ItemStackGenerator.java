@@ -784,4 +784,12 @@ public class ItemStackGenerator {
         enchants.put(Enchantment.FORTUNE, 1);
         return createCustomItem(Material.HOPPER, 1, name, null, lore, null, 32, true, enchants);
     }
+
+    public static ItemStack getWebShooter() {
+        String name = ColorParser.colorizeString("Web Shooter", ColorParser.generateGradient("#FFFFFF", "#2E3526", "Web Shooter"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Right click to shoot a web");
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.COBWEB, 1, name, null, null, loreList, 33, false, null);
+    }
 }

@@ -190,6 +190,10 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
                 return ItemStackGenerator.getExperienceMultiplierVoucher();
             case "zapwand":
                 return ItemStackGenerator.getZapWand();
+            case "magnet":
+                return ItemStackGenerator.getMagnet();
+            case "webshooter":
+                return ItemStackGenerator.getWebShooter();
             default:
                 return null;
         }
