@@ -13,6 +13,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.SurvivalSkills;
 
+import static sir_draco.survivalskills.SkillListeners.GodListener.previousPotionBagID;
+
 public class SurvivalSkillsGetCommand implements CommandExecutor {
     public SurvivalSkillsGetCommand(SurvivalSkills plugin) {
         PluginCommand command = plugin.getCommand("ssget");
@@ -194,6 +196,16 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
                 return ItemStackGenerator.getMagnet();
             case "webshooter":
                 return ItemStackGenerator.getWebShooter();
+            case "unlimitedtippedarrow":
+                return ItemStackGenerator.getUnlimitedTippedArrow();
+            case "villagerrevivalartifact":
+                return ItemStackGenerator.getVillagerRevivalArtifact();
+            case "enderessence":
+                return ItemStackGenerator.getEnderEssence();
+            case "creeperessence":
+                return ItemStackGenerator.getCreeperEssence();
+            case "potionbag":
+                return ItemStackGenerator.getPotionBag(previousPotionBagID++);
             default:
                 return null;
         }

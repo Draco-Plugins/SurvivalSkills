@@ -67,6 +67,7 @@ public final class SurvivalSkills extends JavaPlugin {
     private MainSkill mainListener;
     private PlayerListener playerListener;
     private ArmorListener armorListener;
+    private GodListener godListener;
 
     // Configs
     private FileConfiguration config;
@@ -176,6 +177,7 @@ public final class SurvivalSkills extends JavaPlugin {
             throw new RuntimeException(e);
         }
 
+        savePotionBags();
         abilityManager.saveToolBelts();
         abilityManager.removeGlowFromScannedMobs();
 
@@ -311,7 +313,7 @@ public final class SurvivalSkills extends JavaPlugin {
         armorListener = new ArmorListener(this);
         TrophyListener trophyListener = new TrophyListener(this);
         TabCompleter tabCompleter = new TabCompleter(this);
-        GodListener godListener = new GodListener(this);
+        godListener = new GodListener();
 
         getServer().getPluginManager().registerEvents(buildingListener, this);
         getServer().getPluginManager().registerEvents(miningListener, this);
@@ -562,6 +564,19 @@ public final class SurvivalSkills extends JavaPlugin {
 
         try {
             permaTrashData.save(permaTrashFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void savePotionBags() {
+        File potionBagFile = new File(getDataFolder(), "potionbags.yml");
+        if (!potionBagFile.exists()) saveResource("potionbags.yml", true);
+        FileConfiguration potionBagData = YamlConfiguration.loadConfiguration(potionBagFile);
+        godListener.savePotionBags(potionBagData);
+
+        try {
+            potionBagData.save(potionBagFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

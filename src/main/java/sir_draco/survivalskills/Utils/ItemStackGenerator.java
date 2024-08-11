@@ -792,4 +792,51 @@ public class ItemStackGenerator {
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
         return createCustomItem(Material.COBWEB, 1, name, null, null, loreList, 33, false, null);
     }
+
+    public static ItemStack getUnlimitedTippedArrow() {
+        String name = ColorParser.colorizeString("Unlimited Tipped Arrow",
+                ColorParser.generateGradient("#FB08F2", "#ADF3FD", "Unlimited Tipped Arrow"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "A different tipped arrow is used every time");
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.TIPPED_ARROW, 1, name, null, null, loreList, 34, false, null);
+    }
+
+    public static ItemStack getVillagerRevivalArtifact() {
+        String name = ColorParser.colorizeString("Villager Revival Artifact",
+                ColorParser.generateGradient("#83FB08", "#FCFF7A", "Villager Revival Artifact"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Right click a zombie villager to revive it");
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.EMERALD, 1, name, null, null, loreList, 35, false, null);
+    }
+
+    public static ItemStack getEnderEssence() {
+        String name = ColorParser.colorizeString("Ender Essence", ColorParser.generateGradient("#29006E", "#C54FFF", "Ender Essence"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Right click to teleport 5 blocks ahead");
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.ENDER_PEARL, 1, name, null, null, loreList, 36, false, null);
+    }
+
+    public static ItemStack getCreeperEssence() {
+        String name = ColorParser.colorizeString("Creeper Essence", ColorParser.generateGradient("#199D00", "#FFFFFF", "Creeper Essence"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Right click to explode");
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.GUNPOWDER, 1, name, null, null, loreList, 37, false, null);
+    }
+
+    public static ItemStack getPotionBag(int id) {
+        String name = ColorParser.colorizeString("Potion Bag", ColorParser.generateGradient("#FFFFFF", "#000000", "Potion Bag"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Right click to open");
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        ItemStack bag = createCustomItem(Material.CHEST, 1, name, null, null, loreList, 38, false, null);
+        ItemMeta meta = bag.getItemMeta();
+        if (meta == null) return bag;
+        meta.getPersistentDataContainer().set(new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "potion_bag"), PersistentDataType.INTEGER, id);
+        bag.setItemMeta(meta);
+        return bag;
+    }
 }
