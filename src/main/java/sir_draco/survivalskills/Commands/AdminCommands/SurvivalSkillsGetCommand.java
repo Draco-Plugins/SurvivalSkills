@@ -206,6 +206,12 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
                 return ItemStackGenerator.getCreeperEssence();
             case "potionbag":
                 return ItemStackGenerator.getPotionBag(previousPotionBagID++);
+            case "magicbagowind":
+                return ItemStackGenerator.getMagicBagOfWind();
+            case "dragonbreathcannon":
+                return ItemStackGenerator.getDragonBreathCannon();
+            case "unlimitedwitherrose":
+                return ItemStackGenerator.getUnlimitedWitherRose();
             default:
                 return null;
         }

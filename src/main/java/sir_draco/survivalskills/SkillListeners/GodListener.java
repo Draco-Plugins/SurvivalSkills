@@ -2,12 +2,14 @@ package sir_draco.survivalskills.SkillListeners;
 
 import org.bukkit.*;
 import org.bukkit.block.Biome;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
@@ -77,7 +79,13 @@ public class GodListener implements Listener {
         Player p = e.getPlayer();
         ItemStack mainHand = p.getInventory().getItemInMainHand();
 
-        if (ItemStackGenerator.isCustomItem(mainHand, 33)) {
+        if (!ItemStackGenerator.isCustomItem(mainHand)) return;
+        ItemMeta meta = mainHand.getItemMeta();
+        if (meta == null) return;
+        if (!meta.hasCustomModelData()) return;
+        int modelData = meta.getCustomModelData();
+
+        if (modelData == 33) {
             Vector velocity = p.getLocation().getDirection().multiply(2);
             FallingBlock cobweb = p.getWorld().spawnFallingBlock(p.getLocation().clone().add(0, 1, 0),
                     Material.COBWEB.createBlockData());
@@ -85,15 +93,15 @@ public class GodListener implements Listener {
             cobweb.setVelocity(velocity);
             p.getWorld().playSound(p.getLocation(), Sound.ENTITY_EGG_THROW, 1, 1);
         }
-        else if (ItemStackGenerator.isCustomItem(mainHand, 36)) {
+        else if (modelData == 36) {
             e.setCancelled(true);
             Location loc = p.getLocation().clone().add(p.getLocation().getDirection().multiply(5));
             new EnderEssence(p, loc).runTaskAsynchronously(SurvivalSkills.getInstance());
         }
-        else if (ItemStackGenerator.isCustomItem(mainHand, 37)) {
+        else if (modelData == 37) {
             p.getWorld().createExplosion(p.getLocation(), 5, false, true, p);
         }
-        else if (ItemStackGenerator.isCustomItem(mainHand, 38)) {
+        else if (modelData == 38) {
             int id = getPotionBagID(mainHand);
 
             if (potionBags.containsKey(id)) {
@@ -117,6 +125,33 @@ public class GodListener implements Listener {
             potionBags.put(id, potionBag);
             openPotionBags.add(potionBag);
             p.openInventory(potionBag);
+        }
+        else if (modelData == 39) {
+            e.setCancelled(true);
+            p.launchProjectile(WindCharge.class, p.getLocation().getDirection().multiply(2));
+        }
+        else if (modelData == 40) {
+            e.setCancelled(true);
+            p.launchProjectile(DragonFireball.class, p.getLocation().getDirection().multiply(2));
+        }
+    }
+
+    @EventHandler
+    public void placeGodItem(BlockPlaceEvent e) {
+        Player p = e.getPlayer();
+        ItemStack mainHand = p.getInventory().getItemInMainHand();
+
+        if (!ItemStackGenerator.isCustomItem(mainHand)) return;
+        ItemMeta meta = mainHand.getItemMeta();
+        if (meta == null) return;
+        if (!meta.hasCustomModelData()) return;
+        int modelData = meta.getCustomModelData();
+        e.setCancelled(true);
+
+        Block block = e.getBlock();
+
+        if (modelData == 41) {
+            block.setType(Material.WITHER_ROSE);
         }
     }
 
@@ -334,6 +369,8 @@ public class GodListener implements Listener {
         godItems.put(EntityType.ENDERMAN, ItemStackGenerator.getEnderEssence());
         godItems.put(EntityType.CREEPER, ItemStackGenerator.getCreeperEssence());
         godItems.put(EntityType.WITCH, ItemStackGenerator.getPotionBag(previousPotionBagID++));
+        godItems.put(EntityType.BREEZE, ItemStackGenerator.getMagicBagOfWind());
+        godItems.put(EntityType.ENDER_DRAGON, ItemStackGenerator.getDragonBreathCannon());
     }
 
     public void createPotionList() {

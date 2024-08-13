@@ -839,4 +839,29 @@ public class ItemStackGenerator {
         bag.setItemMeta(meta);
         return bag;
     }
+
+    public static ItemStack getMagicBagOfWind() {
+        String name = ColorParser.colorizeString("Magic Bag O' Wind", ColorParser.generateGradient("#08FB75", "#ADF3FD", "Magic Bag O' Wind"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Right click to launch yourself in the air");
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.WIND_CHARGE, 1, name, null, null, loreList, 39, false, null);
+    }
+
+    public static ItemStack getDragonBreathCannon() {
+        String name = ColorParser.colorizeString("Dragon Breath Cannon", ColorParser.generateGradient("#5608FB", "#343434", "Dragon Breath Cannon"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Right click to shoot dragon breath");
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.DRAGON_BREATH, 1, name, null, null, loreList, 40, false, null);
+    }
+
+    public static ItemStack getUnlimitedWitherRose() {
+        String name = ColorParser.colorizeString("Unlimited Wither Rose",
+                ColorParser.generateGradient("#000000", "#515151", "Unlimited Wither Rose"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Infinite wither rose");
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.WITHER_ROSE, 1, name, null, null, loreList, 41, false, null);
+    }
 }

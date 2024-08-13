@@ -113,6 +113,9 @@ public class TabCompleter implements Listener {
         words.add("enderessence");
         words.add("creeperessence");
         words.add("potionbag");
+        words.add("magicbagowind");
+        words.add("dragonbreathcannon");
+        words.add("unlimitedwitherrose");
         e.setCompletions(getCompletions(buffer, words));
     }
 
