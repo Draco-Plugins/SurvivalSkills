@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.Trophy;
+package sir_draco.survivalskills.Trophy.GodQuestline;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
@@ -17,7 +17,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
-import sir_draco.survivalskills.Utils.ColorParser;
+import sir_draco.survivalskills.Trophy.TrophyManager;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.time.DayOfWeek;
@@ -28,15 +28,16 @@ public class GodTrophyEffects {
     private final double centerX;
     private final double centerY;
     private final double centerZ;
+    private final int npcID;
     private final Location trophyLoc;
 
     private ItemDisplay display;
     private ItemDisplay blackHole;
     private EnderCrystal crystal;
-    private boolean movingUp = false;
     private NPC npcPlayer;
+    private boolean movingUp = false;
     private double crystalRadians = 0;
-    private int npcID;
+    private int questParticles = 0;
 
     public GodTrophyEffects(Location trophyLoc) {
         this.trophyLoc = trophyLoc;
@@ -52,6 +53,7 @@ public class GodTrophyEffects {
         centerY = trophyLoc.getY() + 1.5;
         centerZ = trophyLoc.getZ() + 0.5;
         this.npcID = npcID;
+        // loadParticlePhase();
     }
 
     public void startAnimation() {
@@ -146,8 +148,7 @@ public class GodTrophyEffects {
             return;
         }
 
-        String npcName = ColorParser.colorizeString("God Trophy", ColorParser.generateGradient("#FFFF00", "#FFFFFF", 10), true);
-        npcPlayer = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, npcName);
+        npcPlayer = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, TrophyManager.npcName);
         if (npcPlayer == null) return;
         npcPlayer.spawn(trophyLoc.clone().add(0.5, 2.0, 0.5));
         if (npcPlayer.getEntity() == null) return;
@@ -229,7 +230,15 @@ public class GodTrophyEffects {
         crystalRadians += 0.2;
     }
 
+    public void questParticleEffect() {
+
+    }
+
     public NPC getNPCPlayer() {
         return npcPlayer;
+    }
+
+    public void increaseQuestParticles() {
+        questParticles++;
     }
 }

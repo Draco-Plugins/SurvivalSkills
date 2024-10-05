@@ -72,6 +72,52 @@ public class ItemStackGenerator {
         Bukkit.getServer().addRecipe(recipe);
     }
 
+    public static void createShapedRecipe(NamespacedKey key, ItemStack result, ItemStack a, ItemStack b, ItemStack c, ItemStack d,
+                                          ItemStack e, ItemStack f, ItemStack g, ItemStack h, ItemStack i) {
+        if (getServer().getRecipe(key) != null) getServer().removeRecipe(key);
+        ShapedRecipe recipe = new ShapedRecipe(key, result);
+
+        // Create the shape
+        StringBuilder shape1 = new StringBuilder();
+        if (a != null) shape1.append("A");
+        else shape1.append(" ");
+        if (b != null) shape1.append("B");
+        else shape1.append(" ");
+        if (c != null) shape1.append("C");
+        else shape1.append(" ");
+
+        StringBuilder shape2 = new StringBuilder();
+        if (d != null) shape2.append("D");
+        else shape2.append(" ");
+        if (e != null) shape2.append("E");
+        else shape2.append(" ");
+        if (f != null) shape2.append("F");
+        else shape2.append(" ");
+
+        StringBuilder shape3 = new StringBuilder();
+        if (g != null) shape3.append("G");
+        else shape3.append(" ");
+        if (h != null) shape3.append("H");
+        else shape3.append(" ");
+        if (i != null) shape3.append("I");
+        else shape3.append(" ");
+
+        recipe.shape(shape1.toString(), shape2.toString(), shape3.toString());
+
+        // Set the ingredients
+        if (a != null) recipe.setIngredient('A', a.getType());
+        if (b != null) recipe.setIngredient('B', b.getType());
+        if (c != null) recipe.setIngredient('C', c.getType());
+        if (d != null) recipe.setIngredient('D', d.getType());
+        if (e != null) recipe.setIngredient('E', e.getType());
+        if (f != null) recipe.setIngredient('F', f.getType());
+        if (g != null) recipe.setIngredient('G', g.getType());
+        if (h != null) recipe.setIngredient('H', h.getType());
+        if (i != null) recipe.setIngredient('I', i.getType());
+
+        Bukkit.getServer().addRecipe(recipe);
+    }
+
     public static boolean isCustomItem(ItemStack item, int modelData) {
         if (item == null) return false;
         if (item.getItemMeta() == null) return false;
@@ -790,6 +836,8 @@ public class ItemStackGenerator {
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Right click to shoot a web");
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        loreList.add("");
+        loreList.add("~Spider Exotic~");
         return createCustomItem(Material.COBWEB, 1, name, null, null, loreList, 33, false, null);
     }
 
@@ -799,6 +847,8 @@ public class ItemStackGenerator {
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "A different tipped arrow is used every time");
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        loreList.add("");
+        loreList.add("~Skeleton Exotic~");
         return createCustomItem(Material.TIPPED_ARROW, 1, name, null, null, loreList, 34, false, null);
     }
 
@@ -808,6 +858,8 @@ public class ItemStackGenerator {
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Right click a zombie villager to revive it");
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        loreList.add("");
+        loreList.add("~Zombie Exotic~");
         return createCustomItem(Material.EMERALD, 1, name, null, null, loreList, 35, false, null);
     }
 
@@ -816,6 +868,8 @@ public class ItemStackGenerator {
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Right click to teleport 5 blocks ahead");
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        loreList.add("");
+        loreList.add("~Enderman Exotic~");
         return createCustomItem(Material.ENDER_PEARL, 1, name, null, null, loreList, 36, false, null);
     }
 
@@ -824,6 +878,8 @@ public class ItemStackGenerator {
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Right click to explode");
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        loreList.add("");
+        loreList.add("~Creeper Exotic~");
         return createCustomItem(Material.GUNPOWDER, 1, name, null, null, loreList, 37, false, null);
     }
 
@@ -831,7 +887,6 @@ public class ItemStackGenerator {
         String name = ColorParser.colorizeString("Potion Bag", ColorParser.generateGradient("#FFFFFF", "#000000", "Potion Bag"), true);
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Right click to open");
-        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
         ItemStack bag = createCustomItem(Material.CHEST, 1, name, null, null, loreList, 38, false, null);
         ItemMeta meta = bag.getItemMeta();
         if (meta == null) return bag;
@@ -845,6 +900,8 @@ public class ItemStackGenerator {
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Right click to launch yourself in the air");
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        loreList.add("");
+        loreList.add("~Breeze Exotic~");
         return createCustomItem(Material.WIND_CHARGE, 1, name, null, null, loreList, 39, false, null);
     }
 
@@ -853,6 +910,8 @@ public class ItemStackGenerator {
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Right click to shoot dragon breath");
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        loreList.add("");
+        loreList.add("~Ender Dragon Exotic~");
         return createCustomItem(Material.DRAGON_BREATH, 1, name, null, null, loreList, 40, false, null);
     }
 
@@ -862,6 +921,123 @@ public class ItemStackGenerator {
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Infinite wither rose");
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        loreList.add("");
+        loreList.add("~Wither Skeleton Exotic Exotic~");
         return createCustomItem(Material.WITHER_ROSE, 1, name, null, null, loreList, 41, false, null);
+    }
+
+    public static ItemStack getTurtleHelmet() {
+        String name = ColorParser.colorizeString("Turtle Helmet", ColorParser.generateGradient("#005616", "#03C1A5", "Turtle Helmet"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        ItemStack helmet = createCustomItem(Material.TURTLE_HELMET, 1, name, null, null, loreList, 42, false, null);
+        ItemMeta meta = helmet.getItemMeta();
+        if (meta == null) return helmet;
+        meta.setUnbreakable(true);
+        helmet.setItemMeta(meta);
+        return helmet;
+    }
+
+    public static ItemStack getGoatHorn() {
+        String name = ColorParser.colorizeString("Goat Horn", ColorParser.generateGradient("#4F2300", "#404040", "Goat Horn"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.GOAT_HORN, 1, name, null, null, loreList, 42, false, null);
+    }
+
+    public static ItemStack getFirstAlbum() {
+        String name = ColorParser.colorizeString("First Album",
+                ColorParser.generateGradient("#2E2E2E", "#9B9B9B", "First Album"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.NOTE_BLOCK, 1, name, null, null, loreList, 42, false, null);
+    }
+
+    public static ItemStack getSecondAlbum() {
+        String name = ColorParser.colorizeString("Second Album",
+                ColorParser.generateGradient("#2E2E2E", "#9B9B9B", "Second Album"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.NOTE_BLOCK, 1, name, null, null, loreList, 42, false, null);
+    }
+
+    public static ItemStack getMusicKnowledgeDisc() {
+        String name = ColorParser.colorizeString("Music Knowledge Disc",
+                ColorParser.generateGradient("#2E2E2E", "#9B9B9B", "Music Knowledge Disc"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.MUSIC_DISC_13, 1, name, null, null, loreList, 42, false, null);
+    }
+
+    public static ItemStack getFirstSherd() {
+        String name = ColorParser.colorizeString("First Sherd",
+                ColorParser.generateGradient("#FBA334", "#342601", "First Sherd"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.FLOWER_POT, 1, name, null, null, loreList, 42, false, null);
+    }
+
+    public static ItemStack getSecondSherd() {
+        String name = ColorParser.colorizeString("Second Sherd",
+                ColorParser.generateGradient("#FBA334", "#342601", "Second Sherd"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.FLOWER_POT, 1, name, null, null, loreList, 42, false, null);
+    }
+
+    public static ItemStack getSherdRelic() {
+        String name = ColorParser.colorizeString("Sherd Relic",
+                ColorParser.generateGradient("#FBA334", "#342601", "Sherd Relic"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.FLOWER_POT, 1, name, null, null, loreList, 42, false, null);
+    }
+
+    public static ItemStack getFirstTrim() {
+        String name = ColorParser.colorizeString("First Trim",
+                ColorParser.generateGradient("#A3A3A3", "#330048", "First Trim"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.FLOWER_POT, 1, name, null, null, loreList, 42, false, null);
+    }
+
+    public static ItemStack getSecondTrim() {
+        String name = ColorParser.colorizeString("Second Trim",
+                ColorParser.generateGradient("#A3A3A3", "#330048", "Second Trim"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.FLOWER_POT, 1, name, null, null, loreList, 42, false, null);
+    }
+
+    public static ItemStack getTrimRelic() {
+        String name = ColorParser.colorizeString("Trim Relic",
+                ColorParser.generateGradient("#A3A3A3", "#330048", "Trim Relic"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.FLOWER_POT, 1, name, null, null, loreList, 42, false, null);
+    }
+
+    public static ItemStack getWarriorEmblem() {
+        String name = ColorParser.colorizeString("Warrior Emblem", ColorParser.generateGradient("#FF0000", "#480000", "Warrior Emblem"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        return createCustomItem(Material.ENCHANTED_BOOK, 1, name, null, null, loreList, 42, false, null);
+    }
+
+    public static ItemStack getTridentLauncher() {
+        String name = ColorParser.colorizeString("Trident Launcher", ColorParser.generateGradient("#5584FF", "#FFE44D", "Trident Launcher"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Right click to shoot a trident");
+        loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
+        loreList.add("");
+        loreList.add("~Drowned Exotic~");
+
+        ItemStack item = createCustomItem(Material.TRIDENT, 1, name, null, null, loreList, 43, false, null);
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+        meta.setUnbreakable(true);
+        item.setItemMeta(meta);
+
+        return item;
     }
 }

@@ -16,6 +16,7 @@ import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.Boards.Leaderboard;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Utils.RecipeMaker;
 
 import java.util.*;
 
@@ -261,7 +262,7 @@ public class SkillStatsCommand implements CommandExecutor {
     public void addSSRecipe(int recipeCounter, Inventory inv) {
         NamespacedKey key = plugin.getRecipeKeys().get(recipeCounter - 1);
         if (key == null) return;
-        ArrayList<Integer> slots = getRecipeSlots(recipeCounter);
+        ArrayList<Integer> slots = RecipeMaker.getRecipePositions(recipeCounter);
         Recipe recipe = Bukkit.getRecipe(key);
         if (recipe == null) return;
         if (recipe instanceof ShapedRecipe) {
@@ -310,35 +311,6 @@ public class SkillStatsCommand implements CommandExecutor {
             ItemStack result = getResult(shapelessRecipe.getResult());
             inv.setItem(slots.get(9), result);
         }
-    }
-
-    public ArrayList<Integer> getRecipeSlots(int recipeCounter) {
-        ArrayList<Integer> slots = new ArrayList<>();
-        if (recipeCounter % 2 == 1) {
-            slots.add(0);
-            slots.add(1);
-            slots.add(2);
-            slots.add(9);
-            slots.add(10);
-            slots.add(11);
-            slots.add(18);
-            slots.add(19);
-            slots.add(20);
-            slots.add(12);
-        }
-        else {
-            slots.add(5);
-            slots.add(6);
-            slots.add(7);
-            slots.add(14);
-            slots.add(15);
-            slots.add(16);
-            slots.add(23);
-            slots.add(24);
-            slots.add(25);
-            slots.add(17);
-        }
-        return slots;
     }
 
     public ArrayList<Inventory> createSkillTree(Player p, String skill) {

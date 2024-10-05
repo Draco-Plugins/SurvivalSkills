@@ -35,6 +35,8 @@ import sir_draco.survivalskills.SkillListeners.*;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Skills.SkillsHolder;
+import sir_draco.survivalskills.Trophy.GodQuestline.GodQuestCommand;
+import sir_draco.survivalskills.Trophy.GodQuestline.ToggleGodQuestCommand;
 import sir_draco.survivalskills.Trophy.Trophy;
 import sir_draco.survivalskills.Trophy.TrophyListener;
 import sir_draco.survivalskills.Trophy.TrophyManager;
@@ -53,6 +55,7 @@ public final class SurvivalSkills extends JavaPlugin {
     private final HashMap<UUID, LeaderboardPlayer> leaderboardTracker = new HashMap<>();
     private final ArrayList<Material> farmingList = new ArrayList<>();
     private final ArrayList<NamespacedKey> recipeKeys = new ArrayList<>();
+    private final HashMap<NamespacedKey, Integer> godRecipeKeys = new HashMap<>();
 
     // Managers
     private AbilityManager abilityManager;
@@ -106,7 +109,7 @@ public final class SurvivalSkills extends JavaPlugin {
         config = YamlConfiguration.loadConfiguration(configFile);
 
         // See if an update needs to be made to the config
-        if (config.get("Version") == null || config.getDouble("Version") != 1.97) updateConfig();
+        if (config.get("Version") == null || config.getDouble("Version") != 2.0) updateConfig();
         skillManager = new SkillManager(this);
 
         trophyFile = new File(getDataFolder(), "trophydata.yml");
@@ -131,6 +134,7 @@ public final class SurvivalSkills extends JavaPlugin {
         trophyManager = new TrophyManager(this);
         RecipeMaker.trophyRecipes(this);
         RecipeMaker.rewardRecipes(this);
+        RecipeMaker.godRecipes(this);
         abilityManager = new AbilityManager(this);
         loadCommands();
 
@@ -208,6 +212,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new WaterBreathingCommand(this);
         new ToggleBloodyDomainCommand();
         new ToggleTrashCommand(this);
+        new GodQuestCommand(this);
 
         // Admin Commands
         new BossCommand(this);
@@ -220,6 +225,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new SurvivalSkillsGetCommand(this);
         new ToggleOverworldFirstDragon(this);
         new DragonStatusCommand();
+        new ToggleGodQuestCommand(this);
     }
 
     public void loadLeaderboard() {
@@ -435,8 +441,13 @@ public final class SurvivalSkills extends JavaPlugin {
         if (!dataFile.exists()) saveResource("playerdata.yml", true);
         FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
 
+        File godQuestFile = new File(getDataFolder(), "godquests.yml");
+        if (!godQuestFile.exists()) saveResource("godquests.yml", true);
+        FileConfiguration godQuestData = YamlConfiguration.loadConfiguration(godQuestFile);
+
         UUID uuid = p.getUniqueId();
         trophyManager.savePlayerTrophyData(uuid, data);
+        trophyManager.savePlayerGodQuestData(uuid, godQuestData);
 
         if (toggledScoreboard.containsKey(uuid)) data.set(uuid + ".Scoreboard", toggledScoreboard.get(uuid));
         else Bukkit.getLogger().warning("Player " + p.getName() + " does not have a scoreboard status");
@@ -467,6 +478,7 @@ public final class SurvivalSkills extends JavaPlugin {
 
         try {
             data.save(dataFile);
+            godQuestData.save(godQuestFile);
         }
         catch (IOException e) {
             throw new RuntimeException(e);
@@ -480,7 +492,12 @@ public final class SurvivalSkills extends JavaPlugin {
         if (!dataFile.exists()) saveResource("playerdata.yml", true);
         FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
 
+        File godQuestFile = new File(getDataFolder(), "godquests.yml");
+        if (!godQuestFile.exists()) saveResource("godquests.yml", true);
+        FileConfiguration godQuestData = YamlConfiguration.loadConfiguration(godQuestFile);
+
         trophyManager.saveTrophyData(data);
+        trophyManager.saveGodQuestData(godQuestData);
         skillManager.saveSkillData(data);
 
         for (Player p : Bukkit.getOnlinePlayers()) {
@@ -512,6 +529,7 @@ public final class SurvivalSkills extends JavaPlugin {
         }
 
         data.save(dataFile);
+        godQuestData.save(godQuestFile);
     }
 
     public void saveLeaderboard() throws IOException {
@@ -830,6 +848,10 @@ public final class SurvivalSkills extends JavaPlugin {
         return recipeKeys;
     }
 
+    public HashMap<NamespacedKey, Integer> getGodRecipeKeys() {
+        return godRecipeKeys;
+    }
+
     public boolean isGriefPreventionEnabled() {
         return griefPreventionEnabled;
     }
@@ -864,6 +886,10 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public SkillManager getSkillManager() {
         return skillManager;
+    }
+
+    public GodListener getGodListener() {
+        return godListener;
     }
 
     public static SurvivalSkills getInstance() {

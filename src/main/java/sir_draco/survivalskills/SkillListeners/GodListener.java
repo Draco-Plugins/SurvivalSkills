@@ -15,6 +15,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -29,6 +30,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.GodItems.EnderEssence;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Trophy.GodQuestline.GodRecipeUI;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 
 import java.io.File;
@@ -45,6 +47,7 @@ public class GodListener implements Listener {
 
     private final HashMap<EntityType, ItemStack> godItems = new HashMap<>();
     private final HashMap<Integer, Inventory> potionBags = new HashMap<>();
+    private final HashMap<Player, GodRecipeUI> openGodRecipeUI = new HashMap<>();
     private final ArrayList<PotionEffectType> potionEffects = new ArrayList<>();
     private final ArrayList<Inventory> openPotionBags = new ArrayList<>();
 
@@ -59,6 +62,7 @@ public class GodListener implements Listener {
         double chance = Math.random();
         if (!godItems.containsKey(type)) return;
 
+        // Special cases
         if (type.equals(EntityType.ENDER_DRAGON) && chance <= 0.1)
             e.getDrops().add(godItems.get(type));
         else if (type.equals(EntityType.CREEPER)) {
@@ -68,7 +72,15 @@ public class GodListener implements Listener {
             else if (chance <= 0.001)
                 e.getDrops().add(godItems.get(type));
         }
-        else if (chance <= 0.001)
+        else if (type.equals(EntityType.BREEZE) && chance <= 0.01)
+            e.getDrops().add(godItems.get(type));
+
+        // Rest of the mobs
+        if (chance > 0.001) return;
+
+        if (type.equals(EntityType.WITCH))
+            e.getDrops().add(ItemStackGenerator.getPotionBag(previousPotionBagID++));
+        else
             e.getDrops().add(godItems.get(type));
     }
 
@@ -134,6 +146,12 @@ public class GodListener implements Listener {
             e.setCancelled(true);
             p.launchProjectile(DragonFireball.class, p.getLocation().getDirection().multiply(2));
         }
+        else if (modelData == 43) {
+            // Handle trident launcher
+            e.setCancelled(true);
+            Trident trident = p.launchProjectile(Trident.class, p.getLocation().getDirection().multiply(2));
+            trident.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
+        }
     }
 
     @EventHandler
@@ -150,9 +168,7 @@ public class GodListener implements Listener {
 
         Block block = e.getBlock();
 
-        if (modelData == 41) {
-            block.setType(Material.WITHER_ROSE);
-        }
+        if (modelData == 41) block.setType(Material.WITHER_ROSE);
     }
 
     @EventHandler
@@ -240,6 +256,31 @@ public class GodListener implements Listener {
         int id = getPotionBagID(item.getItemStack());
         item.remove();
         removePotionBag(id);
+    }
+
+    @EventHandler
+    public void godRecipeClick(InventoryClickEvent e) {
+        Player p = (Player) e.getWhoClicked();
+        if (!openGodRecipeUI.containsKey(p)) return;
+
+        e.setCancelled(true);
+        openGodRecipeUI.get(p).handleClick(e);
+    }
+
+    @EventHandler
+    public void godRecipeDrag(InventoryDragEvent e) {
+        Player p = (Player) e.getWhoClicked();
+        if (!openGodRecipeUI.containsKey(p)) return;
+
+        e.setCancelled(true);
+        openGodRecipeUI.get(p).handleDrag(e);
+    }
+
+    @EventHandler
+    public void godRecipeClose(InventoryCloseEvent e) {
+        Player p = (Player) e.getPlayer();
+        if (!openGodRecipeUI.containsKey(p)) return;
+        openGodRecipeUI.remove(p);
     }
 
     public PotionEffect getRandomPotionEffect() {
@@ -369,6 +410,7 @@ public class GodListener implements Listener {
         godItems.put(EntityType.ENDERMAN, ItemStackGenerator.getEnderEssence());
         godItems.put(EntityType.CREEPER, ItemStackGenerator.getCreeperEssence());
         godItems.put(EntityType.WITCH, ItemStackGenerator.getPotionBag(previousPotionBagID++));
+        godItems.put(EntityType.DROWNED, ItemStackGenerator.getTridentLauncher());
         godItems.put(EntityType.BREEZE, ItemStackGenerator.getMagicBagOfWind());
         godItems.put(EntityType.ENDER_DRAGON, ItemStackGenerator.getDragonBreathCannon());
     }
@@ -376,5 +418,9 @@ public class GodListener implements Listener {
     public void createPotionList() {
         for (PotionEffectType type : Registry.EFFECT)
             potionEffects.add(type);
+    }
+
+    public HashMap<Player, GodRecipeUI> getOpenGodRecipeUI() {
+        return openGodRecipeUI;
     }
 }

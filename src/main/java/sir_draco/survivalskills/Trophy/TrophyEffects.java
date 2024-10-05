@@ -6,6 +6,7 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import sir_draco.survivalskills.Trophy.GodQuestline.GodTrophyEffects;
 import sir_draco.survivalskills.Utils.ColorParser;
 import sir_draco.survivalskills.SurvivalSkills;
 
@@ -754,7 +755,6 @@ public class TrophyEffects extends BukkitRunnable {
             else if (cycle == 121) godTrophy.spawnPlayer(playerName);
         }
 
-        // Have enchantment particle effects around the base. Fireworks exploding nearby
         if (cycle >= 121) {
             if (cycle >= 125 && godTrophy.getNPCPlayer() == null) godTrophy.spawnPlayer(playerName);
             if (cycle == 121) godTrophy.spawnCrystal(0.5, 1.5, 0.5);
@@ -764,6 +764,7 @@ public class TrophyEffects extends BukkitRunnable {
                 world.spawnParticle(Particle.ENCHANT, loc.clone().add(0.5, 0, 0.5), 40);
             }
             if (cycle % 4 == 0) godTrophy.moveCrystal();
+            godTrophy.questParticleEffect();
         }
     }
 

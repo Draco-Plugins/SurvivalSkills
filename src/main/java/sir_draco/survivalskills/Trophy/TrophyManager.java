@@ -10,6 +10,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Trophy.GodQuestline.GodTrophyQuest;
+import sir_draco.survivalskills.Utils.ColorParser;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -18,15 +20,22 @@ import java.util.UUID;
 
 public class TrophyManager {
 
+    public final static String npcName = ColorParser.colorizeString("God Trophy",
+            ColorParser.generateGradient("#FFFF00", "#FFFFFF", 10), true);
+
     private final SurvivalSkills plugin;
     private final HashMap<UUID, HashMap<String, Boolean>> trophyTracker = new HashMap<>();
     private final HashMap<Location, Trophy> trophies = new HashMap<>();
     private final HashMap<Integer, ItemStack> trophyItems = new HashMap<>();
     private final HashMap<Player, Integer> godNPCIDs = new HashMap<>();
+    private final HashMap<UUID, GodTrophyQuest> playerGodQuestData = new HashMap<>();
+
+    private boolean godQuestEnabled;
 
     public TrophyManager(SurvivalSkills plugin) {
         this.plugin = plugin;
         loadTrophies();
+        loadGodQuestStatus();
     }
 
     /**
@@ -84,6 +93,11 @@ public class TrophyManager {
         trophyTracker.put(uuid, trophyList);
     }
 
+    public void loadGodQuestStatus() {
+        FileConfiguration config = plugin.getTrueConfig();
+        godQuestEnabled = config.getBoolean("GodQuestEnabled");
+    }
+
     public void saveTrophies() throws IOException {
         FileConfiguration trophyData = plugin.getTrophyData();
         if (trophyData == null) return;
@@ -125,6 +139,21 @@ public class TrophyManager {
             }
         }
         else Bukkit.getLogger().warning("UUID " + uuid + " does not have a trophy status");
+    }
+
+    public void saveGodQuestData(FileConfiguration data) {
+        for (Map.Entry<UUID, GodTrophyQuest> player : playerGodQuestData.entrySet()) {
+            savePlayerGodQuestData(player.getKey(), data);
+        }
+    }
+
+    public void savePlayerGodQuestData(UUID uuid, FileConfiguration data) {
+        if (playerGodQuestData.containsKey(uuid)) {
+            GodTrophyQuest quest = playerGodQuestData.get(uuid);
+            data.set(uuid + ".Phase", quest.getPhase());
+            data.set(uuid + ".ItemCount", quest.getCurrentItemCount());
+        }
+        else Bukkit.getLogger().warning("UUID " + uuid + " does not have a god quest status");
     }
 
     public void disableTrophies() {
@@ -194,5 +223,17 @@ public class TrophyManager {
 
     public HashMap<Player, Integer> getGodNPCIDs() {
         return godNPCIDs;
+    }
+
+    public HashMap<UUID, GodTrophyQuest> getPlayerGodQuestData() {
+        return playerGodQuestData;
+    }
+
+    public void setGodQuestEnabled(boolean godQuestEnabled) {
+        this.godQuestEnabled = godQuestEnabled;
+    }
+
+    public boolean isGodQuestEnabled() {
+        return godQuestEnabled;
     }
 }

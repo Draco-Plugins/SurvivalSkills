@@ -212,6 +212,30 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
                 return ItemStackGenerator.getDragonBreathCannon();
             case "unlimitedwitherrose":
                 return ItemStackGenerator.getUnlimitedWitherRose();
+            case "turtlehelmet":
+                return ItemStackGenerator.getTurtleHelmet();
+            case "goathorn":
+                return ItemStackGenerator.getGoatHorn();
+            case "firstalbum":
+                return ItemStackGenerator.getFirstAlbum();
+            case "secondalbum":
+                return ItemStackGenerator.getSecondAlbum();
+            case "musicknowledgedisc":
+                return ItemStackGenerator.getMusicKnowledgeDisc();
+            case "firstsherd":
+                return ItemStackGenerator.getFirstSherd();
+            case "secondsherd":
+                return ItemStackGenerator.getSecondSherd();
+            case "sherdrelic":
+                return ItemStackGenerator.getSherdRelic();
+            case "firsttrim":
+                return ItemStackGenerator.getFirstTrim();
+            case "secondtrim":
+                return ItemStackGenerator.getSecondTrim();
+            case "trimrelic":
+                return ItemStackGenerator.getTrimRelic();
+            case "warrioremblem":
+                return ItemStackGenerator.getWarriorEmblem();
             default:
                 return null;
         }

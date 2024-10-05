@@ -1,13 +1,12 @@
 package sir_draco.survivalskills.Utils;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.inventory.meta.MusicInstrumentMeta;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -469,10 +468,119 @@ public class RecipeMaker {
                 null, null, null, Material.IRON_BLOCK, Material.REDSTONE_BLOCK, Material.COPPER_BLOCK);
     }
 
+    public static void godRecipes(SurvivalSkills plugin) {
+        NamespacedKey turtleKey = createGodKey("turtle", plugin, 1);
+        NamespacedKey goatKey = createGodKey("goat", plugin, 1);
+        NamespacedKey firstAlbumKey = createGodKey("firstalbum", plugin, 2);
+        NamespacedKey secondAlbumKey = createGodKey("secondalbum", plugin, 2);
+        NamespacedKey musicKnowledgeKey = createGodKey("musicknowledge", plugin, 2);
+        NamespacedKey firstSherdKey = createGodKey("firstsherd", plugin, 3);
+        NamespacedKey secondSherdKey = createGodKey("secondsherd", plugin, 3);
+        NamespacedKey sherdRelicKey = createGodKey("sherdrelic", plugin, 3);
+        NamespacedKey firstTrimKey = createGodKey("firsttrim", plugin, 3);
+        NamespacedKey secondTrimKey = createGodKey("secondtrim", plugin, 3);
+        NamespacedKey trimRelicKey = createGodKey("trimrelic", plugin, 3);
+        NamespacedKey warriorEmblemKey = createGodKey("warrioremblem", plugin, 4);
+
+        ItemStackGenerator.createSmallShapedRecipe(turtleKey, ItemStackGenerator.getTurtleHelmet(), "AAA:ABA:AAA",
+                null, null, null, Material.TURTLE_SCUTE, Material.TURTLE_EGG, null);
+        ItemStackGenerator.createShapedRecipe(goatKey, ItemStackGenerator.getGoatHorn(), getGoatHorn(MusicInstrument.CALL_GOAT_HORN),
+                getGoatHorn(MusicInstrument.ADMIRE_GOAT_HORN), getGoatHorn(MusicInstrument.DREAM_GOAT_HORN), getGoatHorn(MusicInstrument.FEEL_GOAT_HORN),
+                getGoatHorn(MusicInstrument.PONDER_GOAT_HORN), getGoatHorn(MusicInstrument.SEEK_GOAT_HORN), getGoatHorn(MusicInstrument.SING_GOAT_HORN),
+                getGoatHorn(MusicInstrument.YEARN_GOAT_HORN), null);
+
+        ItemStackGenerator.createShapedRecipe(firstAlbumKey, ItemStackGenerator.getFirstAlbum(), new ItemStack(Material.MUSIC_DISC_5),
+                new ItemStack(Material.MUSIC_DISC_11), new ItemStack(Material.MUSIC_DISC_13), new ItemStack(Material.MUSIC_DISC_BLOCKS),
+                new ItemStack(Material.MUSIC_DISC_CAT), new ItemStack(Material.MUSIC_DISC_CHIRP), new ItemStack(Material.MUSIC_DISC_CREATOR),
+                new ItemStack(Material.MUSIC_DISC_CREATOR_MUSIC_BOX), new ItemStack(Material.MUSIC_DISC_FAR));
+        ItemStackGenerator.createShapedRecipe(secondAlbumKey, ItemStackGenerator.getSecondAlbum(), new ItemStack(Material.MUSIC_DISC_MALL),
+                new ItemStack(Material.MUSIC_DISC_MELLOHI), new ItemStack(Material.MUSIC_DISC_OTHERSIDE), new ItemStack(Material.MUSIC_DISC_PIGSTEP),
+                new ItemStack(Material.MUSIC_DISC_RELIC), new ItemStack(Material.MUSIC_DISC_STAL), new ItemStack(Material.MUSIC_DISC_STRAD),
+                new ItemStack(Material.MUSIC_DISC_WAIT), new ItemStack(Material.MUSIC_DISC_WARD));
+        ItemStackGenerator.createSmallShapedRecipe(musicKnowledgeKey, ItemStackGenerator.getMusicKnowledgeDisc(), "DDD:ABC:DDD",
+                ItemStackGenerator.getFirstAlbum(), null, ItemStackGenerator.getSecondAlbum(), null, Material.MUSIC_DISC_PRECIPICE, null);
+
+        ItemStackGenerator.createShapedRecipe(firstSherdKey, ItemStackGenerator.getFirstSherd(), new ItemStack(Material.SHEAF_POTTERY_SHERD),
+                new ItemStack(Material.SHELTER_POTTERY_SHERD), new ItemStack(Material.ANGLER_POTTERY_SHERD), new ItemStack(Material.ARCHER_POTTERY_SHERD),
+                new ItemStack(Material.ARMS_UP_POTTERY_SHERD), new ItemStack(Material.BLADE_POTTERY_SHERD), new ItemStack(Material.BREWER_POTTERY_SHERD),
+                new ItemStack(Material.BURN_POTTERY_SHERD), new ItemStack(Material.FLOW_POTTERY_SHERD));
+        ItemStackGenerator.createShapedRecipe(secondSherdKey, ItemStackGenerator.getSecondSherd(), new ItemStack(Material.DANGER_POTTERY_SHERD),
+                new ItemStack(Material.EXPLORER_POTTERY_SHERD), new ItemStack(Material.FRIEND_POTTERY_SHERD), new ItemStack(Material.GUSTER_POTTERY_SHERD),
+                new ItemStack(Material.HEART_POTTERY_SHERD), new ItemStack(Material.HEARTBREAK_POTTERY_SHERD), new ItemStack(Material.HOWL_POTTERY_SHERD),
+                new ItemStack(Material.MINER_POTTERY_SHERD), new ItemStack(Material.MOURNER_POTTERY_SHERD));
+        ItemStackGenerator.createShapedRecipe(sherdRelicKey, ItemStackGenerator.getSherdRelic(), null, new ItemStack(Material.SKULL_POTTERY_SHERD),
+                new ItemStack(Material.PLENTY_POTTERY_SHERD), ItemStackGenerator.getFirstSherd(), new ItemStack(Material.SNORT_POTTERY_SHERD),
+                ItemStackGenerator.getSecondSherd(), new ItemStack(Material.PRIZE_POTTERY_SHERD), new ItemStack(Material.SCRAPE_POTTERY_SHERD),
+                null);
+
+        ItemStackGenerator.createShapedRecipe(firstTrimKey, ItemStackGenerator.getFirstTrim(), new ItemStack(Material.BOLT_ARMOR_TRIM_SMITHING_TEMPLATE),
+                new ItemStack(Material.COAST_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.DUNE_ARMOR_TRIM_SMITHING_TEMPLATE),
+                new ItemStack(Material.EYE_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.FLOW_ARMOR_TRIM_SMITHING_TEMPLATE),
+                new ItemStack(Material.RAISER_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.HOST_ARMOR_TRIM_SMITHING_TEMPLATE),
+                new ItemStack(Material.RIB_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE));
+        ItemStackGenerator.createShapedRecipe(secondTrimKey, ItemStackGenerator.getSecondTrim(), new ItemStack(Material.SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE),
+                new ItemStack(Material.WILD_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE),
+                new ItemStack(Material.SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE),
+                new ItemStack(Material.TIDE_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.VEX_ARMOR_TRIM_SMITHING_TEMPLATE),
+                new ItemStack(Material.WARD_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE));
+        ItemStackGenerator.createSmallShapedRecipe(trimRelicKey, ItemStackGenerator.getTrimRelic(), "DDD:ABA:DDD",
+                ItemStackGenerator.getFirstTrim(), null, ItemStackGenerator.getSecondTrim(), null, Material.GOLD_BLOCK, null);
+
+        ItemStackGenerator.createShapedRecipe(warriorEmblemKey, ItemStackGenerator.getWarriorEmblem(), new ItemStack(Material.NETHERITE_SWORD),
+                new ItemStack(Material.NETHERITE_HELMET), new ItemStack(Material.NETHERITE_CHESTPLATE), new ItemStack(Material.NETHERITE_LEGGINGS),
+                new ItemStack(Material.NETHERITE_BOOTS), new ItemStack(Material.MACE), new ItemStack(Material.TRIDENT),
+                new ItemStack(Material.CROSSBOW), new ItemStack(Material.TOTEM_OF_UNDYING));
+    }
+
+    public static ItemStack getGoatHorn(MusicInstrument hornType) {
+        ItemStack horn = new ItemStack(Material.GOAT_HORN);
+        MusicInstrumentMeta meta = (MusicInstrumentMeta) horn.getItemMeta();
+        if (meta == null) return horn;
+        meta.setInstrument(hornType);
+        horn.setItemMeta(meta);
+        return horn;
+    }
+
     public static NamespacedKey createKey(String name, SurvivalSkills plugin) {
         NamespacedKey key = new NamespacedKey(plugin, name);
         if (plugin.getServer().getRecipe(key) != null) plugin.getServer().removeRecipe(key);
         plugin.getRecipeKeys().add(key);
         return key;
+    }
+
+    public static NamespacedKey createGodKey(String name, SurvivalSkills plugin, int stage) {
+        NamespacedKey key = new NamespacedKey(plugin, name);
+        if (plugin.getServer().getRecipe(key) != null) plugin.getServer().removeRecipe(key);
+        plugin.getGodRecipeKeys().put(key, stage);
+        return key;
+    }
+
+    public static ArrayList<Integer> getRecipePositions(int slot) {
+        ArrayList<Integer> positions = new ArrayList<>();
+        if (slot % 2 == 1) {
+            positions.add(0);
+            positions.add(1);
+            positions.add(2);
+            positions.add(9);
+            positions.add(10);
+            positions.add(11);
+            positions.add(18);
+            positions.add(19);
+            positions.add(20);
+            positions.add(12);
+        }
+        else {
+            positions.add(5);
+            positions.add(6);
+            positions.add(7);
+            positions.add(14);
+            positions.add(15);
+            positions.add(16);
+            positions.add(23);
+            positions.add(24);
+            positions.add(25);
+            positions.add(17);
+        }
+        return positions;
     }
 }

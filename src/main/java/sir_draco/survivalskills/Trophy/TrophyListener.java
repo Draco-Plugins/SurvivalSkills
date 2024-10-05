@@ -1,5 +1,6 @@
 package sir_draco.survivalskills.Trophy;
 
+import net.citizensnpcs.api.event.NPCClickEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,11 +18,17 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.*;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Trophy.GodQuestline.GodRecipeUI;
+import sir_draco.survivalskills.Trophy.GodQuestline.GodTrophyQuest;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class TrophyListener implements Listener {
@@ -225,6 +232,64 @@ public class TrophyListener implements Listener {
         e.setCancelled(true);
     }
 
+    @EventHandler
+    public void clickGodNPC(NPCClickEvent e) {
+        Player p = e.getClicker();
+        if (!plugin.getTrophyManager().getGodNPCIDs().containsKey(p)) {
+            p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": Are you expecting something?");
+            p.playSound(p, Sound.ENTITY_VILLAGER_YES, 1, 1);
+            return;
+        }
+
+
+        if (plugin.getTrophyManager().getGodNPCIDs().get(p) != e.getNPC().getId()) {
+            p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": You have your own god to talk to!");
+            p.playSound(p, Sound.ENTITY_VILLAGER_YES, 1, 1);
+            return;
+        }
+
+        // Check if the god quest is enabled
+        if (!plugin.getTrophyManager().isGodQuestEnabled()) {
+            p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": The God Quest is not enabled on this server");
+            p.playSound(p, Sound.ENTITY_VILLAGER_YES, 1, 1);
+            return;
+        }
+
+        GodTrophyQuest quest;
+        if (plugin.getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId()))
+            quest = plugin.getTrophyManager().getPlayerGodQuestData().get(p.getUniqueId());
+        else {
+            quest = new GodTrophyQuest(p.getUniqueId());
+            plugin.getTrophyManager().getPlayerGodQuestData().put(p.getUniqueId(), quest);
+        }
+
+        quest.handleNPCInteract(p);
+    }
+
+    @EventHandler
+    public void villagerTradeEvent(InventoryClickEvent e) {
+        // Check if the player has an active God Quest
+        Player p = (Player) e.getWhoClicked();
+        if (!plugin.getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId())) return;
+
+        // Get the god quest
+        GodTrophyQuest quest = plugin.getTrophyManager().getPlayerGodQuestData().get(p.getUniqueId());
+
+        // Check that the inventory is a villager trade inventory
+        if (e.getClickedInventory() == null) return;
+        if (!e.getClickedInventory().getType().equals(InventoryType.MERCHANT)) return;
+
+        // If it is a shift click, check how many trades took place
+        int trades = 1;
+        if (e.isShiftClick()) {
+            MerchantInventory inv = (MerchantInventory) e.getClickedInventory();
+            trades = getTradeCount(inv);
+        }
+
+        // Update the god quest progress
+        quest.setCurrentItemCount(quest.getCurrentItemCount() + trades);
+    }
+
     public boolean holdingMiningTrophy(Player p) {
         ItemStack hand = p.getInventory().getItemInMainHand();
         if (!hand.getType().equals(Material.DIAMOND_PICKAXE)) return false;
@@ -236,5 +301,34 @@ public class TrophyListener implements Listener {
         Block above = block.getRelative(BlockFace.UP);
         if (above.isEmpty() || above.getType() == Material.AIR) return blockHasSkyAccess(above);
         return false;
+    }
+
+    public int getTradeCount(MerchantInventory inv) {
+        // Get the recipe
+        MerchantRecipe recipe = inv.getSelectedRecipe();
+        if (recipe == null) return 0;
+        if (recipe.getDemand() <= 0) return 0;
+
+        // Get the items involved in the trade
+        ItemStack[] ingredients = recipe.getIngredients().toArray(new ItemStack[0]);
+
+        // Calculate the maximum number of trades based on the villager's inventory
+        int maxTrades = Integer.MAX_VALUE;
+        for (ItemStack ingredient : ingredients) {
+            if (ingredient == null) continue;
+            int villagerItemCount = getVillagerIngredientItemCount(inv, ingredient);
+            int possibleTrades = (int) Math.floor((double) villagerItemCount / ingredient.getAmount());
+            if (possibleTrades < maxTrades) maxTrades = possibleTrades;
+        }
+
+        return maxTrades;
+    }
+
+    private int getVillagerIngredientItemCount(MerchantInventory inv, ItemStack item) {
+        int count = 0;
+        for (ItemStack invItem : inv.getContents())
+            if (invItem != null && invItem.isSimilar(item))
+                return invItem.getAmount();
+        return count;
     }
 }

@@ -75,6 +75,9 @@ commands:
   toggletrash:
     description: Allows a player to enable or disable trash
     permission: survivalskills.default
+  godquest:
+    description: Displays the crafting recipes for the god quest
+    permission: survivalskills.default
 
   gettrophy:
     description: Gives a specified trophy
@@ -107,6 +110,9 @@ commands:
     permission: survivalskills.op
   dragonstatus:
     description: Allows for checking the status of the dragon
+    permission: survivalskills.op
+  togglegodquest:
+    description: Allows for toggling the god quest
     permission: survivalskills.op
 
 permissions:

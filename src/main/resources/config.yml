@@ -11,6 +11,8 @@ VeinMinerHungerAmount: 2
 # Number of seconds before a grave is removed
 GraveLifespan: 3600
 SkillXPMultiplier: 1.0
+# Whether the God Trophy Quest should be available to players or not
+GodQuestEnabled: true
 
 # Reward Settings
 # Mining Rewards Tree

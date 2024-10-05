@@ -273,6 +273,8 @@ public class PlayerListener implements Listener {
         ItemStack arrow = e.getCurrentItem();
         ItemMeta meta = arrow.getItemMeta();
         if (!arrow.getType().equals(Material.ARROW)) return;
+        if (meta == null) return;
+        if (meta.getDisplayName().equalsIgnoreCase("arrow")) return;
 
         int currentInv = 0;
         for (int i = 0; i < customInventories.get(p).size(); i++) {
@@ -280,7 +282,7 @@ public class PlayerListener implements Listener {
             currentInv = i;
             break;
         }
-        if (meta != null && meta.hasCustomModelData()) {
+        if (meta.hasCustomModelData()) {
             if (currentInv + 1 >= customInventories.get(p).size()) currentInv = -1;
             Inventory inv = customInventories.get(p).get(currentInv + 1);
             openInventory.put(p, inv);
@@ -303,6 +305,8 @@ public class PlayerListener implements Listener {
         ItemStack arrow = e.getOldCursor();
         ItemMeta meta = arrow.getItemMeta();
         if (!arrow.getType().equals(Material.ARROW)) return;
+        if (meta == null) return;
+        if (meta.getDisplayName().equalsIgnoreCase("arrow")) return;
 
         int currentInv = 0;
         for (int i = 0; i < customInventories.get(p).size(); i++) {
@@ -310,7 +314,7 @@ public class PlayerListener implements Listener {
             currentInv = i;
             break;
         }
-        if (meta != null && meta.hasCustomModelData()) {
+        if (meta.hasCustomModelData()) {
             if (currentInv + 1 >= customInventories.get(p).size()) currentInv = -1;
             Inventory inv = customInventories.get(p).get(currentInv + 1);
             openInventory.put(p, inv);
