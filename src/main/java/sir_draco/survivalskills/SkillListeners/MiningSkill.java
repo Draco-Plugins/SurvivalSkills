@@ -28,6 +28,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import sir_draco.survivalskills.Abilities.SpelunkerAbilitySync;
 import sir_draco.survivalskills.Abilities.VeinMinerAsync;
+import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -75,7 +76,7 @@ public class MiningSkill implements Listener {
 
         // Handle XP
         double multiplier = getMultiplier(e.getBlock().getType());
-        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getMiningXP() * multiplier, "Mining");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getMiningXP() * multiplier, "Mining");
 
         // Handle double ore chance
         doubleOre(p, e);

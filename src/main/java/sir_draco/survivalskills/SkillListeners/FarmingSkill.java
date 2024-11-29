@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.HarvesterAsync;
 import sir_draco.survivalskills.Abilities.HarvesterTimer;
+import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Utils.ProjectileCalculator;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Skills.Skill;
@@ -64,7 +65,7 @@ public class FarmingSkill implements Listener {
             if (above.equals(Material.SUGAR_CANE) || above.equals(Material.CACTUS)) doubleXP = 2;
         }
 
-        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP() * doubleXP, "Farming");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP() * doubleXP, "Farming");
         if (block.getType().toString().contains("LOG")) return;
 
         boolean isHarvested = isHarvestedBlock(p, block);
@@ -91,7 +92,7 @@ public class FarmingSkill implements Listener {
         if (!block.getType().equals(Material.SWEET_BERRY_BUSH)) return;
         Ageable age = (Ageable) block.getState().getBlockData();
         if (age.getAge() != age.getMaximumAge()) return;
-        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP(), "Farming");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP(), "Farming");
     }
 
     @EventHandler (ignoreCancelled = true)
@@ -100,7 +101,7 @@ public class FarmingSkill implements Listener {
 
         if (!plugin.getFarmingList().contains(e.getBlock().getType())) return;
 
-        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP() * 0.5, "Farming");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP() * 0.5, "Farming");
     }
 
     @EventHandler

@@ -26,6 +26,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.AutoTrash;
+import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Utils.ProjectileCalculator;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
@@ -119,7 +120,7 @@ public class FishingSkill implements Listener {
 
                         handleFishingExperience(p);
                         handleDurability(rod);
-                        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), "Fishing");
+                        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), "Fishing");
                         hook.remove();
                         rainFishers.remove(p);
                     }
@@ -182,7 +183,7 @@ public class FishingSkill implements Listener {
         // Set the velocity of all the items in the list to the velocity of the entity that was caught
         if (!items.isEmpty()) for (ItemStack item : items) world.dropItem(loc, item).setVelocity(velocity);
 
-        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), "Fishing");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), "Fishing");
     }
 
     @EventHandler

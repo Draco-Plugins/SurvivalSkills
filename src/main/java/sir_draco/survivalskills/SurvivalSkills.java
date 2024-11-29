@@ -447,7 +447,8 @@ public final class SurvivalSkills extends JavaPlugin {
 
         UUID uuid = p.getUniqueId();
         trophyManager.savePlayerTrophyData(uuid, data);
-        trophyManager.savePlayerGodQuestData(uuid, godQuestData);
+        if (skillManager.getSkill(uuid, "Main").getLevel() == 100)
+            trophyManager.savePlayerGodQuestData(uuid, godQuestData);
 
         if (toggledScoreboard.containsKey(uuid)) data.set(uuid + ".Scoreboard", toggledScoreboard.get(uuid));
         else Bukkit.getLogger().warning("Player " + p.getName() + " does not have a scoreboard status");

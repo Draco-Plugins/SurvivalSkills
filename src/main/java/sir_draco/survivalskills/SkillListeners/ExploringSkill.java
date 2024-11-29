@@ -17,6 +17,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.CaveFinderAsync;
 import sir_draco.survivalskills.Abilities.Magnet;
+import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Skills.Skill;
@@ -68,7 +69,7 @@ public class ExploringSkill implements Listener {
         }
         else stepCounter.put(p.getUniqueId(), steps - 100);
 
-        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getExploringXP() * 100, "Exploring");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getExploringXP() * 100, "Exploring");
         stepCounter.put(uuid, 0);
     }
 
@@ -101,7 +102,7 @@ public class ExploringSkill implements Listener {
         }
         else stepCounter.put(p.getUniqueId(), steps - 100);
 
-        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getExploringXP() * 100, "Exploring");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getExploringXP() * 100, "Exploring");
         stepCounter.put(uuid, 0);
     }
 

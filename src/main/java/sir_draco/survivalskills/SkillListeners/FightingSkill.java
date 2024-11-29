@@ -24,6 +24,7 @@ import sir_draco.survivalskills.Abilities.AbilityTimer;
 import sir_draco.survivalskills.Abilities.BerserkerEffects;
 import sir_draco.survivalskills.Bosses.*;
 import sir_draco.survivalskills.Bosses.Boss;
+import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Utils.ExiledBossMusic;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
@@ -496,7 +497,7 @@ public class FightingSkill implements Listener {
     }
 
     public void killExperience(Player p, double experience) {
-        Skill.experienceEvent(plugin, p, experience, "Fighting");
+        SkillManager.experienceEvent(plugin, p, experience, "Fighting");
     }
 
     public void createMobXPMapping() {

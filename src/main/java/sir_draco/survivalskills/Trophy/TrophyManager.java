@@ -1,6 +1,6 @@
 package sir_draco.survivalskills.Trophy;
 
-import org.bukkit.Bukkit;
+import org.bukkit.*;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;

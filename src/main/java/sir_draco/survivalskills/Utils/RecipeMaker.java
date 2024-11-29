@@ -524,7 +524,7 @@ public class RecipeMaker {
                 new ItemStack(Material.TIDE_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.VEX_ARMOR_TRIM_SMITHING_TEMPLATE),
                 new ItemStack(Material.WARD_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE));
         ItemStackGenerator.createSmallShapedRecipe(trimRelicKey, ItemStackGenerator.getTrimRelic(), "DDD:ABA:DDD",
-                ItemStackGenerator.getFirstTrim(), null, ItemStackGenerator.getSecondTrim(), null, Material.GOLD_BLOCK, null);
+                ItemStackGenerator.getFirstTrim(), ItemStackGenerator.getSecondTrim(), null, null, Material.GOLD_BLOCK, null);
 
         ItemStackGenerator.createShapedRecipe(warriorEmblemKey, ItemStackGenerator.getWarriorEmblem(), new ItemStack(Material.NETHERITE_SWORD),
                 new ItemStack(Material.NETHERITE_HELMET), new ItemStack(Material.NETHERITE_CHESTPLATE), new ItemStack(Material.NETHERITE_LEGGINGS),

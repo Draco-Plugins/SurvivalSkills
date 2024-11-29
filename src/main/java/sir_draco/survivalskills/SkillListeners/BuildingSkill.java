@@ -1,5 +1,6 @@
 package sir_draco.survivalskills.SkillListeners;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -25,6 +26,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.Abilities.AbilityTimer;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.Skills.Skill;
+import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.*;
@@ -50,7 +52,7 @@ public class BuildingSkill implements Listener {
         if (plugin.getFarmingList().contains(e.getBlock().getType())) return;
         if (p.getInventory().getItemInMainHand().getType().toString().contains("SHOVEL")) return;
 
-        Skill.experienceEvent(plugin, p, plugin.getSkillManager().getBuildingXP(), "Building");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getBuildingXP(), "Building");
 
         // Handle block return
         if (isBannedReturn(e.getBlock().getType())) return;

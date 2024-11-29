@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
+import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.Rewards.RewardItemInfo;
@@ -319,28 +320,28 @@ public class SkillStatsCommand implements CommandExecutor {
         HashMap<String, ArrayList<Reward>> allSkills = plugin.getSkillManager().getDefaultPlayerRewards().getRewardList();
         ArrayList<Reward> rewards = null;
         switch (skill) {
-            case Skill.MINING:
+            case SkillManager.MINING:
                 rewards = allSkills.get("Mining");
                 break;
-            case Skill.FARMING:
+            case SkillManager.FARMING:
                 rewards = allSkills.get("Farming");
                 break;
-            case Skill.FIGHTING:
+            case SkillManager.FIGHTING:
                 rewards = allSkills.get("Fighting");
                 break;
-            case Skill.CRAFTING:
+            case SkillManager.CRAFTING:
                 rewards = allSkills.get("Crafting");
                 break;
-            case Skill.MAIN:
+            case SkillManager.MAIN:
                 rewards = allSkills.get("Main");
                 break;
-            case Skill.BUILDING:
+            case SkillManager.BUILDING:
                 rewards = allSkills.get("Building");
                 break;
-            case Skill.FISHING:
+            case SkillManager.FISHING:
                 rewards = allSkills.get("Fishing");
                 break;
-            case Skill.EXPLORING:
+            case SkillManager.EXPLORING:
                 rewards = allSkills.get("Exploring");
                 break;
         }
