@@ -140,7 +140,7 @@ public class DragonBoss extends Boss {
     }
 
     public void dragonAttributes() {
-        AttributeInstance health = dragon.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance health = dragon.getAttribute(Attribute.MAX_HEALTH);
         if (health != null) health.setBaseValue(getMaxHealth());
         dragon.setHealth(getMaxHealth());
         dragon.setMetadata("boss", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
@@ -227,12 +227,12 @@ public class DragonBoss extends Boss {
             Enderman eman = (Enderman) dragon.getWorld().spawnEntity(loc, EntityType.ENDERMAN);
             eman.setCustomName(ChatColor.LIGHT_PURPLE + "Dragon Worshipper");
             eman.setCustomNameVisible(true);
-            AttributeInstance health = eman.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            AttributeInstance health = eman.getAttribute(Attribute.MAX_HEALTH);
             if (health != null) health.setBaseValue(50);
             eman.setHealth(50);
-            AttributeInstance speed = eman.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+            AttributeInstance speed = eman.getAttribute(Attribute.MOVEMENT_SPEED);
             if (speed != null) speed.setBaseValue(0.5);
-            AttributeInstance damage = eman.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+            AttributeInstance damage = eman.getAttribute(Attribute.ATTACK_DAMAGE);
             if (damage != null) damage.setBaseValue(15);
 
             timeSinceDragonFollowerSpawn = 20 * 30;
@@ -319,7 +319,7 @@ public class DragonBoss extends Boss {
     }
 
     public void lifeSteal() {
-        AttributeInstance health = dragon.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance health = dragon.getAttribute(Attribute.MAX_HEALTH);
         if (health == null) return;
         dragon.setHealth(Math.min(dragon.getHealth() + 20, health.getValue()));
         Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: " +

@@ -240,7 +240,7 @@ public class FightingSkill implements Listener {
         double lifesteal = plugin.getSkillManager().getPlayerRewards(p).getLifesteal();
         if (lifesteal != 0 && Math.random() < lifesteal) {
             double health = p.getHealth();
-            AttributeInstance healthAttribute = p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
+            AttributeInstance healthAttribute = p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
             if (healthAttribute == null) return;
             if (health < healthAttribute.getValue()) p.setHealth(Math.min(healthAttribute.getValue(), health + 1));
             else return;
@@ -255,7 +255,7 @@ public class FightingSkill implements Listener {
         if (!isBoss(e.getDamager())) return;
         if (!e.getDamager().getType().equals(EntityType.SPIDER)) return;
         Spider spider = (Spider) e.getDamager();
-        AttributeInstance healthAttribute = spider.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance healthAttribute = spider.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
         if (healthAttribute == null) return;
         double maxHealth = healthAttribute.getValue();
         spider.setHealth(Math.min(maxHealth, spider.getHealth() + (0.5 * e.getDamage())));
@@ -555,7 +555,7 @@ public class FightingSkill implements Listener {
     }
 
     public void newBerserker(Player p) {
-        AttributeInstance health = p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance health = p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
         if (health == null) return;
         if (p.getHealth() < health.getValue() * 0.25) {
             p.sendRawMessage(ChatColor.RED + "Not enough health for berserker!");

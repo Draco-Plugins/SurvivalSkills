@@ -4,7 +4,6 @@ sir_draco\survivalskills\SkillListeners\PlayerListener$1.class
 sir_draco\survivalskills\Boards\Leaderboard.class
 sir_draco\survivalskills\Trophy\TrophyListener.class
 sir_draco\survivalskills\Boards\SkillScoreboard.class
-sir_draco\survivalskills\SkillListeners\GodListener$1.class
 sir_draco\survivalskills\Trophy\GodQuestline\GodQuestCommand.class
 sir_draco\survivalskills\Trophy\Trophy.class
 sir_draco\survivalskills\Bosses\GiantBoss$6.class

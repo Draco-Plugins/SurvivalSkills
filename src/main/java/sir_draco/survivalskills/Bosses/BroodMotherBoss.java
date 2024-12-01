@@ -25,7 +25,7 @@ public class BroodMotherBoss extends Boss {
         super("BroodMother", 3, 3, 300, 15, 2, 0.25, EntityType.SPIDER, loc, 3);
         if (isSpawnSuccess()) {
             spider = (Spider) getBoss();
-            AttributeInstance size = spider.getAttribute(Attribute.GENERIC_SCALE);
+            AttributeInstance size = spider.getAttribute(Attribute.SCALE);
             if (size != null) size.setBaseValue(3);
         }
     }

@@ -60,7 +60,6 @@ public class SkillManager {
 
     public static void experienceEvent(SurvivalSkills plugin, Player p, double xp, String skillName) {
         // Handle multipliers
-        System.out.println("Experience Event: " + xp);
         xp = xp * plugin.getSkillManager().getMultiplier();
         if (plugin.getAbilityManager().getAbility(p, "XPVoucher") != null)
             xp *= plugin.getSkillManager().getPlayerMultiplier(p);

@@ -1,6 +1,5 @@
 package sir_draco.survivalskills.Trophy.GodQuestline;
 
-import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.trait.Gravity;
 import net.citizensnpcs.trait.LookClose;
@@ -20,15 +19,16 @@ import org.joml.Quaternionf;
 import sir_draco.survivalskills.Trophy.TrophyManager;
 import sir_draco.survivalskills.SurvivalSkills;
 
+import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.UUID;
 
 public class GodTrophyEffects {
 
     private final double centerX;
     private final double centerY;
     private final double centerZ;
-    private final int npcID;
     private final Location trophyLoc;
 
     private ItemDisplay display;
@@ -38,21 +38,13 @@ public class GodTrophyEffects {
     private boolean movingUp = false;
     private double crystalRadians = 0;
     private int questParticles = 0;
+    private int npcID = -1;
 
     public GodTrophyEffects(Location trophyLoc) {
         this.trophyLoc = trophyLoc;
         centerX = trophyLoc.getX() + 0.5;
         centerY = trophyLoc.getY() + 1.5;
         centerZ = trophyLoc.getZ() + 0.5;
-        this.npcID = -1;
-    }
-
-    public GodTrophyEffects(Location trophyLoc, int npcID) {
-        this.trophyLoc = trophyLoc;
-        centerX = trophyLoc.getX() + 0.5;
-        centerY = trophyLoc.getY() + 1.5;
-        centerZ = trophyLoc.getZ() + 0.5;
-        this.npcID = npcID;
         // loadParticlePhase();
     }
 
@@ -140,25 +132,36 @@ public class GodTrophyEffects {
         if (blackHole != null) blackHole.remove();
     }
 
-    public void spawnPlayer(String name) {
+    public void spawnPlayer(String name, UUID playerUUID) throws IOException, InterruptedException {
         if (npcID != -1) {
-            npcPlayer = CitizensAPI.getNPCRegistry().getById(npcID);
+            npcPlayer = TrophyManager.getRegistry().getById(npcID);
             if (npcPlayer == null) return;
+            // Update the text
+            getText(name);
+            if (npcPlayer.isSpawned()) return;
             npcPlayer.spawn(trophyLoc.clone().add(0.5, 2.0, 0.5));
             return;
         }
 
-        npcPlayer = CitizensAPI.getNPCRegistry().createNPC(EntityType.PLAYER, TrophyManager.npcName);
+        UUID uuid = UUID.randomUUID();
+        npcPlayer = TrophyManager.getRegistry().createNPC(EntityType.PLAYER, uuid, TrophyManager.getNextID(), TrophyManager.npcName);
         if (npcPlayer == null) return;
         npcPlayer.spawn(trophyLoc.clone().add(0.5, 2.0, 0.5));
         if (npcPlayer.getEntity() == null) return;
         npcPlayer.setProtected(true);
+        npcID = npcPlayer.getId();
+        SurvivalSkills.getInstance().getTrophyManager().getGodNPCIDs().put(playerUUID, npcID);
 
         Gravity gravity = npcPlayer.getOrAddTrait(Gravity.class);
         gravity.toggle();
 
+        Player p = Bukkit.getPlayer(name);
         SkinTrait skin = npcPlayer.getOrAddTrait(SkinTrait.class);
-        skin.setSkinName(name, false);
+        if (p != null) skin.setSkinPersistent(p);
+        else {
+            String[] info = MojangAPI.getSkinData(playerUUID);
+            skin.setSkinPersistent(playerUUID.toString(), info[0], info[1]);
+        }
 
         new BukkitRunnable() {
             @Override
@@ -208,6 +211,13 @@ public class GodTrophyEffects {
         npcPlayer.despawn();
     }
 
+    public void destroyPlayer() {
+        if (npcPlayer == null) return;
+        npcPlayer.despawn();
+        npcPlayer.destroy();
+        TrophyManager.getRegistry().deregister(npcPlayer);
+    }
+
     public void spawnCrystal(double x, double y, double z) {
         World world = trophyLoc.getWorld();
         if (world == null) return;
@@ -232,10 +242,6 @@ public class GodTrophyEffects {
 
     public void questParticleEffect() {
 
-    }
-
-    public NPC getNPCPlayer() {
-        return npcPlayer;
     }
 
     public void increaseQuestParticles() {

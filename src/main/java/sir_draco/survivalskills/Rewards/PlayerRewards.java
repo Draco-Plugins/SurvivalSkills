@@ -224,7 +224,7 @@ public class PlayerRewards {
                             setBlockBlackChance(0.5);
                             break;
                         case "ExtendedReach":
-                            AttributeInstance reach = p.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE);
+                            AttributeInstance reach = p.getAttribute(Attribute.BLOCK_INTERACTION_RANGE);
                             if (reach != null) reach.setBaseValue(6);
                             break;
                     }
@@ -590,7 +590,7 @@ public class PlayerRewards {
                         setBlockBlackChance(0.5);
                         break;
                     case "ExtendedReach":
-                        AttributeInstance reach = p.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE);
+                        AttributeInstance reach = p.getAttribute(Attribute.BLOCK_INTERACTION_RANGE);
                         if (reach != null) reach.setBaseValue(6);
                         break;
                 }
@@ -847,7 +847,7 @@ public class PlayerRewards {
     }
 
     public void setPlayerMaxHealth(Player p, int health) {
-        AttributeInstance attribute = p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance attribute = p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
         if (attribute == null) return;
         attribute.setBaseValue(health);
     }

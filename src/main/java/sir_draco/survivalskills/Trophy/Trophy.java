@@ -1,5 +1,6 @@
 package sir_draco.survivalskills.Trophy;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -16,7 +17,6 @@ public class Trophy {
     private final int id;
     private final String playerName;
     private TrophyEffects effects;
-    private int npcID = -1;
 
     public Trophy(Location loc, UUID uuid, String type, int id, String playerName) {
         this.loc = loc;
@@ -33,21 +33,7 @@ public class Trophy {
         block.getState().update();
 
         int type = getTrophyType();
-        // Item Entity
-        effects = new TrophyEffects(plugin, loc, type, this, playerName);
-        effects.runTaskTimer(plugin, 20, 2);
-    }
-
-    public void spawnTrophy(SurvivalSkills plugin, int npcID) {
-        // Block
-        Block block = loc.getBlock();
-        block.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-        block.getState().update();
-
-        this.npcID = npcID;
-        int type = getTrophyType();
-        // Item Entity
-        effects = new TrophyEffects(plugin, loc, type, this, playerName, npcID);
+        effects = new TrophyEffects(plugin, loc, type, this, playerName, uuid);
         effects.runTaskTimer(plugin, 20, 2);
     }
 
@@ -57,12 +43,12 @@ public class Trophy {
         loc.getBlock().setType(Material.AIR);
         loc.getBlock().getState().update();
 
+        if (effects.getGodTrophy() != null) effects.getGodTrophy().destroyPlayer();
         effects.removeItem();
         effects.cancel();
     }
 
     public void shutdownTrophy() {
-        if (effects.getGodTrophy() != null) effects.getGodTrophy().removePlayer();
         if (loc.getWorld() == null) return;
         loc.getBlock().setType(Material.AIR);
         loc.getBlock().getState().update();
@@ -77,6 +63,13 @@ public class Trophy {
             return;
         }
         if (effects.getType() != 10) effects.spawnItem(0.5, 1.0, 0.5);
+        if (effects.getGodTrophy() != null) {
+            try {
+                effects.getGodTrophy().spawnPlayer(playerName, uuid);
+            } catch (Exception e) {
+                Bukkit.getLogger().warning("Failed to spawn player for trophy: " + id);
+            }
+        }
         effects.typeSpecificStart();
         effects.setRun(true);
     }
@@ -86,28 +79,18 @@ public class Trophy {
     }
 
     public int getTrophyType() {
-        switch (type) {
-            case "CaveTrophy":
-                return 1;
-            case "ForestTrophy":
-                return 2;
-            case "FarmingTrophy":
-                return 3;
-            case "OceanTrophy":
-                return 4;
-            case "FishingTrophy":
-                return 5;
-            case "ColorTrophy":
-                return 6;
-            case "NetherTrophy":
-                return 7;
-            case "EndTrophy":
-                return 8;
-            case "ChampionTrophy":
-                return 9;
-            default:
-                return 10;
-        }
+        return switch (type) {
+            case "CaveTrophy" -> 1;
+            case "ForestTrophy" -> 2;
+            case "FarmingTrophy" -> 3;
+            case "OceanTrophy" -> 4;
+            case "FishingTrophy" -> 5;
+            case "ColorTrophy" -> 6;
+            case "NetherTrophy" -> 7;
+            case "EndTrophy" -> 8;
+            case "ChampionTrophy" -> 9;
+            default -> 10;
+        };
     }
 
     public UUID getUUID() {
@@ -128,9 +111,5 @@ public class Trophy {
 
     public String getPlayerName() {
         return playerName;
-    }
-
-    public int getNPCID() {
-        return npcID;
     }
 }

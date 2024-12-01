@@ -30,7 +30,7 @@ public class GiantBoss extends Boss {
             giant.setGravity(true);
             EntityEquipment helmet = giant.getEquipment();
             if (helmet != null) helmet.setHelmet(new ItemStack(Material.LEATHER_HELMET));
-            AttributeInstance size = giant.getAttribute(Attribute.GENERIC_SCALE);
+            AttributeInstance size = giant.getAttribute(Attribute.SCALE);
             if (size != null) size.setBaseValue(4);
         }
     }

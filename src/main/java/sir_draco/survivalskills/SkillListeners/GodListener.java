@@ -3,6 +3,7 @@ package sir_draco.survivalskills.SkillListeners;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
@@ -289,41 +290,18 @@ public class GodListener implements Listener {
     }
 
     public void setVillagerTypeFromBiome(Villager villager, Biome biome) {
-        switch (biome) {
-            case ERODED_BADLANDS:
-            case WOODED_BADLANDS:
-            case DESERT:
-            case BADLANDS:
-                villager.setVillagerType(Villager.Type.DESERT);
-                break;
-            case SPARSE_JUNGLE:
-            case JUNGLE:
-            case BAMBOO_JUNGLE:
-                villager.setVillagerType(Villager.Type.JUNGLE);
-                break;
-            case SAVANNA_PLATEAU:
-            case WINDSWEPT_SAVANNA:
-            case SAVANNA:
-                villager.setVillagerType(Villager.Type.SAVANNA);
-                break;
-            case ICE_SPIKES:
-            case FROZEN_OCEAN:
-            case FROZEN_RIVER:
-            case FROZEN_PEAKS:
-            case DEEP_FROZEN_OCEAN:
-            case SNOWY_PLAINS:
-            case SNOWY_TAIGA:
-            case SNOWY_SLOPES:
-            case SNOWY_BEACH:
-                villager.setVillagerType(Villager.Type.SNOW);
-                break;
-            case OLD_GROWTH_PINE_TAIGA:
-            case OLD_GROWTH_SPRUCE_TAIGA:
-            case TAIGA:
-                villager.setVillagerType(Villager.Type.TAIGA);
-                break;
-            default:
-                villager.setVillagerType(Villager.Type.PLAINS);
+        if (biome.equals(Biome.ERODED_BADLANDS) || biome.equals(Biome.WOODED_BADLANDS) || biome.equals(Biome.DESERT) || biome.equals(Biome.BADLANDS)) {
+            villager.setVillagerType(Villager.Type.DESERT);
+        } else if (biome.equals(Biome.SPARSE_JUNGLE) || biome.equals(Biome.JUNGLE) || biome.equals(Biome.BAMBOO_JUNGLE)) {
+            villager.setVillagerType(Villager.Type.JUNGLE);
+        } else if (biome.equals(Biome.SAVANNA_PLATEAU) || biome.equals(Biome.WINDSWEPT_SAVANNA) || biome.equals(Biome.SAVANNA)) {
+            villager.setVillagerType(Villager.Type.SAVANNA);
+        } else if (biome.equals(Biome.ICE_SPIKES) || biome.equals(Biome.FROZEN_OCEAN) || biome.equals(Biome.FROZEN_RIVER) || biome.equals(Biome.FROZEN_PEAKS) || biome.equals(Biome.DEEP_FROZEN_OCEAN) || biome.equals(Biome.SNOWY_PLAINS) || biome.equals(Biome.SNOWY_TAIGA) || biome.equals(Biome.SNOWY_SLOPES) || biome.equals(Biome.SNOWY_BEACH)) {
+            villager.setVillagerType(Villager.Type.SNOW);
+        } else if (biome.equals(Biome.OLD_GROWTH_PINE_TAIGA) || biome.equals(Biome.OLD_GROWTH_SPRUCE_TAIGA) || biome.equals(Biome.TAIGA)) {
+            villager.setVillagerType(Villager.Type.TAIGA);
+        } else {
+            villager.setVillagerType(Villager.Type.PLAINS);
         }
     }
 
@@ -360,7 +338,10 @@ public class GodListener implements Listener {
         if (!config.getBoolean(String.valueOf(id))) return bag;
         if (!config.contains(id + ".Items")) return bag;
 
-        config.getConfigurationSection(id + ".Items").getKeys(false).forEach(key -> {
+        ConfigurationSection section = config.getConfigurationSection(id + ".Items");
+        if (section == null) return bag;
+
+        section.getKeys(false).forEach(key -> {
             ItemStack item = config.getItemStack(id + ".Items." + key);
             if (item == null) return;
             bag.addItem(item);
@@ -389,15 +370,8 @@ public class GodListener implements Listener {
         if (meta == null) return 0;
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        int id;
-        if (container.has(potionBagKey, PersistentDataType.INTEGER)) {
-            id = container.get(potionBagKey, PersistentDataType.INTEGER);
-        }
-        else {
-            id = previousPotionBagID++;
-            container.set(potionBagKey, PersistentDataType.INTEGER, id);
-            item.setItemMeta(meta);
-        }
+        int id = container.getOrDefault(potionBagKey, PersistentDataType.INTEGER, previousPotionBagID++);
+        item.setItemMeta(meta);
 
         return id;
     }

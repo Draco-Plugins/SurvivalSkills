@@ -10,6 +10,7 @@ import sir_draco.survivalskills.Trophy.GodQuestline.GodTrophyEffects;
 import sir_draco.survivalskills.Utils.ColorParser;
 import sir_draco.survivalskills.SurvivalSkills;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -25,7 +26,6 @@ public class TrophyEffects extends BukkitRunnable {
 
     private int cycle = 1;
     private int playerCheckTimer = 1;
-    private int npcID = -1;
     private Item entity;
     private Entity mob;
     private CircularRotationObject mobTrophyOrbital = null;
@@ -33,33 +33,16 @@ public class TrophyEffects extends BukkitRunnable {
     private boolean citizensEnabled = false;
     private GodTrophyEffects godTrophy;
     private String playerName;
+    private UUID playerUUID;
 
-    public TrophyEffects(SurvivalSkills plugin, Location loc, int type, Trophy trophy, String playerName) {
+    public TrophyEffects(SurvivalSkills plugin, Location loc, int type, Trophy trophy, String playerName, UUID playerUUID) {
         this.plugin = plugin;
         this.loc = loc;
         this.type = type;
         this.trophy = trophy;
         if (type == 10) {
             this.playerName = playerName;
-            if (plugin.getServer().getPluginManager().getPlugin("Citizens") == null) {
-                plugin.getLogger().warning("Citizens not found, disabling God Trophy");
-                return;
-            }
-            if (plugin.getServer().getPluginManager().isPluginEnabled("Citizens")) citizensEnabled = true;
-            return;
-        }
-        spawnItem(0.5, 1.0, 0.5);
-        typeSpecificStart();
-    }
-
-    public TrophyEffects(SurvivalSkills plugin, Location loc, int type, Trophy trophy, String playerName, int npcID) {
-        this.plugin = plugin;
-        this.loc = loc;
-        this.type = type;
-        this.trophy = trophy;
-        this.npcID = npcID;
-        if (type == 10) {
-            this.playerName = playerName;
+            this.playerUUID = playerUUID;
             if (plugin.getServer().getPluginManager().getPlugin("Citizens") == null) {
                 plugin.getLogger().warning("Citizens not found, disabling God Trophy");
                 return;
@@ -111,7 +94,11 @@ public class TrophyEffects extends BukkitRunnable {
                 championParticles();
                 break;
             case 10:
-                godParticles();
+                try {
+                    godParticles();
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
                 break;
             default:
                 return;
@@ -157,59 +144,43 @@ public class TrophyEffects extends BukkitRunnable {
     }
 
     public void checkForPlayers() {
+        // If no players are online, stop the trophy effects
         if (plugin.getServer().getOnlinePlayers().isEmpty() && run) trophy.restartTrophy(false);
+        // If no players are online and the trophy is already stopped, return
         if (plugin.getServer().getOnlinePlayers().isEmpty() && !run) return;
         for (Player p : plugin.getServer().getOnlinePlayers()) {
+            // If a player is within 50 blocks of the trophy, and the trophy is stopped, restart it
             if (!p.getWorld().equals(loc.getWorld())) continue;
             if (p.getLocation().distance(loc) > 50) continue;
             if (!run) trophy.restartTrophy(true);
+            // If the player is withing 50 blocks and the trophy is running, do nothing
             return;
         }
+        // If no players are within 50 blocks of the trophy, and the trophy is running, stop it
         if (run) trophy.restartTrophy(false);
     }
 
     private Material getMaterial() {
-        Material mat;
-        switch (type) {
-            case 1:
-                mat = Material.DIAMOND_PICKAXE;
-                break;
-            case 2:
-                mat = Material.OAK_SAPLING;
-                break;
-            case 3:
-                mat = Material.GOLDEN_CARROT;
-                break;
-            case 4:
-                mat = Material.TRIDENT;
-                break;
-            case 5:
-                mat = Material.FISHING_ROD;
-                break;
-            case 6:
-                mat = Material.SHEARS;
-                break;
-            case 7:
-                mat = Material.NETHERRACK;
-                break;
-            case 8:
-                mat = Material.END_STONE;
-                break;
-            case 9:
-                mat = Material.DIAMOND_SWORD;
-                break;
-            case 10:
-                mat = Material.GRASS_BLOCK;
-                break;
-            default:
-                mat = Material.AIR;
-                break;
-        }
-        return mat;
+        return switch (type) {
+            case 1 -> Material.DIAMOND_PICKAXE;
+            case 2 -> Material.OAK_SAPLING;
+            case 3 -> Material.GOLDEN_CARROT;
+            case 4 -> Material.TRIDENT;
+            case 5 -> Material.FISHING_ROD;
+            case 6 -> Material.SHEARS;
+            case 7 -> Material.NETHERRACK;
+            case 8 -> Material.END_STONE;
+            case 9 -> Material.DIAMOND_SWORD;
+            case 10 -> Material.GRASS_BLOCK;
+            default -> Material.AIR;
+        };
     }
 
     public void removeItem() {
-        if (entity != null) entity.remove();
+        if (entity != null) {
+            entity.remove();
+            entity = null;
+        }
         if (mob != null) {
             mob.remove();
             mob = null;
@@ -221,7 +192,7 @@ public class TrophyEffects extends BukkitRunnable {
 
     public void typeSpecificStart() {
         if (type == 6) createColorList();
-        if (type == 9) {
+        else if (type == 9) {
             mobTrophyOrbital = new CircularRotationObject(loc, 1, 7);
             populateItemList();
             resetLocation();
@@ -278,35 +249,17 @@ public class TrophyEffects extends BukkitRunnable {
     public Color randomCaveColor() {
         Color color;
         int type = (int) Math.ceil(Math.random() * 9);
-        switch (type) {
-            case 1:
-                color = Color.GRAY;
-                break;
-            case 2:
-                color = Color.RED;
-                break;
-            case 3:
-                color = Color.BLACK;
-                break;
-            case 4:
-                color = Color.GREEN;
-                break;
-            case 5:
-                color = Color.BLUE;
-                break;
-            case 6:
-                color = Color.WHITE;
-                break;
-            case 7:
-                color = Color.fromRGB(156, 120, 2);
-                break;
-            case 8:
-                color = Color.fromRGB(255, 255, 0);
-                break;
-            default:
-                color = Color.fromRGB(0, 255,255);
-                break;
-        }
+        color = switch (type) {
+            case 1 -> Color.GRAY;
+            case 2 -> Color.RED;
+            case 3 -> Color.BLACK;
+            case 4 -> Color.GREEN;
+            case 5 -> Color.BLUE;
+            case 6 -> Color.WHITE;
+            case 7 -> Color.fromRGB(156, 120, 2);
+            case 8 -> Color.fromRGB(255, 255, 0);
+            default -> Color.fromRGB(0, 255, 255);
+        };
         return color;
     }
 
@@ -362,41 +315,23 @@ public class TrophyEffects extends BukkitRunnable {
         World world = loc.getWorld();
         if (world == null) return;
         if (cycle % 3 == 0) floorParticles(Particle.WITCH);
-        ItemStack sapling;
-        switch (cycle) {
-            case 5:
-                sapling = new ItemStack(Material.OAK_SAPLING);
-                break;
-            case 10:
-                sapling = new ItemStack(Material.SPRUCE_SAPLING);
-                break;
-            case 15:
-                sapling = new ItemStack(Material.ACACIA_SAPLING);
-                break;
-            case 20:
-                sapling = new ItemStack(Material.BIRCH_SAPLING);
-                break;
-            case 25:
-                sapling = new ItemStack(Material.CHERRY_SAPLING);
-                break;
-            case 30:
-                sapling = new ItemStack(Material.JUNGLE_SAPLING);
-                break;
-            case 35:
-                sapling = new ItemStack(Material.MANGROVE_PROPAGULE);
-                break;
-            case 40:
-                sapling = new ItemStack(Material.DARK_OAK_SAPLING);
-                break;
-            default:
-                sapling = new ItemStack(Material.AIR);
-        }
+        ItemStack sapling = switch (cycle) {
+            case 5 -> new ItemStack(Material.OAK_SAPLING);
+            case 10 -> new ItemStack(Material.SPRUCE_SAPLING);
+            case 15 -> new ItemStack(Material.ACACIA_SAPLING);
+            case 20 -> new ItemStack(Material.BIRCH_SAPLING);
+            case 25 -> new ItemStack(Material.CHERRY_SAPLING);
+            case 30 -> new ItemStack(Material.JUNGLE_SAPLING);
+            case 35 -> new ItemStack(Material.MANGROVE_PROPAGULE);
+            case 40 -> new ItemStack(Material.DARK_OAK_SAPLING);
+            default -> new ItemStack(Material.AIR);
+        };
 
         if (cycle % 5 != 0) return;
         if (cycle == 40) cycle = 1;
         if (itemList.size() > 4) {
-            itemList.get(0).remove();
-            itemList.remove(0);
+            itemList.getFirst().remove();
+            itemList.removeFirst();
         }
         Location newLoc = loc.clone().add(0.5, 1.0, 0.5);
         Item saplingEnt = (Item) world.spawnEntity(newLoc, EntityType.ITEM);
@@ -468,23 +403,13 @@ public class TrophyEffects extends BukkitRunnable {
         World world = loc.getWorld();
         if (world == null) return;
         if (cycle % 3 == 0) floorParticles(Particle.WITCH);
-        ItemStack sapling;
-        switch (cycle) {
-            case 5:
-                sapling = new ItemStack(Material.COD);
-                break;
-            case 10:
-                sapling = new ItemStack(Material.SALMON);
-                break;
-            case 15:
-                sapling = new ItemStack(Material.PUFFERFISH);
-                break;
-            case 20:
-                sapling = new ItemStack(Material.TROPICAL_FISH);
-                break;
-            default:
-                sapling = new ItemStack(Material.AIR);
-        }
+        ItemStack sapling = switch (cycle) {
+            case 5 -> new ItemStack(Material.COD);
+            case 10 -> new ItemStack(Material.SALMON);
+            case 15 -> new ItemStack(Material.PUFFERFISH);
+            case 20 -> new ItemStack(Material.TROPICAL_FISH);
+            default -> new ItemStack(Material.AIR);
+        };
 
         if (cycle % 5 != 0) return;
         if (cycle == 20) {
@@ -505,8 +430,8 @@ public class TrophyEffects extends BukkitRunnable {
             }
         }
         if (itemList.size() > 8) {
-            itemList.get(0).remove();
-            itemList.remove(0);
+            itemList.getFirst().remove();
+            itemList.removeFirst();
         }
         Location newLoc = loc.clone().add(0.5, 1.0, 0.5);
         Item saplingEnt = (Item) world.spawnEntity(newLoc, EntityType.ITEM);
@@ -635,7 +560,7 @@ public class TrophyEffects extends BukkitRunnable {
     }
 
     public void resetLocation() {
-        mobTrophyOrbital.createLocations(mobTrophyOrbital.getAngle(itemList.get(0).getLocation()) + 0.01);
+        mobTrophyOrbital.createLocations(mobTrophyOrbital.getAngle(itemList.getFirst().getLocation()) + 0.01);
         for (int i = 0; i < itemList.size(); i++) {
             Item item = itemList.get(i);
             item.teleport(mobTrophyOrbital.getLocation(i));
@@ -695,12 +620,9 @@ public class TrophyEffects extends BukkitRunnable {
         item.setOwner(UUID.fromString("00000000-0000-0000-0000-000000000000"));
     }
 
-    public void godParticles() {
+    public void godParticles() throws IOException, InterruptedException {
         if (!citizensEnabled) return;
-        if (cycle == 1) {
-            if (npcID == - 1) godTrophy = new GodTrophyEffects(loc);
-            else godTrophy = new GodTrophyEffects(loc, npcID);
-        }
+        if (cycle == 1) godTrophy = new GodTrophyEffects(loc);
 
         if (cycle < 122) {
             // Spawn grass block item and send it to the sky
@@ -752,12 +674,13 @@ public class TrophyEffects extends BukkitRunnable {
                 loc.getWorld().strikeLightningEffect(loc.clone().add(0.5, 0, 0.5));
                 godTrophy.playSound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER);
             }
-            else if (cycle == 121) godTrophy.spawnPlayer(playerName);
+            else if (cycle == 121) {
+                godTrophy.spawnPlayer(playerName, playerUUID);
+                godTrophy.spawnCrystal(0.5, 1.5, 0.5);
+            }
         }
 
-        if (cycle >= 121) {
-            if (cycle >= 125 && godTrophy.getNPCPlayer() == null) godTrophy.spawnPlayer(playerName);
-            if (cycle == 121) godTrophy.spawnCrystal(0.5, 1.5, 0.5);
+        if (cycle > 121) {
             if (cycle % 2 == 0) {
                 World world = loc.getWorld();
                 if (world == null) return;

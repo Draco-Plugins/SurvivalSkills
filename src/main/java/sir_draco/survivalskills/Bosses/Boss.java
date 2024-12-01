@@ -141,15 +141,15 @@ public class Boss extends BukkitRunnable {
         boss.setGlowing(true);
         boss.setPersistent(true);
 
-        AttributeInstance attack = boss.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+        AttributeInstance attack = boss.getAttribute(Attribute.ATTACK_DAMAGE);
         if (attack != null) attack.setBaseValue(damage);
-        AttributeInstance armor = boss.getAttribute(Attribute.GENERIC_ARMOR);
+        AttributeInstance armor = boss.getAttribute(Attribute.ARMOR);
         if (armor != null) armor.setBaseValue(defense);
-        AttributeInstance speedAttribute = boss.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+        AttributeInstance speedAttribute = boss.getAttribute(Attribute.MOVEMENT_SPEED);
         if (speedAttribute != null) speedAttribute.setBaseValue(this.speed);
-        AttributeInstance knockbackResistance = boss.getAttribute(Attribute.GENERIC_KNOCKBACK_RESISTANCE);
+        AttributeInstance knockbackResistance = boss.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
         if (knockbackResistance != null) knockbackResistance.setBaseValue(1);
-        AttributeInstance health = boss.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance health = boss.getAttribute(Attribute.MAX_HEALTH);
         if (health != null) health.setBaseValue(maxHealth);
         boss.setHealth(maxHealth);
         appliedAttributes = true;

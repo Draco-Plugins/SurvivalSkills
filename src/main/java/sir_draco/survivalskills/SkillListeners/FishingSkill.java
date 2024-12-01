@@ -706,10 +706,10 @@ public class FishingSkill implements Listener {
         boss.getEquipment().setBoots(boots);
         boss.getEquipment().setItemInMainHand(trident);
 
-        AttributeInstance healthAttribute = boss.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance healthAttribute = boss.getAttribute(Attribute.MAX_HEALTH);
         if (healthAttribute != null) healthAttribute.setBaseValue(100);
         boss.setHealth(100);
-        AttributeInstance speedInstance = boss.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+        AttributeInstance speedInstance = boss.getAttribute(Attribute.MOVEMENT_SPEED);
         if (speedInstance != null) speedInstance.setBaseValue(0.35);
     }
 

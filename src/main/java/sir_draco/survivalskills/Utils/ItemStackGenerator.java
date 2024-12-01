@@ -704,8 +704,8 @@ public class ItemStackGenerator {
                     new AttributeModifier(defenseKey, 4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
             @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierKnockback =
                     new AttributeModifier(knockbackKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
-            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifierDefense);
-            leatherMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, modifierKnockback);
+            leatherMeta.addAttributeModifier(Attribute.ARMOR, modifierDefense);
+            leatherMeta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, modifierKnockback);
             leatherMeta.setColor(Color.WHITE);
         }
 
@@ -736,8 +736,8 @@ public class ItemStackGenerator {
                     new AttributeModifier(defenseKey, 9, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST);
             @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierKnockback =
                     new AttributeModifier(knockbackKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST);
-            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifierDefense);
-            leatherMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, modifierKnockback);
+            leatherMeta.addAttributeModifier(Attribute.ARMOR, modifierDefense);
+            leatherMeta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, modifierKnockback);
             leatherMeta.setColor(Color.WHITE);
         }
 
@@ -768,8 +768,8 @@ public class ItemStackGenerator {
                     new AttributeModifier(defenseKey, 7, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.LEGS);
             @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierKnockback =
                     new AttributeModifier(knockbackKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.LEGS);
-            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifierDefense);
-            leatherMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, modifierKnockback);
+            leatherMeta.addAttributeModifier(Attribute.ARMOR, modifierDefense);
+            leatherMeta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, modifierKnockback);
             leatherMeta.setColor(Color.WHITE);
         }
 
@@ -800,8 +800,8 @@ public class ItemStackGenerator {
                     new AttributeModifier(defenseKey, 4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
             @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierKnockback =
                     new AttributeModifier(knockbackKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
-            leatherMeta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifierDefense);
-            leatherMeta.addAttributeModifier(Attribute.GENERIC_KNOCKBACK_RESISTANCE, modifierKnockback);
+            leatherMeta.addAttributeModifier(Attribute.ARMOR, modifierDefense);
+            leatherMeta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, modifierKnockback);
             leatherMeta.setColor(Color.WHITE);
         }
 

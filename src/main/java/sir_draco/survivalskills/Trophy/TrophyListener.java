@@ -19,16 +19,12 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.*;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.Trophy.GodQuestline.GodRecipeUI;
 import sir_draco.survivalskills.Trophy.GodQuestline.GodTrophyQuest;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class TrophyListener implements Listener {
@@ -158,17 +154,9 @@ public class TrophyListener implements Listener {
         }
         else if (hand.getType().equals(Material.GRASS_BLOCK)) {
             above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-
-            if (plugin.getTrophyManager().getGodNPCIDs().containsKey(p)) {
-                trophy = new Trophy(above.getLocation(), p.getUniqueId(), "GodTrophy", plugin.getTrophyManager().generateTrophyID(), playerName);
-                trophy.spawnTrophy(plugin, plugin.getTrophyManager().getGodNPCIDs().get(p));
-                plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
-            }
-            else {
-                trophy = new Trophy(above.getLocation(), p.getUniqueId(), "GodTrophy", plugin.getTrophyManager().generateTrophyID(), playerName);
-                trophy.spawnTrophy(plugin);
-                plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
-            }
+            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "GodTrophy", plugin.getTrophyManager().generateTrophyID(), playerName);
+            trophy.spawnTrophy(plugin);
+            plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
         }
     }
 
@@ -235,14 +223,14 @@ public class TrophyListener implements Listener {
     @EventHandler
     public void clickGodNPC(NPCClickEvent e) {
         Player p = e.getClicker();
-        if (!plugin.getTrophyManager().getGodNPCIDs().containsKey(p)) {
+        if (!plugin.getTrophyManager().getGodNPCIDs().containsKey(p.getUniqueId())) {
             p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": Are you expecting something?");
             p.playSound(p, Sound.ENTITY_VILLAGER_YES, 1, 1);
             return;
         }
 
 
-        if (plugin.getTrophyManager().getGodNPCIDs().get(p) != e.getNPC().getId()) {
+        if (plugin.getTrophyManager().getGodNPCIDs().get(p.getUniqueId()) != e.getNPC().getId()) {
             p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": You have your own god to talk to!");
             p.playSound(p, Sound.ENTITY_VILLAGER_YES, 1, 1);
             return;

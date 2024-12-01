@@ -1,7 +1,7 @@
 name: SurvivalSkills
 version: '2.0'
 main: sir_draco.survivalskills.SurvivalSkills
-api-version: '1.20'
+api-version: '1.21'
 authors: [ Sir Draco ]
 load: POSTWORLD
 softdepend: [ Citizens, GriefPrevention, WorldGuard ]
