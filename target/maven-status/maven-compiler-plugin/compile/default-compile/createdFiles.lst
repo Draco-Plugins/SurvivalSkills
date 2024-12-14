@@ -128,6 +128,7 @@ sir_draco\survivalskills\Bosses\GiantBoss$7.class
 sir_draco\survivalskills\SkillListeners\MiningSkill$1.class
 sir_draco\survivalskills\Bosses\VillagerBoss$10.class
 sir_draco\survivalskills\Trophy\TrophyEffects.class
+sir_draco\survivalskills\Commands\AdminCommands\ResetAllCommand.class
 sir_draco\survivalskills\Commands\AdminCommands\ResetFirstDragon.class
 sir_draco\survivalskills\Abilities\AbilityTimer.class
 sir_draco\survivalskills\Commands\AdminCommands\SkillsMultiplierCommand.class

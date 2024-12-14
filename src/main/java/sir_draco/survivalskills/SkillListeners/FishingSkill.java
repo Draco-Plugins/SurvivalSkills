@@ -143,7 +143,7 @@ public class FishingSkill implements Listener {
             double chance = Math.random();
 
             if (!plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId()).get("FishingTrophy")) {
-                if (chance <= 0.004) {
+                if (chance <= 0.01) {
                     Location loc = e.getHook().getLocation();
                     World world = e.getHook().getWorld();
                     Vector velocity = ProjectileCalculator.getVector(loc, p.getLocation(), 1);
@@ -155,7 +155,7 @@ public class FishingSkill implements Listener {
                 }
             }
             else {
-                if (chance <= 0.01) {
+                if (chance <= 0.004) {
                     Location loc = e.getHook().getLocation();
                     World world = e.getHook().getWorld();
                     Vector velocity = ProjectileCalculator.getVector(loc, p.getLocation(), 1);
@@ -327,8 +327,7 @@ public class FishingSkill implements Listener {
 
     @EventHandler
     public void onItemPickup(EntityPickupItemEvent e) {
-        if (!(e.getEntity() instanceof Player)) return;
-        Player p = (Player) e.getEntity();
+        if (!(e.getEntity() instanceof Player p)) return;
         if (disabledAutoTrash.contains(p)) return;
         if (!trashInventories.containsKey(p) && !permaTrash.containsKey(p)) return;
 
@@ -340,8 +339,7 @@ public class FishingSkill implements Listener {
             if (item.getType().equals(Material.ENCHANTED_BOOK)) {
                 ItemMeta meta = item.getItemMeta();
                 if (meta == null) return;
-                if (!(meta instanceof EnchantmentStorageMeta)) return;
-                EnchantmentStorageMeta enchantMeta = (EnchantmentStorageMeta) meta;
+                if (!(meta instanceof EnchantmentStorageMeta enchantMeta)) return;
                 if (enchantMeta.getStoredEnchants().isEmpty()) return;
                 Enchantment enchant = enchantMeta.getStoredEnchants().keySet().iterator().next();
 
@@ -362,8 +360,7 @@ public class FishingSkill implements Listener {
             if (item.getType().equals(Material.ENCHANTED_BOOK)) {
                 ItemMeta meta = item.getItemMeta();
                 if (meta == null) return;
-                if (!(meta instanceof EnchantmentStorageMeta)) return;
-                EnchantmentStorageMeta enchantMeta = (EnchantmentStorageMeta) meta;
+                if (!(meta instanceof EnchantmentStorageMeta enchantMeta)) return;
                 if (enchantMeta.getStoredEnchants().isEmpty()) return;
                 Enchantment enchant = enchantMeta.getStoredEnchants().keySet().iterator().next();
 

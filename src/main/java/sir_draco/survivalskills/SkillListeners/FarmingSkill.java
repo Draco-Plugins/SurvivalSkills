@@ -53,8 +53,7 @@ public class FarmingSkill implements Listener {
         if (!plugin.getFarmingList().contains(block.getType()) && !block.getType().toString().contains("LOG")) return;
 
         if (!block.getType().equals(Material.SUGAR_CANE) && !block.getType().equals(Material.CACTUS)) {
-            if (block.getState().getBlockData() instanceof Ageable) {
-                Ageable age = (Ageable) block.getState().getBlockData();
+            if (block.getState().getBlockData() instanceof Ageable age) {
                 if (age.getAge() != age.getMaximumAge()) return;
             }
         }
@@ -88,9 +87,8 @@ public class FarmingSkill implements Listener {
         if (block.getType().equals(Material.DIRT)) return;
         handleUnlimitedBoneMeal(p, block, e);
 
-        if (!(block.getState().getBlockData() instanceof Ageable)) return;
+        if (!(block.getState().getBlockData() instanceof Ageable age)) return;
         if (!block.getType().equals(Material.SWEET_BERRY_BUSH)) return;
-        Ageable age = (Ageable) block.getState().getBlockData();
         if (age.getAge() != age.getMaximumAge()) return;
         SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP(), "Farming");
     }
@@ -136,8 +134,12 @@ public class FarmingSkill implements Listener {
 
     public void handleWateringCan(Player p, Block block) {
         if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 9)) return;
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "WateringCan").isApplied()
-                && !p.hasPermission("survivalskills.op")) return;
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "WateringCan").isApplied()) {
+            p.sendRawMessage(ChatColor.RED + "Watering Can unlocks at Farming Level: " + ChatColor.AQUA
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Farming", "WateringCan").getLevel());
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return;
+        }
         growNearbyCrops(block);
     }
 
@@ -192,7 +194,12 @@ public class FarmingSkill implements Listener {
     public void handleUnlimitedBoneMeal(Player p, Block block, PlayerInteractEvent e) {
         if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 10)) return;
         e.setCancelled(true);
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "UnlimitedBoneMeal").isApplied()) return;
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "UnlimitedBoneMeal").isApplied()) {
+            p.sendRawMessage(ChatColor.RED + "Unlimited Bonemeal unlocks at Farming Level: " + ChatColor.AQUA
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Farming", "UnlimitedBoneMeal").getLevel());
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return;
+        }
 
         if (block.getType().equals(Material.GRASS_BLOCK)) block.applyBoneMeal(BlockFace.UP);
         else if (block.getType().equals(Material.MOSS_BLOCK)) block.applyBoneMeal(BlockFace.UP);
@@ -236,21 +243,22 @@ public class FarmingSkill implements Listener {
     }
 
     public boolean isSeed(Material type) {
-        switch (type) {
-            case WHEAT_SEEDS:
-            case BEETROOT_SEEDS:
-            case PUMPKIN_SEEDS:
-            case MELON_SEEDS:
-                return true;
-        }
-        return false;
+        return switch (type) {
+            case WHEAT_SEEDS, BEETROOT_SEEDS, PUMPKIN_SEEDS, MELON_SEEDS -> true;
+            default -> false;
+        };
     }
 
     public void handleHarvester(Player p, Block block, boolean isHarvested, Material type, BlockBreakEvent e) {
         if (isHarvested) return;
         if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 11)) return;
         if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "Harvester").isApplied()
-                && !p.hasPermission("survivalskills.op")) return;
+                && !p.hasPermission("survivalskills.op")) {
+            p.sendRawMessage(ChatColor.RED + "Harvester unlocks at Farming Level: " + ChatColor.AQUA
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Farming", "Harvester").getLevel());
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return;
+        }
         if (harvesterCooldowns.containsKey(p)) {
             e.setCancelled(true);
             p.sendRawMessage(ChatColor.RED + "Slow down there!");
@@ -276,52 +284,18 @@ public class FarmingSkill implements Listener {
     }
 
     public int getFoodLevelRestorationAmount(Material mat) {
-        switch (mat) {
-            case BEETROOT:
-            case DRIED_KELP:
-            case POTATO:
-            case PUFFERFISH:
-            case TROPICAL_FISH:
-                return 1;
-            case COOKIE:
-            case CHICKEN:
-            case COD:
-            case MUTTON:
-            case MELON_SLICE:
-            case SALMON:
-                return 2;
-            case CARROT:
-            case BEEF:
-            case PORKCHOP:
-            case RABBIT:
-                return 3;
-            case APPLE:
-            case CHORUS_FRUIT:
-            case ENCHANTED_GOLDEN_APPLE:
-            case GOLDEN_APPLE:
-                return 4;
-            case BAKED_POTATO:
-            case COOKED_COD:
-            case BREAD:
-            case COOKED_RABBIT:
-                return 5;
-            case BEETROOT_SOUP:
-            case COOKED_MUTTON:
-            case COOKED_CHICKEN:
-            case COOKED_SALMON:
-            case GOLDEN_CARROT:
-            case HONEY_BOTTLE:
-            case MUSHROOM_STEW:
-                return 6;
-            case COOKED_BEEF:
-            case COOKED_PORKCHOP:
-            case PUMPKIN_PIE:
-                return 8;
-            case RABBIT_STEW:
-                return 10;
-            default:
-                return 0;
-        }
+        return switch (mat) {
+            case BEETROOT, DRIED_KELP, POTATO, PUFFERFISH, TROPICAL_FISH -> 1;
+            case COOKIE, CHICKEN, COD, MUTTON, MELON_SLICE, SALMON -> 2;
+            case CARROT, BEEF, PORKCHOP, RABBIT -> 3;
+            case APPLE, CHORUS_FRUIT, ENCHANTED_GOLDEN_APPLE, GOLDEN_APPLE -> 4;
+            case BAKED_POTATO, COOKED_COD, BREAD, COOKED_RABBIT -> 5;
+            case BEETROOT_SOUP, COOKED_MUTTON, COOKED_CHICKEN, COOKED_SALMON, GOLDEN_CARROT, HONEY_BOTTLE,
+                 MUSHROOM_STEW -> 6;
+            case COOKED_BEEF, COOKED_PORKCHOP, PUMPKIN_PIE -> 8;
+            case RABBIT_STEW -> 10;
+            default -> 0;
+        };
     }
 
     public HashMap<Player, HarvesterTimer> getHarvesterCooldowns() {

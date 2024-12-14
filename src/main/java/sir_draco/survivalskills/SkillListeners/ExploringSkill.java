@@ -1,6 +1,8 @@
 package sir_draco.survivalskills.SkillListeners;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -20,7 +22,6 @@ import sir_draco.survivalskills.Abilities.Magnet;
 import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
-import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -41,8 +42,8 @@ public class ExploringSkill implements Listener {
     @EventHandler
     public void vehicleMoveEvent(VehicleMoveEvent e) {
         if (e.getVehicle().getPassengers().isEmpty()) return;
-        if (e.getVehicle().getPassengers().get(0).getType() != EntityType.PLAYER) return;
-        Player p = (Player) e.getVehicle().getPassengers().get(0);
+        if (e.getVehicle().getPassengers().getFirst().getType() != EntityType.PLAYER) return;
+        Player p = (Player) e.getVehicle().getPassengers().getFirst();
         UUID uuid = p.getUniqueId();
         Location loc = p.getLocation().getBlock().getLocation();
         if (!locationTracker.containsKey(uuid)) locationTracker.put(uuid, loc);
@@ -114,8 +115,7 @@ public class ExploringSkill implements Listener {
 
     @EventHandler
     public void onFallDamage(EntityDamageEvent e) {
-        if (!(e.getEntity() instanceof Player)) return;
-        Player p = (Player) e.getEntity();
+        if (!(e.getEntity() instanceof Player p)) return;
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
         if (e.getCause() != EntityDamageEvent.DamageCause.FALL) return;
         if (ArmorListener.playersWearingAdventurerArmor.contains(p.getUniqueId())) {
@@ -133,13 +133,18 @@ public class ExploringSkill implements Listener {
     }
 
     @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent e) {
+    public void useCaveFinder(PlayerInteractEvent e) {
         Player p = e.getPlayer();
         if (e.getHand() != EquipmentSlot.HAND) return;
         PlayerInventory inv = p.getInventory();
         if (!ItemStackGenerator.isCustomItem(inv.getItemInMainHand(), 6)
                 && !ItemStackGenerator.isCustomItem(inv.getItemInOffHand(), 6)) return;
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "CaveFinder").isApplied()) return;
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "CaveFinder").isApplied()) {
+            p.sendRawMessage(ChatColor.RED + "You must be exploring level" + ChatColor.AQUA
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Exploring", "CaveFinder").getLevel());
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return;
+        }
         CaveFinderAsync task = new CaveFinderAsync(p, plugin);
         task.runTaskAsynchronously(plugin);
     }
@@ -155,7 +160,12 @@ public class ExploringSkill implements Listener {
 
         if (activeMagnets.contains(p)) return;
 
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "Magnet").isApplied()) return;
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "Magnet").isApplied()) {
+            p.sendRawMessage(ChatColor.RED + "You must be exploring level" + ChatColor.AQUA
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Exploring", "Magnet").getLevel());
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return;
+        }
         activeMagnets.add(p);
         new Magnet(p).runTaskTimer(plugin, 0, 5);
     }

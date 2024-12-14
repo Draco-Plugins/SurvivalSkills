@@ -114,6 +114,9 @@ commands:
   togglegodquest:
     description: Allows for toggling the god quest
     permission: survivalskills.op
+  ssresetall:
+    description: Resets all SurvivalSkills data
+    permission: survivalskills.op
 
 permissions:
   survivalskills.default:

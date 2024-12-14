@@ -1,5 +1,7 @@
 package sir_draco.survivalskills.Abilities;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -37,7 +39,11 @@ public class AbilityTimer extends BukkitRunnable {
             active = false;
             activeTimeLeft--;
         }
-        if (timeTillReset == 0) {
+        if (!active && timeTillReset == 0) {
+            if (p.isOnline() && name.equals("XPVoucher")) {
+                p.sendRawMessage(ChatColor.RED + "Your XP Voucher has expired!");
+                p.playSound(p, Sound.ENTITY_SHEEP_SHEAR, 1, 1);
+            }
             plugin.getAbilityManager().removeAbility(p, name);
             this.cancel();
         }

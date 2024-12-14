@@ -14,6 +14,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -28,9 +29,9 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import sir_draco.survivalskills.Abilities.SpelunkerAbilitySync;
 import sir_draco.survivalskills.Abilities.VeinMinerAsync;
+import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
-import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -88,10 +89,19 @@ public class MiningSkill implements Listener {
     @EventHandler
     public void placeTorch(PlayerInteractEvent e) {
         Player p = e.getPlayer();
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "UnlimitedTorch").isApplied()) {
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+
+        if (rewards == null && plugin.isCitizensEnabled()) return;
+        else if (rewards == null) {
+            Bukkit.getLogger().warning("Player " + p.getName() + " does not have a PlayerRewards object");
+            return;
+        }
+
+        if (!rewards.getReward("Mining", "UnlimitedTorch").isApplied()) {
             if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 1) || ItemStackGenerator.isCustomItem(p.getInventory().getItemInOffHand(), 1)) {
                 e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You are not a high enough level to use this item");
+                p.sendRawMessage(ChatColor.RED + "Unlimited Torch unlocks at mining level "
+                        + ChatColor.AQUA + rewards.getReward("Mining", "UnlimitedTorch").getLevel());
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             }
             return;
@@ -140,7 +150,8 @@ public class MiningSkill implements Listener {
         if (!ItemStackGenerator.isCustomItem(hand, 27)) return;
         if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "ZapWand").isApplied()) {
              e.setCancelled(true);
-             p.sendRawMessage(ChatColor.RED + "You are not a high enough level to use this item");
+             p.sendRawMessage(ChatColor.RED + "Zap Wand unlocks at mining level " + ChatColor.AQUA +
+                     plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "ZapWand").getLevel());
              p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
@@ -159,8 +170,7 @@ public class MiningSkill implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void playerHurt(EntityDamageEvent e) {
-        if (!(e.getEntity() instanceof Player)) return;
-        Player p = (Player) e.getEntity();
+        if (!(e.getEntity() instanceof Player p)) return;
         double reductionPercentage = plugin.getSkillManager().getPlayerRewards(p).getProtectionPercentage();
         if (reductionPercentage == 0) return;
         double newDamage = e.getDamage() * (1 - reductionPercentage);
@@ -205,6 +215,12 @@ public class MiningSkill implements Listener {
         if (!toolBelt.equals(inv) && !toolBelt.equals(top)) return;
         if (e.getCurrentItem() == null) return;
 
+        // Prevent hotbar swaps
+        if (e.getAction().equals(InventoryAction.HOTBAR_SWAP) || e.getAction().equals(InventoryAction.HOTBAR_MOVE_AND_READD)) {
+            e.setCancelled(true);
+            return;
+        }
+
         // Check if the clicked item is a tool
         if (!acceptableTools.contains(e.getCurrentItem().getType())) {
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -244,39 +260,17 @@ public class MiningSkill implements Listener {
     }
 
     public double getMultiplier(Material mat) {
-        switch (mat) {
-            case DEEPSLATE:
-                return 2.0;
-            case COAL_ORE:
-            case DEEPSLATE_COAL_ORE:
-            case COPPER_ORE:
-            case DEEPSLATE_COPPER_ORE:
-                return 3.0;
-            case IRON_ORE:
-            case DEEPSLATE_IRON_ORE:
-            case NETHER_QUARTZ_ORE:
-            case NETHER_GOLD_ORE:
-                return 4.0;
-            case REDSTONE_ORE:
-            case DEEPSLATE_REDSTONE_ORE:
-            case LAPIS_ORE:
-            case DEEPSLATE_LAPIS_ORE:
-                return 5.0;
-            case GOLD_ORE:
-            case DEEPSLATE_GOLD_ORE:
-                return 7.0;
-            case DIAMOND_ORE:
-            case DEEPSLATE_DIAMOND_ORE:
-                return 10.0;
-            case EMERALD_ORE:
-            case DEEPSLATE_EMERALD_ORE:
-            case ANCIENT_DEBRIS:
-                return 20.0;
-            case OBSIDIAN:
-                return 30.0;
-            default:
-                return 1.0;
-        }
+        return switch (mat) {
+            case DEEPSLATE -> 2.0;
+            case COAL_ORE, DEEPSLATE_COAL_ORE, COPPER_ORE, DEEPSLATE_COPPER_ORE -> 3.0;
+            case IRON_ORE, DEEPSLATE_IRON_ORE, NETHER_QUARTZ_ORE, NETHER_GOLD_ORE -> 4.0;
+            case REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE, LAPIS_ORE, DEEPSLATE_LAPIS_ORE -> 5.0;
+            case GOLD_ORE, DEEPSLATE_GOLD_ORE -> 7.0;
+            case DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE -> 10.0;
+            case EMERALD_ORE, DEEPSLATE_EMERALD_ORE, ANCIENT_DEBRIS -> 20.0;
+            case OBSIDIAN -> 30.0;
+            default -> 1.0;
+        };
     }
 
     public String getOreTeam(Material mat) {

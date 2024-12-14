@@ -1,6 +1,5 @@
 package sir_draco.survivalskills.SkillListeners;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -25,9 +24,9 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.Abilities.AbilityTimer;
 import sir_draco.survivalskills.Rewards.Reward;
-import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 
 import java.util.*;
 
@@ -51,6 +50,7 @@ public class BuildingSkill implements Listener {
         if (brokenBlocks.contains(e.getBlock().getType().toString())) return;
         if (plugin.getFarmingList().contains(e.getBlock().getType())) return;
         if (p.getInventory().getItemInMainHand().getType().toString().contains("SHOVEL")) return;
+        if (p.getInventory().getItemInMainHand().getType().toString().contains("HOE")) return;
 
         SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getBuildingXP(), "Building");
 
@@ -59,9 +59,8 @@ public class BuildingSkill implements Listener {
         if (plugin.getSkillManager().getPlayerRewards(p).getBlockBlackChance() == 0.0) return;
         if (Math.random() < plugin.getSkillManager().getPlayerRewards(p).getBlockBlackChance()) {
             ItemStack item;
-            if (e.getBlock().getType().equals(Material.BUBBLE_CORAL_WALL_FAN)) {
+            if (e.getBlock().getType().equals(Material.BUBBLE_CORAL_WALL_FAN))
                 item = new ItemStack(Material.BUBBLE_CORAL_FAN, 1);
-            }
             else item = new ItemStack(e.getBlock().getType(), 1);
             p.getInventory().addItem(item);
         }
@@ -71,7 +70,7 @@ public class BuildingSkill implements Listener {
     public void useSortWand(PlayerInteractEvent e) {
         // Make sure they have all necessary requirements to use the sort wand
         Player p = e.getPlayer();
-        if (!isSortWand(p.getInventory().getItemInMainHand())) return;
+        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 16)) return;
         Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Building", "AutoSortWand");
         if (!reward.isEnabled()) return;
         if (!reward.isApplied() && !p.isOp()) {
@@ -103,11 +102,9 @@ public class BuildingSkill implements Listener {
         // Sort the chest
         // Get the inventory of the chest
         BlockState state = block.getState();
-        if (!(state instanceof Chest)) return;
-        Chest chest = (Chest) state;
+        if (!(state instanceof Chest chest)) return;
         Inventory chestInventory;
-        if (chest.getInventory().getHolder() instanceof DoubleChest) {
-            DoubleChest doubleChest = (DoubleChest) chest.getInventory().getHolder();
+        if (chest.getInventory().getHolder() instanceof DoubleChest doubleChest) {
             chestInventory = doubleChest.getInventory();
         } else {
             chestInventory = chest.getInventory();
@@ -115,8 +112,7 @@ public class BuildingSkill implements Listener {
 
         // Make sure no one is viewing the inventory
         for (HumanEntity human : chestInventory.getViewers()) {
-            if (!(human instanceof Player)) continue;
-            Player player = (Player) human;
+            if (!(human instanceof Player player)) continue;
             if (player.equals(p)) continue;
             p.closeInventory();
             return;
@@ -201,7 +197,7 @@ public class BuildingSkill implements Listener {
         }
 
         // Try to add the ItemStack to the last ItemStack in the list
-        ItemStack lastItem = items.get(items.size() - 1);
+        ItemStack lastItem = items.getLast();
         if (lastItem == null) {
             items.add(itemToAdd);
             return items;
@@ -263,8 +259,7 @@ public class BuildingSkill implements Listener {
         if (book == null) return "";
         ItemMeta meta = book.getItemMeta();
         if (meta == null) return "";
-        if (!(meta instanceof EnchantmentStorageMeta)) return "";
-        EnchantmentStorageMeta enchantmentMeta = (EnchantmentStorageMeta) meta;
+        if (!(meta instanceof EnchantmentStorageMeta enchantmentMeta)) return "";
         Map<Enchantment, Integer> enchantments = enchantmentMeta.getStoredEnchants();
         if (enchantments.isEmpty()) return "";
         Enchantment enchant = enchantments.keySet().iterator().next();
@@ -276,8 +271,7 @@ public class BuildingSkill implements Listener {
         if (book == null) return 0;
         ItemMeta meta = book.getItemMeta();
         if (meta == null) return 0;
-        if (!(meta instanceof EnchantmentStorageMeta)) return 0;
-        EnchantmentStorageMeta enchantmentMeta = (EnchantmentStorageMeta) meta;
+        if (!(meta instanceof EnchantmentStorageMeta enchantmentMeta)) return 0;
         Map<Enchantment, Integer> enchantments = enchantmentMeta.getStoredEnchants();
         if (enchantments.isEmpty()) return 0;
         Enchantment enchant = enchantments.keySet().iterator().next();
@@ -287,14 +281,6 @@ public class BuildingSkill implements Listener {
 
     public boolean isBannedReturn(Material material) {
         return bannedReturns.contains(material);
-    }
-
-    public boolean isSortWand(ItemStack item) {
-        if (!item.getType().equals(Material.BLAZE_ROD)) return false;
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) return false;
-        if (!meta.hasCustomModelData()) return false;
-        return meta.getCustomModelData() == 16;
     }
 
     public void createBannedReturns() {

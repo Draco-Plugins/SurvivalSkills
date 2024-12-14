@@ -58,6 +58,7 @@ public class VeinMinerAsync extends BukkitRunnable {
             @Override
             public void run() {
                 if (i >= blocks.size()) {
+                    plugin.getMiningListener().getVeinTracker().remove(p);
                     cancel();
                     return;
                 }

@@ -93,8 +93,12 @@ public class Skill {
      * @return True if the level changes, false otherwise
      */
     public boolean changeLevel(int level) {
-        if (this.level + level > maxLevel || this.level + level < 0) {
+        if (this.level + level > maxLevel) {
             this.level = maxLevel;
+            return false;
+        }
+        else if (this.level + level < 1) {
+            this.level = 1;
             return false;
         }
         else this.level += level;

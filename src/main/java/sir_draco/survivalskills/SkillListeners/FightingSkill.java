@@ -28,7 +28,6 @@ import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Utils.ExiledBossMusic;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
-import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -57,8 +56,7 @@ public class FightingSkill implements Listener {
 
     @EventHandler (ignoreCancelled = true)
     public void onKillEntity(EntityDeathEvent e) {
-        if (e.getEntity() instanceof Player) {
-            Player p = (Player) e.getEntity();
+        if (e.getEntity() instanceof Player p) {
             activeBerserkers.remove(p);
 
             if (summonTracker.containsKey(p)) {
@@ -87,7 +85,19 @@ public class FightingSkill implements Listener {
         }
 
         Player p = e.getEntity().getKiller();
-        if (p == null && !e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) return;
+        if (p == null && !e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
+            if (isBoss(e.getEntity())) {
+                switch (e.getEntity().getType()) {
+                    case ZOMBIE:
+                        removeGiant(e.getEntity());
+                    case SPIDER:
+                        removeBroodMother(e.getEntity());
+                    case VILLAGER:
+                        removeVillager(e.getEntity());
+                }
+            }
+            return;
+        }
 
         if (isBoss(e.getEntity()) || e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
             summonTracker.remove(p);
@@ -110,7 +120,7 @@ public class FightingSkill implements Listener {
                     drop = ItemStackGenerator.getVillagerBossItem();
                     removeVillager(e.getEntity());
                     Bukkit.broadcastMessage(ChatColor.AQUA + "The Exiled One" + ChatColor.LIGHT_PURPLE + " has been slain!");
-                    killExperience(p, plugin.getSkillManager().getFightingXP() * 2500);
+                    killExperience(p, plugin.getSkillManager().getFightingXP() * 5000);
                     break;
                 case ENDER_DRAGON:
                     if (dragonBoss != null) {
@@ -198,13 +208,12 @@ public class FightingSkill implements Listener {
     @EventHandler
     public void handleFightingSkills(EntityDamageByEntityEvent e) {
         // Check if the entity is a player
-        if (!(e.getDamager() instanceof Player)) return;
+        if (!(e.getDamager() instanceof Player p)) return;
 
         // Check if it is from thorns
         if (e.getCause().equals(EntityDamageEvent.DamageCause.THORNS)) return;
 
         // If it is, check if it is an active berserker
-        Player p = (Player) e.getDamager();
         if (activeBerserkers.contains(p)) {
             if (!plugin.getAbilityManager().getTimerTracker().containsKey(p)) {
                 activeBerserkers.remove(p);
@@ -275,7 +284,7 @@ public class FightingSkill implements Listener {
             return;
         }
 
-        if (e.getEntity().getType().equals(EntityType.ZOMBIE))
+        if (e.getEntity().getType().equals(EntityType.ZOMBIE) || e.getEntity().getType().equals(EntityType.SPIDER))
             if (e.getCause().equals(EntityDamageEvent.DamageCause.FALL)) e.setCancelled(true);
         else if (e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
             if (e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION)) e.setCancelled(true);
@@ -297,16 +306,14 @@ public class FightingSkill implements Listener {
         if (boss == null) return;
 
         Player p = null;
-        if (e.getDamager() instanceof Arrow) {
-            Arrow arrow = (Arrow) e.getDamager();
+        if (e.getDamager() instanceof Arrow arrow) {
             if (!(arrow.getShooter() instanceof Player)) {
                 e.setCancelled(true);
                 return;
             }
             p = (Player) arrow.getShooter();
         }
-        else if (e.getDamager() instanceof Trident) {
-            Trident trident = (Trident) e.getDamager();
+        else if (e.getDamager() instanceof Trident trident) {
             if (!(trident.getShooter() instanceof Player)) {
                 e.setCancelled(true);
                 return;
@@ -333,16 +340,14 @@ public class FightingSkill implements Listener {
     public void bossDamageByCorrectPlayer(EntityDamageByEntityEvent e) {
         if (!isBoss(e.getEntity())) return;
         Player p = null;
-        if (e.getDamager() instanceof Arrow) {
-            Arrow arrow = (Arrow) e.getDamager();
+        if (e.getDamager() instanceof Arrow arrow) {
             if (!(arrow.getShooter() instanceof Player)) {
                 e.setCancelled(true);
                 return;
             }
             p = (Player) arrow.getShooter();
         }
-        else if (e.getDamager() instanceof Trident) {
-            Trident trident = (Trident) e.getDamager();
+        else if (e.getDamager() instanceof Trident trident) {
             if (!(trident.getShooter() instanceof Player)) {
                 e.setCancelled(true);
                 return;

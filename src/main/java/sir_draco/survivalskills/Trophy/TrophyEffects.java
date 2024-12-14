@@ -4,11 +4,14 @@ import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Trophy.GodQuestline.GodTrophyEffects;
 import sir_draco.survivalskills.Utils.ColorParser;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -113,6 +116,7 @@ public class TrophyEffects extends BukkitRunnable {
         checkForDuplicate(mat);
         ItemStack trophy = new ItemStack(mat);
         trophy.addUnsafeEnchantment(Enchantment.KNOCKBACK, 5);
+        trophy = addPersistentDataContainer(trophy);
         // Spawn the item - ensure no one can pick it up, it won't de-spawn, and it floats in the air
         World world = loc.getWorld();
         if (world == null) return;
@@ -120,6 +124,14 @@ public class TrophyEffects extends BukkitRunnable {
         entity = (Item) world.spawnEntity(newLoc, EntityType.ITEM);
         entity.setItemStack(trophy);
         setFloatingItemProperties(entity);
+    }
+
+    public ItemStack addPersistentDataContainer(ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+        meta.getPersistentDataContainer().set(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING, "Trophy");
+        item.setItemMeta(meta);
+        return item;
     }
 
     public void checkForDuplicate(Material mat) {
@@ -578,37 +590,37 @@ public class TrophyEffects extends BukkitRunnable {
         World world = loc.getWorld();
         if (world == null) return;
         Item giant = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        giant.setItemStack(new ItemStack(Material.ZOMBIE_HEAD));
+        giant.setItemStack(addPersistentDataContainer(new ItemStack(Material.ZOMBIE_HEAD)));
         setFloatingItemProperties(giant);
         itemList.add(giant);
 
         Item guardian = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        guardian.setItemStack(new ItemStack(Material.ENDER_EYE));
+        guardian.setItemStack(addPersistentDataContainer(new ItemStack(Material.ENDER_EYE)));
         setFloatingItemProperties(guardian);
         itemList.add(guardian);
 
         Item wither = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        wither.setItemStack(new ItemStack(Material.NETHER_STAR));
+        wither.setItemStack(addPersistentDataContainer(new ItemStack(Material.NETHER_STAR)));
         setFloatingItemProperties(wither);
         itemList.add(wither);
 
         Item warden = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        warden.setItemStack(new ItemStack(Material.ECHO_SHARD));
+        warden.setItemStack(addPersistentDataContainer(new ItemStack(Material.ECHO_SHARD)));
         setFloatingItemProperties(warden);
         itemList.add(warden);
 
         Item dragon = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        dragon.setItemStack(new ItemStack(Material.DRAGON_HEAD));
+        dragon.setItemStack(addPersistentDataContainer(new ItemStack(Material.DRAGON_HEAD)));
         setFloatingItemProperties(dragon);
         itemList.add(dragon);
 
         Item brood = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        brood.setItemStack(new ItemStack(Material.COBWEB));
+        brood.setItemStack(addPersistentDataContainer(new ItemStack(Material.COBWEB)));
         setFloatingItemProperties(brood);
         itemList.add(brood);
 
         Item villager = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        villager.setItemStack(new ItemStack(Material.PLAYER_HEAD));
+        villager.setItemStack(addPersistentDataContainer(new ItemStack(Material.PLAYER_HEAD)));
         setFloatingItemProperties(villager);
         itemList.add(villager);
     }

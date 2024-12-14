@@ -409,7 +409,6 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void useUnlimitedRocket(PlayerInteractEvent e) {
         Player p = e.getPlayer();
-        if (!p.isGliding()) return;
 
         ItemStack item = e.getItem();
         if (!ItemStackGenerator.isCustomItem(item, 31)) return;

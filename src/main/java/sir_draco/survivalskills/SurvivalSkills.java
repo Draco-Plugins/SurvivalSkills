@@ -18,6 +18,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
@@ -86,6 +87,7 @@ public final class SurvivalSkills extends JavaPlugin {
     private boolean woolRecipes = false;
     private boolean griefPreventionEnabled = false;
     private boolean worldGuardEnabled = false;
+    private boolean citizensEnabled = false;
     private RegionContainer container = null;
 
     @Override
@@ -142,11 +144,18 @@ public final class SurvivalSkills extends JavaPlugin {
         if (!getServer().getOnlinePlayers().isEmpty())
             for (Player p : getServer().getOnlinePlayers()) playerJoin(p, true);
 
-        if (getServer().getPluginManager().getPlugin("GriefPrevention") != null) griefPreventionEnabled = true;
-        if (getServer().getPluginManager().getPlugin("WorldGuard") != null) {
+        // Check for plugin dependencies
+        Plugin griefPrevention = getServer().getPluginManager().getPlugin("GriefPrevention");
+        if (griefPrevention != null && griefPrevention.isEnabled()) griefPreventionEnabled = true;
+
+        Plugin worldGuard = getServer().getPluginManager().getPlugin("WorldGuard");
+        if (worldGuard != null && worldGuard.isEnabled()) {
             worldGuardEnabled = true;
             container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         }
+
+        Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
+        if (citizens != null && citizens.isEnabled()) citizensEnabled = true;
     }
 
     @Override
@@ -226,6 +235,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new ToggleOverworldFirstDragon(this);
         new DragonStatusCommand();
         new ToggleGodQuestCommand(this);
+        new ResetAllCommand(this);
     }
 
     public void loadLeaderboard() {
@@ -845,6 +855,10 @@ public final class SurvivalSkills extends JavaPlugin {
         return toolBeltData;
     }
 
+    public FileConfiguration getPermaTrashData() {
+        return permaTrashData;
+    }
+
     public ArrayList<NamespacedKey> getRecipeKeys() {
         return recipeKeys;
     }
@@ -891,6 +905,10 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public GodListener getGodListener() {
         return godListener;
+    }
+
+    public boolean isCitizensEnabled() {
+        return citizensEnabled;
     }
 
     public static SurvivalSkills getInstance() {

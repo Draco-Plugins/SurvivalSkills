@@ -124,8 +124,8 @@ public class GodListener implements Listener {
             }
 
             // Try to get the bag data from config
-            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "potion_bags.yml");
-            if (!file.exists()) SurvivalSkills.getInstance().saveResource("potion_bags.yml", false);
+            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "potionbags.yml");
+            if (!file.exists()) SurvivalSkills.getInstance().saveResource("potionbags.yml", false);
             FileConfiguration config = YamlConfiguration.loadConfiguration(file);
             if (potionBagExists(id, config)) {
                 Inventory bag = loadPotionBag(id, config);
@@ -191,8 +191,7 @@ public class GodListener implements Listener {
 
     @EventHandler
     public void onBowShoot(EntityShootBowEvent e) {
-        if (!(e.getEntity() instanceof Player)) return;
-        Player p = (Player) e.getEntity();
+        if (!(e.getEntity() instanceof Player p)) return;
         ItemStack arrow = e.getConsumable();
         if (!ItemStackGenerator.isCustomItem(arrow, 34)) return;
 
@@ -210,8 +209,7 @@ public class GodListener implements Listener {
     public void protectPlayerFromCreeperEssence(EntityDamageEvent e) {
         if (!e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) &&
                 !e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) return;
-        if (!(e.getEntity() instanceof Player)) return;
-        Player p = (Player) e.getEntity();
+        if (!(e.getEntity() instanceof Player p)) return;
         if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 37))
             e.setCancelled(true);
     }
@@ -250,8 +248,7 @@ public class GodListener implements Listener {
 
     @EventHandler
     public void onPotionBagDestroy(EntityDamageEvent e) {
-        if (!(e.getEntity() instanceof Item)) return;
-        Item item = (Item) e.getEntity();
+        if (!(e.getEntity() instanceof Item item)) return;
         if (!ItemStackGenerator.isCustomItem(item.getItemStack(), 38)) return;
 
         int id = getPotionBagID(item.getItemStack());
@@ -396,5 +393,9 @@ public class GodListener implements Listener {
 
     public HashMap<Player, GodRecipeUI> getOpenGodRecipeUI() {
         return openGodRecipeUI;
+    }
+
+    public HashMap<Integer, Inventory> getPotionBags() {
+        return potionBags;
     }
 }

@@ -60,7 +60,7 @@ public class SkillManager {
 
     public static void experienceEvent(SurvivalSkills plugin, Player p, double xp, String skillName) {
         // Handle multipliers
-        xp = xp * plugin.getSkillManager().getMultiplier();
+        xp *= plugin.getSkillManager().getMultiplier();
         if (plugin.getAbilityManager().getAbility(p, "XPVoucher") != null)
             xp *= plugin.getSkillManager().getPlayerMultiplier(p);
 
@@ -141,6 +141,7 @@ public class SkillManager {
      */
     public static double checkXPCap(double totalXP, double xp, int levelCap, String skillName) {
         double xpForLevel = totalExperienceForLevel(levelCap, skillName);
+        if (totalXP > xpForLevel) return 0;
         if (totalXP + xp > xpForLevel) return xpForLevel - totalXP;
         return xp;
     }
@@ -191,10 +192,14 @@ public class SkillManager {
         double sum = 0;
         for (int i = 1; i <= level; i++) sum += Math.log(i) * scalar;
 
-        if (skillName.equals("Main")) {
+//        if (skillName.equals("Main")) {
+//            if (level >= 100) return 1000000;
+//            return (int) Math.floor(sum) + 1;
+//        }
+//        return (int) Math.floor(sum);
+
+        if (skillName.equals("Main"))
             if (level >= 100) return 1000000;
-            return (int) Math.floor(sum) + 1;
-        }
         return (int) Math.floor(sum);
     }
 
@@ -378,6 +383,7 @@ public class SkillManager {
     public void setPlayerMultiplier(Player p, double multiplier) {
         if (!playerSkills.containsKey(p.getUniqueId())) return;
         playerSkills.get(p.getUniqueId()).setSkillMultiplier(multiplier);
+        Bukkit.getLogger().info("Set multiplier for " + p.getName() + " to " + multiplier);
     }
 
     public double getPlayerMultiplier(Player p) {

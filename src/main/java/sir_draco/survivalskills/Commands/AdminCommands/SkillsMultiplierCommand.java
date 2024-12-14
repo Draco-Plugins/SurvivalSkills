@@ -28,31 +28,28 @@ public class SkillsMultiplierCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (strings.length < 2) {
-            if (sender instanceof Player) {
-                Player p = (Player) sender;
+            if (sender instanceof Player p) {
                 p.sendRawMessage(ChatColor.RED + "Usage: /skillsmultiplier <player/all> <multiplier>");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             }
             return false;
         }
 
-        double multiplier;
-        try {
-            multiplier = Double.parseDouble(strings[1]);
-        }
-        catch (NumberFormatException e) {
-            if (sender instanceof Player) {
-                Player p = (Player) sender;
-                p.sendRawMessage(ChatColor.RED + "Invalid multiplier");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            }
-            return false;
-        }
-
         if (strings[0].equalsIgnoreCase("all")) {
+            double multiplier;
+            try {
+                multiplier = Double.parseDouble(strings[1]);
+            }
+            catch (NumberFormatException e) {
+                if (sender instanceof Player p) {
+                    p.sendRawMessage(ChatColor.RED + "Invalid multiplier");
+                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                }
+                return false;
+            }
+
             plugin.getSkillManager().setMultiplier(multiplier);
-            if (sender instanceof Player) {
-                Player p = (Player) sender;
+            if (sender instanceof Player p) {
                 p.sendRawMessage(ChatColor.GREEN + "Skills multiplier set to " + multiplier);
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
             }
@@ -68,18 +65,37 @@ public class SkillsMultiplierCommand implements CommandExecutor {
             }
         }
         else {
+            if (strings.length < 3) {
+                if (sender instanceof Player p) {
+                    p.sendRawMessage(ChatColor.RED + "Usage: /skillsmultiplier player <player> <multiplier> [time]");
+                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                }
+                return false;
+            }
+
             // Find the player
             Player p = null;
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (!player.getName().equalsIgnoreCase(strings[0])) continue;
+                if (!player.getName().equalsIgnoreCase(strings[1])) continue;
                 p = player;
                 break;
             }
 
             if (p == null) {
-                if (sender instanceof Player) {
-                    Player player = (Player) sender;
+                if (sender instanceof Player player) {
                     player.sendRawMessage(ChatColor.RED + "Player not found");
+                    player.playSound(player, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                }
+                return false;
+            }
+
+            double multiplier;
+            try {
+                multiplier = Double.parseDouble(strings[2]);
+            }
+            catch (NumberFormatException e) {
+                if (sender instanceof Player player) {
+                    player.sendRawMessage(ChatColor.RED + "Invalid multiplier");
                     player.playSound(player, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 }
                 return false;
@@ -92,15 +108,33 @@ public class SkillsMultiplierCommand implements CommandExecutor {
                 plugin.getAbilityManager().removeAbility(p, "XPVoucher");
             }
 
+            int activeTime = 3600;
+            if (strings.length >= 4) {
+                try {
+                    activeTime = Integer.parseInt(strings[3]);
+                }
+                catch (NumberFormatException e) {
+                    if (sender instanceof Player player) {
+                        player.sendRawMessage(ChatColor.RED + "Invalid multiplier");
+                        player.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    }
+                    return false;
+                }
+            }
+
+            int minutes = activeTime / 60;
+
             // Add the new multiplier
             plugin.getSkillManager().setPlayerMultiplier(p, multiplier);
-            AbilityTimer newTimer = new AbilityTimer(plugin, "XPVoucher", p, 3600, 0);
+            AbilityTimer newTimer = new AbilityTimer(plugin, "XPVoucher", p, activeTime, 0);
             newTimer.runTaskTimerAsynchronously(plugin, 0, 20);
             plugin.getAbilityManager().addAbility(p, newTimer);
+            p.sendRawMessage(ChatColor.GREEN + "Skills multiplier set to " + ChatColor.AQUA + multiplier + ChatColor.GREEN + " for "
+                    + ChatColor.AQUA + minutes + ChatColor.GREEN + " minutes");
 
-            if (sender instanceof Player) {
-                Player player = (Player) sender;
-                player.sendRawMessage(ChatColor.GREEN + "Skills multiplier set to " + multiplier + " for " + p.getName());
+            if (sender instanceof Player player) {
+                player.sendRawMessage(ChatColor.GREEN + "Skills multiplier set to " + multiplier + " for " + p.getName() +
+                        " for " + minutes + " minutes");
                 player.playSound(player, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
             }
         }
