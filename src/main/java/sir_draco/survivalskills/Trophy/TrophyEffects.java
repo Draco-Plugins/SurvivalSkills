@@ -328,14 +328,14 @@ public class TrophyEffects extends BukkitRunnable {
         if (world == null) return;
         if (cycle % 3 == 0) floorParticles(Particle.WITCH);
         ItemStack sapling = switch (cycle) {
-            case 5 -> new ItemStack(Material.OAK_SAPLING);
-            case 10 -> new ItemStack(Material.SPRUCE_SAPLING);
-            case 15 -> new ItemStack(Material.ACACIA_SAPLING);
-            case 20 -> new ItemStack(Material.BIRCH_SAPLING);
-            case 25 -> new ItemStack(Material.CHERRY_SAPLING);
-            case 30 -> new ItemStack(Material.JUNGLE_SAPLING);
-            case 35 -> new ItemStack(Material.MANGROVE_PROPAGULE);
-            case 40 -> new ItemStack(Material.DARK_OAK_SAPLING);
+            case 5 -> addPersistentDataContainer(new ItemStack(Material.OAK_SAPLING));
+            case 10 -> addPersistentDataContainer(new ItemStack(Material.SPRUCE_SAPLING));
+            case 15 -> addPersistentDataContainer(new ItemStack(Material.ACACIA_SAPLING));
+            case 20 -> addPersistentDataContainer(new ItemStack(Material.BIRCH_SAPLING));
+            case 25 -> addPersistentDataContainer(new ItemStack(Material.CHERRY_SAPLING));
+            case 30 -> addPersistentDataContainer(new ItemStack(Material.JUNGLE_SAPLING));
+            case 35 -> addPersistentDataContainer(new ItemStack(Material.MANGROVE_PROPAGULE));
+            case 40 -> addPersistentDataContainer(new ItemStack(Material.DARK_OAK_SAPLING));
             default -> new ItemStack(Material.AIR);
         };
 
@@ -416,11 +416,11 @@ public class TrophyEffects extends BukkitRunnable {
         if (world == null) return;
         if (cycle % 3 == 0) floorParticles(Particle.WITCH);
         ItemStack sapling = switch (cycle) {
-            case 5 -> new ItemStack(Material.COD);
-            case 10 -> new ItemStack(Material.SALMON);
-            case 15 -> new ItemStack(Material.PUFFERFISH);
-            case 20 -> new ItemStack(Material.TROPICAL_FISH);
-            default -> new ItemStack(Material.AIR);
+            case 5 -> addPersistentDataContainer(new ItemStack(Material.COD));
+            case 10 -> addPersistentDataContainer(new ItemStack(Material.SALMON));
+            case 15 -> addPersistentDataContainer(new ItemStack(Material.PUFFERFISH));
+            case 20 -> addPersistentDataContainer(new ItemStack(Material.TROPICAL_FISH));
+            default -> addPersistentDataContainer(new ItemStack(Material.AIR));
         };
 
         if (cycle % 5 != 0) return;

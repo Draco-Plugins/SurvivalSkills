@@ -213,18 +213,20 @@ public class MiningSkill implements Listener {
         if (!toolBelts.containsKey(p)) return;
         Inventory toolBelt = toolBelts.get(p);
         if (!toolBelt.equals(inv) && !toolBelt.equals(top)) return;
-        if (e.getCurrentItem() == null) return;
-
         // Prevent hotbar swaps
         if (e.getAction().equals(InventoryAction.HOTBAR_SWAP) || e.getAction().equals(InventoryAction.HOTBAR_MOVE_AND_READD)) {
             e.setCancelled(true);
             return;
         }
+        if (e.getCurrentItem() == null) return;
 
         // Check if the clicked item is a tool
-        if (!acceptableTools.contains(e.getCurrentItem().getType())) {
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            e.setCancelled(true);
+        if (!inv.equals(top)) {
+            if (!acceptableTools.contains(e.getCurrentItem().getType())) {
+                p.sendRawMessage(ChatColor.RED + "You can only put tools in the tool belt");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                e.setCancelled(true);
+            }
         }
     }
 

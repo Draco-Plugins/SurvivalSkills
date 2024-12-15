@@ -34,8 +34,8 @@ public class Magnet extends BukkitRunnable {
             ItemMeta meta = item.getItemMeta();
             if (meta == null) continue;
             String type = meta.getPersistentDataContainer().get(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING);
-            if (type == null) continue;
-            if (type.equals("Trophy")) continue;
+            if (type != null)
+                if (type.equals("Trophy")) continue;
 
             Vector toPlayer = ProjectileCalculator.getNoGravityVector(ent.getLocation(), p.getLocation(),
                     1 / ent.getLocation().distance(p.getLocation()));
