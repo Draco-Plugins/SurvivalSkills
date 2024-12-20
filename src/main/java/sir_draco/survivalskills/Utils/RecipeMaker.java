@@ -269,11 +269,8 @@ public class RecipeMaker {
         String name12 = ColorParser.colorizeString("God Trophy", ColorParser.generateGradient("#FFFF00", "#FFFFFF", 10), true);
         String lore12 = ColorParser.colorizeString("~There is nothing you can not do~", ColorParser.generateGradient("#FFFFFF", "#FFFF00", 33), false);
         ItemStack godTrophy = ItemStackGenerator.getTrophyItem(Material.GRASS_BLOCK, name12, lore12);
-        ShapedRecipe godRecipe = new ShapedRecipe(godKey, godTrophy);
-        godRecipe.shape("AAA", "ABA", "AAA");
-        godRecipe.setIngredient('A', new RecipeChoice.ExactChoice(ItemStackGenerator.getPowerOre()));
-        godRecipe.setIngredient('B', new RecipeChoice.ExactChoice(ItemStackGenerator.getGodTrophyBase()));
-        plugin.getServer().addRecipe(godRecipe);
+        ItemStackGenerator.createSmallShapedRecipe(godKey, godTrophy, "DAD:ABA:DAD",
+                ItemStackGenerator.getPowerOre(), ItemStackGenerator.getGodTrophyBase(), null, null, null, null);
         trophyItems.put(10, godTrophy);
     }
 
