@@ -16,7 +16,7 @@ public class AutoTrash {
     private final ArrayList<Enchantment> enchants = new ArrayList<>();
     private final ArrayList<Material> trashMaterials = new ArrayList<>();
 
-    private Boolean big = false;
+    private Boolean big;
 
     private Inventory trashInventory;
 
@@ -33,8 +33,7 @@ public class AutoTrash {
         if (clone.getType().equals(Material.ENCHANTED_BOOK)) {
             ItemMeta meta = item.getItemMeta();
             if (meta == null) return;
-            if (!(meta instanceof EnchantmentStorageMeta)) return;
-            EnchantmentStorageMeta enchantMeta = (EnchantmentStorageMeta) meta;
+            if (!(meta instanceof EnchantmentStorageMeta enchantMeta)) return;
             if (enchantMeta.getStoredEnchants().isEmpty()) return;
             Enchantment enchant = enchantMeta.getStoredEnchants().keySet().iterator().next();
             if (enchants.contains(enchant)) return;
@@ -53,8 +52,7 @@ public class AutoTrash {
         if (clone.getType().equals(Material.ENCHANTED_BOOK)) {
             ItemMeta meta = item.getItemMeta();
             if (meta == null) return;
-            if (!(meta instanceof EnchantmentStorageMeta)) return;
-            EnchantmentStorageMeta enchantMeta = (EnchantmentStorageMeta) meta;
+            if (!(meta instanceof EnchantmentStorageMeta enchantMeta)) return;
             if (enchantMeta.getStoredEnchants().isEmpty()) return;
             Enchantment enchant = enchantMeta.getStoredEnchants().keySet().iterator().next();
             if (enchants.contains(enchant)) return;
@@ -71,8 +69,7 @@ public class AutoTrash {
         if (item.getType().equals(Material.ENCHANTED_BOOK)) {
             ItemMeta meta = item.getItemMeta();
             if (meta == null) return;
-            if (!(meta instanceof EnchantmentStorageMeta)) return;
-            EnchantmentStorageMeta enchantMeta = (EnchantmentStorageMeta) meta;
+            if (!(meta instanceof EnchantmentStorageMeta enchantMeta)) return;
             if (enchantMeta.getStoredEnchants().isEmpty()) return;
             Enchantment enchant = enchantMeta.getStoredEnchants().keySet().iterator().next();
             enchants.remove(enchant);

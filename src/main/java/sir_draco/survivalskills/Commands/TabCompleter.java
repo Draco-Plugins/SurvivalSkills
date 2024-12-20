@@ -128,6 +128,9 @@ public class TabCompleter implements Listener {
         words.add("secondtrim");
         words.add("trimrelic");
         words.add("warrioremblem");
+        words.add("tridentlauncher");
+        words.add("powerore");
+        words.add("godtrophybase");
         e.setCompletions(getCompletions(buffer, words));
     }
 

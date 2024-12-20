@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class DeathLocationCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -21,8 +22,7 @@ public class DeathLocationCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
 
         if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Main", "DeathLocationTracker").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Death Location Tracking is not enabled on this server");

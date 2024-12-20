@@ -207,8 +207,7 @@ public class Boss extends BukkitRunnable {
     public void addNearbyPlayersToBossBar() {
         if (bossBar == null) return;
         for (Entity e : boss.getNearbyEntities(50, 50, 50)) {
-            if (!(e instanceof Player)) continue;
-            Player p = (Player) e;
+            if (!(e instanceof Player p)) continue;
             if (p.getLocation().distance(boss.getLocation()) > 50) continue;
             if (bossBar.getPlayers().contains(p)) continue;
             bossBar.addPlayer(p);

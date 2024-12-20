@@ -1,6 +1,5 @@
 package sir_draco.survivalskills.Skills;
 
-import org.bukkit.Bukkit;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 
 import java.util.ArrayList;

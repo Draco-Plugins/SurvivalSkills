@@ -14,7 +14,7 @@ import java.util.Map;
 public class PlayerRewards {
 
     private final HashMap<String, ArrayList<Reward>> rewardList = new HashMap<>();
-    private final double exoticFishingLootChance = 0.0001;
+    // private final double exoticFishingLootChance = 0.0001;
 
     private boolean unbreakableTools = false;
     private boolean addedDeathResistance = false;
@@ -913,7 +913,7 @@ public class PlayerRewards {
     }
 
     public double getExoticFishingLootChance() {
-        return exoticFishingLootChance;
+        return 0.0001;
     }
 
     public double getExperienceMultiplier() {

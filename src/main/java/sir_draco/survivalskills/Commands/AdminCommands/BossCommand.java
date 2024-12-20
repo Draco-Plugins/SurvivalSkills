@@ -16,6 +16,7 @@ import sir_draco.survivalskills.Bosses.GiantBoss;
 import sir_draco.survivalskills.Bosses.VillagerBoss;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class BossCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

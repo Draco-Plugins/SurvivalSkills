@@ -16,6 +16,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import java.io.File;
 import java.io.IOException;
 
+@SuppressWarnings("NullableProblems")
 public class ToggleScoreboardCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -28,8 +29,7 @@ public class ToggleScoreboardCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
 
         File dataFile = new File(plugin.getDataFolder(), "playerdata.yml");
         if (!dataFile.exists()) plugin.saveResource("playerdata.yml", true);

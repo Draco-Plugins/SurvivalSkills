@@ -1,7 +1,6 @@
 package sir_draco.survivalskills.SkillListeners;
 
 import org.bukkit.*;
-import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -10,6 +9,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -32,14 +32,12 @@ import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.GodItems.EnderEssence;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Trophy.GodQuestline.GodRecipeUI;
+import sir_draco.survivalskills.Trophy.GodQuestline.PowerOreConversion;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 public class GodListener implements Listener {
 
@@ -49,12 +47,14 @@ public class GodListener implements Listener {
     private final HashMap<EntityType, ItemStack> godItems = new HashMap<>();
     private final HashMap<Integer, Inventory> potionBags = new HashMap<>();
     private final HashMap<Player, GodRecipeUI> openGodRecipeUI = new HashMap<>();
+    private final HashMap<Location, PowerOreConversion> powerOreConversions = new HashMap<>();
     private final ArrayList<PotionEffectType> potionEffects = new ArrayList<>();
     private final ArrayList<Inventory> openPotionBags = new ArrayList<>();
 
     public GodListener() {
         createGodWeaponMap();
         createPotionList();
+        loadPowerOreConversions();
     }
 
     @EventHandler
@@ -141,6 +141,7 @@ public class GodListener implements Listener {
         }
         else if (modelData == 39) {
             e.setCancelled(true);
+            //noinspection UnstableApiUsage
             p.launchProjectile(WindCharge.class, p.getLocation().getDirection().multiply(2));
         }
         else if (modelData == 40) {
@@ -257,6 +258,28 @@ public class GodListener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerDamageByLightning(EntityDamageEvent e) {
+        if (!(e.getEntity() instanceof Player p)) return;
+        if (!e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING)) return;
+        tryPowerOreConversion(p);
+    }
+
+    @EventHandler
+    public void onPlayerBreakPowerOre(BlockBreakEvent e) {
+        Player p = e.getPlayer();
+        Block block = e.getBlock();
+        if (!block.getType().equals(Material.OBSIDIAN)) return;
+        Location loc = block.getLocation();
+        if (!powerOreConversions.containsKey(loc)) return;
+        PowerOreConversion conversion = powerOreConversions.get(loc);
+        if (!conversion.getUUID().equals(p.getUniqueId())) return;
+
+        e.setDropItems(false);
+        conversion.breakOre();
+        powerOreConversions.remove(loc);
+    }
+
+    @EventHandler
     public void godRecipeClick(InventoryClickEvent e) {
         Player p = (Player) e.getWhoClicked();
         if (!openGodRecipeUI.containsKey(p)) return;
@@ -284,22 +307,6 @@ public class GodListener implements Listener {
     public PotionEffect getRandomPotionEffect() {
         return new PotionEffect(potionEffects.get((int) Math.floor(Math.random() * potionEffects.size())),
                 160, 0);
-    }
-
-    public void setVillagerTypeFromBiome(Villager villager, Biome biome) {
-        if (biome.equals(Biome.ERODED_BADLANDS) || biome.equals(Biome.WOODED_BADLANDS) || biome.equals(Biome.DESERT) || biome.equals(Biome.BADLANDS)) {
-            villager.setVillagerType(Villager.Type.DESERT);
-        } else if (biome.equals(Biome.SPARSE_JUNGLE) || biome.equals(Biome.JUNGLE) || biome.equals(Biome.BAMBOO_JUNGLE)) {
-            villager.setVillagerType(Villager.Type.JUNGLE);
-        } else if (biome.equals(Biome.SAVANNA_PLATEAU) || biome.equals(Biome.WINDSWEPT_SAVANNA) || biome.equals(Biome.SAVANNA)) {
-            villager.setVillagerType(Villager.Type.SAVANNA);
-        } else if (biome.equals(Biome.ICE_SPIKES) || biome.equals(Biome.FROZEN_OCEAN) || biome.equals(Biome.FROZEN_RIVER) || biome.equals(Biome.FROZEN_PEAKS) || biome.equals(Biome.DEEP_FROZEN_OCEAN) || biome.equals(Biome.SNOWY_PLAINS) || biome.equals(Biome.SNOWY_TAIGA) || biome.equals(Biome.SNOWY_SLOPES) || biome.equals(Biome.SNOWY_BEACH)) {
-            villager.setVillagerType(Villager.Type.SNOW);
-        } else if (biome.equals(Biome.OLD_GROWTH_PINE_TAIGA) || biome.equals(Biome.OLD_GROWTH_SPRUCE_TAIGA) || biome.equals(Biome.TAIGA)) {
-            villager.setVillagerType(Villager.Type.TAIGA);
-        } else {
-            villager.setVillagerType(Villager.Type.PLAINS);
-        }
     }
 
     public boolean isNotPotion(Material mat) {
@@ -371,6 +378,70 @@ public class GodListener implements Listener {
         item.setItemMeta(meta);
 
         return id;
+    }
+
+    public void savePowerOreConversions(FileConfiguration data) {
+        // Empty the file
+        data.set("PowerOreConversions", null);
+
+        int i = 1;
+        for (Map.Entry<Location, PowerOreConversion> entry : powerOreConversions.entrySet()) {
+            Location loc = entry.getKey();
+            PowerOreConversion conversion = entry.getValue();
+            if (loc.getWorld() == null) continue;
+            data.set("PowerOreConversions." + i + ".Location", loc);
+            data.set("PowerOreConversions." + i + ".SecondsLeft", conversion.getSecondsLeft());
+            data.set("PowerOreConversions." + i + ".Player", conversion.getUUID().toString());
+            i++;
+        }
+    }
+
+    public void loadPowerOreConversions() {
+        File file = new File(SurvivalSkills.getInstance().getDataFolder(), "poweroreconversions.yml");
+        if (!file.exists()) return;
+        FileConfiguration data = YamlConfiguration.loadConfiguration(file);
+
+        if (!data.contains("PowerOreConversions")) return;
+        ConfigurationSection section = data.getConfigurationSection("PowerOreConversions");
+        if (section == null) return;
+
+        section.getKeys(false).forEach(key -> {
+            Location loc = data.getLocation("PowerOreConversions." + key + ".Location");
+            int secondsLeft = data.getInt("PowerOreConversions." + key + ".SecondsLeft");
+            String playerUUIDString = data.getString("PowerOreConversions." + key + ".Player");
+            if (loc == null || playerUUIDString == null) return;
+            UUID uuid = UUID.fromString(playerUUIDString);
+            PowerOreConversion conversion = new PowerOreConversion(secondsLeft, loc, uuid);
+            powerOreConversions.put(loc, conversion);
+            conversion.runTaskTimer(SurvivalSkills.getInstance(), 20, 1);
+        });
+    }
+
+    public void tryPowerOreConversion(Player p) {
+        // Check if the player is already converting an ore
+        for (PowerOreConversion conversion : powerOreConversions.values()) {
+            if (conversion.getUUID().equals(p.getUniqueId())) {
+                p.sendRawMessage(ChatColor.RED + "Your life force can only power one ore at a time");
+                return;
+            }
+        }
+
+        // Check if there is obsidian below the player
+        Block block = p.getLocation().getBlock().getRelative(0, -1, 0);
+        Location loc = block.getLocation();
+        if (!block.getType().equals(Material.OBSIDIAN)) return;
+
+        // Check if the player has 50 XP levels
+        if (p.getLevel() < 50) return;
+
+        // Take the levels and add a power ore conversion object to the list
+        p.setLevel(p.getLevel() - 50);
+        PowerOreConversion conversion = new PowerOreConversion(3600 * 6, loc, p.getUniqueId());
+        powerOreConversions.put(loc, conversion);
+        conversion.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
+
+        p.sendRawMessage(ChatColor.GREEN + "The ore conversion will take 6 hours");
+        p.sendRawMessage(ChatColor.GREEN + "The ore will have a green circle above it when it is done");
     }
 
     public void createGodWeaponMap() {

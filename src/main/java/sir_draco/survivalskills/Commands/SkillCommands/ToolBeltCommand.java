@@ -12,6 +12,7 @@ import org.bukkit.inventory.Inventory;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class ToolBeltCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -24,8 +25,7 @@ public class ToolBeltCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
 
         // Check if the tool belt reward
         Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "ToolBelt");

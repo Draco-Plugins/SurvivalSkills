@@ -710,4 +710,8 @@ public class TrophyEffects extends BukkitRunnable {
     public int getType() {
         return type;
     }
+
+    public int getCycle() {
+        return cycle;
+    }
 }

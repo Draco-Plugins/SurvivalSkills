@@ -9,6 +9,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.metadata.FixedMetadataValue;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class ToggleOverworldFirstDragon implements CommandExecutor {
 
     private final SurvivalSkills plugin;

@@ -1,17 +1,13 @@
 package sir_draco.survivalskills.Boards;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Skills.Skill;
+import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -47,64 +43,46 @@ public class Leaderboard {
         else if (skillName.equals("Building")) {
             int score = 0;
             if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
-            return plugin.getSkillManager().getSkill(p.getUniqueId(), "Building").getLevel();
+            return SkillManager.getSkill(p.getUniqueId(), "Building").getLevel();
         }
         else if (skillName.equals("Crafting")) {
             int score = 0;
             if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
-            return plugin.getSkillManager().getSkill(p.getUniqueId(), "Crafting").getLevel();
+            return SkillManager.getSkill(p.getUniqueId(), "Crafting").getLevel();
         }
         else if (skillName.equals("Exploring")) {
             int score = 0;
             if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
-            return plugin.getSkillManager().getSkill(p.getUniqueId(), "Exploring").getLevel();
+            return SkillManager.getSkill(p.getUniqueId(), "Exploring").getLevel();
         }
         else if (skillName.equals("Farming")) {
             int score = 0;
             if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
-            return plugin.getSkillManager().getSkill(p.getUniqueId(), "Farming").getLevel();
+            return SkillManager.getSkill(p.getUniqueId(), "Farming").getLevel();
         }
         else if (skillName.equals("Mining")) {
             int score = 0;
             if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
-            return plugin.getSkillManager().getSkill(p.getUniqueId(), "Mining").getLevel();
+            return SkillManager.getSkill(p.getUniqueId(), "Mining").getLevel();
         }
         else if (skillName.equals("Fighting")) {
             int score = 0;
             if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
-            return plugin.getSkillManager().getSkill(p.getUniqueId(), "Fighting").getLevel();
+            return SkillManager.getSkill(p.getUniqueId(), "Fighting").getLevel();
         }
         else if (skillName.equals("Fishing")) {
             int score = 0;
             if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
-            return plugin.getSkillManager().getSkill(p.getUniqueId(), "Fishing").getLevel();
+            return SkillManager.getSkill(p.getUniqueId(), "Fishing").getLevel();
         }
         else if (skillName.equals("Main")) {
             int score = 0;
             if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
-            return plugin.getSkillManager().getSkill(p.getUniqueId(), "Main").getLevel();
+            return SkillManager.getSkill(p.getUniqueId(), "Main").getLevel();
         }
         else if (skillName.equalsIgnoreCase("Deaths")) {
-            if (!plugin.getLeaderboardData().contains(p.getUniqueId().toString())) {
-                ScoreboardManager manager = Bukkit.getScoreboardManager();
-                if (manager == null) return 0;
-                Scoreboard mainBoard = manager.getMainScoreboard();
-                Objective objective = mainBoard.getObjective("deaths");
-                if (objective == null) return 0;
-                Score score = objective.getScore(p.getName());
-                return score.getScore();
-            }
-            int deaths = plugin.getLeaderboardData().getInt(p.getUniqueId() + ".Deaths");
-            if (deaths == 0) {
-                ScoreboardManager manager = Bukkit.getScoreboardManager();
-                if (manager == null) return 0;
-                Scoreboard mainBoard = manager.getMainScoreboard();
-                Objective objective = mainBoard.getObjective("deaths");
-                if (objective == null) return 0;
-                Score score = objective.getScore(p.getName());
-                return score.getScore();
-            }
-            return deaths;
+            if (!plugin.getLeaderboardData().contains(p.getUniqueId().toString())) return 0;
+            return plugin.getLeaderboardData().getInt(p.getUniqueId() + ".Deaths");
         }
 
         return 0;

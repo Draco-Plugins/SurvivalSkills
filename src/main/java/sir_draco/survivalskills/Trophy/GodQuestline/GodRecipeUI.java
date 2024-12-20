@@ -153,41 +153,41 @@ public class GodRecipeUI {
         if (key == null) return;
         ArrayList<Integer> slots = RecipeMaker.getRecipePositions(recipeIndex);
         Recipe recipe = Bukkit.getRecipe(key);
-        if (recipe == null) return;
-        if (recipe instanceof ShapedRecipe) {
-            ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
-            String[] shape = shapedRecipe.getShape();
-            Map<Character, ItemStack> ingredients = shapedRecipe.getIngredientMap();
-            Map<Character, RecipeChoice> recipeChoices = shapedRecipe.getChoiceMap();
-            for (int i = 0; i < shape.length * 3; i++) {
-                int slot = i % 3;
-                String layer;
-                if (i <= 2) layer = shape[0];
-                else if (i <= 5) layer = shape[1];
-                else layer = shape[2];
-                if (slot >= layer.length()) continue;
-                char c = layer.charAt(slot);
-                if (c == ' ' || c == 'D') continue;
+        switch (recipe) {
+            case ShapedRecipe shapedRecipe -> {
+                String[] shape = shapedRecipe.getShape();
+                Map<Character, ItemStack> ingredients = shapedRecipe.getIngredientMap();
+                Map<Character, RecipeChoice> recipeChoices = shapedRecipe.getChoiceMap();
+                for (int i = 0; i < shape.length * 3; i++) {
+                    int slot = i % 3;
+                    String layer;
+                    if (i <= 2) layer = shape[0];
+                    else if (i <= 5) layer = shape[1];
+                    else layer = shape[2];
+                    if (slot >= layer.length()) continue;
+                    char c = layer.charAt(slot);
+                    if (c == ' ' || c == 'D') continue;
 
-                if (ingredients.containsKey(c)) inv.setItem(slots.get(i), ingredients.get(c));
-                else if (recipeChoices.containsKey(c)) {
-                    RecipeChoice.ExactChoice choice = (RecipeChoice.ExactChoice) recipeChoices.get(c);
-                    inv.setItem(slots.get(i), choice.getItemStack());
+                    if (ingredients.containsKey(c)) inv.setItem(slots.get(i), ingredients.get(c));
+                    else if (recipeChoices.containsKey(c)) {
+                        RecipeChoice.ExactChoice choice = (RecipeChoice.ExactChoice) recipeChoices.get(c);
+                        inv.setItem(slots.get(i), choice.getItemStack());
+                    }
                 }
+                inv.setItem(slots.getLast(), shapedRecipe.getResult());
             }
-            inv.setItem(slots.get(slots.size() - 1), shapedRecipe.getResult());
-        }
-        else if (recipe instanceof ShapelessRecipe) {
-            ShapelessRecipe shapelessRecipe = (ShapelessRecipe) recipe;
-            List<ItemStack> ingredients = shapelessRecipe.getIngredientList();
-            int slot = 0;
-            if (ingredients.isEmpty()) return;
-            for (ItemStack ingredient : ingredients) {
-                inv.setItem(slots.get(slot), ingredient);
-                slot++;
-            }
+            case ShapelessRecipe shapelessRecipe -> {
+                List<ItemStack> ingredients = shapelessRecipe.getIngredientList();
+                int slot = 0;
+                if (ingredients.isEmpty()) return;
+                for (ItemStack ingredient : ingredients) {
+                    inv.setItem(slots.get(slot), ingredient);
+                    slot++;
+                }
 
-            inv.setItem(slots.get(slots.size() - 1), shapelessRecipe.getResult());
+                inv.setItem(slots.getLast(), shapelessRecipe.getResult());
+            }
+            case null, default -> {}
         }
     }
 }

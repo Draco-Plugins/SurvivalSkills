@@ -10,8 +10,9 @@ public class CircularRotationObject {
 
     private final ArrayList<Location> locationList = new ArrayList<>();
     private final int orbitals;
+    private final Location center;
+
     private double radius;
-    private Location center;
 
     public CircularRotationObject(Location center, double radius, int orbitals) {
         this.center = center.clone().add(0.5, 1.0, 0.5);
@@ -37,10 +38,10 @@ public class CircularRotationObject {
         }
     }
 
-    public void setCenter(Location loc) {
-        center = loc.clone();
-        createLocations(0); // Reset locations
-    }
+//    public void setCenter(Location loc) {
+//        center = loc.clone();
+//        createLocations(0); // Reset locations
+//    }
 
     public void setRadius(double newRadius) {
         radius = newRadius;
@@ -59,7 +60,7 @@ public class CircularRotationObject {
     }
 
     public double getAngle(double x, double z, double cx, double cz) {
-        double angle = 0;
+        double angle;
         double xDist = x - cx;
         double zDist = z - cz;
         // 90, 270 degrees

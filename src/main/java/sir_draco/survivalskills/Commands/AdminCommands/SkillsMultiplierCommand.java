@@ -14,6 +14,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
 
+@SuppressWarnings("NullableProblems")
 public class SkillsMultiplierCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

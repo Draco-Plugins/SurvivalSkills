@@ -12,6 +12,7 @@ import sir_draco.survivalskills.Abilities.FlyingTimer;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class FlightCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -24,8 +25,7 @@ public class FlightCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
 
         // Check if the player can use the command
         if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Building", "FlightI").isEnabled()) {

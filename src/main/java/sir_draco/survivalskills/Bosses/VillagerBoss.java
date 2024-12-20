@@ -45,7 +45,7 @@ public class VillagerBoss extends Boss {
         if (isSpawnSuccess()) {
             villager = (Villager) getBoss();
             Biome biome = loc.getBlock().getBiome();
-            switch (biome.name()) {
+            switch (biome.getKey().toString()) {
                 case "DESERT":
                     villager.setVillagerType(Villager.Type.DESERT);
                     break;
@@ -319,8 +319,7 @@ public class VillagerBoss extends Boss {
                 List<Entity> hitPlayers = item.getNearbyEntities(3, 3, 3);
                 if (!hitPlayers.isEmpty()) {
                     for (Entity ent : hitPlayers) {
-                        if (!(ent instanceof Player)) continue;
-                        Player p = (Player) ent;
+                        if (!(ent instanceof Player p)) continue;
 
                         double distance = Math.sqrt(Math.pow(p.getLocation().getX() - item.getLocation().getX(), 2) +
                                 Math.pow(p.getLocation().getZ() - item.getLocation().getZ(), 2));

@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.Skills.Skill;
+import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.UUID;
 
+@SuppressWarnings("NullableProblems")
 public class SurvivalSkillsCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -30,8 +32,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
     }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
         if (strings.length == 0) {
             p.sendMessage("§6SurvivalSkills §7- §eVersion: " + plugin.getDescription().getVersion());
             p.sendMessage("§6SurvivalSkills §7- §eAuthor: Sir_Draco");
@@ -76,7 +77,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
-            Skill skill = plugin.getSkillManager().getSkill(target.getUniqueId(), strings[2]);
+            Skill skill = SkillManager.getSkill(target.getUniqueId(), strings[2]);
             handleXP(p, target, skill, strings);
             updateRewards(target, skill);
             return true;
@@ -106,7 +107,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
-            Skill skill = plugin.getSkillManager().getSkill(target.getUniqueId(), strings[2]);
+            Skill skill = SkillManager.getSkill(target.getUniqueId(), strings[2]);
             handleLevel(p, target, skill, strings);
             updateRewards(target, skill);
             return true;

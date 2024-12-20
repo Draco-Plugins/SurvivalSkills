@@ -228,8 +228,7 @@ public class ItemStackGenerator {
         meta.setUnbreakable(true);
 
         // Set the color of the helmet to gray
-        if (meta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
             leatherMeta.setColor(Color.GRAY);
         }
 
@@ -250,8 +249,7 @@ public class ItemStackGenerator {
         meta.setUnbreakable(true);
 
         // Set the color of the helmet to gray
-        if (meta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
             leatherMeta.setColor(Color.GRAY);
         }
 
@@ -272,8 +270,7 @@ public class ItemStackGenerator {
         meta.setUnbreakable(true);
 
         // Set the color of the helmet to gray
-        if (meta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
             leatherMeta.setColor(Color.GRAY);
         }
 
@@ -294,8 +291,7 @@ public class ItemStackGenerator {
         meta.setUnbreakable(true);
 
         // Set the color of the helmet to gray
-        if (meta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
             leatherMeta.setColor(Color.GRAY);
         }
 
@@ -425,8 +421,7 @@ public class ItemStackGenerator {
         meta.setUnbreakable(true);
 
         // Set the color of the helmet to blue
-        if (meta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
             leatherMeta.setColor(Color.BLUE);
         }
 
@@ -447,8 +442,7 @@ public class ItemStackGenerator {
         meta.setUnbreakable(true);
 
         // Set the color of the chestplate to blue
-        if (meta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
             leatherMeta.setColor(Color.BLUE);
         }
 
@@ -469,8 +463,7 @@ public class ItemStackGenerator {
         meta.setUnbreakable(true);
 
         // Set the color of the leggings to blue
-        if (meta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
             leatherMeta.setColor(Color.BLUE);
         }
 
@@ -491,8 +484,7 @@ public class ItemStackGenerator {
         meta.setUnbreakable(true);
 
         // Set the color of the boots to blue
-        if (meta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
             leatherMeta.setColor(Color.BLUE);
         }
 
@@ -696,8 +688,7 @@ public class ItemStackGenerator {
         meta.setUnbreakable(true);
 
         // Set the color of the helmet and armor value
-        if (meta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
             NamespacedKey defenseKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconHelmetDefense");
             NamespacedKey knockbackKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconHelmetKnockback");
             @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierDefense =
@@ -728,8 +719,7 @@ public class ItemStackGenerator {
         meta.setUnbreakable(true);
 
         // Set the color of the chestplate and armor value
-        if (meta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
             NamespacedKey defenseKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconChestplateDefense");
             NamespacedKey knockbackKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconChestplateKnockback");
             @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierDefense =
@@ -760,8 +750,7 @@ public class ItemStackGenerator {
         meta.setUnbreakable(true);
 
         // Set the color of the leggings and armor value
-        if (meta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
             NamespacedKey defenseKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconLeggingsDefense");
             NamespacedKey knockbackKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconLeggingsKnockback");
             @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierDefense =
@@ -792,8 +781,7 @@ public class ItemStackGenerator {
         meta.setUnbreakable(true);
 
         // Set the color of the boots and armor value
-        if (meta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherMeta = (LeatherArmorMeta) meta;
+        if (meta instanceof LeatherArmorMeta leatherMeta) {
             NamespacedKey defenseKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconBootsDefense");
             NamespacedKey knockbackKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconBootsKnockback");
             @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierDefense =
@@ -1039,5 +1027,21 @@ public class ItemStackGenerator {
         item.setItemMeta(meta);
 
         return item;
+    }
+
+    public static ItemStack getPowerOre() {
+        String name = ColorParser.colorizeString("Power Ore", ColorParser.generateGradient("#8008FB", "#FD242D", "Power Ore"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "The ore is teeming with energy");
+        Map<Enchantment, Integer> enchants = new HashMap<>();
+        enchants.put(Enchantment.KNOCKBACK, 10);
+        return createCustomItem(Material.OBSIDIAN, 1, name, null, null, loreList, 44, true, enchants);
+    }
+
+    public static ItemStack getGodTrophyBase() {
+        String name = ColorParser.colorizeString("God Trophy Base", ColorParser.generateGradient("#FFFF00", "#FFFFFF", "God Trophy Base"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Used to craft the God Trophy");
+        return createCustomItem(Material.LIGHT_WEIGHTED_PRESSURE_PLATE, 1, name, null, null, loreList, 45, false, null);
     }
 }

@@ -11,6 +11,7 @@ import org.bukkit.entity.*;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class ResetFirstDragon implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -22,8 +23,7 @@ public class ResetFirstDragon implements CommandExecutor {
     }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
         World world = p.getWorld();
         if (!world.getEnvironment().equals(World.Environment.THE_END)) {
             p.sendRawMessage(ChatColor.RED + "You must be in the end to reset the dragon!");

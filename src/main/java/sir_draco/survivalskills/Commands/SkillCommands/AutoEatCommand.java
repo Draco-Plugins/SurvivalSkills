@@ -9,6 +9,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class AutoEatCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -20,8 +21,7 @@ public class AutoEatCommand implements CommandExecutor {
     }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
         // Check for level requirements
         if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Farming", "AutoEat").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Auto Eat is not enabled on this server");

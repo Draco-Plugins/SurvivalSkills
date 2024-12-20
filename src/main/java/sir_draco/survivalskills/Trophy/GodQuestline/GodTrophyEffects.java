@@ -132,7 +132,7 @@ public class GodTrophyEffects {
         if (blackHole != null) blackHole.remove();
     }
 
-    public void spawnPlayer(String name, UUID playerUUID) throws IOException, InterruptedException {
+    public void spawnPlayer(String name, UUID playerUUID) {
         if (npcID != -1) {
             npcPlayer = TrophyManager.getRegistry().getById(npcID);
             if (npcPlayer == null) return;
@@ -159,8 +159,18 @@ public class GodTrophyEffects {
         SkinTrait skin = npcPlayer.getOrAddTrait(SkinTrait.class);
         if (p != null) skin.setSkinPersistent(p);
         else {
-            String[] info = MojangAPI.getSkinData(playerUUID);
-            skin.setSkinPersistent(playerUUID.toString(), info[0], info[1]);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    String[] info;
+                    try {
+                        info = MojangAPI.getSkinData(playerUUID);
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    skin.setSkinPersistent(playerUUID.toString(), info[0], info[1]);
+                }
+            }.runTask(SurvivalSkills.getPlugin(SurvivalSkills.class));
         }
 
         new BukkitRunnable() {

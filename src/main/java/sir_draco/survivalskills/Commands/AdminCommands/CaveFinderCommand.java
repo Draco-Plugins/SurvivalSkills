@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.Abilities.CaveFinderAsync;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class CaveFinderCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -20,8 +21,7 @@ public class CaveFinderCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
         CaveFinderAsync caveFinder = new CaveFinderAsync(p, plugin);
         caveFinder.runTaskAsynchronously(plugin);
         return true;

@@ -18,6 +18,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.Abilities.AbilityTimer;
+import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.Boards.LeaderboardPlayer;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
@@ -71,12 +72,11 @@ public class PlayerListener implements Listener {
         }
     }
 
+    @SuppressWarnings("SpellCheckingInspection")
     @EventHandler
     public void playerDamageEvent(EntityDamageByEntityEvent e) {
-        if (e.getDamager() instanceof Firework) {
-            Firework fw = (Firework) e.getDamager();
+        if (e.getDamager() instanceof Firework fw)
             if (fw.hasMetadata("nodamage")) e.setCancelled(true);
-        }
     }
 
     @EventHandler
@@ -253,6 +253,14 @@ public class PlayerListener implements Listener {
                         trophies = enterTrophy(trophies, "ChampionTrophy");
                         Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Champion Trophy");
                         break;
+                    case GRASS_BLOCK:
+                        if (SkillManager.getSkillLevel(p.getUniqueId(), "Main") != 100) {
+                            e.setCancelled(true);
+                            p.sendRawMessage(ChatColor.RED + "You need to be main level " + ChatColor.AQUA + "100" + ChatColor.RED + " to craft this");
+                            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                            return;
+                        }
+                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "God Trophy");
                 }
                 plugin.getTrophyManager().getTrophyTracker().put(p.getUniqueId(), trophies);
                 p.sendRawMessage(ChatColor.GREEN + "Your level cap has been changed to: " + ChatColor.AQUA

@@ -80,10 +80,8 @@ public class HarvesterAsync extends BukkitRunnable {
                 if (!b.getType().equals(type)) continue;
                 if (blocks.contains(b)) continue;
                 BlockData data = block.getState().getBlockData();
-                if (data instanceof Ageable) {
-                    Ageable ageable = (Ageable) data;
+                if (data instanceof Ageable ageable)
                     if (ageable.getAge() != ageable.getMaximumAge()) continue;
-                }
                 blocks.add(b);
             }
         }

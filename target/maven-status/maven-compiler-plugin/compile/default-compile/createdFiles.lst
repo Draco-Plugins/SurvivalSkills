@@ -103,6 +103,7 @@ sir_draco\survivalskills\Abilities\SpelunkerAbilitySync.class
 sir_draco\survivalskills\Utils\ColorParser.class
 sir_draco\survivalskills\Bosses\Boss$2.class
 sir_draco\survivalskills\Commands\SkillCommands\ToggleTrashCommand.class
+sir_draco\survivalskills\Trophy\GodQuestline\GodTrophyEffects$2.class
 sir_draco\survivalskills\Utils\ExiledBossMusic.class
 sir_draco\survivalskills\SkillListeners\BuildingSkill.class
 sir_draco\survivalskills\Commands\AdminCommands\BossMusicCommand.class
@@ -125,6 +126,7 @@ sir_draco\survivalskills\Commands\DefaultCommands\SkillStatsCommand$2.class
 sir_draco\survivalskills\Commands\SkillCommands\ToggleBloodyDomainCommand.class
 sir_draco\survivalskills\Abilities\CaveFinderAsync.class
 sir_draco\survivalskills\Bosses\GiantBoss$7.class
+sir_draco\survivalskills\Trophy\GodQuestline\PowerOreConversion.class
 sir_draco\survivalskills\SkillListeners\MiningSkill$1.class
 sir_draco\survivalskills\Bosses\VillagerBoss$10.class
 sir_draco\survivalskills\Trophy\TrophyEffects.class

@@ -32,6 +32,7 @@ public class RecipeMaker {
         NamespacedKey netherKey = new NamespacedKey(plugin, "nether");
         NamespacedKey endKey = new NamespacedKey(plugin, "end");
         NamespacedKey championKey = new NamespacedKey(plugin, "champion");
+        NamespacedKey godKey = new NamespacedKey(plugin, "god");
 
         ArrayList<NamespacedKey> recipeKeys = plugin.getRecipeKeys();
         HashMap<Integer, ItemStack> trophyItems = plugin.getTrophyManager().getTrophyItems();
@@ -47,6 +48,7 @@ public class RecipeMaker {
         recipeKeys.add(netherKey);
         recipeKeys.add(endKey);
         recipeKeys.add(championKey);
+        recipeKeys.add(godKey);
 
         denseWoolRecipes(plugin);
 
@@ -61,6 +63,7 @@ public class RecipeMaker {
         if (plugin.getServer().getRecipe(netherKey) != null) plugin.getServer().removeRecipe(netherKey);
         if (plugin.getServer().getRecipe(endKey) != null) plugin.getServer().removeRecipe(endKey);
         if (plugin.getServer().getRecipe(championKey) != null) plugin.getServer().removeRecipe(championKey);
+        if (plugin.getServer().getRecipe(godKey) != null) plugin.getServer().removeRecipe(godKey);
 
         // Cave Trophy
         String name1 = ChatColor.GRAY + ChatColor.BOLD.toString() + "Cave Trophy";
@@ -262,10 +265,16 @@ public class RecipeMaker {
         championRecipe.setIngredient('G', new RecipeChoice.ExactChoice(ItemStackGenerator.getVillagerBossItem()));
         plugin.getServer().addRecipe(championRecipe);
 
-        // God Trophy (No recipe)
+        // God Trophy
         String name12 = ColorParser.colorizeString("God Trophy", ColorParser.generateGradient("#FFFF00", "#FFFFFF", 10), true);
         String lore12 = ColorParser.colorizeString("~There is nothing you can not do~", ColorParser.generateGradient("#FFFFFF", "#FFFF00", 33), false);
-        trophyItems.put(10, ItemStackGenerator.getTrophyItem(Material.GRASS_BLOCK, name12, lore12));
+        ItemStack godTrophy = ItemStackGenerator.getTrophyItem(Material.GRASS_BLOCK, name12, lore12);
+        ShapedRecipe godRecipe = new ShapedRecipe(godKey, godTrophy);
+        godRecipe.shape("AAA", "ABA", "AAA");
+        godRecipe.setIngredient('A', new RecipeChoice.ExactChoice(ItemStackGenerator.getPowerOre()));
+        godRecipe.setIngredient('B', new RecipeChoice.ExactChoice(ItemStackGenerator.getGodTrophyBase()));
+        plugin.getServer().addRecipe(godRecipe);
+        trophyItems.put(10, godTrophy);
     }
 
     public static void denseWoolRecipes(SurvivalSkills plugin) {

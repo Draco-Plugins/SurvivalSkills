@@ -12,6 +12,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.HashMap;
 
+@SuppressWarnings("NullableProblems")
 public class BossMusicCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -25,8 +26,7 @@ public class BossMusicCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
 
         if (exiledMusic.containsKey(p)) {
             exiledMusic.get(p).setDead(true);

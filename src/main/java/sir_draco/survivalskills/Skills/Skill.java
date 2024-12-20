@@ -7,8 +7,8 @@ import org.bukkit.entity.Player;
 public class Skill {
     private final int maxLevel = 100;
     private final int maxExperience = 1000000;
+    private final String skillName;
 
-    private String skillName = "";
     private double experience;
     private int expSoFarInLevel = 0;
     private int rawExperienceForNextLevel;

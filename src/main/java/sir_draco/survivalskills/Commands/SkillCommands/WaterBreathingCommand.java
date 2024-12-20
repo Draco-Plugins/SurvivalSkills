@@ -12,6 +12,7 @@ import sir_draco.survivalskills.Abilities.WaterBreathingTimer;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class WaterBreathingCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -24,8 +25,7 @@ public class WaterBreathingCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
         // Check for level requirements
         if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Fishing", "WaterBreathingI").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Water Breathing is not enabled on this server");

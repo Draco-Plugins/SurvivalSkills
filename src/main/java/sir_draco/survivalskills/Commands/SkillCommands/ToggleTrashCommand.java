@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class ToggleTrashCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -21,8 +22,7 @@ public class ToggleTrashCommand implements CommandExecutor {
     }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
 
         Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "AutoTrashI");
         if (reward == null || !reward.isEnabled()) {

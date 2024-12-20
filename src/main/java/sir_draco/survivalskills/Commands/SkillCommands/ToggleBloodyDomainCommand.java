@@ -13,6 +13,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.HashMap;
 
+@SuppressWarnings("NullableProblems")
 public class ToggleBloodyDomainCommand implements CommandExecutor {
 
     public ToggleBloodyDomainCommand() {
@@ -22,8 +23,7 @@ public class ToggleBloodyDomainCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
 
         Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Fighting", "Bloody Domain");
         if (reward == null || !reward.isEnabled()) {

@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class GetTrophyCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -21,8 +22,7 @@ public class GetTrophyCommand implements CommandExecutor {
     }
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
         if (strings.length != 1) {
             p.sendRawMessage(ChatColor.RED + "Please specify the trophy id you want");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

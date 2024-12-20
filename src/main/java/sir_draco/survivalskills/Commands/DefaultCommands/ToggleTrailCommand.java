@@ -11,6 +11,7 @@ import sir_draco.survivalskills.Abilities.TrailEffect;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class ToggleTrailCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -23,8 +24,7 @@ public class ToggleTrailCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
 
         if (strings.length > 0) {
             // Get trail

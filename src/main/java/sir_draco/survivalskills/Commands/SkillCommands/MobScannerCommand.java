@@ -15,6 +15,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 
+@SuppressWarnings("NullableProblems")
 public class MobScannerCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -27,8 +28,7 @@ public class MobScannerCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
         if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Fighting", "MobScanner").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Mob Scanner is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

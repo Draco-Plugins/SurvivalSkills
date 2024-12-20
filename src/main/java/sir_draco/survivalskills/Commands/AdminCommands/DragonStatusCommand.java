@@ -12,6 +12,7 @@ import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class DragonStatusCommand implements CommandExecutor {
 
     public DragonStatusCommand() {
@@ -21,8 +22,7 @@ public class DragonStatusCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
 
         World world = p.getWorld();
         boolean dragonKilled = world.hasMetadata("killedfirstdragon");

@@ -16,6 +16,7 @@ import sir_draco.survivalskills.Boards.SkillScoreboard;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class SkillManager {
     public static final String MAIN = "Main";
 
     private final SurvivalSkills plugin;
-    private final HashMap<UUID, SkillsHolder> playerSkills = new HashMap<>();
+    private static final HashMap<UUID, SkillsHolder> playerSkills = new HashMap<>();
 
     private PlayerRewards defaultPlayerRewards; // Holds the default information for rewards
     private double buildingXP;
@@ -65,7 +66,7 @@ public class SkillManager {
             xp *= plugin.getSkillManager().getPlayerMultiplier(p);
 
         UUID uuid = p.getUniqueId();
-        Skill skill = plugin.getSkillManager().getSkill(uuid, skillName);
+        Skill skill = SkillManager.getSkill(uuid, skillName);
         if (skill.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) {
             SkillScoreboard.updateScoreboard(plugin, p, "Main");
             if (skill.getLevel() == 100 || skill.isCurrentMaxMessage()) return;
@@ -97,7 +98,7 @@ public class SkillManager {
         }
 
         // Check the main skill
-        Skill main = plugin.getSkillManager().getSkill(uuid, "Main");
+        Skill main = SkillManager.getSkill(uuid, "Main");
         if (main.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) {
             plugin.getSkillManager().checkMainXP(p);
             SkillScoreboard.updateScoreboard(plugin, p, skillName);
@@ -112,14 +113,15 @@ public class SkillManager {
                 plugin.getTrophyManager().getTrophyTracker().put(p.getUniqueId(), trophies);
 
                 // Add the god trophy to the player's inventory, if their inventory is full drop it
-                if (!p.getInventory().addItem(plugin.getTrophyManager().getTrophyItem(10)).isEmpty())
-                    p.getWorld().dropItem(p.getLocation(), plugin.getTrophyManager().getTrophyItem(10));
+                if (!p.getInventory().addItem(ItemStackGenerator.getGodTrophyBase()).isEmpty())
+                    p.getWorld().dropItem(p.getLocation(), ItemStackGenerator.getGodTrophyBase());
 
                 plugin.getServer().broadcastMessage(ChatColor.AQUA + p.getName() + " has maxed out all of their skills!");
                 plugin.getServer().broadcastMessage(ChatColor.GREEN + "Congratulate the hard work they put in!");
                 for (Player player : Bukkit.getOnlinePlayers())
                     player.playSound(player, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
-                p.sendRawMessage(ChatColor.GREEN + "You have been awarded a trophy for maxing out all of your skills!");
+                p.sendRawMessage(ChatColor.GREEN + "You have been awarded the god trophy base for maxing out all of your skills!");
+                p.sendRawMessage(ChatColor.AQUA + "Surround the base with power ore in a crafting table to create the god trophy!");
             }
 
             if (plugin.getLeaderboardTracker().containsKey(p.getUniqueId())) {
@@ -191,12 +193,6 @@ public class SkillManager {
     public static int totalExperienceForLevel(int level, String skillName) {
         double sum = 0;
         for (int i = 1; i <= level; i++) sum += Math.log(i) * scalar;
-
-//        if (skillName.equals("Main")) {
-//            if (level >= 100) return 1000000;
-//            return (int) Math.floor(sum) + 1;
-//        }
-//        return (int) Math.floor(sum);
 
         if (skillName.equals("Main"))
             if (level >= 100) return 1000000;
@@ -391,11 +387,16 @@ public class SkillManager {
         return playerSkills.get(p.getUniqueId()).getSkillMultiplier();
     }
 
-    public Skill getSkill(UUID uuid, String skillName) {
+    public static Skill getSkill(UUID uuid, String skillName) {
         if (!playerSkills.containsKey(uuid)) {
             return new Skill(0, 0, skillName);
         }
         return playerSkills.get(uuid).getSkill(skillName);
+    }
+
+    public static int getSkillLevel(UUID uuid, String skillName) {
+        Skill skill = getSkill(uuid, skillName);
+        return skill.getLevel();
     }
 
     public PlayerRewards getPlayerRewards(Player p) {

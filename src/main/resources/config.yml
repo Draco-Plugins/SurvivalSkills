@@ -96,6 +96,10 @@ Mining:
     Enabled: true
     Level: 90
     Type: 'State'
+  PowerOre:
+    Enabled: true
+    Level: 95
+    Type: 'State'
   ArmorIV:
     Enabled: true
     Level: 100

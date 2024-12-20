@@ -12,6 +12,7 @@ import sir_draco.survivalskills.Abilities.SpelunkerAbilitySync;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class SpelunkerCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -24,8 +25,7 @@ public class SpelunkerCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
         // Check for level requirements reset and active times and radius
         if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "SpelunkerI").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Spelunker is not enabled on this server");

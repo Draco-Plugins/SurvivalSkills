@@ -21,6 +21,7 @@ import sir_draco.survivalskills.Utils.RecipeMaker;
 
 import java.util.*;
 
+@SuppressWarnings("NullableProblems")
 public class SkillStatsCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -40,8 +41,7 @@ public class SkillStatsCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
 
         if (strings.length == 0) {
             for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId()).getSkills())
@@ -90,7 +90,7 @@ public class SkillStatsCommand implements CommandExecutor {
                             new BukkitRunnable() {
                                 @Override
                                 public void run() {
-                                    p.openInventory(inventories.get(0));
+                                    p.openInventory(inventories.getFirst());
                                 }
                             }.runTask(plugin);
                         }
@@ -106,7 +106,7 @@ public class SkillStatsCommand implements CommandExecutor {
 
         if (strings[0].equalsIgnoreCase("recipes")) {
             plugin.getPlayerListener().getCustomInventories().put(p, recipeInventories);
-            p.openInventory(recipeInventories.get(0));
+            p.openInventory(recipeInventories.getFirst());
         }
 
         if (strings[0].equalsIgnoreCase("commands")) {
@@ -116,20 +116,28 @@ public class SkillStatsCommand implements CommandExecutor {
             p.sendRawMessage(ChatColor.GRAY + "/skills recipes - View all skill recipes");
             p.sendRawMessage(ChatColor.GRAY + "/skills trophies - Explains how the trophy system works");
             p.sendRawMessage(ChatColor.GRAY + "/skills player <name> - Gets the skill stats of another player");
-            p.sendRawMessage(ChatColor.GRAY + "/togglescorboard - Enable or disable the scoreboard");
             p.sendRawMessage(ChatColor.GRAY + "/spelunker - tells you where ores are, unlocked through mining skill");
             p.sendRawMessage(ChatColor.GRAY + "/veinminer - unlocked through mining skill");
+            p.sendRawMessage(ChatColor.GRAY + "/toolbelt - an inventory to store tools, unlocked through mining skill");
             p.sendRawMessage(ChatColor.GRAY + "/ssnv - night vision, unlocked through mining skill");
             p.sendRawMessage(ChatColor.GRAY + "/peacefulminer - mobs won't spawn while mining, unlocked through mining skill");
             p.sendRawMessage(ChatColor.GRAY + "/autoeat - automatically eat food from your inventory, unlocked through farming skill");
             p.sendRawMessage(ChatColor.GRAY + "/sseat - feeds you without needing food, unlocked through farming skill");
             p.sendRawMessage(ChatColor.GRAY + "/flight - unlocked through building skill");
             p.sendRawMessage(ChatColor.GRAY + "/mobscanner - shows nearby mobs, unlocked through fighting skill");
+            p.sendRawMessage(ChatColor.GRAY + "/togglephantoms - disables phantom spawns nearby, unlocked through fighting skill");
+            p.sendRawMessage(ChatColor.GRAY + "/togglebloodydomain - kill all nearby mobs automatically, unlocked through fighting skill");
             p.sendRawMessage(ChatColor.GRAY + "/waterbreathing - unlocked through fishing skill");
             p.sendRawMessage(ChatColor.GRAY + "/autotrash - unlocked through fishing skill");
+            p.sendRawMessage(ChatColor.GRAY + "/toggletrash - disables auto trash and perma trash, unlocked through fishing skill");
+            p.sendRawMessage(ChatColor.GRAY + "/permatrash - unlocked through fishing skill");
             p.sendRawMessage(ChatColor.GRAY + "/deathlocation - shows your death location, unlocked through main skill");
+            p.sendRawMessage(ChatColor.GRAY + "/togglescorboard - Enable or disable the scoreboard");
             p.sendRawMessage(ChatColor.GRAY + "/toggletrail <trail> - enables or disables a particle trail, unlocked through main skill");
+            p.sendRawMessage(ChatColor.GRAY + "/togglemaxskillmessage - toggles the message that appears when you reach the max level of a skill");
+            p.sendRawMessage(ChatColor.GRAY + "/togglespeed - Allows you to toggle exploring speed boosts");
             p.sendRawMessage(ChatColor.GRAY + "/deathreturn - returns you to your death location, unlocked through death skill");
+            p.sendRawMessage(ChatColor.GRAY + "/godquest - Unlocked while in the god quest");
         }
 
         if (strings[0].equalsIgnoreCase("trophies")) {
@@ -251,13 +259,13 @@ public class SkillStatsCommand implements CommandExecutor {
                 if (recipeCounter == plugin.getRecipeKeys().size()) addBarriers(inv);
             }
             else {
-                inv = recipeInventories.get(recipeInventories.size() - 1);
+                inv = recipeInventories.getLast();
                 addSSRecipe(recipeCounter, inv);
                 addBarriers(inv);
             }
         }
 
-        if (recipeCounter % 2 == 1) addBarriers(recipeInventories.get(recipeInventories.size() - 1));
+        if (recipeCounter % 2 == 1) addBarriers(recipeInventories.getLast());
     }
 
     public void addSSRecipe(int recipeCounter, Inventory inv) {
@@ -265,86 +273,70 @@ public class SkillStatsCommand implements CommandExecutor {
         if (key == null) return;
         ArrayList<Integer> slots = RecipeMaker.getRecipePositions(recipeCounter);
         Recipe recipe = Bukkit.getRecipe(key);
-        if (recipe == null) return;
-        if (recipe instanceof ShapedRecipe) {
-            ShapedRecipe shapedRecipe = (ShapedRecipe) recipe;
-            String[] shape = shapedRecipe.getShape();
-            Map<Character, ItemStack> ingredients = shapedRecipe.getIngredientMap();
-            Map<Character, RecipeChoice> recipeChoices = shapedRecipe.getChoiceMap();
-            for (int i = 0; i < shape.length * 3; i++) {
-                int slot = i % 3;
-                String layer;
-                if (i <= 2) layer = shape[0];
-                else if (i <= 5) layer = shape[1];
-                else layer = shape[2];
-                if (slot >= layer.length()) continue;
-                char c = layer.charAt(slot);
-                if (c == ' ' || c == 'D') continue;
+        switch (recipe) {
+            case ShapedRecipe shapedRecipe -> {
+                String[] shape = shapedRecipe.getShape();
+                Map<Character, ItemStack> ingredients = shapedRecipe.getIngredientMap();
+                Map<Character, RecipeChoice> recipeChoices = shapedRecipe.getChoiceMap();
+                for (int i = 0; i < shape.length * 3; i++) {
+                    int slot = i % 3;
+                    String layer;
+                    if (i <= 2) layer = shape[0];
+                    else if (i <= 5) layer = shape[1];
+                    else layer = shape[2];
+                    if (slot >= layer.length()) continue;
+                    char c = layer.charAt(slot);
+                    if (c == ' ' || c == 'D') continue;
 
-                // Check if it is the fishing king item
-                ItemStack ingredient = ingredients.get(c);
-                if (ingredient != null && ingredient.getType().equals(Material.PRISMARINE_SHARD)
-                        && ingredient.getItemMeta() != null && ingredient.getItemMeta().hasCustomModelData()) {
-                    inv.setItem(slots.get(i), getResult(ingredient));
-                    continue;
-                }
+                    // Check if it is the fishing king item
+                    ItemStack ingredient = ingredients.get(c);
+                    if (ingredient != null && ingredient.getType().equals(Material.PRISMARINE_SHARD)
+                            && ingredient.getItemMeta() != null && ingredient.getItemMeta().hasCustomModelData()) {
+                        inv.setItem(slots.get(i), getResult(ingredient));
+                        continue;
+                    }
 
-                if (ingredients.containsKey(c)) inv.setItem(slots.get(i), ingredients.get(c));
-                else if (recipeChoices.containsKey(c)) {
-                    RecipeChoice.ExactChoice choice = (RecipeChoice.ExactChoice) recipeChoices.get(c);
-                    inv.setItem(slots.get(i), choice.getItemStack());
+                    if (ingredients.containsKey(c)) inv.setItem(slots.get(i), ingredients.get(c));
+                    else if (recipeChoices.containsKey(c)) {
+                        RecipeChoice.ExactChoice choice = (RecipeChoice.ExactChoice) recipeChoices.get(c);
+                        inv.setItem(slots.get(i), choice.getItemStack());
+                    }
                 }
+                ItemStack result = getResult(shapedRecipe.getResult());
+                inv.setItem(slots.get(9), result);
             }
-            ItemStack result = getResult(shapedRecipe.getResult());
-            inv.setItem(slots.get(9), result);
-        }
-        else if (recipe instanceof ShapelessRecipe) {
-            ShapelessRecipe shapelessRecipe = (ShapelessRecipe) recipe;
-            List<ItemStack> ingredients = shapelessRecipe.getIngredientList();
-            int slot = 0;
-            if (!ingredients.isEmpty()) {
-                for (ItemStack ingredient : ingredients) {
-                    inv.setItem(slots.get(slot), ingredient);
-                    slot++;
+            case ShapelessRecipe shapelessRecipe -> {
+                List<ItemStack> ingredients = shapelessRecipe.getIngredientList();
+                int slot = 0;
+                if (!ingredients.isEmpty()) {
+                    for (ItemStack ingredient : ingredients) {
+                        inv.setItem(slots.get(slot), ingredient);
+                        slot++;
+                    }
                 }
-            }
 
-            ItemStack result = getResult(shapelessRecipe.getResult());
-            inv.setItem(slots.get(9), result);
+                ItemStack result = getResult(shapelessRecipe.getResult());
+                inv.setItem(slots.get(9), result);
+            }
+            case null, default -> {}
         }
     }
 
     public ArrayList<Inventory> createSkillTree(Player p, String skill) {
         ArrayList<Inventory> inventories = new ArrayList<>();
-        int playerLevel = plugin.getSkillManager().getSkill(p.getUniqueId(), skill).getLevel();
+        int playerLevel = SkillManager.getSkill(p.getUniqueId(), skill).getLevel();
         HashMap<String, ArrayList<Reward>> allSkills = plugin.getSkillManager().getDefaultPlayerRewards().getRewardList();
-        ArrayList<Reward> rewards = null;
-        switch (skill) {
-            case SkillManager.MINING:
-                rewards = allSkills.get("Mining");
-                break;
-            case SkillManager.FARMING:
-                rewards = allSkills.get("Farming");
-                break;
-            case SkillManager.FIGHTING:
-                rewards = allSkills.get("Fighting");
-                break;
-            case SkillManager.CRAFTING:
-                rewards = allSkills.get("Crafting");
-                break;
-            case SkillManager.MAIN:
-                rewards = allSkills.get("Main");
-                break;
-            case SkillManager.BUILDING:
-                rewards = allSkills.get("Building");
-                break;
-            case SkillManager.FISHING:
-                rewards = allSkills.get("Fishing");
-                break;
-            case SkillManager.EXPLORING:
-                rewards = allSkills.get("Exploring");
-                break;
-        }
+        ArrayList<Reward> rewards = switch (skill) {
+            case SkillManager.MINING -> allSkills.get("Mining");
+            case SkillManager.FARMING -> allSkills.get("Farming");
+            case SkillManager.FIGHTING -> allSkills.get("Fighting");
+            case SkillManager.CRAFTING -> allSkills.get("Crafting");
+            case SkillManager.MAIN -> allSkills.get("Main");
+            case SkillManager.BUILDING -> allSkills.get("Building");
+            case SkillManager.FISHING -> allSkills.get("Fishing");
+            case SkillManager.EXPLORING -> allSkills.get("Exploring");
+            default -> null;
+        };
         if (rewards == null) return null;
 
         int i = 1;
@@ -653,21 +645,21 @@ public class SkillStatsCommand implements CommandExecutor {
     public ItemStack getResult(ItemStack item) {
         for (RewardItemInfo info : recipeLevelInformation) {
             if (!info.isItem(item)) continue;
-            ItemStack result = new ItemStack(info.getItem());
+            ItemStack result = new ItemStack(info.item());
             ItemMeta meta = result.getItemMeta();
             if (meta == null) return item;
             List<String> lore = meta.getLore();
+            String infoString = ChatColor.GRAY + "Unlocked when " + ChatColor.AQUA + info.skillName() + ChatColor.GRAY
+                    + " reaches level " + ChatColor.AQUA + info.level();
             if (lore == null) {
                 lore = new ArrayList<>();
-                lore.add(ChatColor.GRAY + "Unlocked when " + ChatColor.AQUA + info.getSkillName() + ChatColor.GRAY
-                        + " reaches level " + ChatColor.AQUA + info.getLevel());
+                lore.add(infoString);
                 meta.setLore(lore);
                 result.setItemMeta(meta);
                 return result;
             }
             lore.add("");
-            lore.add(ChatColor.GRAY + "Unlocked when " + ChatColor.AQUA + info.getSkillName() + ChatColor.GRAY
-                    + " reaches level " + ChatColor.AQUA + info.getLevel());
+            lore.add(infoString);
             meta.setLore(lore);
             result.setItemMeta(meta);
             return result;

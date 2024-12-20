@@ -63,7 +63,7 @@ public class Trophy {
             return;
         }
         if (effects.getType() != 10) effects.spawnItem(0.5, 1.0, 0.5);
-        if (effects.getGodTrophy() != null) {
+        if (effects.getGodTrophy() != null && effects.getCycle() > 130) {
             try {
                 effects.getGodTrophy().spawnPlayer(playerName, uuid);
             } catch (Exception e) {

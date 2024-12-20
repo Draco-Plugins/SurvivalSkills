@@ -24,8 +24,7 @@ public class BloodyDomain extends BukkitRunnable {
 
         for (Entity ent : p.getNearbyEntities(10, 10, 10)) {
             if (!AbilityManager.getDomainMobs().contains(ent.getType())) continue;
-            if (!(ent instanceof LivingEntity)) continue;
-            LivingEntity livingEnt = (LivingEntity) ent;
+            if (!(ent instanceof LivingEntity livingEnt)) continue;
             entities.add(livingEnt);
         }
 

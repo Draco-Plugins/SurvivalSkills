@@ -111,7 +111,7 @@ public final class SurvivalSkills extends JavaPlugin {
         config = YamlConfiguration.loadConfiguration(configFile);
 
         // See if an update needs to be made to the config
-        if (config.get("Version") == null || config.getDouble("Version") != 2.0) updateConfig();
+        if (config.get("Version") == null || config.getDouble("Version") != 2.1) updateConfig();
         skillManager = new SkillManager(this);
 
         trophyFile = new File(getDataFolder(), "trophydata.yml");
@@ -190,6 +190,7 @@ public final class SurvivalSkills extends JavaPlugin {
             throw new RuntimeException(e);
         }
 
+        savePowerOreConversions();
         savePotionBags();
         abilityManager.saveToolBelts();
         abilityManager.removeGlowFromScannedMobs();
@@ -457,7 +458,7 @@ public final class SurvivalSkills extends JavaPlugin {
 
         UUID uuid = p.getUniqueId();
         trophyManager.savePlayerTrophyData(uuid, data);
-        if (skillManager.getSkill(uuid, "Main").getLevel() == 100)
+        if (SkillManager.getSkill(uuid, "Main").getLevel() == 100)
             trophyManager.savePlayerGodQuestData(uuid, godQuestData);
 
         if (toggledScoreboard.containsKey(uuid)) data.set(uuid + ".Scoreboard", toggledScoreboard.get(uuid));
@@ -606,6 +607,19 @@ public final class SurvivalSkills extends JavaPlugin {
 
         try {
             potionBagData.save(potionBagFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void savePowerOreConversions() {
+        File powerOreFile = new File(getDataFolder(), "poweroreconversions.yml");
+        if (!powerOreFile.exists()) saveResource("poweroreconversions.yml", true);
+        FileConfiguration powerOreData = YamlConfiguration.loadConfiguration(powerOreFile);
+        godListener.savePowerOreConversions(powerOreData);
+
+        try {
+            powerOreData.save(powerOreFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

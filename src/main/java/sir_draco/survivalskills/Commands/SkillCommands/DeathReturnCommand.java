@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.Boards.LeaderboardPlayer;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class DeathReturnCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -22,8 +23,7 @@ public class DeathReturnCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
         LeaderboardPlayer player = plugin.getLeaderboardTracker().get(p.getUniqueId());
         if (player == null) {
             p.sendRawMessage(ChatColor.RED + "An error occurred while trying to get your data.");

@@ -1,9 +1,6 @@
 package sir_draco.survivalskills.Trophy.GodQuestline;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -49,55 +46,153 @@ public class GodTrophyQuest {
     public void handleNPCInteract(Player p) {
         if (phase >= 49) return;
         switch (phase) {
-            case 0: dialogueOpener(p);
-            case 1: checkFarmingQuest(p, 1);
-            case 2: checkFarmingQuest(p, 2);
-            case 3: checkFarmingQuest(p, 3);
-            case 4: checkFarmingQuest(p, 4);
-            case 5: checkFarmingQuest(p, 5);
-            case 6: checkFarmingQuest(p, 6);
-            case 7: checkFarmingQuest(p, 7);
-            case 8: checkOreQuest(p, 1);
-            case 9: checkOreQuest(p, 2);
-            case 10: checkOreQuest(p, 3);
-            case 11: checkOreQuest(p, 4);
-            case 12: checkOreQuest(p, 5);
-            case 13: checkCreatureQuest(p, 1);
-            case 14: checkCreatureQuest(p, 2);
-            case 15: checkCreatureQuest(p, 3);
-            case 16: checkCreatureQuest(p, 4);
-            case 17: checkCreatureQuest(p, 5);
-            case 18: checkKnowledgeQuest(p, 1);
-            case 19: checkKnowledgeQuest(p, 2);
-            case 20: checkKnowledgeQuest(p, 3);
-            case 21: checkKnowledgeQuest(p, 4);
-            case 22: checkKnowledgeQuest(p, 5);
-            case 23: checkKnowledgeQuest(p, 6);
-            case 24: checkKnowledgeQuest(p, 7);
-            case 25: checkKnowledgeQuest(p, 8);
-            case 26: checkKnowledgeQuest(p, 9);
-            case 27: checkKnowledgeQuest(p, 10);
-            case 28: checkKnowledgeQuest(p, 11);
-            case 29: checkKnowledgeQuest(p, 12);
-            case 30: checkKnowledgeQuest(p, 13);
-            case 31: checkKnowledgeQuest(p, 14);
-            case 32: checkKnowledgeQuest(p, 15);
-            case 33: checkKnowledgeQuest(p, 16);
-            case 34: checkKnowledgeQuest(p, 17);
-            case 35: checkKnowledgeQuest(p, 18);
-            case 36: checkRelicQuest(p, 1);
-            case 37: checkRelicQuest(p, 2);
-            case 38: checkVillagerTradingQuest(p);
-            case 39: checkCombatQuest(p);
-            case 40: checkMobItemQuest(p, 1);
-            case 41: checkMobItemQuest(p, 2);
-            case 42: checkMobItemQuest(p, 3);
-            case 43: checkMobItemQuest(p, 4);
-            case 44: checkMobItemQuest(p, 5);
-            case 45: checkMobItemQuest(p, 6);
-            case 46: checkMobItemQuest(p, 7);
-            case 47: checkMobItemQuest(p, 8);
-            case 48: checkMobItemQuest(p, 9);
+            case 0:
+                dialogueOpener(p);
+                break;
+            case 1:
+                checkFarmingQuest(p, 1);
+                break;
+            case 2:
+                checkFarmingQuest(p, 2);
+                break;
+            case 3:
+                checkFarmingQuest(p, 3);
+                break;
+            case 4:
+                checkFarmingQuest(p, 4);
+                break;
+            case 5:
+                checkFarmingQuest(p, 5);
+                break;
+            case 6:
+                checkFarmingQuest(p, 6);
+                break;
+            case 7:
+                checkFarmingQuest(p, 7);
+                break;
+            case 8:
+                checkOreQuest(p, 1);
+                break;
+            case 9:
+                checkOreQuest(p, 2);
+                break;
+            case 10:
+                checkOreQuest(p, 3);
+                break;
+            case 11:
+                checkOreQuest(p, 4);
+                break;
+            case 12:
+                checkOreQuest(p, 5);
+                break;
+            case 13:
+                checkCreatureQuest(p, 1);
+                break;
+            case 14:
+                checkCreatureQuest(p, 2);
+                break;
+            case 15:
+                checkCreatureQuest(p, 3);
+                break;
+            case 16:
+                checkCreatureQuest(p, 4);
+                break;
+            case 17:
+                checkCreatureQuest(p, 5);
+                break;
+            case 18:
+                checkKnowledgeQuest(p, 1);
+                break;
+            case 19:
+                checkKnowledgeQuest(p, 2);
+                break;
+            case 20:
+                checkKnowledgeQuest(p, 3);
+                break;
+            case 21:
+                checkKnowledgeQuest(p, 4);
+                break;
+            case 22:
+                checkKnowledgeQuest(p, 5);
+                break;
+            case 23:
+                checkKnowledgeQuest(p, 6);
+                break;
+            case 24:
+                checkKnowledgeQuest(p, 7);
+                break;
+            case 25:
+                checkKnowledgeQuest(p, 8);
+                break;
+            case 26:
+                checkKnowledgeQuest(p, 9);
+                break;
+            case 27:
+                checkKnowledgeQuest(p, 10);
+                break;
+            case 28:
+                checkKnowledgeQuest(p, 11);
+                break;
+            case 29:
+                checkKnowledgeQuest(p, 12);
+                break;
+            case 30:
+                checkKnowledgeQuest(p, 13);
+                break;
+            case 31:
+                checkKnowledgeQuest(p, 14);
+                break;
+            case 32:
+                checkKnowledgeQuest(p, 15);
+                break;
+            case 33:
+                checkKnowledgeQuest(p, 16);
+                break;
+            case 34:
+                checkKnowledgeQuest(p, 17);
+                break;
+            case 35:
+                checkKnowledgeQuest(p, 18);
+                break;
+            case 36:
+                checkRelicQuest(p, 1);
+                break;
+            case 37:
+                checkRelicQuest(p, 2);
+                break;
+            case 38:
+                checkVillagerTradingQuest(p);
+                break;
+            case 39:
+                checkCombatQuest(p);
+                break;
+            case 40:
+                checkMobItemQuest(p, 1);
+                break;
+            case 41:
+                checkMobItemQuest(p, 2);
+                break;
+            case 42:
+                checkMobItemQuest(p, 3);
+                break;
+            case 43:
+                checkMobItemQuest(p, 4);
+                break;
+            case 44:
+                checkMobItemQuest(p, 5);
+                break;
+            case 45:
+                checkMobItemQuest(p, 6);
+                break;
+            case 46:
+                checkMobItemQuest(p, 7);
+                break;
+            case 47:
+                checkMobItemQuest(p, 8);
+                break;
+            case 48:
+                checkMobItemQuest(p, 9);
+                break;
         }
     }
 
@@ -111,6 +206,7 @@ public class GodTrophyQuest {
             return true;
         }
         p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+        p.playSound(p, Sound.ENTITY_VILLAGER_CELEBRATE, 1, 1);
         return false;
     }
 
@@ -131,6 +227,9 @@ public class GodTrophyQuest {
             dialogue(p, messages);
             return true;
         }
+
+        p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+        p.playSound(p, Sound.ENTITY_VILLAGER_CELEBRATE, 1, 1);
         return false;
     }
 
@@ -150,9 +249,13 @@ public class GodTrophyQuest {
             dialogue(p, messages);
             return true;
         }
+
+        p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+        p.playSound(p, Sound.ENTITY_VILLAGER_CELEBRATE, 1, 1);
         return false;
     }
 
+    // Methods below are for dialogue
     public void dialogue(Player p, ArrayList<String> messages) {
         new BukkitRunnable() {
             private int counter = 0;
@@ -163,6 +266,7 @@ public class GodTrophyQuest {
                     return;
                 }
                 p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": " + messages.get(counter));
+                p.playSound(p, Sound.ENTITY_VILLAGER_AMBIENT, 1, 1);
                 counter++;
             }
         }.runTaskTimer(SurvivalSkills.getInstance(), 0, 40);
@@ -176,6 +280,7 @@ public class GodTrophyQuest {
         messages.add("Bring me crops to show me you can feed a civilization");
         messages.add("Bring me " + ChatColor.AQUA + "25,000 " + ChatColor.WHITE + "carrots to start!");
         dialogue(p, messages);
+        phase++;
     }
 
     public void dialogueItemCount(Player p, String item, int count, int max) {
@@ -185,7 +290,7 @@ public class GodTrophyQuest {
         dialogue(p, messages);
     }
 
-
+    // Methods below are for checking the quest
     public void checkFarmingQuest(Player p, int cropType) {
         switch (cropType) {
             case 1:
@@ -234,16 +339,16 @@ public class GodTrophyQuest {
                 currentItemCount = 0;
                 break;
             case 6:
-                if (handleItemCheck(500, p, Material.CHORUS_FRUIT, "chorus fruit")) return;
+                if (handleItemCheck(64, p, Material.CHORUS_FLOWER, "chorus flowers")) return;
                 ArrayList<String> messages6 = new ArrayList<>();
                 messages6.add("Excellent work!");
-                messages6.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "chorus flowers");
+                messages6.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "cakes");
                 dialogue(p, messages6);
                 phase++;
                 currentItemCount = 0;
                 break;
             case 7:
-                if (handleItemCheck(64, p, Material.CHORUS_FLOWER, "chorus flowers")) return;
+                if (handleItemCheck(64, p, Material.CAKE, "cake")) return;
                 ArrayList<String> messages7 = new ArrayList<>();
                 messages7.add("You have proven your dedication to farming");
                 messages7.add("Now you must bring me your riches");
@@ -671,13 +776,7 @@ public class GodTrophyQuest {
             case 9:
                 if (handleItemCheck(p, ItemStackGenerator.getUnlimitedWitherRose(), "Unlimited Wither Rose")) return;
                 removeItemFromMainHand(p);
-                ArrayList<String> messages9 = new ArrayList<>();
-                messages9.add("Excellent Work!");
-                messages9.add("You have completed all of my tasks");
-                messages9.add("Finally you must prove yourself in the " + ChatColor.RED + "Trial of the Gods");
-                messages9.add("Do this and you will be given " + ChatColor.AQUA + "creative mode " + ChatColor.WHITE +
-                        "and the ability of " + ChatColor.AQUA + " teleportation");
-                messages9.add("You can start the trial at anytime by using " + ChatColor.YELLOW + "/godtrial");
+                ArrayList<String> messages9 = getStrings();
                 dialogue(p, messages9);
                 phase++;
                 updateGodTrophyParticles();
@@ -685,24 +784,34 @@ public class GodTrophyQuest {
         }
     }
 
+    private static ArrayList<String> getStrings() {
+        ArrayList<String> messages9 = new ArrayList<>();
+        messages9.add("Excellent Work!");
+        messages9.add("You have completed all of my tasks");
+        messages9.add("Finally you must prove yourself in the " + ChatColor.RED + "Trial of the Gods");
+        messages9.add("Do this and you will be given " + ChatColor.AQUA + "creative mode " + ChatColor.WHITE +
+                "and the ability of " + ChatColor.AQUA + " teleportation");
+        messages9.add("You can start the trial at anytime, anywhere, by using " + ChatColor.YELLOW + "/godtrial");
+        return messages9;
+    }
+
 
     public int removeMaterialsFromInventory(int currentProgress, int max, Inventory inv, Material mat) {
         int total = 0;
-        for (ItemStack item : inv.getContents().clone()) {
+        for (ItemStack item : inv.getContents()) {
             if (currentProgress + total == max) return total;
 
             // Ensure the item exists and is not a custom item
             if (item == null) continue;
-            if (item.getType() != mat) continue;
-            if (item.getItemMeta() != null) continue;
-            if (item.getItemMeta().hasCustomModelData()) continue;
-            if (item.getItemMeta().hasLore()) continue;
+            if (!item.getType().equals(mat)) continue;
+            if (item.getItemMeta() != null && item.getItemMeta().hasCustomModelData()) continue;
 
             // Handle the item in the inventory
             total += item.getAmount();
             if (currentProgress + total > max) {
                 int remaining = max - currentProgress;
                 item.setAmount(item.getAmount() - remaining);
+                if (item.getAmount() == 0) inv.remove(item);
                 return total;
             }
             inv.remove(item);

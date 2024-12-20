@@ -288,34 +288,17 @@ public class DragonBoss extends Boss {
     }
 
     private static Vector getVector(int i) {
-        Vector vec = null;
-        switch (i) {
-            case 0:
-                vec = new Vector(0.5, -0.1, 0.5);
-                break;
-            case 1:
-                vec = new Vector(-0.5, -0.1, 0.5);
-                break;
-            case 2:
-                vec = new Vector(0.5, -0.1, -0.5);
-                break;
-            case 3:
-                vec = new Vector(-0.5, -0.1, -0.5);
-                break;
-            case 4:
-                vec = new Vector(0.5, -0.1, 0);
-                break;
-            case 5:
-                vec = new Vector(-0.5, -0.1, 0);
-                break;
-            case 6:
-                vec = new Vector(0, -0.1, 0.5);
-                break;
-            case 7:
-                vec = new Vector(0, -0.1, -0.5);
-                break;
-        }
-        return vec;
+        return switch (i) {
+            case 0 -> new Vector(0.5, -0.1, 0.5);
+            case 1 -> new Vector(-0.5, -0.1, 0.5);
+            case 2 -> new Vector(0.5, -0.1, -0.5);
+            case 3 -> new Vector(-0.5, -0.1, -0.5);
+            case 4 -> new Vector(0.5, -0.1, 0);
+            case 5 -> new Vector(-0.5, -0.1, 0);
+            case 6 -> new Vector(0, -0.1, 0.5);
+            case 7 -> new Vector(0, -0.1, -0.5);
+            default -> null;
+        };
     }
 
     public void lifeSteal() {

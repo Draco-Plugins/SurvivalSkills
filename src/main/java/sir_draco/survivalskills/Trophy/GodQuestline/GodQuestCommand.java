@@ -13,6 +13,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import java.util.ArrayList;
 import java.util.Map;
 
+@SuppressWarnings("NullableProblems")
 public class GodQuestCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -25,8 +26,7 @@ public class GodQuestCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
 
         // Check if the player has an active god quest
         if (!plugin.getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId())) {
@@ -43,7 +43,7 @@ public class GodQuestCommand implements CommandExecutor {
         }
 
         // Check what stage they are in
-        int stage = 0;
+        int stage;
         if (quest.getPhase() >= 13 && quest.getPhase() <= 17) stage = 1;
         else if (quest.getPhase() >= 18 && quest.getPhase() <= 35) stage = 2;
         else if (quest.getPhase() == 36 || quest.getPhase() == 37) stage = 3;

@@ -9,6 +9,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
 
+@SuppressWarnings("NullableProblems")
 public class EatCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -21,8 +22,7 @@ public class EatCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player)) return false;
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) return false;
 
         // Check for level requirements
         if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Farming", "Eat").isEnabled()) {

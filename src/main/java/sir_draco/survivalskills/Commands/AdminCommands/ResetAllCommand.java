@@ -16,6 +16,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import java.io.File;
 import java.util.Map;
 
+@SuppressWarnings("NullableProblems")
 public class ResetAllCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

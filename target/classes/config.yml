@@ -1,4 +1,4 @@
-Version: 2.0
+Version: 2.1
 BuildingXP: 10.0
 CraftingXP: 15.0
 MiningXP: 1.0
@@ -95,6 +95,10 @@ Mining:
   UnbreakableTools:
     Enabled: true
     Level: 90
+    Type: 'State'
+  PowerOre:
+    Enabled: true
+    Level: 95
     Type: 'State'
   ArmorIV:
     Enabled: true

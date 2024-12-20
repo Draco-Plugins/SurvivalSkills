@@ -75,11 +75,10 @@ public class RainbowArmor extends BukkitRunnable {
             playersWearingBeaconArmor.remove(p.getUniqueId());
             return armor;
         }
-        if (!(armor.getItemMeta() instanceof LeatherArmorMeta)) {
+        if (!(armor.getItemMeta() instanceof LeatherArmorMeta meta)) {
             playersWearingBeaconArmor.remove(p.getUniqueId());
             return armor;
         }
-        LeatherArmorMeta meta = (LeatherArmorMeta) armor.getItemMeta();
         meta.setColor(armorColor);
         armor.setItemMeta(meta);
         return armor;
@@ -95,8 +94,7 @@ public class RainbowArmor extends BukkitRunnable {
     private void handleBeaconEffect() {
         for (PotionEffect effect : beaconEffects) p.addPotionEffect(effect);
         for (Entity entity : p.getNearbyEntities(10, 10, 10)) {
-            if (!(entity instanceof Player)) continue;
-            Player player = (Player) entity;
+            if (!(entity instanceof Player player)) continue;
             for (PotionEffect effect : beaconEffects) player.addPotionEffect(effect);
         }
     }

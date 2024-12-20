@@ -1,10 +1,8 @@
 package sir_draco.survivalskills.Trophy;
 
 import net.citizensnpcs.api.event.NPCClickEvent;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import net.citizensnpcs.api.event.NPCRightClickEvent;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.enchantments.Enchantment;
@@ -221,7 +219,7 @@ public class TrophyListener implements Listener {
     }
 
     @EventHandler
-    public void clickGodNPC(NPCClickEvent e) {
+    public void clickGodNPC(NPCRightClickEvent e) {
         Player p = e.getClicker();
         if (!plugin.getTrophyManager().getGodNPCIDs().containsKey(p.getUniqueId())) {
             p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": Are you expecting something?");
