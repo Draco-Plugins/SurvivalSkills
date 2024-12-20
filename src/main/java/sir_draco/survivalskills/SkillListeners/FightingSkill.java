@@ -43,6 +43,7 @@ public class FightingSkill implements Listener {
     private final ArrayList<VillagerBoss> villagers = new ArrayList<>();
     private final ArrayList<Player> noPhantomSpawns = new ArrayList<>();
     private final ArrayList<Player> fixSlownessEffect = new ArrayList<>();
+    private final ArrayList<Player> noBossMusic = new ArrayList<>();
     private final HashMap<Player, Boss> summonTracker = new HashMap<>();
     private final HashMap<EntityType, Double> mobXP = new HashMap<>();
 
@@ -158,6 +159,7 @@ public class FightingSkill implements Listener {
         handleExperience(p, e.getEntity());
     }
 
+    // Spawn bosses and handle the berserker ability
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e) {
         // Check to see if a player is holding a weapon
@@ -660,7 +662,7 @@ public class FightingSkill implements Listener {
                 else mainHand.setAmount(mainHand.getAmount() - 1);
                 break;
             case "The Exiled One":
-                VillagerBoss villager = new VillagerBoss(loc, p);
+                VillagerBoss villager = new VillagerBoss(loc, p, noBossMusic.contains(p));
                 if (!villager.isSpawnSuccess()) {
                     p.sendRawMessage(ChatColor.RED + "Not enough space to spawn the exiled one");
                     p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -745,5 +747,9 @@ public class FightingSkill implements Listener {
 
     public ArrayList<Player> getActiveBerserkers() {
         return activeBerserkers;
+    }
+
+    public ArrayList<Player> getNoBossMusic() {
+        return noBossMusic;
     }
 }

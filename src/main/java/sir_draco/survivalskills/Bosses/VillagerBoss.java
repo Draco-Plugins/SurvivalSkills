@@ -22,6 +22,7 @@ public class VillagerBoss extends Boss {
 
     private final Player summoner;
     private final ArrayList<Entity> bossSummonedMobs = new ArrayList<>();
+    private final boolean disabledMusic;
 
     private Villager villager;
     private boolean inAction = false;
@@ -39,9 +40,10 @@ public class VillagerBoss extends Boss {
     private int deathTimer = 18000;
     private ExiledBossMusic music;
 
-    public VillagerBoss(Location loc, Player summoner) {
+    public VillagerBoss(Location loc, Player summoner, boolean disabledMusic) {
         super("The Exiled One", 3, 3, 1500, 0, 10, 0.2, EntityType.VILLAGER, loc, 5);
         this.summoner = summoner;
+        this.disabledMusic = disabledMusic;
         if (isSpawnSuccess()) {
             villager = (Villager) getBoss();
             Biome biome = loc.getBlock().getBiome();
@@ -744,7 +746,9 @@ public class VillagerBoss extends Boss {
         double offsetX = (Math.random() - 0.5) * 10;
         double offsetY = (Math.random() - 0.5) * 5;
         double offsetZ = (Math.random() - 0.5) * 10;
-        return villager.getLocation().clone().add(offsetX, offsetY, offsetZ);
+        Location newLoc = villager.getLocation().clone().add(offsetX, offsetY, offsetZ);
+        if (newLoc.distance(summoner.getLocation()) > 30) return randomLocation();
+        return newLoc;
     }
 
     public Location locationNearPlayer() {
@@ -818,6 +822,7 @@ public class VillagerBoss extends Boss {
     }
 
     public void bossMusic() {
+        if (disabledMusic) return;
         if (activeMusic) return;
         activeMusic = true;
         music = new ExiledBossMusic(summoner);

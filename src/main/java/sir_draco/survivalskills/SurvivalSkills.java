@@ -223,6 +223,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new ToggleBloodyDomainCommand();
         new ToggleTrashCommand(this);
         new GodQuestCommand(this);
+        new ToggleBossMusic();
 
         // Admin Commands
         new BossCommand(this);
@@ -434,6 +435,11 @@ public final class SurvivalSkills extends JavaPlugin {
             boolean bloodyDomain = data.getBoolean(uuid + ".BloodyDomain");
             if (bloodyDomain) abilityManager.startBloodyDomain(p);
         }
+
+        if (data.contains(uuid + ".NoBossMusic")) {
+            boolean bossMusic = data.getBoolean(uuid + ".NoBossMusic");
+            if (bossMusic) fightingListener.getNoBossMusic().add(p);
+        }
     }
 
     public void loadScoreboardSetting(UUID uuid, FileConfiguration data) {
@@ -481,6 +487,9 @@ public final class SurvivalSkills extends JavaPlugin {
 
         if (abilityManager.getBloodyDomainTracker().containsKey(p)) data.set(uuid + ".BloodyDomain", true);
         else data.set(uuid + ".BloodyDomain", false);
+
+        if (fightingListener.getNoBossMusic().contains(p)) data.set(uuid + ".NoBossMusic", true);
+        else data.set(uuid + ".NoBossMusic", false);
 
         abilityManager.saveFlightTimer(p, data);
 
@@ -534,6 +543,9 @@ public final class SurvivalSkills extends JavaPlugin {
 
             if (abilityManager.getBloodyDomainTracker().containsKey(p)) data.set(uuid + ".BloodyDomain", true);
             else data.set(uuid + ".BloodyDomain", false);
+
+            if (fightingListener.getNoBossMusic().contains(p)) data.set(uuid + ".NoBossMusic", true);
+            else data.set(uuid + ".NoBossMusic", false);
 
             abilityManager.saveFlightTimer(p, data);
 

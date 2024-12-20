@@ -101,7 +101,7 @@ public class BossCommand implements CommandExecutor {
                 }
 
                 despawnOthers("villager");
-                villagerBoss = new VillagerBoss(p.getLocation(), p);
+                villagerBoss = new VillagerBoss(p.getLocation(), p, plugin.getFightingListener().getNoBossMusic().contains(p));
                 villagerBoss.runTaskTimer(plugin, 0, 1);
                 if (!villagerBoss.isSpawnSuccess()) {
                     p.sendRawMessage(ChatColor.RED + "Villager Boss failed to spawn!");
