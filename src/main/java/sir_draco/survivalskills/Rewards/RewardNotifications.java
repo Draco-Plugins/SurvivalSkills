@@ -817,6 +817,9 @@ public class RewardNotifications {
                     case "ArmorIV":
                         return ChatColor.GRAY + "You now take " + ChatColor.AQUA + "20%" + ChatColor.GRAY
                                 + " less damage from all sources";
+                    case "PowerOre":
+                        return ChatColor.GREEN + "You can now forge " + ChatColor.LIGHT_PURPLE + "Power Ore\n" + ChatColor.GREEN
+                                + "Place obsidian down, stand on it, and strike lightning on the block and yourself sacrificing 50 levels of experience";
                 }
                 break;
             case "Exploring":
