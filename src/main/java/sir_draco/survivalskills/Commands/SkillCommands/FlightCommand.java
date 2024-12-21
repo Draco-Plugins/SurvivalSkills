@@ -12,10 +12,13 @@ import sir_draco.survivalskills.Abilities.FlyingTimer;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 
+import java.util.HashMap;
+
 @SuppressWarnings("NullableProblems")
 public class FlightCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
+    private final HashMap<Player, FlyingTimer> flyingTimers = new HashMap<>();
 
     public FlightCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
@@ -36,7 +39,17 @@ public class FlightCommand implements CommandExecutor {
         // Check if the player has a cooldown
         AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "Flight");
         if (timer != null) {
-            if (timer.isActive()) timer.endAbility();
+            if (timer.isActive()) {
+                if (strings.length > 0 && strings[0].equalsIgnoreCase("left")) {
+                    p.sendRawMessage(ChatColor.GREEN + "You have " + ChatColor.AQUA
+                            + RewardNotifications.cooldown(timer.getActiveTimeLeft()) + ChatColor.GREEN + " minutes of flight time left!");
+                    p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                    return true;
+                }
+
+                timer.endAbility();
+                flyingTimers.get(p).removeFlight(p);
+            }
             else {
                 p.sendRawMessage(ChatColor.RED + "You can use flight again in: " + RewardNotifications.cooldown(timer.getTimeTillReset()));
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -101,6 +114,7 @@ public class FlightCommand implements CommandExecutor {
         abilityTimer.runTaskTimerAsynchronously(plugin, 0, 20);
         plugin.getAbilityManager().addAbility(p, abilityTimer);
         FlyingTimer flyingTimer = new FlyingTimer(p, activeTime);
+        flyingTimers.put(p, flyingTimer);
         flyingTimer.runTaskTimerAsynchronously(plugin, 0, 20);
         p.sendRawMessage(ChatColor.GREEN + "You have enabled your flight for " + ChatColor.AQUA
                 + (activeTime / 60) + ChatColor.GREEN + " minutes!");

@@ -38,6 +38,7 @@ public class TabCompleter implements Listener {
         else if (buffer.contains("/skills ")) handleSkills(buffer, e);
         else if (buffer.contains("/toggletrail ")) handleTrails(p, buffer, e);
         else if (buffer.contains("/bossmusic ")) handleBossMusic(buffer, p, e);
+        else if  (buffer.contains("/flight ")) handleFlight(buffer, e);
     }
 
     public void handleSpelunker(String buffer, Player p, TabCompleteEvent e) {
@@ -292,6 +293,12 @@ public class TabCompleter implements Listener {
         if (!p.hasPermission("survivalskills.op")) return;
         ArrayList<String> words = new ArrayList<>();
         words.add("villager");
+        e.setCompletions(getCompletions(buffer, words));
+    }
+
+    public void handleFlight(String buffer, TabCompleteEvent e) {
+        ArrayList<String> words = new ArrayList<>();
+        words.add("left");
         e.setCompletions(getCompletions(buffer, words));
     }
 
