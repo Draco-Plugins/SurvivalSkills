@@ -137,7 +137,7 @@ public class GodTrophyEffects {
             npcPlayer = TrophyManager.getRegistry().getById(npcID);
             if (npcPlayer == null) return;
             // Update the text
-            getText(name);
+            getText(name, playerUUID);
             if (npcPlayer.isSpawned()) return;
             npcPlayer.spawn(trophyLoc.clone().add(0.5, 2.0, 0.5));
             return;
@@ -176,14 +176,14 @@ public class GodTrophyEffects {
         new BukkitRunnable() {
             @Override
             public void run() {
-                getText(name);
+                getText(name, playerUUID);
                 LookClose look = npcPlayer.getOrAddTrait(LookClose.class);
                 look.lookClose(true);
             }
         }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 20);
     }
 
-    private void getText(String name) {
+    private void getText(String name, UUID uuid) {
         Text text = npcPlayer.getOrAddTrait(Text.class);
         text.toggleTalkClose();
         text.setRange(10.0);
@@ -199,7 +199,9 @@ public class GodTrophyEffects {
         text.add(ChatColor.AQUA + "You should definitely try to break these crystals");
         text.add(ChatColor.AQUA + "Let's be honest, " + name + " is the best player on the server");
         text.add(ChatColor.GOLD + "I hear there is a secret hidden in this world");
-        text.add(ChatColor.GOLD + "Right click me to start the " + ChatColor.BOLD + "God Quest");
+
+        if (!SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().containsKey(uuid))
+            text.add(ChatColor.GOLD + "Right click me to start the " + ChatColor.BOLD + "God Quest");
 
         // Get the current day of the week
         LocalDate currentDate = LocalDate.now();

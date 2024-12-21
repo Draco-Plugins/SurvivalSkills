@@ -37,6 +37,7 @@ import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Skills.SkillsHolder;
 import sir_draco.survivalskills.Trophy.GodQuestline.GodQuestCommand;
+import sir_draco.survivalskills.Trophy.GodQuestline.GodTrophyQuest;
 import sir_draco.survivalskills.Trophy.GodQuestline.ToggleGodQuestCommand;
 import sir_draco.survivalskills.Trophy.Trophy;
 import sir_draco.survivalskills.Trophy.TrophyListener;
@@ -749,6 +750,12 @@ public final class SurvivalSkills extends JavaPlugin {
             }.runTaskLater(this, 20);
         }
         else SkillScoreboard.hideScoreboard(this, p);
+
+        if (SkillManager.getSkillLevel(p.getUniqueId(), "Main") == 100
+                && !getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId())) {
+            GodTrophyQuest quest = new GodTrophyQuest(p.getUniqueId());
+            SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().put(p.getUniqueId(), quest);
+        }
     }
 
     public void createFarmingList() {

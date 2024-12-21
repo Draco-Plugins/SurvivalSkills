@@ -20,6 +20,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -32,6 +33,7 @@ import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.GodItems.EnderEssence;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Trophy.GodQuestline.GodRecipeUI;
+import sir_draco.survivalskills.Trophy.GodQuestline.GodTrophyQuest;
 import sir_draco.survivalskills.Trophy.GodQuestline.PowerOreConversion;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 
@@ -55,6 +57,17 @@ public class GodListener implements Listener {
         createGodWeaponMap();
         createPotionList();
         loadPowerOreConversions();
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent e) {
+        Player p = e.getPlayer();
+        if (p.hasPlayedBefore()) return;
+
+        if (!SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId())) {
+            GodTrophyQuest quest = new GodTrophyQuest(p.getUniqueId());
+            SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().put(p.getUniqueId(), quest);
+        }
     }
 
     @EventHandler
@@ -168,9 +181,13 @@ public class GodListener implements Listener {
         int modelData = meta.getCustomModelData();
         e.setCancelled(true);
 
-        Block block = e.getBlock();
+        Block block = e.getBlock().getLocation().getBlock();
 
-        if (modelData == 41) block.setType(Material.WITHER_ROSE);
+        if (modelData == 41) {
+            Bukkit.getLogger().info("Placing a god item");
+            block.setType(Material.WITHER_ROSE);
+            block.getState().update();
+        }
     }
 
     @EventHandler
@@ -301,6 +318,8 @@ public class GodListener implements Listener {
     public void godRecipeClose(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
         if (!openGodRecipeUI.containsKey(p)) return;
+        if (!openGodRecipeUI.get(p).getInventories().get(openGodRecipeUI.get(p).getCurrentInv()).equals(e.getInventory()))
+            return;
         openGodRecipeUI.remove(p);
     }
 

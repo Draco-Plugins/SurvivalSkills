@@ -214,7 +214,11 @@ public class GodTrophyQuest {
         ItemStack hand = p.getInventory().getItemInMainHand();
         if (hand.getType().isAir()) {
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": " + "You are not holding anything");
+            ArrayList<String> messages = new ArrayList<>();
+            messages.add("You are not holding anything");
+            messages.add("Use " + ChatColor.YELLOW + "/godquest" + ChatColor.WHITE + " to see the recipe for " +
+                    ChatColor.AQUA + itemName);
+            dialogue(p, messages);
             return true;
         }
 
@@ -423,6 +427,7 @@ public class GodTrophyQuest {
                 ArrayList<String> messages1 = new ArrayList<>();
                 messages1.add("Excellent Work!");
                 messages1.add("Now bring me the music of the goats");
+                messages1.add("You can see the recipe by using " + ChatColor.YELLOW + "/godquest");
                 dialogue(p, messages1);
                 phase++;
                 break;
@@ -460,7 +465,7 @@ public class GodTrophyQuest {
                 messages5.add("These creatures are just part of this world and there will always be more of them");
                 messages5.add("Do not mourn their loss");
                 messages5.add("Now let me understand the depth of your knowledge");
-                messages5.add("Show me your mastery of potions");
+                messages5.add("Bring me an album of music like no other");
                 messages5.add("You can see the recipe by using " + ChatColor.YELLOW + "/godquest");
                 dialogue(p, messages5);
                 phase++;
@@ -603,12 +608,12 @@ public class GodTrophyQuest {
                 removeItemFromMainHand(p);
                 ArrayList<String> messages17 = new ArrayList<>();
                 messages17.add("Excellent Work!");
-                messages17.add("Now bring me a potion of weakness");
+                messages17.add("Now bring me a potion of oozing");
                 dialogue(p, messages17);
                 phase++;
                 break;
             case 16:
-                if (handleItemCheck(p, getPotion(PotionType.OOZING), "Potion of the Oozing")) return;
+                if (handleItemCheck(p, getPotion(PotionType.OOZING), "Potion of Oozing")) return;
                 removeItemFromMainHand(p);
                 ArrayList<String> messages18 = new ArrayList<>();
                 messages18.add("Excellent Work!");
@@ -809,11 +814,12 @@ public class GodTrophyQuest {
             // Handle the item in the inventory
             total += item.getAmount();
             if (currentProgress + total > max) {
-                int remaining = max - currentProgress;
+                int remaining = max - currentProgress + total - item.getAmount();
                 item.setAmount(item.getAmount() - remaining);
                 if (item.getAmount() == 0) inv.remove(item);
                 return total;
             }
+            item.setAmount(0);
             inv.remove(item);
         }
         return total;

@@ -102,41 +102,55 @@ public class GodRecipeUI {
 
         int totalPages = (int) Math.ceil((double) list.size() / 2);
         int currPage = 1;
+        Inventory inv = Bukkit.createInventory(null, 36, "God Recipes: Page " + currPage + "/" + totalPages);
         for (int i = 1; i <= list.size(); i++) {
-            Inventory inv = Bukkit.createInventory(null, 36, "God Recipes: Page " + currPage + "/" + totalPages);
-
-            if (currPage == 1) {
-                inv.setItem(35, bottom);
-                inv.setItem(34, bottom);
-                inv.setItem(33, bottom);
-                inv.setItem(32, front);
-                inv.setItem(31, bottom);
-                inv.setItem(30, bottom);
-                inv.setItem(29, bottom);
-                inv.setItem(28, bottom);
-                inv.setItem(27, bottom);
-            }
-            else if (currPage == totalPages) {
-                inv.setItem(35, bottom);
-                inv.setItem(34, bottom);
-                inv.setItem(33, bottom);
-                inv.setItem(32, bottom);
-                inv.setItem(31, bottom);
-                inv.setItem(30, back);
-                inv.setItem(29, bottom);
-                inv.setItem(28, bottom);
-                inv.setItem(27, bottom);
-            }
-            else {
-                inv.setItem(35, bottom);
-                inv.setItem(34, bottom);
-                inv.setItem(33, bottom);
-                inv.setItem(32, front);
-                inv.setItem(31, bottom);
-                inv.setItem(30, back);
-                inv.setItem(29, bottom);
-                inv.setItem(28, bottom);
-                inv.setItem(27, bottom);
+            if (i % 2 == 1) {
+                if (currPage != 1)
+                    inv = Bukkit.createInventory(null, 36, "God Recipes: Page " + currPage + "/" + totalPages);
+                if (currPage == 1 && list.size() > 1) {
+                    inv.setItem(35, bottom);
+                    inv.setItem(34, bottom);
+                    inv.setItem(33, bottom);
+                    inv.setItem(32, front);
+                    inv.setItem(31, bottom);
+                    inv.setItem(30, bottom);
+                    inv.setItem(29, bottom);
+                    inv.setItem(28, bottom);
+                    inv.setItem(27, bottom);
+                }
+                else if (currPage == 1) {
+                    inv.setItem(35, bottom);
+                    inv.setItem(34, bottom);
+                    inv.setItem(33, bottom);
+                    inv.setItem(32, bottom);
+                    inv.setItem(31, bottom);
+                    inv.setItem(30, bottom);
+                    inv.setItem(29, bottom);
+                    inv.setItem(28, bottom);
+                    inv.setItem(27, bottom);
+                }
+                else if (currPage == totalPages) {
+                    inv.setItem(35, bottom);
+                    inv.setItem(34, bottom);
+                    inv.setItem(33, bottom);
+                    inv.setItem(32, bottom);
+                    inv.setItem(31, bottom);
+                    inv.setItem(30, back);
+                    inv.setItem(29, bottom);
+                    inv.setItem(28, bottom);
+                    inv.setItem(27, bottom);
+                }
+                else {
+                    inv.setItem(35, bottom);
+                    inv.setItem(34, bottom);
+                    inv.setItem(33, bottom);
+                    inv.setItem(32, front);
+                    inv.setItem(31, bottom);
+                    inv.setItem(30, back);
+                    inv.setItem(29, bottom);
+                    inv.setItem(28, bottom);
+                    inv.setItem(27, bottom);
+                }
             }
 
             addRecipe(list, i - 1, inv);
@@ -151,13 +165,14 @@ public class GodRecipeUI {
     public void addRecipe(ArrayList<NamespacedKey> recipeKeys, int recipeIndex, Inventory inv) {
         NamespacedKey key = recipeKeys.get(recipeIndex);
         if (key == null) return;
-        ArrayList<Integer> slots = RecipeMaker.getRecipePositions(recipeIndex);
+        ArrayList<Integer> slots = RecipeMaker.getRecipePositions(recipeIndex + 1);
         Recipe recipe = Bukkit.getRecipe(key);
         switch (recipe) {
             case ShapedRecipe shapedRecipe -> {
                 String[] shape = shapedRecipe.getShape();
                 Map<Character, ItemStack> ingredients = shapedRecipe.getIngredientMap();
                 Map<Character, RecipeChoice> recipeChoices = shapedRecipe.getChoiceMap();
+
                 for (int i = 0; i < shape.length * 3; i++) {
                     int slot = i % 3;
                     String layer;
@@ -168,11 +183,13 @@ public class GodRecipeUI {
                     char c = layer.charAt(slot);
                     if (c == ' ' || c == 'D') continue;
 
-                    if (ingredients.containsKey(c)) inv.setItem(slots.get(i), ingredients.get(c));
-                    else if (recipeChoices.containsKey(c)) {
+                    if (recipeChoices.containsKey(c) && !(recipeChoices.get(c) instanceof RecipeChoice.MaterialChoice)) {
                         RecipeChoice.ExactChoice choice = (RecipeChoice.ExactChoice) recipeChoices.get(c);
+                        if (choice == null) continue;
                         inv.setItem(slots.get(i), choice.getItemStack());
                     }
+                    else if (ingredients.containsKey(c)) inv.setItem(slots.get(i), ingredients.get(c));
+
                 }
                 inv.setItem(slots.getLast(), shapedRecipe.getResult());
             }
@@ -189,5 +206,13 @@ public class GodRecipeUI {
             }
             case null, default -> {}
         }
+    }
+
+    public ArrayList<Inventory> getInventories() {
+        return inventories;
+    }
+
+    public int getCurrentInv() {
+        return currentInv;
     }
 }

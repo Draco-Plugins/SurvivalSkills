@@ -73,7 +73,7 @@ public class ItemStackGenerator {
     }
 
     public static void createShapedRecipe(NamespacedKey key, ItemStack result, ItemStack a, ItemStack b, ItemStack c, ItemStack d,
-                                          ItemStack e, ItemStack f, ItemStack g, ItemStack h, ItemStack i) {
+                                          ItemStack e, ItemStack f, ItemStack g, ItemStack h, ItemStack i, boolean unique) {
         if (getServer().getRecipe(key) != null) getServer().removeRecipe(key);
         ShapedRecipe recipe = new ShapedRecipe(key, result);
 
@@ -105,15 +105,28 @@ public class ItemStackGenerator {
         recipe.shape(shape1.toString(), shape2.toString(), shape3.toString());
 
         // Set the ingredients
-        if (a != null) recipe.setIngredient('A', a.getType());
-        if (b != null) recipe.setIngredient('B', b.getType());
-        if (c != null) recipe.setIngredient('C', c.getType());
-        if (d != null) recipe.setIngredient('D', d.getType());
-        if (e != null) recipe.setIngredient('E', e.getType());
-        if (f != null) recipe.setIngredient('F', f.getType());
-        if (g != null) recipe.setIngredient('G', g.getType());
-        if (h != null) recipe.setIngredient('H', h.getType());
-        if (i != null) recipe.setIngredient('I', i.getType());
+        if (unique) {
+            if (a != null) recipe.setIngredient('A', new RecipeChoice.ExactChoice(a));
+            if (b != null) recipe.setIngredient('B', new RecipeChoice.ExactChoice(b));
+            if (c != null) recipe.setIngredient('C', new RecipeChoice.ExactChoice(c));
+            if (d != null) recipe.setIngredient('D', new RecipeChoice.ExactChoice(d));
+            if (e != null) recipe.setIngredient('E', new RecipeChoice.ExactChoice(e));
+            if (f != null) recipe.setIngredient('F', new RecipeChoice.ExactChoice(f));
+            if (g != null) recipe.setIngredient('G', new RecipeChoice.ExactChoice(g));
+            if (h != null) recipe.setIngredient('H', new RecipeChoice.ExactChoice(h));
+            if (i != null) recipe.setIngredient('I', new RecipeChoice.ExactChoice(i));
+        }
+        else {
+            if (a != null) recipe.setIngredient('A', a.getType());
+            if (b != null) recipe.setIngredient('B', b.getType());
+            if (c != null) recipe.setIngredient('C', c.getType());
+            if (d != null) recipe.setIngredient('D', d.getType());
+            if (e != null) recipe.setIngredient('E', e.getType());
+            if (f != null) recipe.setIngredient('F', f.getType());
+            if (g != null) recipe.setIngredient('G', g.getType());
+            if (h != null) recipe.setIngredient('H', h.getType());
+            if (i != null) recipe.setIngredient('I', i.getType());
+        }
 
         Bukkit.getServer().addRecipe(recipe);
     }
@@ -875,6 +888,7 @@ public class ItemStackGenerator {
         String name = ColorParser.colorizeString("Potion Bag", ColorParser.generateGradient("#FFFFFF", "#000000", "Potion Bag"), true);
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Right click to open");
+        loreList.add("~Witch Exotic~");
         ItemStack bag = createCustomItem(Material.CHEST, 1, name, null, null, loreList, 38, false, null);
         ItemMeta meta = bag.getItemMeta();
         if (meta == null) return bag;
@@ -910,7 +924,7 @@ public class ItemStackGenerator {
         loreList.add(ChatColor.GRAY + "Infinite wither rose");
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
         loreList.add("");
-        loreList.add("~Wither Skeleton Exotic Exotic~");
+        loreList.add("~Wither Skeleton Exotic~");
         return createCustomItem(Material.WITHER_ROSE, 1, name, null, null, loreList, 41, false, null);
     }
 
@@ -986,7 +1000,7 @@ public class ItemStackGenerator {
                 ColorParser.generateGradient("#A3A3A3", "#330048", "First Trim"), true);
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
-        return createCustomItem(Material.FLOWER_POT, 1, name, null, null, loreList, 42, false, null);
+        return createCustomItem(Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE, 1, name, null, null, loreList, 42, false, null);
     }
 
     public static ItemStack getSecondTrim() {
@@ -994,7 +1008,7 @@ public class ItemStackGenerator {
                 ColorParser.generateGradient("#A3A3A3", "#330048", "Second Trim"), true);
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
-        return createCustomItem(Material.FLOWER_POT, 1, name, null, null, loreList, 42, false, null);
+        return createCustomItem(Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE, 1, name, null, null, loreList, 42, false, null);
     }
 
     public static ItemStack getTrimRelic() {
@@ -1002,7 +1016,7 @@ public class ItemStackGenerator {
                 ColorParser.generateGradient("#A3A3A3", "#330048", "Trim Relic"), true);
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "Used in the God Trophy quest");
-        return createCustomItem(Material.FLOWER_POT, 1, name, null, null, loreList, 42, false, null);
+        return createCustomItem(Material.NETHERITE_UPGRADE_SMITHING_TEMPLATE, 1, name, null, null, loreList, 42, false, null);
     }
 
     public static ItemStack getWarriorEmblem() {

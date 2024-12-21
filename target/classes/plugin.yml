@@ -23,6 +23,9 @@ commands:
   togglemaxskillmessage:
     description: Allows the player to enable or disable max skill messages
     permission: survivalskills.default
+  togglebossmusic:
+    description: Allows the player to enable or disable boss music
+    permission: survivalskills.default
 
   spelunker:
     description: Notifies the player where nearby ores are

@@ -1,6 +1,5 @@
 package sir_draco.survivalskills.Trophy;
 
-import net.citizensnpcs.api.event.NPCClickEvent;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -264,6 +263,7 @@ public class TrophyListener implements Listener {
         // Check that the inventory is a villager trade inventory
         if (e.getClickedInventory() == null) return;
         if (!e.getClickedInventory().getType().equals(InventoryType.MERCHANT)) return;
+        if (e.getSlot() != 2) return;
 
         // If it is a shift click, check how many trades took place
         int trades = 1;
@@ -293,28 +293,33 @@ public class TrophyListener implements Listener {
         // Get the recipe
         MerchantRecipe recipe = inv.getSelectedRecipe();
         if (recipe == null) return 0;
-        if (recipe.getDemand() <= 0) return 0;
 
         // Get the items involved in the trade
         ItemStack[] ingredients = recipe.getIngredients().toArray(new ItemStack[0]);
 
         // Calculate the maximum number of trades based on the villager's inventory
         int maxTrades = Integer.MAX_VALUE;
+        int i = 0;
         for (ItemStack ingredient : ingredients) {
-            if (ingredient == null) continue;
-            int villagerItemCount = getVillagerIngredientItemCount(inv, ingredient);
-            int possibleTrades = (int) Math.floor((double) villagerItemCount / ingredient.getAmount());
-            if (possibleTrades < maxTrades) maxTrades = possibleTrades;
+            if (ingredient == null) {
+                i++;
+                continue;
+            }
+            int villagerTradeCount = getTradeCount(inv, ingredient, i);
+            if (villagerTradeCount < maxTrades) maxTrades = villagerTradeCount;
+            if (maxTrades > recipe.getMaxUses() - recipe.getUses())
+                maxTrades = recipe.getMaxUses() - recipe.getUses();
+            i++;
         }
 
         return maxTrades;
     }
 
-    private int getVillagerIngredientItemCount(MerchantInventory inv, ItemStack item) {
-        int count = 0;
-        for (ItemStack invItem : inv.getContents())
-            if (invItem != null && invItem.isSimilar(item))
-                return invItem.getAmount();
-        return count;
+    private int getTradeCount(MerchantInventory inv, ItemStack item, int slot) {
+        ItemStack invItem = inv.getItem(slot);
+        if (invItem == null) return 0;
+        if (!invItem.getType().equals(item.getType())) return 0;
+        if (invItem.getAmount() < item.getAmount()) return 0;
+        return invItem.getAmount() / item.getAmount();
     }
 }
