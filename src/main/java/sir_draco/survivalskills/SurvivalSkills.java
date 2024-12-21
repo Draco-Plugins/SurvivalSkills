@@ -11,6 +11,7 @@ import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.*;
+import org.bukkit.boss.KeyedBossBar;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -73,6 +74,7 @@ public final class SurvivalSkills extends JavaPlugin {
     private PlayerListener playerListener;
     private ArmorListener armorListener;
     private GodListener godListener;
+    private FlightCommand flightCommand;
 
     // Configs
     private FileConfiguration config;
@@ -142,8 +144,14 @@ public final class SurvivalSkills extends JavaPlugin {
         loadCommands();
 
         // If the plugin is reloaded without a restart
-        if (!getServer().getOnlinePlayers().isEmpty())
+        if (!getServer().getOnlinePlayers().isEmpty()){
             for (Player p : getServer().getOnlinePlayers()) playerJoin(p, true);
+            // Try to fix boss bars
+            for (Iterator<KeyedBossBar> it = Bukkit.getBossBars(); it.hasNext(); ) {
+                KeyedBossBar bar = it.next();
+                bar.removeAll();
+            }
+        }
 
         // Check for plugin dependencies
         Plugin griefPrevention = getServer().getPluginManager().getPlugin("GriefPrevention");
@@ -201,12 +209,12 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public void loadCommands() {
         // Default Player Commands
+        flightCommand = new FlightCommand(this);
         new AutoEatCommand(this);
         new AutoTrashCommand(this);
         new DeathLocationCommand(this);
         new DeathReturnCommand(this);
         new EatCommand(this);
-        new FlightCommand(this);
         new MobScannerCommand(this);
         new NightVisionCommand(this);
         new PeacefulMinerCommand(this);
@@ -756,6 +764,9 @@ public final class SurvivalSkills extends JavaPlugin {
             GodTrophyQuest quest = new GodTrophyQuest(p.getUniqueId());
             SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().put(p.getUniqueId(), quest);
         }
+
+        // Try to remove boss bars from player
+
     }
 
     public void createFarmingList() {
@@ -938,6 +949,10 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public GodListener getGodListener() {
         return godListener;
+    }
+
+    public FlightCommand getFlightCommand() {
+        return flightCommand;
     }
 
     public boolean isCitizensEnabled() {

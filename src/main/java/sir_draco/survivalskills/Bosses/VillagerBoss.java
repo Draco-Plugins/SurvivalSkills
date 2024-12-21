@@ -638,7 +638,7 @@ public class VillagerBoss extends Boss {
 
     public void launchMeteor() {
         // Spawn fire charges in the sky that create explosion particles as they fall and when they collide with a block or player they explode
-        Location loc = randomLocation();
+        Location loc = randomLocation(false);
         loc.setY(loc.getY() + 30);
         Vector direction = new Vector(0, -1, 0);
         // Launch a fireball projectile from the location
@@ -693,7 +693,7 @@ public class VillagerBoss extends Boss {
 
             Location loc;
             if (getStage() > 3) loc = locationNearPlayer();
-            else loc = randomLocation();
+            else loc = randomLocation(true);
             boolean isAir = loc.getBlock().isEmpty();
             boolean isAirAbove = loc.getBlock().getRelative(0, 1, 0).isEmpty();
             if (!isAir && isAirAbove) return teleport(false, true, loc.add(0, 1, 0), 0);
@@ -742,12 +742,13 @@ public class VillagerBoss extends Boss {
         }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), delay);
     }
 
-    public Location randomLocation() {
+    public Location randomLocation(boolean isVillager) {
         double offsetX = (Math.random() - 0.5) * 10;
         double offsetY = (Math.random() - 0.5) * 5;
         double offsetZ = (Math.random() - 0.5) * 10;
         Location newLoc = villager.getLocation().clone().add(offsetX, offsetY, offsetZ);
-        if (newLoc.distance(summoner.getLocation()) > 30) return randomLocation();
+        if (isVillager && newLoc.distance(summoner.getLocation()) > 30)
+            return summoner.getLocation().clone().add(offsetX, offsetY, offsetZ);
         return newLoc;
     }
 

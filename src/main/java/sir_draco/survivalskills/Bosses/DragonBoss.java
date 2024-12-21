@@ -181,8 +181,9 @@ public class DragonBoss extends Boss {
         // Get nearby player as a target
         Player p = null;
         for (Entity ent : dragon.getNearbyEntities(100, 100, 100)) {
-            if (!(ent instanceof Player)) continue;
-            p = (Player) ent;
+            if (!(ent instanceof Player player)) continue;
+            if (!players.contains(player)) continue;
+            p = player;
             break;
         }
         if (p == null) return;
@@ -205,7 +206,7 @@ public class DragonBoss extends Boss {
                 }
 
                 if (loc.distance(targetLoc) < 1) {
-                    loc.getWorld().createExplosion(loc, 6, false, false);
+                    loc.getWorld().createExplosion(loc, 3, false, false);
                     cancel();
                     return;
                 }

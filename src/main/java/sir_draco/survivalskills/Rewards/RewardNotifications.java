@@ -96,6 +96,11 @@ public class RewardNotifications {
                         p.sendRawMessage(ChatColor.GREEN + "Beacon Armor gives you and those nearby beacon effects!");
                         p.sendRawMessage(ChatColor.GRAY + "See the crafting recipe by using the command" + ChatColor.AQUA + " /skills recipes");
                         break;
+                    case "PowerOre":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now forge " + ChatColor.LIGHT_PURPLE + "Power Ore");
+                        p.sendRawMessage(ChatColor.GREEN + "Place obsidian down, stand on it, and strike lightning on the block" +
+                                " sacrificing 50 levels of experience");
+                        break;
                 }
                 break;
             case "Exploring":

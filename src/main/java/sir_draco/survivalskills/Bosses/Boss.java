@@ -235,7 +235,6 @@ public class Boss extends BukkitRunnable {
     }
 
     public void attack() {
-        Bukkit.getLogger().info("Default Attack");
         Entity target = null;
         for (Entity e : boss.getNearbyEntities(10, 10, 10)) {
             if (e instanceof Player) {

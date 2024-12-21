@@ -283,6 +283,7 @@ public class FightingSkill implements Listener {
         if (!isBoss(e.getEntity())) return;
         if (e.getEntity().getType().equals(EntityType.VILLAGER)) {
             if (e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION)) e.setCancelled(true);
+            if (e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING)) e.setCancelled(true);
             return;
         }
 
@@ -646,7 +647,7 @@ public class FightingSkill implements Listener {
                 }
                 giant.runTaskTimer(plugin, 0, 1);
                 addBoss(p, giant);
-                if (mainHand.getAmount() == 1) p.getInventory().remove(mainHand);
+                if (mainHand.getAmount() == 1) p.getInventory().setItemInMainHand(null);
                 else mainHand.setAmount(mainHand.getAmount() - 1);
                 break;
             case "BroodMother":
@@ -658,7 +659,7 @@ public class FightingSkill implements Listener {
                 }
                 broodMother.runTaskTimer(plugin, 0, 1);
                 addBoss(p, broodMother);
-                if (mainHand.getAmount() == 1) p.getInventory().remove(mainHand);
+                if (mainHand.getAmount() == 1) p.getInventory().setItemInMainHand(null);
                 else mainHand.setAmount(mainHand.getAmount() - 1);
                 break;
             case "The Exiled One":
@@ -670,7 +671,7 @@ public class FightingSkill implements Listener {
                 }
                 villager.runTaskTimer(plugin, 0, 1);
                 addBoss(p, villager);
-                if (mainHand.getAmount() == 1) p.getInventory().remove(mainHand);
+                if (mainHand.getAmount() == 1) p.getInventory().setItemInMainHand(null);
                 else mainHand.setAmount(mainHand.getAmount() - 1);
                 break;
         }

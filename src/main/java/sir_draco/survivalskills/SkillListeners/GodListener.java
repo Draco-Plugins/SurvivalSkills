@@ -289,7 +289,12 @@ public class GodListener implements Listener {
         Location loc = block.getLocation();
         if (!powerOreConversions.containsKey(loc)) return;
         PowerOreConversion conversion = powerOreConversions.get(loc);
-        if (!conversion.getUUID().equals(p.getUniqueId())) return;
+        if (!conversion.getUUID().equals(p.getUniqueId())) {
+            e.setCancelled(true);
+            p.sendRawMessage(ChatColor.RED + "This is not your ore to break");
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return;
+        }
 
         e.setDropItems(false);
         conversion.breakOre();
@@ -452,6 +457,9 @@ public class GodListener implements Listener {
 
         // Check if the player has 50 XP levels
         if (p.getLevel() < 50) return;
+
+        // Check if player has unlocked power ore
+        if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre").isApplied()) return;
 
         // Take the levels and add a power ore conversion object to the list
         p.setLevel(p.getLevel() - 50);

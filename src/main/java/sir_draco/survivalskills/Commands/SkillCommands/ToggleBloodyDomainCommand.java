@@ -25,7 +25,7 @@ public class ToggleBloodyDomainCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (!(sender instanceof Player p)) return false;
 
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Fighting", "Bloody Domain");
+        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Fighting", "BloodyDomain");
         if (reward == null || !reward.isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Bloody Domain is not enabled");
             p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

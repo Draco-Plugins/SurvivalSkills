@@ -67,6 +67,7 @@ public class AbilityManager {
         p.setFlying(true);
         p.setFlySpeed(speed);
         FlyingTimer flyingTimer = new FlyingTimer(p, activeTime);
+        plugin.getFlightCommand().getFlyingTimers().put(p, flyingTimer);
         flyingTimer.runTaskTimerAsynchronously(plugin, 0, 20);
         int minutes = activeTime / 60;
         int seconds = activeTime % 60;

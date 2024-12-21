@@ -56,8 +56,8 @@ public class ItemStackGenerator {
         ShapedRecipe recipe = new ShapedRecipe(key, result);
         String[] shapes = shape.split(":");
 
-        if (shapes[0].contains("D")) recipe.shape(shapes[1], shapes[2]);
-        else if (shapes[2].contains("D")) recipe.shape(shapes[0], shapes[1]);
+        if (shapes[0].contains("DDD")) recipe.shape(shapes[1], shapes[2]);
+        else if (shapes[2].contains("DDD")) recipe.shape(shapes[0], shapes[1]);
         else recipe.shape(shapes[0], shapes[1], shapes[2]);
 
         if (as != null) recipe.setIngredient('A', new RecipeChoice.ExactChoice(as));

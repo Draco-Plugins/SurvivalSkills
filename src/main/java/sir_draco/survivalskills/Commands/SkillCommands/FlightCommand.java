@@ -38,7 +38,7 @@ public class FlightCommand implements CommandExecutor {
 
         // Check if the player has a cooldown
         AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "Flight");
-        if (timer != null) {
+        if (timer != null && !plugin.getSkillManager().getPlayerRewards(p).getReward("Building", "FlightIV").isApplied()) {
             if (timer.isActive()) {
                 if (strings.length > 0 && strings[0].equalsIgnoreCase("left")) {
                     p.sendRawMessage(ChatColor.GREEN + "You have " + ChatColor.AQUA
@@ -47,8 +47,11 @@ public class FlightCommand implements CommandExecutor {
                     return true;
                 }
 
+                if (flyingTimers.containsKey(p)) {
+                    flyingTimers.get(p).removeFlight(p);
+                    flyingTimers.remove(p);
+                }
                 timer.endAbility();
-                flyingTimers.get(p).removeFlight(p);
             }
             else {
                 p.sendRawMessage(ChatColor.RED + "You can use flight again in: " + RewardNotifications.cooldown(timer.getTimeTillReset()));
@@ -120,5 +123,9 @@ public class FlightCommand implements CommandExecutor {
                 + (activeTime / 60) + ChatColor.GREEN + " minutes!");
         p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         return true;
+    }
+
+    public HashMap<Player, FlyingTimer> getFlyingTimers() {
+        return flyingTimers;
     }
 }
