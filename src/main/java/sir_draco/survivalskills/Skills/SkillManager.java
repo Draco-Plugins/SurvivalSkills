@@ -68,7 +68,7 @@ public class SkillManager {
         UUID uuid = p.getUniqueId();
         Skill skill = SkillManager.getSkill(uuid, skillName);
         if (skill.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) {
-            SkillScoreboard.updateScoreboard(plugin, p, "Main");
+            SkillScoreboard.updateScoreboard(plugin, p, skillName);
             if (skill.getLevel() == 100 || skill.isCurrentMaxMessage()) return;
             if (!plugin.getSkillManager().isMaxSkillMessageEnabled(p)) return;
             p.sendRawMessage(ChatColor.DARK_BLUE + "You have reached your current max level for: " + ChatColor.AQUA + skillName);
@@ -77,7 +77,10 @@ public class SkillManager {
             return;
         }
 
-        if (skill.getLevel() >= 100) return;
+        if (skill.getLevel() >= 100) {
+            SkillScoreboard.updateScoreboard(plugin, p, skillName);
+            return;
+        }
         xp = checkXPCap(skill.getExperience(), xp, plugin.getTrophyManager().playerMaxSkillLevel(uuid), skillName);
 
         if (plugin.getToggledScoreboard().containsKey(p.getUniqueId()) && plugin.getToggledScoreboard().get(p.getUniqueId())

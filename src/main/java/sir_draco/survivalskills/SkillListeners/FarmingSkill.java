@@ -13,7 +13,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.HarvesterAsync;
@@ -106,12 +105,20 @@ public class FarmingSkill implements Listener {
     public void hungerEvent(FoodLevelChangeEvent e) {
         Player p = e.getEntity() instanceof Player player ? player : null;
         if (p == null) return;
-        if (autoEat.contains(p) && p.getFoodLevel() < 20) {
+
+        if (plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "NoHunger").isApplied()) {
+            e.setCancelled(true);
+            p.setFoodLevel(20);
+            return;
+        }
+
+        if (autoEat.contains(p)) {
             // Get the first food item in the player's inventory
             for (ItemStack item : p.getInventory().getContents()) {
                 if (item == null) continue;
                 if (item.getType().equals(Material.ROTTEN_FLESH)) continue;
                 if (item.getType().isEdible()) {
+                    e.setCancelled(true);
                     // Get the amount of food the item will restore
                     int foodRestore = getFoodLevelRestorationAmount(item.getType());
                     p.setFoodLevel(Math.min(p.getFoodLevel() + foodRestore, 20));
@@ -126,11 +133,7 @@ public class FarmingSkill implements Listener {
             autoEat.remove(p);
             p.sendRawMessage(ChatColor.YELLOW + "Auto Eat has been disabled.");
             p.playSound(p, Sound.ENTITY_PANDA_EAT, 1, 1);
-            return;
         }
-
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "NoHunger").isApplied()) return;
-        if (p.getFoodLevel() < 20) p.setFoodLevel(20);
     }
 
     public void handleWateringCan(Player p, Block block) {
