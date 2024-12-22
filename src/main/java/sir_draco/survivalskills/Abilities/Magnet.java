@@ -28,17 +28,20 @@ public class Magnet extends BukkitRunnable {
             return;
         }
 
-        for (Entity ent : p.getNearbyEntities(10, 10, 10)) {
+        for (Entity ent : p.getNearbyEntities(20, 20, 20)) {
             if (!(ent instanceof Item)) continue;
             ItemStack item = ((Item) ent).getItemStack();
+            if (p.getLocation().distance(ent.getLocation()) < 1) return;
             ItemMeta meta = item.getItemMeta();
             if (meta == null) continue;
-            String type = meta.getPersistentDataContainer().get(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING);
-            if (type != null)
-                if (type.equals("Trophy")) continue;
+            if (meta.getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey)) {
+                String type = meta.getPersistentDataContainer().get(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING);
+                if (type != null)
+                    if (type.equals("Trophy")) continue;
+            }
 
             Vector toPlayer = ProjectileCalculator.getNoGravityVector(ent.getLocation(), p.getLocation(),
-                    1 / ent.getLocation().distance(p.getLocation()));
+                    ent.getLocation().distance(p.getLocation()) / 2);
             ent.setVelocity(toPlayer);
         }
     }

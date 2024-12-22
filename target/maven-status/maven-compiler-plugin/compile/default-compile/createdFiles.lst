@@ -2,6 +2,7 @@ sir_draco\survivalskills\Commands\AdminCommands\BossCommand.class
 sir_draco\survivalskills\SkillListeners\ArmorListener$2.class
 sir_draco\survivalskills\Trophy\TrophyListener.class
 sir_draco\survivalskills\Boards\SkillScoreboard.class
+sir_draco\survivalskills\SkillListeners\GodListener$1.class
 sir_draco\survivalskills\Trophy\Trophy.class
 sir_draco\survivalskills\Commands\AdminCommands\ToggleOverworldFirstDragon.class
 sir_draco\survivalskills\Trophy\GodQuestline\GodTrophyEffects$1.class

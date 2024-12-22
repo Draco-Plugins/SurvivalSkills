@@ -472,15 +472,9 @@ public class GodListener implements Listener {
             }
         }.runTaskLaterAsynchronously(SurvivalSkills.getInstance(), 20);
 
-        // Check if the player is already converting an ore
-        for (PowerOreConversion conversion : powerOreConversions.values()) {
-            if (conversion.getUUID().equals(p.getUniqueId())) {
-                p.sendRawMessage(ChatColor.RED + "Your life force can only power one ore at a time");
-                p.sendRawMessage(ChatColor.YELLOW + "Your ore is at: " + conversion.getLocation().getBlockX() + ", " +
-                        conversion.getLocation().getBlockY() + ", " + conversion.getLocation().getBlockZ());
-                return;
-            }
-        }
+        // Check if player has unlocked power ore
+        if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre").isApplied()) return;
+
 
         // Check if there is obsidian below the player
         Block block = p.getLocation().getBlock().getRelative(0, -1, 0);
@@ -490,10 +484,21 @@ public class GodListener implements Listener {
         if (!block.getType().equals(Material.OBSIDIAN)) return;
 
         // Check if the player has 50 XP levels
-        if (p.getLevel() < 50) return;
+        if (p.getLevel() < 50) {
+            p.sendRawMessage(ChatColor.RED + "You need 50 levels of experience to power the ore");
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return;
+        }
 
-        // Check if player has unlocked power ore
-        if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre").isApplied()) return;
+        // Check if the player is already converting an ore
+        for (PowerOreConversion conversion : powerOreConversions.values()) {
+            if (conversion.getUUID().equals(p.getUniqueId())) {
+                p.sendRawMessage(ChatColor.RED + "Your life force can only power one ore at a time");
+                p.sendRawMessage(ChatColor.YELLOW + "Your ore is at: " + conversion.getLocation().getBlockX() + ", " +
+                        conversion.getLocation().getBlockY() + ", " + conversion.getLocation().getBlockZ());
+                return;
+            }
+        }
 
         // Take the levels and add a power ore conversion object to the list
         p.setLevel(p.getLevel() - 50);
