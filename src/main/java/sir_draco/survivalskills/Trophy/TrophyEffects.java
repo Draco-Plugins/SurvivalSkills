@@ -111,6 +111,11 @@ public class TrophyEffects extends BukkitRunnable {
     }
 
     public void spawnItem(double x, double y, double z) {
+        if (entity != null) {
+            entity.remove();
+            entity = null;
+        }
+
         // Create the item
         Material mat = getMaterial();
         checkForDuplicate(mat);
@@ -200,6 +205,7 @@ public class TrophyEffects extends BukkitRunnable {
         if (godTrophy != null) godTrophy.remove();
         if (itemList.isEmpty()) return;
         for (Item item : itemList) item.remove();
+        itemList.clear();
     }
 
     public void typeSpecificStart() {
@@ -431,7 +437,7 @@ public class TrophyEffects extends BukkitRunnable {
                 mob.remove();
                 mob = null;
             }
-            else if (chance < 0.2) {
+            else if (mob == null && chance < 0.2) {
                 mob = world.spawnEntity(loc.clone().add(0.5, 1.0, 0.5), EntityType.SQUID);
                 Squid squid = (Squid) mob;
                 squid.setPersistent(true);
@@ -552,7 +558,7 @@ public class TrophyEffects extends BukkitRunnable {
                 mob.remove();
                 mob = null;
             }
-            else if (chance < 0.1) {
+            else if (mob == null && chance < 0.1) {
                 mob = world.spawnEntity(loc.clone().add(0.5, 1.0, 0.5), EntityType.ENDERMAN);
                 Enderman eman = (Enderman) mob;
                 eman.setPersistent(true);
@@ -566,7 +572,6 @@ public class TrophyEffects extends BukkitRunnable {
     }
 
     public void championParticles() {
-        //if (cycle % 5 != 0) return;
         if (cycle == 360) cycle = 1;
         moveChampionItems();
     }
@@ -582,7 +587,10 @@ public class TrophyEffects extends BukkitRunnable {
     public void moveChampionItems() {
         for (Item item : itemList) {
             item.setVelocity(mobTrophyOrbital.getVelocityVector(item.getLocation(), 0.04));
-            if (mobTrophyOrbital.tooFar(item.getLocation())) resetLocation();
+            if (mobTrophyOrbital.tooFar(item.getLocation())) {
+                resetLocation();
+                break;
+            }
         }
     }
 

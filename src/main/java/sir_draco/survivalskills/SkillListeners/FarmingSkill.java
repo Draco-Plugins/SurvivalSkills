@@ -11,6 +11,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
@@ -102,8 +103,9 @@ public class FarmingSkill implements Listener {
     }
 
     @EventHandler
-    public void playerHungerManager(PlayerMoveEvent e) {
-        Player p = e.getPlayer();
+    public void hungerEvent(FoodLevelChangeEvent e) {
+        Player p = e.getEntity() instanceof Player player ? player : null;
+        if (p == null) return;
         if (autoEat.contains(p) && p.getFoodLevel() < 20) {
             // Get the first food item in the player's inventory
             for (ItemStack item : p.getInventory().getContents()) {

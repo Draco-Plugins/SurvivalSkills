@@ -332,6 +332,7 @@ public class FishingSkill implements Listener {
 
         ItemStack item = e.getItem().getItemStack();
         if (item.getItemMeta() != null && item.getItemMeta().hasCustomModelData()) return;
+        if (item.getItemMeta() != null && item.getItemMeta().getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey)) return;
         if (trashInventories.containsKey(p)) {
             AutoTrash trash = trashInventories.get(p);
             if (trash == null) return;
