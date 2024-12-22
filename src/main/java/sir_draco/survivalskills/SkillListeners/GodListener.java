@@ -29,8 +29,10 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.GodItems.EnderEssence;
+import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Trophy.GodQuestline.GodRecipeUI;
 import sir_draco.survivalskills.Trophy.GodQuestline.GodTrophyQuest;
@@ -50,6 +52,7 @@ public class GodListener implements Listener {
     private final HashMap<Integer, Inventory> potionBags = new HashMap<>();
     private final HashMap<Player, GodRecipeUI> openGodRecipeUI = new HashMap<>();
     private final HashMap<Location, PowerOreConversion> powerOreConversions = new HashMap<>();
+    private final ArrayList<Player> conversionCooldowns = new ArrayList<>();
     private final ArrayList<PotionEffectType> potionEffects = new ArrayList<>();
     private final ArrayList<Inventory> openPotionBags = new ArrayList<>();
 
@@ -278,6 +281,7 @@ public class GodListener implements Listener {
     public void onPlayerDamageByLightning(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player p)) return;
         if (!e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING)) return;
+        if (conversionCooldowns.contains(p)) return;
         tryPowerOreConversion(p);
     }
 
@@ -299,6 +303,23 @@ public class GodListener implements Listener {
         e.setDropItems(false);
         conversion.breakOre();
         powerOreConversions.remove(loc);
+    }
+
+    @EventHandler
+    public void onPlayerClickPowerOreConversion(PlayerInteractEvent e) {
+        if (e.getHand() == null || !e.getHand().equals(EquipmentSlot.HAND)) return;
+        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+        Player p = e.getPlayer();
+        Block block = e.getClickedBlock();
+        if (block == null) return;
+        Location loc = block.getLocation();
+        if (!powerOreConversions.containsKey(loc)) return;
+        PowerOreConversion conversion = powerOreConversions.get(loc);
+        if (!conversion.getUUID().equals(p.getUniqueId())) return;
+
+        // Tell the player how much time is left
+        p.sendRawMessage(ChatColor.YELLOW + "Time left: " + RewardNotifications.cooldown(conversion.getSecondsLeft()));
+        p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
     }
 
     @EventHandler
@@ -442,10 +463,21 @@ public class GodListener implements Listener {
     }
 
     public void tryPowerOreConversion(Player p) {
+        // Add cooldown for player
+        conversionCooldowns.add(p);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                conversionCooldowns.remove(p);
+            }
+        }.runTaskLaterAsynchronously(SurvivalSkills.getInstance(), 20);
+
         // Check if the player is already converting an ore
         for (PowerOreConversion conversion : powerOreConversions.values()) {
             if (conversion.getUUID().equals(p.getUniqueId())) {
                 p.sendRawMessage(ChatColor.RED + "Your life force can only power one ore at a time");
+                p.sendRawMessage(ChatColor.YELLOW + "Your ore is at: " + conversion.getLocation().getBlockX() + ", " +
+                        conversion.getLocation().getBlockY() + ", " + conversion.getLocation().getBlockZ());
                 return;
             }
         }
@@ -453,6 +485,8 @@ public class GodListener implements Listener {
         // Check if there is obsidian below the player
         Block block = p.getLocation().getBlock().getRelative(0, -1, 0);
         Location loc = block.getLocation();
+        if (loc.getWorld() == null) return;
+        if (!loc.getWorld().getEnvironment().equals(World.Environment.NORMAL)) return;
         if (!block.getType().equals(Material.OBSIDIAN)) return;
 
         // Check if the player has 50 XP levels
