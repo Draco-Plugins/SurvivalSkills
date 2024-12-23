@@ -175,6 +175,9 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             case "powerore" -> ItemStackGenerator.getPowerOre();
             case "godtrophybase" -> ItemStackGenerator.getGodTrophyBase();
             case "unlimitedsponge" -> ItemStackGenerator.getUnlimitedSponge();
+            case "giantbossitem" -> ItemStackGenerator.getGiantBossItem();
+            case "broodmotherbossitem" -> ItemStackGenerator.getBroodMotherBossItem();
+            case "villagerbossitem" -> ItemStackGenerator.getVillagerBossItem();
             default -> null;
         };
     }
