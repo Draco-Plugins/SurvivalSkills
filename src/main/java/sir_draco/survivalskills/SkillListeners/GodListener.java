@@ -2,6 +2,7 @@ package sir_draco.survivalskills.SkillListeners;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -80,25 +81,37 @@ public class GodListener implements Listener {
         if (!godItems.containsKey(type)) return;
 
         // Special cases
-        if (type.equals(EntityType.ENDER_DRAGON) && chance <= 0.1)
+        if (type.equals(EntityType.ENDER_DRAGON) && chance <= 0.1) {
             e.getDrops().add(godItems.get(type));
+            e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
+        }
         else if (type.equals(EntityType.CREEPER)) {
             Creeper creeper = (Creeper) e.getEntity();
-            if (creeper.isPowered() && chance <= 0.01)
+            if (creeper.isPowered() && chance <= 0.01) {
                 e.getDrops().add(godItems.get(type));
-            else if (chance <= 0.001)
+                e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
+            }
+            else if (chance <= 0.001) {
                 e.getDrops().add(godItems.get(type));
+                e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
+            }
         }
-        else if (type.equals(EntityType.BREEZE) && chance <= 0.01)
+        else if (type.equals(EntityType.BREEZE) && chance <= 0.01) {
             e.getDrops().add(godItems.get(type));
+            e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
+        }
 
         // Rest of the mobs
         if (chance > 0.001) return;
 
-        if (type.equals(EntityType.WITCH))
+        if (type.equals(EntityType.WITCH)) {
+            e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
             e.getDrops().add(ItemStackGenerator.getPotionBag(previousPotionBagID++));
-        else
+        }
+        else {
             e.getDrops().add(godItems.get(type));
+            e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
+        }
     }
 
     @EventHandler
@@ -169,6 +182,29 @@ public class GodListener implements Listener {
             e.setCancelled(true);
             Trident trident = p.launchProjectile(Trident.class, p.getLocation().getDirection().multiply(2));
             trident.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
+        }
+        else if (modelData == 46) {
+            e.setCancelled(true);
+            if (e.getHand() == null) return;
+            if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+
+            if (e.getClickedBlock() == null) return;
+
+            // Check if it is in a claim
+            if (SurvivalSkills.getInstance().isGriefPreventionEnabled() && SurvivalSkills.getInstance().checkForClaim(p, e.getClickedBlock().getLocation())) return;
+            // Check if they are in spawn
+            if (SurvivalSkills.getInstance().isWorldGuardEnabled()) {
+                boolean canPlace = SurvivalSkills.getInstance().canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
+                if (!canPlace) return;
+            }
+
+            // Place sponge if possible
+            Block desiredBlock = e.getClickedBlock().getRelative(e.getBlockFace());
+            if (!desiredBlock.getType().isAir() && !desiredBlock.getType().equals(Material.WATER)) return;
+            BlockState state = desiredBlock.getState();
+            state.setType(Material.SPONGE);
+            desiredBlock.setType(Material.SPONGE);
+            state.update(true);
         }
     }
 
@@ -521,6 +557,7 @@ public class GodListener implements Listener {
         godItems.put(EntityType.DROWNED, ItemStackGenerator.getTridentLauncher());
         godItems.put(EntityType.BREEZE, ItemStackGenerator.getMagicBagOfWind());
         godItems.put(EntityType.ENDER_DRAGON, ItemStackGenerator.getDragonBreathCannon());
+        godItems.put(EntityType.GUARDIAN, ItemStackGenerator.getUnlimitedSponge());
     }
 
     public void createPotionList() {

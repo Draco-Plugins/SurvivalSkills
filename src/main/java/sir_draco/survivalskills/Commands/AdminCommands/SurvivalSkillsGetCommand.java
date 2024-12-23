@@ -174,6 +174,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             case "tridentlauncher" -> ItemStackGenerator.getTridentLauncher();
             case "powerore" -> ItemStackGenerator.getPowerOre();
             case "godtrophybase" -> ItemStackGenerator.getGodTrophyBase();
+            case "unlimitedsponge" -> ItemStackGenerator.getUnlimitedSponge();
             default -> null;
         };
     }

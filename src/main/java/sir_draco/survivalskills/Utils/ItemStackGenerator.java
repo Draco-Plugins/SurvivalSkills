@@ -1058,4 +1058,10 @@ public class ItemStackGenerator {
         loreList.add(ChatColor.GRAY + "Used to craft the God Trophy");
         return createCustomItem(Material.LIGHT_WEIGHTED_PRESSURE_PLATE, 1, name, null, null, loreList, 45, false, null);
     }
+
+    public static ItemStack getUnlimitedSponge() {
+        String name = ColorParser.colorizeString("Unlimited Sponge", ColorParser.generateGradient("#ADFDDD", "#F8FB08", "Unlimited Sponge"), true);
+        String lore = ChatColor.GRAY + "Soak up the world!";
+        return createCustomItem(Material.SPONGE, 1, name, null, lore, null, 46, false, null);
+    }
 }

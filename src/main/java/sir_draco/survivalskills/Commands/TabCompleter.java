@@ -132,6 +132,7 @@ public class TabCompleter implements Listener {
         words.add("tridentlauncher");
         words.add("powerore");
         words.add("godtrophybase");
+        words.add("unlimitedsponge");
         e.setCompletions(getCompletions(buffer, words));
     }
 

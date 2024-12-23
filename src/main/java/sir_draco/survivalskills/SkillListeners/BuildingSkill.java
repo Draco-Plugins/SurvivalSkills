@@ -377,5 +377,6 @@ public class BuildingSkill implements Listener {
         brokenBlocks.add("GLOW_BERRIES");
         brokenBlocks.add("DRAGON_WALL_HEAD");
         brokenBlocks.add("TRIPWIRE");
+        brokenBlocks.add("FIRE");
     }
 }

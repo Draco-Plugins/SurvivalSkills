@@ -34,7 +34,9 @@ public class Magnet extends BukkitRunnable {
             if (p.getLocation().distance(ent.getLocation()) < 1) return;
             ItemMeta meta = item.getItemMeta();
             if (meta == null) continue;
-            if (meta.getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey)) {
+            if (!meta.getPersistentDataContainer().isEmpty()
+                    && meta.getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey)
+                    && meta.getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING)) {
                 String type = meta.getPersistentDataContainer().get(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING);
                 if (type != null)
                     if (type.equals("Trophy")) continue;

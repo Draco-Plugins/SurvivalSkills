@@ -2,6 +2,7 @@ package sir_draco.survivalskills.Abilities;
 
 import org.bukkit.Color;
 import org.bukkit.Particle;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -29,7 +30,10 @@ public class BloodyDomain extends BukkitRunnable {
         }
 
         for (LivingEntity ent : entities) {
-            ent.damage(ent.getHealth(), p);
+            AttributeInstance attribute = ent.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
+            if (attribute == null) return;
+            double maxHealth = attribute.getValue();
+            ent.damage(maxHealth, p);
             ProjectileCalculator.particleLine(p.getLocation(), ent.getLocation(), Particle.DUST, Color.RED);
         }
     }
