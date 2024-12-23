@@ -248,7 +248,7 @@ public class VillagerBoss extends Boss {
 
     @Override
     public void deathAnimation() {
-        music.setDead(true);
+        if (music != null) music.setDead(true);
         Villager dummy = (Villager) villager.getWorld().spawnEntity(villager.getLocation(), EntityType.VILLAGER);
         dummy.setCanPickupItems(false);
         dummy.setAI(true);
