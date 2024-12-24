@@ -16,7 +16,6 @@ import java.util.*;
 
 import static org.bukkit.Bukkit.getServer;
 
-@SuppressWarnings("UnstableApiUsage")
 public class ItemStackGenerator {
 
     public static NamespacedKey skillsItemKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "SurvivalSkills");
@@ -1064,40 +1063,5 @@ public class ItemStackGenerator {
         String name = ColorParser.colorizeString("Unlimited Sponge", ColorParser.generateGradient("#ADFDDD", "#F8FB08", "Unlimited Sponge"), true);
         String lore = ChatColor.GRAY + "Soak up the world!";
         return createCustomItem(Material.SPONGE, 1, name, null, lore, null, 46, false, null);
-    }
-
-    public static ItemStack getPowerSword() {
-        String name = ColorParser.colorizeString("Power Sword", ColorParser.generateGradient("#8008FB", "#FD242D", "Power Sword"), true);
-        ArrayList<String> loreList = new ArrayList<>();
-        loreList.add(ChatColor.GRAY + "The sword is teeming with energy");
-        loreList.add(ChatColor.LIGHT_PURPLE + "Right click to strike lightning nearby");
-        ItemStack sword = createCustomItem(Material.NETHERITE_SWORD, 1, name, null, null, loreList, 47, false, null);
-        ItemMeta meta = sword.getItemMeta();
-        if (meta == null) return sword;
-        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE, new AttributeModifier(skillsItemKey, 14, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
-        meta.setUnbreakable(true);
-        sword.setItemMeta(meta);
-        return sword;
-    }
-
-    public static ItemStack getPowerDrill() {
-        String name = ColorParser.colorizeString("Power Drill", ColorParser.generateGradient("#8008FB", "#FD242D", "Power Drill"), true);
-        ArrayList<String> loreList = new ArrayList<>();
-        loreList.add(ChatColor.GRAY + "The drill is teeming with energy");
-        loreList.add(ChatColor.LIGHT_PURPLE + "Demolish blocks with ease");
-        ItemStack drill = createCustomItem(Material.WOODEN_PICKAXE, 1, name, null, null, loreList, 48, false, null);
-        ItemMeta meta = drill.getItemMeta();
-        if (meta == null) return drill;
-        meta.setUnbreakable(true);
-        drill.setItemMeta(meta);
-        return drill;
-    }
-
-    public static ItemStack getBroodingSilk() {
-        String name = ColorParser.colorizeString("Brooding Silk", ColorParser.generateGradient("#FFFFFF", "#43000E", "Brooding Silk"), true);
-        ArrayList<String> loreList = new ArrayList<>();
-        loreList.add(ChatColor.GRAY + "The queen's web is stronger than usual");
-        loreList.add(ChatColor.GRAY + "A rare drop from the Broodmother");
-        return createCustomItem(Material.STRING, 1, name, null, null, loreList, 49, false, null);
     }
 }
