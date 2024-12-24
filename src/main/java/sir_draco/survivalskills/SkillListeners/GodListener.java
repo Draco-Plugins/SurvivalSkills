@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
@@ -32,7 +33,9 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import sir_draco.survivalskills.Abilities.AbilityManager;
 import sir_draco.survivalskills.Abilities.GodItems.EnderEssence;
+import sir_draco.survivalskills.Abilities.PowerDrillAsync;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Trophy.GodQuestline.GodRecipeUI;
@@ -53,6 +56,7 @@ public class GodListener implements Listener {
     private final HashMap<Integer, Inventory> potionBags = new HashMap<>();
     private final HashMap<Player, GodRecipeUI> openGodRecipeUI = new HashMap<>();
     private final HashMap<Location, PowerOreConversion> powerOreConversions = new HashMap<>();
+    private final HashMap<Player, ArrayList<Block>> drillTracker = new HashMap<>();
     private final ArrayList<Player> conversionCooldowns = new ArrayList<>();
     private final ArrayList<PotionEffectType> potionEffects = new ArrayList<>();
     private final ArrayList<Inventory> openPotionBags = new ArrayList<>();
@@ -206,6 +210,13 @@ public class GodListener implements Listener {
             desiredBlock.setType(Material.SPONGE);
             state.update(true);
         }
+        else if (modelData == 47) {
+            // Throw lightning bolts down near the player
+            e.setCancelled(true);
+            Location loc = p.getLocation();
+            if (loc.getWorld() == null) return;
+            for (int i = 0; i < 8; i++) loc.getWorld().strikeLightning(getSafeNearbyLocation(loc));
+        }
     }
 
     @EventHandler
@@ -263,12 +274,17 @@ public class GodListener implements Listener {
     }
 
     @EventHandler
-    public void protectPlayerFromCreeperEssence(EntityDamageEvent e) {
-        if (!e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) &&
-                !e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) return;
+    public void handleGodDamage(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player p)) return;
-        if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 37))
+        if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 47)) {
+            if (!e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING)) return;
             e.setCancelled(true);
+        }
+        if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 37)) {
+            if (!e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) &&
+                    !e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) return;
+            e.setCancelled(true);
+        }
     }
 
     @EventHandler
@@ -325,20 +341,45 @@ public class GodListener implements Listener {
     public void onPlayerBreakPowerOre(BlockBreakEvent e) {
         Player p = e.getPlayer();
         Block block = e.getBlock();
-        if (!block.getType().equals(Material.OBSIDIAN)) return;
         Location loc = block.getLocation();
-        if (!powerOreConversions.containsKey(loc)) return;
-        PowerOreConversion conversion = powerOreConversions.get(loc);
-        if (!conversion.getUUID().equals(p.getUniqueId())) {
-            e.setCancelled(true);
-            p.sendRawMessage(ChatColor.RED + "This is not your ore to break");
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+
+        if (block.getType().equals(Material.OBSIDIAN) && powerOreConversions.containsKey(loc)) {
+            PowerOreConversion conversion = powerOreConversions.get(loc);
+            if (!conversion.getUUID().equals(p.getUniqueId())) {
+                e.setCancelled(true);
+                p.sendRawMessage(ChatColor.RED + "This is not your ore to break");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return;
+            }
+
+            e.setDropItems(false);
+            conversion.breakOre();
+            powerOreConversions.remove(loc);
             return;
         }
 
-        e.setDropItems(false);
-        conversion.breakOre();
-        powerOreConversions.remove(loc);
+        if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 48)) {
+            // Make sure the player has the ability to drill
+            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre").isApplied()) {
+                p.sendRawMessage(ChatColor.RED + "Unlock power ore to use the drill at level: " + ChatColor.AQUA +
+                        SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards().getReward("Mining", "PowerOre").getLevel());
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return;
+            }
+
+            // Make sure this block isn't part of a previous drill task
+            if (!drillTracker.containsKey(p)) drillTracker.put(p, new ArrayList<>());
+            if (drillTracker.get(p).contains(e.getBlock())) {
+                drillTracker.get(p).remove(e.getBlock());
+                return;
+            }
+
+            // Prevent drill crossover by ignoring air blocks
+            if (block.getType().equals(Material.AIR)) return;
+
+            PowerDrillAsync drillTask = new PowerDrillAsync(SurvivalSkills.getInstance(), p, this, e.getBlock());
+            drillTask.runTaskAsynchronously(SurvivalSkills.getInstance());
+        }
     }
 
     @EventHandler
@@ -383,6 +424,19 @@ public class GodListener implements Listener {
         if (!openGodRecipeUI.get(p).getInventories().get(openGodRecipeUI.get(p).getCurrentInv()).equals(e.getInventory()))
             return;
         openGodRecipeUI.remove(p);
+    }
+
+    @EventHandler
+    public void powerSwordAttack(EntityDamageByEntityEvent e) {
+        if (!(e.getDamager() instanceof Player p)) return;
+        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 47)) return;
+        if (!(e.getEntity() instanceof LivingEntity)) return;
+
+        for (Entity ent : p.getNearbyEntities(10, 10, 10)) {
+            if (!AbilityManager.getDomainMobs().contains(ent.getType())) continue;
+            if (!(ent instanceof LivingEntity livingEnt)) continue;
+            livingEnt.getWorld().strikeLightning(livingEnt.getLocation());
+        }
     }
 
     public PotionEffect getRandomPotionEffect() {
@@ -565,11 +619,27 @@ public class GodListener implements Listener {
             potionEffects.add(type);
     }
 
+    public Location getSafeNearbyLocation(Location loc) {
+        Location newLoc = loc.clone();
+        double xOff = (Math.random() - 0.5) * 20;
+        double zOff = (Math.random() - 0.5) * 20;
+        if (Math.abs(xOff) < 5) xOff = 5 * Math.signum(xOff);
+        else if (Math.abs(zOff) < 5) zOff = 5 * Math.signum(zOff);
+        newLoc.add(xOff, 0, zOff);
+        // Touch ground
+        while (newLoc.getBlock().getType().isAir()) newLoc.add(0, -1, 0);
+        return newLoc;
+    }
+
     public HashMap<Player, GodRecipeUI> getOpenGodRecipeUI() {
         return openGodRecipeUI;
     }
 
     public HashMap<Integer, Inventory> getPotionBags() {
         return potionBags;
+    }
+
+    public HashMap<Player, ArrayList<Block>> getDrillTracker() {
+        return drillTracker;
     }
 }

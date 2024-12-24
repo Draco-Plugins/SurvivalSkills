@@ -41,7 +41,7 @@ import java.util.Map;
 public class MiningSkill implements Listener {
 
     private final SurvivalSkills plugin;
-    private final ArrayList<Material> ores = new ArrayList<>();
+    private static final ArrayList<Material> ores = new ArrayList<>();
     private final ArrayList<Material> commonOres = new ArrayList<>();
     private final ArrayList<Material> uncommonOres = new ArrayList<>();
     private final ArrayList<Material> rareOres = new ArrayList<>();

@@ -21,19 +21,13 @@ public class BloodyDomain extends BukkitRunnable {
 
     @Override
     public void run() {
-        ArrayList<LivingEntity> entities = new ArrayList<>();
-
         for (Entity ent : p.getNearbyEntities(10, 10, 10)) {
             if (!AbilityManager.getDomainMobs().contains(ent.getType())) continue;
             if (!(ent instanceof LivingEntity livingEnt)) continue;
-            entities.add(livingEnt);
-        }
-
-        for (LivingEntity ent : entities) {
-            AttributeInstance attribute = ent.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
+            AttributeInstance attribute = livingEnt.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
             if (attribute == null) return;
             double maxHealth = attribute.getValue();
-            ent.damage(maxHealth, p);
+            livingEnt.damage(maxHealth, p);
             ProjectileCalculator.particleLine(p.getLocation(), ent.getLocation(), Particle.DUST, Color.RED);
         }
     }
