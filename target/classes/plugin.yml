@@ -1,5 +1,9 @@
 name: SurvivalSkills
+<<<<<<< HEAD
 version: '2.1'
+=======
+version: '2.2'
+>>>>>>> parent of d678d35 (Delete target directory)
 main: sir_draco.survivalskills.SurvivalSkills
 api-version: '1.21'
 authors: [ Sir Draco ]
