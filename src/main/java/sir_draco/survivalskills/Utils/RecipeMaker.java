@@ -371,6 +371,13 @@ public class RecipeMaker {
         NamespacedKey fireworkcannon = createKey("fireworkcannon", plugin);
         NamespacedKey sortwand = createKey("sortwand", plugin);
         NamespacedKey magnetKey = createKey("magnet", plugin);
+        NamespacedKey powerSwordKey = createKey("powersword", plugin);
+        NamespacedKey powerDrillKey = createKey("powerdrill", plugin);
+        NamespacedKey powerLaserKey = createKey("powerlaser", plugin);
+        NamespacedKey powerHelmetKey = createKey("powerhelmet", plugin);
+        NamespacedKey powerChestplateKey = createKey("powerchestplate", plugin);
+        NamespacedKey powerLeggingsKey = createKey("powerleggings", plugin);
+        NamespacedKey powerBootsKey = createKey("powerboots", plugin);
 
         ItemStackGenerator.createSmallShapedRecipe(torchKey, ItemStackGenerator.getUnlimitedTorch(), "ABA:BCB:ABA",
                 null, null, null, Material.LAVA_BUCKET, Material.COAL_BLOCK, Material.TORCH);
@@ -472,6 +479,12 @@ public class RecipeMaker {
                 null, null, null, Material.COMPARATOR, Material.BLAZE_ROD, Material.CHEST);
         ItemStackGenerator.createSmallShapedRecipe(magnetKey, ItemStackGenerator.getMagnet(), "ABA:BCB:ABA",
                 null, null, null, Material.IRON_BLOCK, Material.REDSTONE_BLOCK, Material.COPPER_BLOCK);
+
+        // Power Ore Suite
+        ItemStackGenerator.createSmallShapedRecipe(powerSwordKey, ItemStackGenerator.getPowerSword(), "DAD:BAB:DCD",
+                ItemStackGenerator.getPowerOre(), ItemStackGenerator.getZapWand(), ItemStackGenerator.getBroodingSilk(), null, null, null);
+        ItemStackGenerator.createSmallShapedRecipe(powerDrillKey, ItemStackGenerator.getPowerDrill(), "DAD:ABA:DBD",
+                ItemStackGenerator.getPowerOre(), null, null, null, Material.BEACON, null);
     }
 
     public static void godRecipes(SurvivalSkills plugin) {
