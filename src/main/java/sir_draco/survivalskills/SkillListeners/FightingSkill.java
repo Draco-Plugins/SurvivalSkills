@@ -32,6 +32,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class FightingSkill implements Listener {
 
@@ -96,6 +97,16 @@ public class FightingSkill implements Listener {
                     case VILLAGER:
                         removeVillager(e.getEntity());
                 }
+
+                // Find the player that spawned this boss
+                for (Map.Entry<Player, Boss> entry : summonTracker.entrySet()) {
+                    if (!entry.getValue().getBoss().equals(e.getEntity())) continue;
+                    p = entry.getKey();
+                    break;
+                }
+                if (p == null) return;
+                summonTracker.remove(p);
+                p.sendRawMessage(ChatColor.YELLOW + "Your boss died unnaturally");
             }
             return;
         }
@@ -103,29 +114,32 @@ public class FightingSkill implements Listener {
         if (isBoss(e.getEntity()) || e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
             summonTracker.remove(p);
 
-            ItemStack drop = new ItemStack(Material.AIR);
+            ArrayList<ItemStack> drops = new ArrayList<>();
             switch (e.getEntity().getType()) {
                 case ZOMBIE:
-                    drop = ItemStackGenerator.getGiantBossItem();
+                    drops.add(ItemStackGenerator.getGiantBossItem());
                     removeGiant(e.getEntity());
                     Bukkit.broadcastMessage(ChatColor.AQUA + "The Giant" + ChatColor.LIGHT_PURPLE + " has been slain!");
                     killExperience(p, plugin.getSkillManager().getFightingXP() * 500);
                     break;
                 case SPIDER:
-                    drop = ItemStackGenerator.getBroodMotherBossItem();
+                    drops.add(ItemStackGenerator.getBroodMotherBossItem());
+                    if (Math.random() < 0.2) drops.add(ItemStackGenerator.getBroodingSilk());
                     removeBroodMother(e.getEntity());
                     Bukkit.broadcastMessage(ChatColor.AQUA + "The BroodMother" + ChatColor.LIGHT_PURPLE + " has been slain!");
                     killExperience(p, plugin.getSkillManager().getFightingXP() * 1000);
                     break;
                 case VILLAGER:
-                    drop = ItemStackGenerator.getVillagerBossItem();
+                    drops.add(ItemStackGenerator.getVillagerBossItem());
                     removeVillager(e.getEntity());
                     Bukkit.broadcastMessage(ChatColor.AQUA + "The Exiled One" + ChatColor.LIGHT_PURPLE + " has been slain!");
                     killExperience(p, plugin.getSkillManager().getFightingXP() * 5000);
                     break;
                 case ENDER_DRAGON:
                     if (dragonBoss != null) {
-                        if (p != null) p.getInventory().addItem(ItemStackGenerator.getEnderDragonBossItem());
+                        if (p != null && !p.getInventory().addItem(ItemStackGenerator.getEnderDragonBossItem()).isEmpty())
+                                drops.add(ItemStackGenerator.getEnderDragonBossItem());
+
                         World world = dragonBoss.getBoss().getWorld();
                         dragonBoss.deathAnimation();
                         dragonBoss = null;
@@ -143,7 +157,8 @@ public class FightingSkill implements Listener {
                     else Bukkit.getLogger().warning("Error finding custom dragon");
                     break;
             }
-            e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), drop);
+            for (ItemStack drop : drops)
+                e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), drop);
             e.setDroppedExp(0);
             return;
         }
