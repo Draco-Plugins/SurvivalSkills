@@ -2,6 +2,7 @@ package sir_draco.survivalskills.Abilities;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -12,6 +13,7 @@ import sir_draco.survivalskills.SkillListeners.GodListener;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class PowerDrillAsync extends BukkitRunnable {
 
@@ -35,6 +37,7 @@ public class PowerDrillAsync extends BukkitRunnable {
         ArrayList<Block> eventBlockTrackingList = new ArrayList<>(blocks);
         listener.getDrillTracker().put(p, eventBlockTrackingList);
         ItemStack pickaxe = p.getInventory().getItemInMainHand();
+
         // Break all the blocks around a block in the list 1 tick at a time
         new BukkitRunnable() {
             int i = 0;
@@ -44,19 +47,22 @@ public class PowerDrillAsync extends BukkitRunnable {
                     cancel();
                     return;
                 }
+
                 for (int j = 0; j <= 8; j++) {
                     if (i + j >= blocks.size()) break;
+                    if (j == 0) Objects.requireNonNull(block.getLocation().getWorld()).playSound(block.getLocation(),
+                                Sound.BLOCK_ANVIL_FALL, 1, 1);
                     Block block = blocks.get(i + j);
                     breakBlock(block, p, pickaxe);
                 }
-                i++;
+                i += 9;
             }
         }.runTaskTimer(plugin, 0, 1);
     }
     public ArrayList<Block> getBlocks(Block block) {
         ArrayList<Block> blocks = new ArrayList<>();
         blocks.add(block);
-        Location startingLocation = block.getLocation().clone();
+        Location startingLocation = block.getLocation().clone().add(0.5, 0.5, 0.5);
         // Move 19 blocks forward in the direction of the player
         for (int i = 1; i <= 19; i++) {
             startingLocation.add(direction);
@@ -77,6 +83,7 @@ public class PowerDrillAsync extends BukkitRunnable {
         return blocks;
     }
     public void breakBlock(Block block, Player p, ItemStack tool) {
+        if (block.getType().isAir()) return;
         BlockBreakEvent event = new BlockBreakEvent(block, p);
         Bukkit.getServer().getPluginManager().callEvent(event);
         if (!event.isCancelled()) block.breakNaturally(tool);

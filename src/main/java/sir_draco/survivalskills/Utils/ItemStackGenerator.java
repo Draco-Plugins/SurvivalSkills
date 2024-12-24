@@ -1085,9 +1085,10 @@ public class ItemStackGenerator {
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "The drill is teeming with energy");
         loreList.add(ChatColor.LIGHT_PURPLE + "Demolish blocks with ease");
-        ItemStack drill = createCustomItem(Material.WOODEN_PICKAXE, 1, name, null, null, loreList, 48, false, null);
+        ItemStack drill = createCustomItem(Material.NETHERITE_PICKAXE, 1, name, null, null, loreList, 48, false, null);
         ItemMeta meta = drill.getItemMeta();
         if (meta == null) return drill;
+        meta.addAttributeModifier(Attribute.BLOCK_BREAK_SPEED, new AttributeModifier(skillsItemKey, -0.75, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setUnbreakable(true);
         drill.setItemMeta(meta);
         return drill;

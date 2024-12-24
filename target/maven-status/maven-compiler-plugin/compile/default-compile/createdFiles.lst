@@ -8,6 +8,7 @@ sir_draco\survivalskills\Commands\AdminCommands\ToggleOverworldFirstDragon.class
 sir_draco\survivalskills\Trophy\GodQuestline\GodTrophyEffects$1.class
 sir_draco\survivalskills\Bosses\GiantBoss$9.class
 sir_draco\survivalskills\Abilities\TrailEffect.class
+sir_draco\survivalskills\Abilities\PowerDrillAsync$1.class
 sir_draco\survivalskills\Trophy\TrophyManager.class
 sir_draco\survivalskills\Abilities\GodItems\EnderEssence$1.class
 sir_draco\survivalskills\Bosses\GiantBoss$3.class
@@ -147,6 +148,7 @@ sir_draco\survivalskills\Abilities\DeathLocationTimer.class
 sir_draco\survivalskills\Commands\AdminCommands\GetTrophyCommand.class
 sir_draco\survivalskills\Commands\SkillCommands\FlightCommand.class
 sir_draco\survivalskills\Commands\SkillCommands\ToolBeltCommand.class
+sir_draco\survivalskills\Abilities\PowerDrillAsync.class
 sir_draco\survivalskills\SkillListeners\FishingSkill$1.class
 sir_draco\survivalskills\Commands\SkillCommands\MobScannerCommand.class
 sir_draco\survivalskills\Commands\SkillCommands\NightVisionCommand.class
