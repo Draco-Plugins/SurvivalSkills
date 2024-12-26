@@ -1101,4 +1101,12 @@ public class ItemStackGenerator {
         loreList.add(ChatColor.GRAY + "A rare drop from the Broodmother");
         return createCustomItem(Material.STRING, 1, name, null, null, loreList, 49, false, null);
     }
+
+    public static ItemStack getPowerLaser() {
+        String name = ColorParser.colorizeString("Power Laser", ColorParser.generateGradient("#8008FB", "#FD242D", "Power Laser"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "The laser is teeming with energy");
+        loreList.add(ChatColor.LIGHT_PURPLE + "Right click to shoot a laser");
+        return createCustomItem(Material.END_CRYSTAL, 1, name, null, null, loreList, 50, false, null);
+    }
 }

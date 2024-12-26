@@ -114,7 +114,7 @@ public final class SurvivalSkills extends JavaPlugin {
         config = YamlConfiguration.loadConfiguration(configFile);
 
         // See if an update needs to be made to the config
-        if (config.get("Version") == null || config.getDouble("Version") != 2.2) updateConfig();
+        if (config.get("Version") == null || config.getDouble("Version") != 2.21) updateConfig();
         skillManager = new SkillManager(this);
 
         trophyFile = new File(getDataFolder(), "trophydata.yml");

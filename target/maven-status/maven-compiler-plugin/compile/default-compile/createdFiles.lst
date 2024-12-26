@@ -72,6 +72,7 @@ sir_draco\survivalskills\Bosses\GiantBoss$7.class
 sir_draco\survivalskills\Trophy\GodQuestline\PowerOreConversion.class
 sir_draco\survivalskills\Trophy\TrophyEffects.class
 sir_draco\survivalskills\Abilities\AbilityTimer.class
+sir_draco\survivalskills\Abilities\PowerLaser.class
 sir_draco\survivalskills\Commands\AdminCommands\SkillsMultiplierCommand.class
 sir_draco\survivalskills\Abilities\FlyingTimer.class
 sir_draco\survivalskills\Bosses\DragonBoss$1.class

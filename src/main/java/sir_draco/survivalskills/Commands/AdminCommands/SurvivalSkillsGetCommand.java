@@ -180,6 +180,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             case "villagerbossitem" -> ItemStackGenerator.getVillagerBossItem();
             case "powersword" -> ItemStackGenerator.getPowerSword();
             case "powerdrill" -> ItemStackGenerator.getPowerDrill();
+            case "powerlaser" -> ItemStackGenerator.getPowerLaser();
             default -> null;
         };
     }

@@ -36,6 +36,7 @@ import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.AbilityManager;
 import sir_draco.survivalskills.Abilities.GodItems.EnderEssence;
 import sir_draco.survivalskills.Abilities.PowerDrillAsync;
+import sir_draco.survivalskills.Abilities.PowerLaser;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Trophy.GodQuestline.GodRecipeUI;
@@ -57,6 +58,7 @@ public class GodListener implements Listener {
     private final HashMap<Player, GodRecipeUI> openGodRecipeUI = new HashMap<>();
     private final HashMap<Location, PowerOreConversion> powerOreConversions = new HashMap<>();
     private final HashMap<Player, ArrayList<Block>> drillTracker = new HashMap<>();
+    private final ArrayList<Player> powerLaserCooldowns = new ArrayList<>();
     private final ArrayList<Player> conversionCooldowns = new ArrayList<>();
     private final ArrayList<PotionEffectType> potionEffects = new ArrayList<>();
     private final ArrayList<Inventory> openPotionBags = new ArrayList<>();
@@ -211,11 +213,33 @@ public class GodListener implements Listener {
             state.update(true);
         }
         else if (modelData == 47) {
+            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre").isApplied()) {
+                p.sendRawMessage(ChatColor.RED + "Unlock power ore to use the power swords special ability at mining level: " + ChatColor.AQUA +
+                        SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards().getReward("Mining", "PowerOre").getLevel());
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return;
+            }
+
             // Throw lightning bolts down near the player
             e.setCancelled(true);
             Location loc = p.getLocation();
             if (loc.getWorld() == null) return;
             for (int i = 0; i < 8; i++) loc.getWorld().strikeLightning(getSafeNearbyLocation(loc));
+        }
+        else if (modelData == 50) {
+            e.setCancelled(true);
+            if (powerLaserCooldowns.contains(p)) return;
+
+            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre").isApplied()) {
+                p.sendRawMessage(ChatColor.RED + "Unlock power ore to use the power laser at mining level: " + ChatColor.AQUA +
+                        SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards().getReward("Mining", "PowerOre").getLevel());
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return;
+            }
+
+            powerLaserCooldowns.add(p);
+            PowerLaser laser = new PowerLaser(p, this);
+            laser.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
         }
     }
 
@@ -426,6 +450,7 @@ public class GodListener implements Listener {
     public void powerSwordAttack(EntityDamageByEntityEvent e) {
         if (!(e.getDamager() instanceof Player p)) return;
         if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 47)) return;
+        if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre").isApplied()) return;
         if (!(e.getEntity() instanceof LivingEntity)) return;
         for (Entity ent : p.getNearbyEntities(10, 10, 10)) {
             if (!AbilityManager.getDomainMobs().contains(ent.getType())) continue;
@@ -636,5 +661,9 @@ public class GodListener implements Listener {
 
     public HashMap<Player, ArrayList<Block>> getDrillTracker() {
         return drillTracker;
+    }
+
+    public ArrayList<Player> getPowerLaserCooldowns() {
+        return powerLaserCooldowns;
     }
 }

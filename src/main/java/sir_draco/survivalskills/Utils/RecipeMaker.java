@@ -485,6 +485,8 @@ public class RecipeMaker {
                 ItemStackGenerator.getPowerOre(), ItemStackGenerator.getZapWand(), ItemStackGenerator.getBroodingSilk(), null, null, null);
         ItemStackGenerator.createSmallShapedRecipe(powerDrillKey, ItemStackGenerator.getPowerDrill(), "DAD:ABA:DBD",
                 ItemStackGenerator.getPowerOre(), null, null, null, Material.BEACON, null);
+        ItemStackGenerator.createSmallShapedRecipe(powerLaserKey, ItemStackGenerator.getPowerLaser(), "DAD:ABA:DAD",
+                ItemStackGenerator.getPowerOre(), null, null, null, Material.END_CRYSTAL, null);
     }
 
     public static void godRecipes(SurvivalSkills plugin) {

@@ -49,6 +49,10 @@ Mining:
     Enabled: true
     Level: 30
     Type: 'State'
+  UpCommand:
+    Enabled: true
+    Level: 32
+    Type: 'Command'
   NightVisionI:
     Enabled: true
     Level: 35
