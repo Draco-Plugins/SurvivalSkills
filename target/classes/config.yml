@@ -1,4 +1,4 @@
-Version: 2.2
+Version: 2.21
 BuildingXP: 10.0
 CraftingXP: 15.0
 MiningXP: 1.0
@@ -49,6 +49,10 @@ Mining:
     Enabled: true
     Level: 30
     Type: 'State'
+  UpCommand:
+    Enabled: true
+    Level: 32
+    Type: 'Command'
   NightVisionI:
     Enabled: true
     Level: 35

@@ -111,6 +111,7 @@ sir_draco\survivalskills\Skills\SkillsHolder.class
 sir_draco\survivalskills\Bosses\VillagerBoss$14.class
 sir_draco\survivalskills\Commands\SkillCommands\TogglePhantomsCommand.class
 sir_draco\survivalskills\Commands\SkillCommands\EatCommand.class
+sir_draco\survivalskills\Commands\SkillCommands\UpCommand.class
 sir_draco\survivalskills\Abilities\AbilityManager.class
 sir_draco\survivalskills\Commands\SkillCommands\DeathReturnCommand.class
 sir_draco\survivalskills\Rewards\PlayerRewards.class
@@ -132,6 +133,7 @@ sir_draco\survivalskills\SkillListeners\FightingSkill$2.class
 sir_draco\survivalskills\SkillListeners\GodListener.class
 sir_draco\survivalskills\SkillListeners\CraftingSkill.class
 sir_draco\survivalskills\Utils\ItemStackGenerator.class
+sir_draco\survivalskills\Utils\LocationUtils.class
 sir_draco\survivalskills\Abilities\HarvesterAsync$2.class
 sir_draco\survivalskills\SkillListeners\ArmorListener$9.class
 sir_draco\survivalskills\Bosses\BroodMotherBoss.class

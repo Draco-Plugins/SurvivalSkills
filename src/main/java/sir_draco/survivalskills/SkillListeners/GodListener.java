@@ -11,7 +11,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -183,6 +182,29 @@ public class GodListener implements Listener {
             e.setCancelled(true);
             p.launchProjectile(DragonFireball.class, p.getLocation().getDirection().multiply(2));
         }
+        else if (modelData == 41) {
+            e.setCancelled(true);
+            if (e.getHand() == null) return;
+            if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+
+            if (e.getClickedBlock() == null) return;
+
+            // Check if it is in a claim
+            if (SurvivalSkills.getInstance().isGriefPreventionEnabled() && SurvivalSkills.getInstance().checkForClaim(p, e.getClickedBlock().getLocation())) return;
+            // Check if they are in spawn
+            if (SurvivalSkills.getInstance().isWorldGuardEnabled()) {
+                boolean canPlace = SurvivalSkills.getInstance().canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
+                if (!canPlace) return;
+            }
+
+            // Place sponge if possible
+            Block desiredBlock = e.getClickedBlock().getRelative(e.getBlockFace());
+            if (!desiredBlock.getType().isAir() && !desiredBlock.getType().equals(Material.WATER)) return;
+            BlockState state = desiredBlock.getState();
+            state.setType(Material.WITHER_ROSE);
+            desiredBlock.setType(Material.WITHER_ROSE);
+            state.update(true);
+        }
         else if (modelData == 43) {
             // Handle trident launcher
             e.setCancelled(true);
@@ -240,27 +262,6 @@ public class GodListener implements Listener {
             powerLaserCooldowns.add(p);
             PowerLaser laser = new PowerLaser(p, this);
             laser.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
-        }
-    }
-
-    @EventHandler
-    public void placeGodItem(BlockPlaceEvent e) {
-        Player p = e.getPlayer();
-        ItemStack mainHand = p.getInventory().getItemInMainHand();
-
-        if (!ItemStackGenerator.isCustomItem(mainHand)) return;
-        ItemMeta meta = mainHand.getItemMeta();
-        if (meta == null) return;
-        if (!meta.hasCustomModelData()) return;
-        int modelData = meta.getCustomModelData();
-        e.setCancelled(true);
-
-        Block block = e.getBlock().getLocation().getBlock();
-
-        if (modelData == 41) {
-            Bukkit.getLogger().info("Placing a god item");
-            block.setType(Material.WITHER_ROSE);
-            block.getState().update();
         }
     }
 

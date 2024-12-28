@@ -1,5 +1,5 @@
 name: SurvivalSkills
-version: '2.2'
+version: '2.21'
 main: sir_draco.survivalskills.SurvivalSkills
 api-version: '1.21'
 authors: [ Sir Draco ]
@@ -80,6 +80,9 @@ commands:
     permission: survivalskills.default
   godquest:
     description: Displays the crafting recipes for the god quest
+    permission: survivalskills.default
+  ssup:
+    description: Teleports a player to the surface
     permission: survivalskills.default
 
   gettrophy:
