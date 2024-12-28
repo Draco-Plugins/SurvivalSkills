@@ -81,6 +81,9 @@ commands:
   godquest:
     description: Displays the crafting recipes for the god quest
     permission: survivalskills.default
+  ssup:
+    description: Teleports a player to the surface
+    permission: survivalskills.default
 
   gettrophy:
     description: Gives a specified trophy

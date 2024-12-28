@@ -233,6 +233,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new ToggleTrashCommand(this);
         new GodQuestCommand(this);
         new ToggleBossMusic();
+        new UpCommand(this);
 
         // Admin Commands
         new BossCommand(this);

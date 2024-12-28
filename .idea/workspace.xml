@@ -5,14 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f98fc54c-90a8-439b-8b76-f1b1bc4cf67d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Abilities/PowerLaser.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/SkillCommands/UpCommand.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Utils/LocationUtils.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/AdminCommands/SurvivalSkillsGetCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/AdminCommands/SurvivalSkillsGetCommand.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/TabCompleter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/TabCompleter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SkillListeners/GodListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SkillListeners/GodListener.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Utils/ItemStackGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Utils/ItemStackGenerator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Utils/RecipeMaker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Utils/RecipeMaker.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/SurvivalSkills-2.2.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/SurvivalSkills-2.2.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SurvivalSkills.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SurvivalSkills.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Trophy/GodQuestline/GodTrophyQuest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Trophy/GodQuestline/GodTrophyQuest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/plugin.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/plugin.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -337,7 +337,7 @@ public class GodTrophyQuest {
                 if (handleItemCheck(500, p, Material.GLOW_BERRIES, "glow berries")) return;
                 ArrayList<String> messages5 = new ArrayList<>();
                 messages5.add("Excellent work!");
-                messages5.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "chorus fruit");
+                messages5.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "chorus flowers");
                 dialogue(p, messages5);
                 phase++;
                 currentItemCount = 0;
