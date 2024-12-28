@@ -40,9 +40,15 @@ public class AbilityTimer extends BukkitRunnable {
             activeTimeLeft--;
         }
         if (!active && timeTillReset == 0) {
-            if (p.isOnline() && name.equals("XPVoucher")) {
-                p.sendRawMessage(ChatColor.RED + "Your XP Voucher has expired!");
-                p.playSound(p, Sound.ENTITY_SHEEP_SHEAR, 1, 1);
+            if (p.isOnline()) {
+                if (name.equals("XPVoucher")) {
+                    p.sendRawMessage(ChatColor.RED + "Your XP Voucher has expired!");
+                    p.playSound(p, Sound.ENTITY_SHEEP_SHEAR, 1, 1);
+                }
+                else {
+                    p.sendRawMessage(ChatColor.RED + "Your " + name + " ability has reset!");
+                    p.playSound(p, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                }
             }
             plugin.getAbilityManager().removeAbility(p, name);
             this.cancel();
