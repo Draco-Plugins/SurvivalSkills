@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.Trophy.GodQuestline;
+package sir_draco.survivalskills.GodQuestline;
 
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;

@@ -38,9 +38,9 @@ import sir_draco.survivalskills.Abilities.PowerDrillAsync;
 import sir_draco.survivalskills.Abilities.PowerLaser;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.Trophy.GodQuestline.GodRecipeUI;
-import sir_draco.survivalskills.Trophy.GodQuestline.GodTrophyQuest;
-import sir_draco.survivalskills.Trophy.GodQuestline.PowerOreConversion;
+import sir_draco.survivalskills.GodQuestline.GodRecipeUI;
+import sir_draco.survivalskills.GodQuestline.GodTrophyQuest;
+import sir_draco.survivalskills.GodQuestline.PowerOreConversion;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
 
 import java.io.File;

@@ -706,9 +706,9 @@ public class ItemStackGenerator {
             NamespacedKey defenseKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconHelmetDefense");
             NamespacedKey knockbackKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "beaconHelmetKnockback");
             @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierDefense =
-                    new AttributeModifier(defenseKey, 4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
+                    new AttributeModifier(defenseKey, 4, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HEAD);
             @SuppressWarnings("UnstableApiUsage") AttributeModifier modifierKnockback =
-                    new AttributeModifier(knockbackKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET);
+                    new AttributeModifier(knockbackKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HEAD);
             leatherMeta.addAttributeModifier(Attribute.ARMOR, modifierDefense);
             leatherMeta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE, modifierKnockback);
             leatherMeta.setColor(Color.WHITE);
@@ -1108,5 +1108,93 @@ public class ItemStackGenerator {
         loreList.add(ChatColor.GRAY + "The laser is teeming with energy");
         loreList.add(ChatColor.LIGHT_PURPLE + "Right click to shoot a laser");
         return createCustomItem(Material.END_CRYSTAL, 1, name, null, null, loreList, 50, false, null);
+    }
+
+    public static ItemStack getPowerHelmet() {
+        String name = ColorParser.colorizeString("Power Helmet", ColorParser.generateGradient("#8008FB", "#FD242D", "Power Helmet"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "The helmet is teeming with energy");
+        loreList.add(ChatColor.LIGHT_PURPLE + "Right click to strike lightning nearby");
+        ItemStack helmet = createCustomItem(Material.LEATHER_HELMET, 1, name, null, null, loreList, 51, false, null);
+        ItemMeta meta = helmet.getItemMeta();
+        if (meta == null) return helmet;
+        meta.addAttributeModifier(Attribute.ARMOR,
+                new AttributeModifier(skillsItemKey, 6, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HEAD));
+        meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE,
+                new AttributeModifier(skillsItemKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HEAD));
+        meta.addAttributeModifier(Attribute.BURNING_TIME,
+                new AttributeModifier(skillsItemKey, 0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.HEAD));
+        meta.setUnbreakable(true);
+
+        if (meta instanceof LeatherArmorMeta leatherMeta) leatherMeta.setColor(Color.fromRGB(73, 0, 110));
+
+        helmet.setItemMeta(meta);
+        return helmet;
+    }
+
+    public static ItemStack getPowerChestplate() {
+        String name = ColorParser.colorizeString("Power Chestplate", ColorParser.generateGradient("#8008FB", "#FD242D", "Power Chestplate"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "The chestplate is teeming with energy");
+        loreList.add(ChatColor.LIGHT_PURPLE + "Right click to strike lightning nearby");
+        ItemStack chestplate = createCustomItem(Material.LEATHER_CHESTPLATE, 1, name, null, null, loreList, 52, false, null);
+        ItemMeta meta = chestplate.getItemMeta();
+        if (meta == null) return chestplate;
+        meta.addAttributeModifier(Attribute.ARMOR,
+                new AttributeModifier(skillsItemKey, 12, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST));
+        meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE,
+                new AttributeModifier(skillsItemKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST));
+        meta.addAttributeModifier(Attribute.BURNING_TIME,
+                new AttributeModifier(skillsItemKey, 0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.CHEST));
+        meta.setUnbreakable(true);
+
+        if (meta instanceof LeatherArmorMeta leatherMeta) leatherMeta.setColor(Color.fromRGB(73, 0, 110));
+
+        chestplate.setItemMeta(meta);
+        return chestplate;
+    }
+
+    public static ItemStack getPowerLeggings() {
+        String name = ColorParser.colorizeString("Power Leggings", ColorParser.generateGradient("#8008FB", "#FD242D", "Power Leggings"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "The leggings are teeming with energy");
+        loreList.add(ChatColor.LIGHT_PURPLE + "Right click to strike lightning nearby");
+        ItemStack leggings = createCustomItem(Material.LEATHER_LEGGINGS, 1, name, null, null, loreList, 53, false, null);
+        ItemMeta meta = leggings.getItemMeta();
+        if (meta == null) return leggings;
+        meta.addAttributeModifier(Attribute.ARMOR,
+                new AttributeModifier(skillsItemKey, 9, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.LEGS));
+        meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE,
+                new AttributeModifier(skillsItemKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.LEGS));
+        meta.addAttributeModifier(Attribute.BURNING_TIME,
+                new AttributeModifier(skillsItemKey, 0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.LEGS));
+        meta.setUnbreakable(true);
+
+        if (meta instanceof LeatherArmorMeta leatherMeta) leatherMeta.setColor(Color.fromRGB(73, 0, 110));
+
+        leggings.setItemMeta(meta);
+        return leggings;
+    }
+
+    public static ItemStack getPowerBoots() {
+        String name = ColorParser.colorizeString("Power Boots", ColorParser.generateGradient("#8008FB", "#FD242D", "Power Boots"), true);
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "The boots are teeming with energy");
+        loreList.add(ChatColor.LIGHT_PURPLE + "");
+        ItemStack boots = createCustomItem(Material.LEATHER_BOOTS, 1, name, null, null, loreList, 54, false, null);
+        ItemMeta meta = boots.getItemMeta();
+        if (meta == null) return boots;
+        meta.addAttributeModifier(Attribute.ARMOR,
+                new AttributeModifier(skillsItemKey, 6, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET));
+        meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE,
+                new AttributeModifier(skillsItemKey, 2.0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET));
+        meta.addAttributeModifier(Attribute.BURNING_TIME,
+                new AttributeModifier(skillsItemKey, 0, AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.FEET));
+        meta.setUnbreakable(true);
+
+        if (meta instanceof LeatherArmorMeta leatherMeta) leatherMeta.setColor(Color.fromRGB(73, 0, 110));
+
+        boots.setItemMeta(meta);
+        return boots;
     }
 }

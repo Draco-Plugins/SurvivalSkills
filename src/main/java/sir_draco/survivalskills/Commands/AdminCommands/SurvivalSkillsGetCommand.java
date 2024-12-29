@@ -85,6 +85,15 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
             return true;
         }
+        else if (strings[0].equalsIgnoreCase("powerarmor")) {
+            p.getInventory().addItem(ItemStackGenerator.getPowerHelmet());
+            p.getInventory().addItem(ItemStackGenerator.getPowerChestplate());
+            p.getInventory().addItem(ItemStackGenerator.getPowerLeggings());
+            p.getInventory().addItem(ItemStackGenerator.getPowerBoots());
+            p.sendRawMessage(ChatColor.GREEN + "You have received: Power Armor");
+            p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+            return true;
+        }
 
         ItemStack item = getCorrectItem(strings[0]);
         if (item == null) {
@@ -181,6 +190,10 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             case "powersword" -> ItemStackGenerator.getPowerSword();
             case "powerdrill" -> ItemStackGenerator.getPowerDrill();
             case "powerlaser" -> ItemStackGenerator.getPowerLaser();
+            case "powerhelmet" -> ItemStackGenerator.getPowerHelmet();
+            case "powerchestplate" -> ItemStackGenerator.getPowerChestplate();
+            case "powerleggings" -> ItemStackGenerator.getPowerLeggings();
+            case "powerboots" -> ItemStackGenerator.getPowerBoots();
             default -> null;
         };
     }

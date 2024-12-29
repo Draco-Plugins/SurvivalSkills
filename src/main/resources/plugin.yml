@@ -123,6 +123,9 @@ commands:
   ssresetall:
     description: Resets all SurvivalSkills data
     permission: survivalskills.op
+  storetrialbuilding:
+    description: Stores the trial building
+    permission: survivalskills.op
 
 permissions:
   survivalskills.default:

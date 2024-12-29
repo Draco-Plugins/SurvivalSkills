@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.Trophy.GodQuestline;
+package sir_draco.survivalskills.GodQuestline;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

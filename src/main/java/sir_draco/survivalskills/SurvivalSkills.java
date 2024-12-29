@@ -37,9 +37,9 @@ import sir_draco.survivalskills.SkillListeners.*;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Skills.SkillsHolder;
-import sir_draco.survivalskills.Trophy.GodQuestline.GodQuestCommand;
-import sir_draco.survivalskills.Trophy.GodQuestline.GodTrophyQuest;
-import sir_draco.survivalskills.Trophy.GodQuestline.ToggleGodQuestCommand;
+import sir_draco.survivalskills.GodQuestline.GodQuestCommand;
+import sir_draco.survivalskills.GodQuestline.GodTrophyQuest;
+import sir_draco.survivalskills.GodQuestline.ToggleGodQuestCommand;
 import sir_draco.survivalskills.Trophy.Trophy;
 import sir_draco.survivalskills.Trophy.TrophyListener;
 import sir_draco.survivalskills.Trophy.TrophyManager;
@@ -248,6 +248,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new DragonStatusCommand();
         new ToggleGodQuestCommand(this);
         new ResetAllCommand(this);
+        new StoreTrialBuildingCommand(this);
     }
 
     public void loadLeaderboard() {

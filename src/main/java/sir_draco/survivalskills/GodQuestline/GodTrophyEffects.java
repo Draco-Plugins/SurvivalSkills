@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.Trophy.GodQuestline;
+package sir_draco.survivalskills.GodQuestline;
 
 import net.citizensnpcs.api.npc.NPC;
 import net.citizensnpcs.trait.Gravity;

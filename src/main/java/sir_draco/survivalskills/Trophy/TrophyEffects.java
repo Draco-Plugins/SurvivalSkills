@@ -8,7 +8,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import sir_draco.survivalskills.Trophy.GodQuestline.GodTrophyEffects;
+import sir_draco.survivalskills.GodQuestline.GodTrophyEffects;
 import sir_draco.survivalskills.Utils.ColorParser;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
