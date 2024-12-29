@@ -37,7 +37,7 @@ import sir_draco.survivalskills.SkillListeners.*;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Skills.SkillsHolder;
-import sir_draco.survivalskills.GodQuestline.GodQuestCommand;
+import sir_draco.survivalskills.Commands.AdminCommands.GodQuestCommand;
 import sir_draco.survivalskills.GodQuestline.GodTrophyQuest;
 import sir_draco.survivalskills.GodQuestline.ToggleGodQuestCommand;
 import sir_draco.survivalskills.Trophy.Trophy;
@@ -234,6 +234,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new GodQuestCommand(this);
         new ToggleBossMusic();
         new UpCommand(this);
+        new GodTrialCommand(this);
 
         // Admin Commands
         new BossCommand(this);

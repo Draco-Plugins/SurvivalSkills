@@ -1,4 +1,14 @@
 package sir_draco.survivalskills.GodQuestline;
 
-public class TrialManager {
+import org.bukkit.event.Listener;
+
+import java.util.ArrayList;
+
+public class TrialManager implements Listener {
+
+    private static final ArrayList<Trial> trials = new ArrayList<>();
+
+    public static ArrayList<Trial> getTrials() {
+        return trials;
+    }
 }

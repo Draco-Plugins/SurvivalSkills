@@ -5,6 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.TabCompleteEvent;
+import sir_draco.survivalskills.GodQuestline.Trial;
+import sir_draco.survivalskills.GodQuestline.TrialManager;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -38,7 +40,9 @@ public class TabCompleter implements Listener {
         else if (buffer.contains("/skills ")) handleSkills(buffer, e);
         else if (buffer.contains("/toggletrail ")) handleTrails(p, buffer, e);
         else if (buffer.contains("/bossmusic ")) handleBossMusic(buffer, p, e);
-        else if  (buffer.contains("/flight ")) handleFlight(buffer, e);
+        else if (buffer.contains("/flight ")) handleFlight(buffer, e);
+        else if (buffer.contains("/godtrial ")) handleGodTrial(buffer, p, e);
+        else if (buffer.contains("/godtrial end ")) handleActiveTrials(buffer, p, e);
     }
 
     public void handleSpelunker(String buffer, Player p, TabCompleteEvent e) {
@@ -311,6 +315,20 @@ public class TabCompleter implements Listener {
     public void handleFlight(String buffer, TabCompleteEvent e) {
         ArrayList<String> words = new ArrayList<>();
         words.add("left");
+        e.setCompletions(getCompletions(buffer, words));
+    }
+
+    public void handleGodTrial(String buffer, Player p, TabCompleteEvent e) {
+        if (!p.hasPermission("survivalskills.op")) return;
+        ArrayList<String> words = new ArrayList<>();
+        words.add("end");
+        e.setCompletions(getCompletions(buffer, words));
+    }
+
+    public void handleActiveTrials(String buffer, Player p, TabCompleteEvent e) {
+        if (!p.hasPermission("survivalskills.op")) return;
+        ArrayList<String> words = new ArrayList<>();
+        for (Trial trial : TrialManager.getTrials()) words.add(trial.getPlayer().getName());
         e.setCompletions(getCompletions(buffer, words));
     }
 

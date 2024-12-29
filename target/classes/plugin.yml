@@ -84,6 +84,9 @@ commands:
   ssup:
     description: Teleports a player to the surface
     permission: survivalskills.default
+  godtrial:
+    description: Allows a player to start the god trial
+    permission: survivalskills.default
 
   gettrophy:
     description: Gives a specified trophy
@@ -122,6 +125,9 @@ commands:
     permission: survivalskills.op
   ssresetall:
     description: Resets all SurvivalSkills data
+    permission: survivalskills.op
+  storetrialbuilding:
+    description: Stores the trial building
     permission: survivalskills.op
 
 permissions:

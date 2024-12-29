@@ -489,7 +489,7 @@ public class RecipeMaker {
                 ItemStackGenerator.getPowerOre(), null, null, null, Material.END_CRYSTAL, null);
         ItemStackGenerator.createSmallShapedRecipe(powerHelmetKey, ItemStackGenerator.getPowerHelmet(), "AAA:BCB:DDD",
                 ItemStackGenerator.getPowerOre(), null, ItemStackGenerator.getBeaconHelmet(), null, Material.NETHERITE_BLOCK, null);
-        ItemStackGenerator.createSmallShapedRecipe(powerChestplateKey, ItemStackGenerator.getPowerChestplate(), "CDC:ACA:AAA",
+        ItemStackGenerator.createSmallShapedRecipe(powerChestplateKey, ItemStackGenerator.getPowerChestplate(), "BDB:ACA:AAA",
                 ItemStackGenerator.getPowerOre(), null, ItemStackGenerator.getBeaconChestplate(), null, Material.NETHERITE_BLOCK, null);
         ItemStackGenerator.createSmallShapedRecipe(powerLeggingsKey, ItemStackGenerator.getPowerLeggings(), "BCB:ADA:ADA",
                 ItemStackGenerator.getPowerOre(), null, ItemStackGenerator.getBeaconLeggings(), null, Material.NETHERITE_BLOCK, null);
