@@ -7,6 +7,7 @@ import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.MusicInstrumentMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -16,54 +17,104 @@ import java.util.Map;
 
 public class RecipeMaker {
 
+    public static void createSmallShapedRecipe(NamespacedKey key, ItemStack result, String shape, ItemStack as, ItemStack bs, ItemStack cs, Material am, Material bm, Material cm) {
+        ShapedRecipe recipe = new ShapedRecipe(key, result);
+        String[] shapes = shape.split(":");
+
+        if (shapes[0].contains("DDD")) recipe.shape(shapes[1], shapes[2]);
+        else if (shapes[2].contains("DDD")) recipe.shape(shapes[0], shapes[1]);
+        else recipe.shape(shapes[0], shapes[1], shapes[2]);
+
+        if (as != null) recipe.setIngredient('A', new RecipeChoice.ExactChoice(as));
+        else if (am != null) recipe.setIngredient('A', am);
+
+        if (bs != null) recipe.setIngredient('B', new RecipeChoice.ExactChoice(bs));
+        else if (bm != null) recipe.setIngredient('B', bm);
+
+        if (cs != null) recipe.setIngredient('C', new RecipeChoice.ExactChoice(cs));
+        else if (cm != null) recipe.setIngredient('C', cm);
+
+        RecipeMaker.addShapedRecipe(SurvivalSkills.getInstance(), recipe, key);
+    }
+
+    public static void createShapedRecipe(NamespacedKey key, ItemStack result, ItemStack a, ItemStack b, ItemStack c, ItemStack d,
+                                          ItemStack e, ItemStack f, ItemStack g, ItemStack h, ItemStack i, boolean unique) {
+        ShapedRecipe recipe = new ShapedRecipe(key, result);
+
+        // Create the shape
+        StringBuilder shape1 = new StringBuilder();
+        if (a != null) shape1.append("A");
+        else shape1.append(" ");
+        if (b != null) shape1.append("B");
+        else shape1.append(" ");
+        if (c != null) shape1.append("C");
+        else shape1.append(" ");
+
+        StringBuilder shape2 = new StringBuilder();
+        if (d != null) shape2.append("D");
+        else shape2.append(" ");
+        if (e != null) shape2.append("E");
+        else shape2.append(" ");
+        if (f != null) shape2.append("F");
+        else shape2.append(" ");
+
+        StringBuilder shape3 = new StringBuilder();
+        if (g != null) shape3.append("G");
+        else shape3.append(" ");
+        if (h != null) shape3.append("H");
+        else shape3.append(" ");
+        if (i != null) shape3.append("I");
+        else shape3.append(" ");
+
+        recipe.shape(shape1.toString(), shape2.toString(), shape3.toString());
+
+        // Set the ingredients
+        if (unique) {
+            if (a != null) recipe.setIngredient('A', new RecipeChoice.ExactChoice(a));
+            if (b != null) recipe.setIngredient('B', new RecipeChoice.ExactChoice(b));
+            if (c != null) recipe.setIngredient('C', new RecipeChoice.ExactChoice(c));
+            if (d != null) recipe.setIngredient('D', new RecipeChoice.ExactChoice(d));
+            if (e != null) recipe.setIngredient('E', new RecipeChoice.ExactChoice(e));
+            if (f != null) recipe.setIngredient('F', new RecipeChoice.ExactChoice(f));
+            if (g != null) recipe.setIngredient('G', new RecipeChoice.ExactChoice(g));
+            if (h != null) recipe.setIngredient('H', new RecipeChoice.ExactChoice(h));
+            if (i != null) recipe.setIngredient('I', new RecipeChoice.ExactChoice(i));
+        }
+        else {
+            if (a != null) recipe.setIngredient('A', a.getType());
+            if (b != null) recipe.setIngredient('B', b.getType());
+            if (c != null) recipe.setIngredient('C', c.getType());
+            if (d != null) recipe.setIngredient('D', d.getType());
+            if (e != null) recipe.setIngredient('E', e.getType());
+            if (f != null) recipe.setIngredient('F', f.getType());
+            if (g != null) recipe.setIngredient('G', g.getType());
+            if (h != null) recipe.setIngredient('H', h.getType());
+            if (i != null) recipe.setIngredient('I', i.getType());
+        }
+
+        RecipeMaker.addShapedRecipe(SurvivalSkills.getInstance(), recipe, key);
+    }
+
     /**
      * Creates recipes for all the trophies
      */
     public static void trophyRecipes(SurvivalSkills plugin) {
         // Create namespace keys for the recipes and ensure old ones are removed to be updated
-        NamespacedKey caveKey = new NamespacedKey(plugin, "cave");
-        NamespacedKey forestKey = new NamespacedKey(plugin, "forest");
-        NamespacedKey farmingKey = new NamespacedKey(plugin, "farming");
-        NamespacedKey oceanKey = new NamespacedKey(plugin, "ocean");
-        NamespacedKey fishingKey = new NamespacedKey(plugin, "fishing");
-        NamespacedKey blackKey = new NamespacedKey(plugin, "black");
-        NamespacedKey whiteKey = new NamespacedKey(plugin, "white");
-        NamespacedKey colorKey = new NamespacedKey(plugin, "color");
-        NamespacedKey netherKey = new NamespacedKey(plugin, "nether");
-        NamespacedKey endKey = new NamespacedKey(plugin, "end");
-        NamespacedKey championKey = new NamespacedKey(plugin, "champion");
-        NamespacedKey godKey = new NamespacedKey(plugin, "god");
+        NamespacedKey caveKey = createKey("cave", plugin);
+        NamespacedKey forestKey = createKey("forest", plugin);
+        NamespacedKey farmingKey = createKey("farming", plugin);
+        NamespacedKey oceanKey = createKey("ocean", plugin);
+        NamespacedKey fishingKey = createKey("fishing", plugin);
+        NamespacedKey blackKey = createKey("black", plugin);
+        NamespacedKey whiteKey = createKey("white", plugin);
+        NamespacedKey colorKey = createKey("color", plugin);
+        NamespacedKey netherKey = createKey("nether", plugin);
+        NamespacedKey endKey = createKey("end", plugin);
+        NamespacedKey championKey = createKey("champion", plugin);
+        NamespacedKey godKey = createKey("god", plugin);
 
-        ArrayList<NamespacedKey> recipeKeys = plugin.getRecipeKeys();
         HashMap<Integer, ItemStack> trophyItems = plugin.getTrophyManager().getTrophyItems();
-
-        recipeKeys.add(caveKey);
-        recipeKeys.add(forestKey);
-        recipeKeys.add(farmingKey);
-        recipeKeys.add(oceanKey);
-        recipeKeys.add(fishingKey);
-        recipeKeys.add(blackKey);
-        recipeKeys.add(whiteKey);
-        recipeKeys.add(colorKey);
-        recipeKeys.add(netherKey);
-        recipeKeys.add(endKey);
-        recipeKeys.add(championKey);
-        recipeKeys.add(godKey);
-
         denseWoolRecipes(plugin);
-
-        if (plugin.getServer().getRecipe(caveKey) != null) plugin.getServer().removeRecipe(caveKey);
-        if (plugin.getServer().getRecipe(forestKey) != null) plugin.getServer().removeRecipe(forestKey);
-        if (plugin.getServer().getRecipe(farmingKey) != null) plugin.getServer().removeRecipe(farmingKey);
-        if (plugin.getServer().getRecipe(oceanKey) != null) plugin.getServer().removeRecipe(oceanKey);
-        if (plugin.getServer().getRecipe(fishingKey) != null) plugin.getServer().removeRecipe(fishingKey);
-        if (plugin.getServer().getRecipe(blackKey) != null) plugin.getServer().removeRecipe(blackKey);
-        if (plugin.getServer().getRecipe(whiteKey) != null) plugin.getServer().removeRecipe(whiteKey);
-        if (plugin.getServer().getRecipe(colorKey) != null) plugin.getServer().removeRecipe(colorKey);
-        if (plugin.getServer().getRecipe(netherKey) != null) plugin.getServer().removeRecipe(netherKey);
-        if (plugin.getServer().getRecipe(endKey) != null) plugin.getServer().removeRecipe(endKey);
-        if (plugin.getServer().getRecipe(championKey) != null) plugin.getServer().removeRecipe(championKey);
-        if (plugin.getServer().getRecipe(godKey) != null) plugin.getServer().removeRecipe(godKey);
 
         // Cave Trophy
         String name1 = ChatColor.GRAY + ChatColor.BOLD.toString() + "Cave Trophy";
@@ -80,7 +131,7 @@ public class RecipeMaker {
         caveRecipe.addIngredient(Material.AMETHYST_BLOCK);
         caveRecipe.addIngredient(Material.EMERALD_BLOCK);
         caveRecipe.addIngredient(Material.COPPER_BLOCK);
-        plugin.getServer().addRecipe(caveRecipe);
+        addShapelessRecipe(plugin, caveRecipe, caveKey);
 
         // Forest Trophy
         String name2 = ChatColor.GREEN + ChatColor.BOLD.toString() + "Forest Trophy";
@@ -97,7 +148,7 @@ public class RecipeMaker {
         forestRecipe.addIngredient(Material.DARK_OAK_LOG);
         forestRecipe.addIngredient(Material.JUNGLE_LOG);
         forestRecipe.addIngredient(Material.MUSHROOM_STEW);
-        plugin.getServer().addRecipe(forestRecipe);
+        addShapelessRecipe(plugin, forestRecipe, forestKey);
 
         // Farming Trophy
         String name3 = ChatColor.GOLD + ChatColor.BOLD.toString() + "Farming Trophy";
@@ -114,7 +165,7 @@ public class RecipeMaker {
         farmingRecipe.addIngredient(Material.COOKIE);
         farmingRecipe.addIngredient(Material.MELON_SLICE);
         farmingRecipe.addIngredient(Material.CAKE);
-        plugin.getServer().addRecipe(farmingRecipe);
+        addShapelessRecipe(plugin, farmingRecipe, farmingKey);
 
         // Ocean Trophy
         String name4 = ChatColor.DARK_BLUE + ChatColor.BOLD.toString() + "Ocean Trophy";
@@ -131,7 +182,7 @@ public class RecipeMaker {
         oceanRecipe.addIngredient(Material.PUFFERFISH_BUCKET);
         oceanRecipe.addIngredient(Material.TRIDENT);
         oceanRecipe.addIngredient(Material.SEA_PICKLE);
-        plugin.getServer().addRecipe(oceanRecipe);
+        addShapelessRecipe(plugin, oceanRecipe, oceanKey);
 
         // Fishing Recipe
         String name5 = ChatColor.DARK_AQUA + ChatColor.BOLD.toString() + "Fishing Trophy";
@@ -150,7 +201,7 @@ public class RecipeMaker {
         fishingRecipe.setIngredient('H', Material.LILY_PAD);
         // Fishing Boss
         fishingRecipe.setIngredient('I', new RecipeChoice.ExactChoice(ItemStackGenerator.getFishingBossItem()));
-        plugin.getServer().addRecipe(fishingRecipe);
+        addShapedRecipe(plugin, fishingRecipe, fishingKey);
 
         // Color Recipe
         Map<Enchantment, Integer> enchants = new HashMap<>();
@@ -168,7 +219,7 @@ public class RecipeMaker {
         blackRecipe.setIngredient('E', new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.RED_WOOL, 1, "Bundle Of Dense Red Wool", ChatColor.RED, "The sheep are naked", null, 15, true, enchants)));
         blackRecipe.setIngredient('F', new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.ORANGE_WOOL, 1, "Bundle Of Dense Orange Wool", ChatColor.getByChar("#FF8C00"), "The sheep are naked", null, 15, true, enchants)));
         blackRecipe.setIngredient('G', new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.YELLOW_WOOL, 1, "Bundle Of Dense Yellow Wool", ChatColor.YELLOW, "The sheep are naked", null, 15, true, enchants)));
-        plugin.getServer().addRecipe(blackRecipe);
+        addShapedRecipe(plugin, blackRecipe, blackKey);
 
         // White
         String name7 = ChatColor.WHITE + ChatColor.BOLD.toString() + "White Fragment";
@@ -185,7 +236,7 @@ public class RecipeMaker {
         whiteRecipe.setIngredient('G', new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.GREEN_WOOL, 1, "Bundle Of Dense Green Wool", ChatColor.DARK_GREEN, "The sheep are naked", null, 15, true, enchants)));
         whiteRecipe.setIngredient('H', new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.LIME_WOOL, 1, "Bundle Of Dense Lime Wool", ChatColor.GREEN, "The sheep are naked", null, 15, true, enchants)));
         whiteRecipe.setIngredient('I', new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.WHITE_WOOL, 1, "Bundle Of Dense White Wool", ChatColor.GRAY, "The sheep are naked", null, 15, true, enchants)));
-        plugin.getServer().addRecipe(whiteRecipe);
+        addShapedRecipe(plugin, whiteRecipe, whiteKey);
 
         // Color
         List<List<String>> colors = new ArrayList<>();
@@ -207,7 +258,7 @@ public class RecipeMaker {
         colorRecipe.setIngredient('A', new RecipeChoice.ExactChoice(whiteFragment));
         colorRecipe.setIngredient('B', new RecipeChoice.ExactChoice(blackFragment));
         colorRecipe.setIngredient('C', Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-        plugin.getServer().addRecipe(colorRecipe);
+        addShapedRecipe(plugin, colorRecipe, colorKey);
 
         // Nether Recipe
         String name9 = ChatColor.DARK_RED + ChatColor.BOLD.toString() + "Nether Trophy";
@@ -224,7 +275,7 @@ public class RecipeMaker {
         netherRecipe.addIngredient(Material.QUARTZ);
         netherRecipe.addIngredient(Material.NETHER_WART);
         netherRecipe.addIngredient(Material.BLAZE_ROD);
-        plugin.getServer().addRecipe(netherRecipe);
+        addShapelessRecipe(plugin, netherRecipe, netherKey);
 
         // End Recipe
         String name10 = ColorParser.colorizeString("End Trophy", ColorParser.generateGradient("#9600FF", "#C800FF", 10), true);
@@ -241,7 +292,7 @@ public class RecipeMaker {
         endRecipe.addIngredient(Material.END_STONE);
         endRecipe.addIngredient(Material.SHULKER_BOX);
         endRecipe.addIngredient(Material.CHORUS_FLOWER);
-        plugin.getServer().addRecipe(endRecipe);
+        addShapelessRecipe(plugin, endRecipe, endKey);
 
         // Champion Trophy
         String name11 = ColorParser.colorizeString("Champion Trophy", ColorParser.generateGradient("#FF0000", "#FFE200", 15), true);
@@ -263,13 +314,13 @@ public class RecipeMaker {
         championRecipe.setIngredient('F', new RecipeChoice.ExactChoice(ItemStackGenerator.getWardenBossItem()));
         // Villager Boss
         championRecipe.setIngredient('G', new RecipeChoice.ExactChoice(ItemStackGenerator.getVillagerBossItem()));
-        plugin.getServer().addRecipe(championRecipe);
+        addShapedRecipe(plugin, championRecipe, championKey);
 
         // God Trophy
         String name12 = ColorParser.colorizeString("God Trophy", ColorParser.generateGradient("#FFFF00", "#FFFFFF", 10), true);
         String lore12 = ColorParser.colorizeString("~There is nothing you can not do~", ColorParser.generateGradient("#FFFFFF", "#FFFF00", 33), false);
         ItemStack godTrophy = ItemStackGenerator.getTrophyItem(Material.GRASS_BLOCK, name12, lore12);
-        ItemStackGenerator.createSmallShapedRecipe(godKey, godTrophy, "DAD:ABA:DAD",
+        createSmallShapedRecipe(godKey, godTrophy, "DAD:ABA:DAD",
                 ItemStackGenerator.getPowerOre(), ItemStackGenerator.getGodTrophyBase(), null, null, null, null);
         trophyItems.put(10, godTrophy);
     }
@@ -319,11 +370,10 @@ public class RecipeMaker {
      */
     public static NamespacedKey makeRecipeWithSingleIngredient(SurvivalSkills plugin, ItemStack ingredient, ItemStack result, String name) {
         NamespacedKey key = new NamespacedKey(plugin, name);
-        if (plugin.getServer().getRecipe(key) != null) plugin.getServer().removeRecipe(key);
         ShapedRecipe recipe = new ShapedRecipe(key, result);
         recipe.shape("AAA", "AAA", "AAA");
         recipe.setIngredient('A', new RecipeChoice.ExactChoice(ingredient));
-        plugin.getServer().addRecipe(recipe);
+        addShapedRecipe(plugin, recipe, key);
         return key;
     }
 
@@ -379,121 +429,121 @@ public class RecipeMaker {
         NamespacedKey powerLeggingsKey = createKey("powerleggings", plugin);
         NamespacedKey powerBootsKey = createKey("powerboots", plugin);
 
-        ItemStackGenerator.createSmallShapedRecipe(torchKey, ItemStackGenerator.getUnlimitedTorch(), "ABA:BCB:ABA",
+        createSmallShapedRecipe(torchKey, ItemStackGenerator.getUnlimitedTorch(), "ABA:BCB:ABA",
                 null, null, null, Material.LAVA_BUCKET, Material.COAL_BLOCK, Material.TORCH);
-        ItemStackGenerator.createSmallShapedRecipe(sortOfStonePick, ItemStackGenerator.getSortOfStonePick(), "AAA: B : B ",
+        createSmallShapedRecipe(sortOfStonePick, ItemStackGenerator.getSortOfStonePick(), "AAA: B : B ",
                 null, null, null, Material.COBBLED_DEEPSLATE, Material.STICK, null);
-        ItemStackGenerator.createSmallShapedRecipe(bronzeKey, ItemStackGenerator.getBronzeIngot(), "AAA:ABA:AAA",
+        createSmallShapedRecipe(bronzeKey, ItemStackGenerator.getBronzeIngot(), "AAA:ABA:AAA",
                 null, null, null, Material.COPPER_BLOCK, Material.GOLD_BLOCK, null);
-        ItemStackGenerator.createSmallShapedRecipe(zapWandKey, ItemStackGenerator.getZapWand(), "DDD:AAA:DDD",
+        createSmallShapedRecipe(zapWandKey, ItemStackGenerator.getZapWand(), "DDD:AAA:DDD",
                 ItemStackGenerator.getBronzeIngot(), null, null, null, null, null);
 
-        ItemStackGenerator.createSmallShapedRecipe(mineHelmetKey, ItemStackGenerator.getMiningHelmet(), "ABA:C C:DDD",
+        createSmallShapedRecipe(mineHelmetKey, ItemStackGenerator.getMiningHelmet(), "ABA:C C:DDD",
                 ItemStackGenerator.getFireResistancePotion(), null, null, null, Material.LEATHER_HELMET, Material.DIAMOND_BLOCK);
-        ItemStackGenerator.createSmallShapedRecipe(mineChestplateKey, ItemStackGenerator.getMiningChestplate(), "C C:CBC:CAC",
+        createSmallShapedRecipe(mineChestplateKey, ItemStackGenerator.getMiningChestplate(), "C C:CBC:CAC",
                 null, null, null, Material.CAKE, Material.LEATHER_CHESTPLATE, Material.DIAMOND_BLOCK);
-        ItemStackGenerator.createSmallShapedRecipe(mineLeggingsKey, ItemStackGenerator.getMiningLeggings(), "CBC:CAC:C C",
+        createSmallShapedRecipe(mineLeggingsKey, ItemStackGenerator.getMiningLeggings(), "CBC:CAC:C C",
                 null, null, null, Material.CAKE, Material.LEATHER_LEGGINGS, Material.DIAMOND_BLOCK);
-        ItemStackGenerator.createSmallShapedRecipe(mineBootsKey, ItemStackGenerator.getMiningBoots(), "DDD:ABA:C C",
+        createSmallShapedRecipe(mineBootsKey, ItemStackGenerator.getMiningBoots(), "DDD:ABA:C C",
                 ItemStackGenerator.getFireResistancePotion(), null, null, null, Material.LEATHER_BOOTS, Material.DIAMOND_BLOCK);
 
-        ItemStackGenerator.createSmallShapedRecipe(beaconHelmetKey, ItemStackGenerator.getBeaconHelmet(), "AAA:ABA:DDD",
+        createSmallShapedRecipe(beaconHelmetKey, ItemStackGenerator.getBeaconHelmet(), "AAA:ABA:DDD",
                 null, null, null, Material.BEACON, Material.NETHERITE_HELMET, null);
-        ItemStackGenerator.createSmallShapedRecipe(beaconChestplateKey, ItemStackGenerator.getBeaconChestplate(), "ABA:AAA:AAA",
+        createSmallShapedRecipe(beaconChestplateKey, ItemStackGenerator.getBeaconChestplate(), "ABA:AAA:AAA",
                 null, null, null, Material.BEACON, Material.NETHERITE_CHESTPLATE, null);
-        ItemStackGenerator.createSmallShapedRecipe(beaconLeggingsKey, ItemStackGenerator.getBeaconLeggings(), "AAA:ABA:A A",
+        createSmallShapedRecipe(beaconLeggingsKey, ItemStackGenerator.getBeaconLeggings(), "AAA:ABA:A A",
                 null, null, null, Material.BEACON, Material.NETHERITE_LEGGINGS, null);
-        ItemStackGenerator.createSmallShapedRecipe(beaconBootsKey, ItemStackGenerator.getBeaconBoots(), "DDD:ABA:A A",
+        createSmallShapedRecipe(beaconBootsKey, ItemStackGenerator.getBeaconBoots(), "DDD:ABA:A A",
                 null, null, null, Material.BEACON, Material.NETHERITE_BOOTS, null);
 
-        ItemStackGenerator.createSmallShapedRecipe(jumpBootsKey, ItemStackGenerator.getJumpingBoots(), "ABA:C C:DDD",
+        createSmallShapedRecipe(jumpBootsKey, ItemStackGenerator.getJumpingBoots(), "ABA:C C:DDD",
                 ItemStackGenerator.getJumpPowerPotion(), null, null, null, Material.IRON_BOOTS, Material.SLIME_BLOCK);
-        ItemStackGenerator.createSmallShapedRecipe(jumpBootsKey2, ItemStackGenerator.getJumpingBoots(), "DDD:ABA:C C",
+        createSmallShapedRecipe(jumpBootsKey2, ItemStackGenerator.getJumpingBoots(), "DDD:ABA:C C",
                 ItemStackGenerator.getJumpPowerPotion(), null, null, null, Material.IRON_BOOTS, Material.SLIME_BLOCK);
 
-        ItemStackGenerator.createSmallShapedRecipe(wandererHelmetKey, ItemStackGenerator.getWandererHelmet(), "BAB:B B:DDD",
+        createSmallShapedRecipe(wandererHelmetKey, ItemStackGenerator.getWandererHelmet(), "BAB:B B:DDD",
                 ItemStackGenerator.getSpeedPotion(), null, null, null, Material.CHAIN, null);
-        ItemStackGenerator.createSmallShapedRecipe(wandererChestplateKey, ItemStackGenerator.getWandererChestplate(), "B B:BAB:BBB",
+        createSmallShapedRecipe(wandererChestplateKey, ItemStackGenerator.getWandererChestplate(), "B B:BAB:BBB",
                 ItemStackGenerator.getSpeedPotion(), null, null, null, Material.CHAIN, null);
-        ItemStackGenerator.createSmallShapedRecipe(wandererLeggingsKey, ItemStackGenerator.getWandererLeggings(), "BAB:B B:B B",
+        createSmallShapedRecipe(wandererLeggingsKey, ItemStackGenerator.getWandererLeggings(), "BAB:B B:B B",
                 ItemStackGenerator.getSpeedPotion(), null, null, null, Material.CHAIN, null);
-        ItemStackGenerator.createSmallShapedRecipe(wandererBootsKey, ItemStackGenerator.getWandererBoots(), "DDD:B B:BAB",
+        createSmallShapedRecipe(wandererBootsKey, ItemStackGenerator.getWandererBoots(), "DDD:B B:BAB",
                 ItemStackGenerator.getSpeedPotion(), null, null, null, Material.CHAIN, null);
 
-        ItemStackGenerator.createSmallShapedRecipe(travelerHelmetKey, ItemStackGenerator.getTravelerHelmet(), "BAB:B B:DDD",
+        createSmallShapedRecipe(travelerHelmetKey, ItemStackGenerator.getTravelerHelmet(), "BAB:B B:DDD",
                 ItemStackGenerator.getWandererHelmet(), null, null, null, Material.DIAMOND, null);
-        ItemStackGenerator.createSmallShapedRecipe(travelerChestplateKey, ItemStackGenerator.getTravelerChestplate(), "B B:BAB:BBB",
+        createSmallShapedRecipe(travelerChestplateKey, ItemStackGenerator.getTravelerChestplate(), "B B:BAB:BBB",
                 ItemStackGenerator.getWandererChestplate(), null, null, null, Material.DIAMOND, null);
-        ItemStackGenerator.createSmallShapedRecipe(travelerLeggingsKey, ItemStackGenerator.getTravelerLeggings(), "BAB:B B:B B",
+        createSmallShapedRecipe(travelerLeggingsKey, ItemStackGenerator.getTravelerLeggings(), "BAB:B B:B B",
                 ItemStackGenerator.getWandererLeggings(), null, null, null, Material.DIAMOND, null);
-        ItemStackGenerator.createSmallShapedRecipe(travelerBootsKey, ItemStackGenerator.getTravelerBoots(), "DDD:BAB:B B",
+        createSmallShapedRecipe(travelerBootsKey, ItemStackGenerator.getTravelerBoots(), "DDD:BAB:B B",
                 ItemStackGenerator.getWandererBoots(), null, null, null, Material.DIAMOND, null);
 
-        ItemStackGenerator.createSmallShapedRecipe(hardNautilusShellKey, ItemStackGenerator.getHardNautilusShell(), "AAA:AAA:AAA",
+        createSmallShapedRecipe(hardNautilusShellKey, ItemStackGenerator.getHardNautilusShell(), "AAA:AAA:AAA",
                 null, null, null, Material.NAUTILUS_SHELL, null, null);
-        ItemStackGenerator.createSmallShapedRecipe(hardHeartOfTheSeaKey, ItemStackGenerator.getHardHeartOfTheSea(), "AAA:AAA:AAA",
+        createSmallShapedRecipe(hardHeartOfTheSeaKey, ItemStackGenerator.getHardHeartOfTheSea(), "AAA:AAA:AAA",
                 null, null, null, Material.HEART_OF_THE_SEA, null, null);
 
         ItemStack shells = ItemStackGenerator.getHardNautilusShell();
         ItemStack heartOfTheSeas = ItemStackGenerator.getHardHeartOfTheSea();
-        ItemStackGenerator.createSmallShapedRecipe(gillHelmetKey, ItemStackGenerator.getGillHelmet(), "AAA:B B:DDD",
+        createSmallShapedRecipe(gillHelmetKey, ItemStackGenerator.getGillHelmet(), "AAA:B B:DDD",
                 shells, heartOfTheSeas, null, null, null, null);
-        ItemStackGenerator.createSmallShapedRecipe(gillChestplateKey, ItemStackGenerator.getGillChestplate(), "A A:BBB:AAA",
+        createSmallShapedRecipe(gillChestplateKey, ItemStackGenerator.getGillChestplate(), "A A:BBB:AAA",
                 shells, heartOfTheSeas, null, null, null, null);
-        ItemStackGenerator.createSmallShapedRecipe(gillLeggingsKey, ItemStackGenerator.getGillLeggings(), "AAA:A A:B B",
+        createSmallShapedRecipe(gillLeggingsKey, ItemStackGenerator.getGillLeggings(), "AAA:A A:B B",
                 shells, heartOfTheSeas, null, null, null, null);
-        ItemStackGenerator.createSmallShapedRecipe(gillBootsKey, ItemStackGenerator.getGillBoots(), "DDD:A A:B B",
+        createSmallShapedRecipe(gillBootsKey, ItemStackGenerator.getGillBoots(), "DDD:A A:B B",
                 shells, heartOfTheSeas, null, null, null, null);
 
-        ItemStackGenerator.createSmallShapedRecipe(adventurerHelmetKey, ItemStackGenerator.getAdventurerHelmet(), "BAB:C C:DDD",
+        createSmallShapedRecipe(adventurerHelmetKey, ItemStackGenerator.getAdventurerHelmet(), "BAB:C C:DDD",
                 ItemStackGenerator.getTravelerHelmet(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);
-        ItemStackGenerator.createSmallShapedRecipe(adventurerChestplateKey, ItemStackGenerator.getAdventurerChestplate(), "C C:BAB:CCC",
+        createSmallShapedRecipe(adventurerChestplateKey, ItemStackGenerator.getAdventurerChestplate(), "C C:BAB:CCC",
                 ItemStackGenerator.getTravelerChestplate(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);
-        ItemStackGenerator.createSmallShapedRecipe(adventurerLeggingsKey, ItemStackGenerator.getAdventurerLeggings(), "BAB:C C:C C",
+        createSmallShapedRecipe(adventurerLeggingsKey, ItemStackGenerator.getAdventurerLeggings(), "BAB:C C:C C",
                 ItemStackGenerator.getTravelerLeggings(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);
-        ItemStackGenerator.createSmallShapedRecipe(adventurerBootsKey, ItemStackGenerator.getAdventurerBoots(), "DDD:BAB:C C",
+        createSmallShapedRecipe(adventurerBootsKey, ItemStackGenerator.getAdventurerBoots(), "DDD:BAB:C C",
                 ItemStackGenerator.getTravelerBoots(), null, null, null, Material.NETHERITE_INGOT, Material.FEATHER);
 
-        ItemStackGenerator.createSmallShapedRecipe(caveFinder, ItemStackGenerator.getCaveFinder(), "AAA:ABA:AAA",
+        createSmallShapedRecipe(caveFinder, ItemStackGenerator.getCaveFinder(), "AAA:ABA:AAA",
                 null, null, null, Material.REDSTONE_BLOCK, Material.COMPASS, null);
-        ItemStackGenerator.createSmallShapedRecipe(wateringCanKey, ItemStackGenerator.getWateringCan(), "ABA:ACA:AAA",
+        createSmallShapedRecipe(wateringCanKey, ItemStackGenerator.getWateringCan(), "ABA:ACA:AAA",
                 null, null, null, Material.LAPIS_BLOCK, Material.NAUTILUS_SHELL, Material.WATER_BUCKET);
-        ItemStackGenerator.createSmallShapedRecipe(unlimitedBoneMealKey, ItemStackGenerator.getUnlimitedBoneMeal(), "AAA:ABA:AAA",
+        createSmallShapedRecipe(unlimitedBoneMealKey, ItemStackGenerator.getUnlimitedBoneMeal(), "AAA:ABA:AAA",
                 null, null, null, Material.BONE_BLOCK, Material.GOLDEN_APPLE, null);
-        ItemStackGenerator.createSmallShapedRecipe(harvesterKey, ItemStackGenerator.getHarvester(), "ABA:BCB:ABA",
+        createSmallShapedRecipe(harvesterKey, ItemStackGenerator.getHarvester(), "ABA:BCB:ABA",
                 null, null, null, Material.REDSTONE_BLOCK, Material.WHEAT_SEEDS, Material.NETHERITE_HOE);
 
-        ItemStackGenerator.createSmallShapedRecipe(giantBoss, ItemStackGenerator.getGiantSummoner(), "AAA:ABA:AAA",
+        createSmallShapedRecipe(giantBoss, ItemStackGenerator.getGiantSummoner(), "AAA:ABA:AAA",
                 null, null, null, Material.ROTTEN_FLESH, Material.EGG, null);
-        ItemStackGenerator.createSmallShapedRecipe(broodMotherBoss, ItemStackGenerator.getBroodMotherSummoner(), "AAA:CBC:AAA",
+        createSmallShapedRecipe(broodMotherBoss, ItemStackGenerator.getBroodMotherSummoner(), "AAA:CBC:AAA",
                 null, null, null, Material.STRING, Material.EGG, Material.SPIDER_EYE);
-        ItemStackGenerator.createSmallShapedRecipe(villagerboss, ItemStackGenerator.getVillagerSummoner(), "AAA:CBC:AAA",
+        createSmallShapedRecipe(villagerboss, ItemStackGenerator.getVillagerSummoner(), "AAA:CBC:AAA",
                 null, null, null, Material.EMERALD_BLOCK, Material.EGG, Material.TOTEM_OF_UNDYING);
 
         // Other
-        ItemStackGenerator.createSmallShapedRecipe(gapple, new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), "AAA:ABA:AAA",
+        createSmallShapedRecipe(gapple, new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), "AAA:ABA:AAA",
                 null, null, null, Material.GOLD_BLOCK, Material.GOLDEN_APPLE, null);
-        ItemStackGenerator.createSmallShapedRecipe(fireworkcannon, ItemStackGenerator.getFireworkCannon(), "AAA:ABA:ACA",
+        createSmallShapedRecipe(fireworkcannon, ItemStackGenerator.getFireworkCannon(), "AAA:ABA:ACA",
                 null, null, null, Material.FIREWORK_ROCKET, Material.CAMPFIRE, Material.BLAZE_POWDER);
-        ItemStackGenerator.createSmallShapedRecipe(sortwand, ItemStackGenerator.getSortWand(), "CAC:ABA:CAC",
+        createSmallShapedRecipe(sortwand, ItemStackGenerator.getSortWand(), "CAC:ABA:CAC",
                 null, null, null, Material.COMPARATOR, Material.BLAZE_ROD, Material.CHEST);
-        ItemStackGenerator.createSmallShapedRecipe(magnetKey, ItemStackGenerator.getMagnet(), "ABA:BCB:ABA",
+        createSmallShapedRecipe(magnetKey, ItemStackGenerator.getMagnet(), "ABA:BCB:ABA",
                 null, null, null, Material.IRON_BLOCK, Material.REDSTONE_BLOCK, Material.COPPER_BLOCK);
 
         // Power Ore Suite
-        ItemStackGenerator.createSmallShapedRecipe(powerSwordKey, ItemStackGenerator.getPowerSword(), "DAD:BAB:DCD",
+        createSmallShapedRecipe(powerSwordKey, ItemStackGenerator.getPowerSword(), "DAD:BAB:DCD",
                 ItemStackGenerator.getPowerOre(), ItemStackGenerator.getZapWand(), ItemStackGenerator.getBroodingSilk(), null, null, null);
-        ItemStackGenerator.createSmallShapedRecipe(powerDrillKey, ItemStackGenerator.getPowerDrill(), "DAD:ABA:DBD",
+        createSmallShapedRecipe(powerDrillKey, ItemStackGenerator.getPowerDrill(), "DAD:ABA:DBD",
                 ItemStackGenerator.getPowerOre(), null, null, null, Material.BEACON, null);
-        ItemStackGenerator.createSmallShapedRecipe(powerLaserKey, ItemStackGenerator.getPowerLaser(), "DAD:ABA:DAD",
+        createSmallShapedRecipe(powerLaserKey, ItemStackGenerator.getPowerLaser(), "DAD:ABA:DAD",
                 ItemStackGenerator.getPowerOre(), null, null, null, Material.END_CRYSTAL, null);
-        ItemStackGenerator.createSmallShapedRecipe(powerHelmetKey, ItemStackGenerator.getPowerHelmet(), "AAA:BCB:DDD",
+        createSmallShapedRecipe(powerHelmetKey, ItemStackGenerator.getPowerHelmet(), "AAA:BCB:DDD",
                 ItemStackGenerator.getPowerOre(), null, ItemStackGenerator.getBeaconHelmet(), null, Material.NETHERITE_BLOCK, null);
-        ItemStackGenerator.createSmallShapedRecipe(powerChestplateKey, ItemStackGenerator.getPowerChestplate(), "BDB:ACA:AAA",
+        createSmallShapedRecipe(powerChestplateKey, ItemStackGenerator.getPowerChestplate(), "BDB:ACA:AAA",
                 ItemStackGenerator.getPowerOre(), null, ItemStackGenerator.getBeaconChestplate(), null, Material.NETHERITE_BLOCK, null);
-        ItemStackGenerator.createSmallShapedRecipe(powerLeggingsKey, ItemStackGenerator.getPowerLeggings(), "BCB:ADA:ADA",
+        createSmallShapedRecipe(powerLeggingsKey, ItemStackGenerator.getPowerLeggings(), "BCB:ADA:ADA",
                 ItemStackGenerator.getPowerOre(), null, ItemStackGenerator.getBeaconLeggings(), null, Material.NETHERITE_BLOCK, null);
-        ItemStackGenerator.createSmallShapedRecipe(powerBootsKey, ItemStackGenerator.getPowerBoots(), "DDD:BCB:ADA",
+        createSmallShapedRecipe(powerBootsKey, ItemStackGenerator.getPowerBoots(), "DDD:BCB:ADA",
                 ItemStackGenerator.getPowerOre(), null, ItemStackGenerator.getBeaconBoots(), null, Material.NETHERITE_BLOCK, null);
     }
 
@@ -511,51 +561,51 @@ public class RecipeMaker {
         NamespacedKey trimRelicKey = createGodKey("trimrelic", plugin, 3);
         NamespacedKey warriorEmblemKey = createGodKey("warrioremblem", plugin, 4);
 
-        ItemStackGenerator.createSmallShapedRecipe(turtleKey, ItemStackGenerator.getTurtleHelmet(), "AAA:ABA:AAA",
+        createSmallShapedRecipe(turtleKey, ItemStackGenerator.getTurtleHelmet(), "AAA:ABA:AAA",
                 null, null, null, Material.TURTLE_SCUTE, Material.TURTLE_EGG, null);
-        ItemStackGenerator.createShapedRecipe(goatKey, ItemStackGenerator.getGoatHorn(), getGoatHorn(MusicInstrument.CALL_GOAT_HORN),
+        createShapedRecipe(goatKey, ItemStackGenerator.getGoatHorn(), getGoatHorn(MusicInstrument.CALL_GOAT_HORN),
                 getGoatHorn(MusicInstrument.ADMIRE_GOAT_HORN), getGoatHorn(MusicInstrument.DREAM_GOAT_HORN), getGoatHorn(MusicInstrument.FEEL_GOAT_HORN),
                 getGoatHorn(MusicInstrument.PONDER_GOAT_HORN), getGoatHorn(MusicInstrument.SEEK_GOAT_HORN), getGoatHorn(MusicInstrument.SING_GOAT_HORN),
                 getGoatHorn(MusicInstrument.YEARN_GOAT_HORN), null, true);
 
-        ItemStackGenerator.createShapedRecipe(firstAlbumKey, ItemStackGenerator.getFirstAlbum(), new ItemStack(Material.MUSIC_DISC_5),
+        createShapedRecipe(firstAlbumKey, ItemStackGenerator.getFirstAlbum(), new ItemStack(Material.MUSIC_DISC_5),
                 new ItemStack(Material.MUSIC_DISC_11), new ItemStack(Material.MUSIC_DISC_13), new ItemStack(Material.MUSIC_DISC_BLOCKS),
                 new ItemStack(Material.MUSIC_DISC_CAT), new ItemStack(Material.MUSIC_DISC_CHIRP), new ItemStack(Material.MUSIC_DISC_CREATOR),
                 new ItemStack(Material.MUSIC_DISC_CREATOR_MUSIC_BOX), new ItemStack(Material.MUSIC_DISC_FAR), false);
-        ItemStackGenerator.createShapedRecipe(secondAlbumKey, ItemStackGenerator.getSecondAlbum(), new ItemStack(Material.MUSIC_DISC_MALL),
+        createShapedRecipe(secondAlbumKey, ItemStackGenerator.getSecondAlbum(), new ItemStack(Material.MUSIC_DISC_MALL),
                 new ItemStack(Material.MUSIC_DISC_MELLOHI), new ItemStack(Material.MUSIC_DISC_OTHERSIDE), new ItemStack(Material.MUSIC_DISC_PIGSTEP),
                 new ItemStack(Material.MUSIC_DISC_RELIC), new ItemStack(Material.MUSIC_DISC_STAL), new ItemStack(Material.MUSIC_DISC_STRAD),
                 new ItemStack(Material.MUSIC_DISC_WAIT), new ItemStack(Material.MUSIC_DISC_WARD), false);
-        ItemStackGenerator.createSmallShapedRecipe(musicKnowledgeKey, ItemStackGenerator.getMusicKnowledgeDisc(), "DDD:ABC:DDD",
+        createSmallShapedRecipe(musicKnowledgeKey, ItemStackGenerator.getMusicKnowledgeDisc(), "DDD:ABC:DDD",
                 ItemStackGenerator.getFirstAlbum(), null, ItemStackGenerator.getSecondAlbum(), null, Material.MUSIC_DISC_PRECIPICE, null);
 
-        ItemStackGenerator.createShapedRecipe(firstSherdKey, ItemStackGenerator.getFirstSherd(), new ItemStack(Material.SHEAF_POTTERY_SHERD),
+        createShapedRecipe(firstSherdKey, ItemStackGenerator.getFirstSherd(), new ItemStack(Material.SHEAF_POTTERY_SHERD),
                 new ItemStack(Material.SHELTER_POTTERY_SHERD), new ItemStack(Material.ANGLER_POTTERY_SHERD), new ItemStack(Material.ARCHER_POTTERY_SHERD),
                 new ItemStack(Material.ARMS_UP_POTTERY_SHERD), new ItemStack(Material.BLADE_POTTERY_SHERD), new ItemStack(Material.BREWER_POTTERY_SHERD),
                 new ItemStack(Material.BURN_POTTERY_SHERD), new ItemStack(Material.FLOW_POTTERY_SHERD), false);
-        ItemStackGenerator.createShapedRecipe(secondSherdKey, ItemStackGenerator.getSecondSherd(), new ItemStack(Material.DANGER_POTTERY_SHERD),
+        createShapedRecipe(secondSherdKey, ItemStackGenerator.getSecondSherd(), new ItemStack(Material.DANGER_POTTERY_SHERD),
                 new ItemStack(Material.EXPLORER_POTTERY_SHERD), new ItemStack(Material.FRIEND_POTTERY_SHERD), new ItemStack(Material.GUSTER_POTTERY_SHERD),
                 new ItemStack(Material.HEART_POTTERY_SHERD), new ItemStack(Material.HEARTBREAK_POTTERY_SHERD), new ItemStack(Material.HOWL_POTTERY_SHERD),
                 new ItemStack(Material.MINER_POTTERY_SHERD), new ItemStack(Material.MOURNER_POTTERY_SHERD), false);
-        ItemStackGenerator.createShapedRecipe(sherdRelicKey, ItemStackGenerator.getSherdRelic(), null, new ItemStack(Material.SKULL_POTTERY_SHERD),
+        createShapedRecipe(sherdRelicKey, ItemStackGenerator.getSherdRelic(), null, new ItemStack(Material.SKULL_POTTERY_SHERD),
                 new ItemStack(Material.PLENTY_POTTERY_SHERD), ItemStackGenerator.getFirstSherd(), new ItemStack(Material.SNORT_POTTERY_SHERD),
                 ItemStackGenerator.getSecondSherd(), new ItemStack(Material.PRIZE_POTTERY_SHERD), new ItemStack(Material.SCRAPE_POTTERY_SHERD),
                 null, true);
 
-        ItemStackGenerator.createShapedRecipe(firstTrimKey, ItemStackGenerator.getFirstTrim(), new ItemStack(Material.BOLT_ARMOR_TRIM_SMITHING_TEMPLATE),
+        createShapedRecipe(firstTrimKey, ItemStackGenerator.getFirstTrim(), new ItemStack(Material.BOLT_ARMOR_TRIM_SMITHING_TEMPLATE),
                 new ItemStack(Material.COAST_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.DUNE_ARMOR_TRIM_SMITHING_TEMPLATE),
                 new ItemStack(Material.EYE_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.FLOW_ARMOR_TRIM_SMITHING_TEMPLATE),
                 new ItemStack(Material.RAISER_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.HOST_ARMOR_TRIM_SMITHING_TEMPLATE),
                 new ItemStack(Material.RIB_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.SENTRY_ARMOR_TRIM_SMITHING_TEMPLATE), false);
-        ItemStackGenerator.createShapedRecipe(secondTrimKey, ItemStackGenerator.getSecondTrim(), new ItemStack(Material.SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE),
+        createShapedRecipe(secondTrimKey, ItemStackGenerator.getSecondTrim(), new ItemStack(Material.SHAPER_ARMOR_TRIM_SMITHING_TEMPLATE),
                 new ItemStack(Material.WILD_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE),
                 new ItemStack(Material.SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.SPIRE_ARMOR_TRIM_SMITHING_TEMPLATE),
                 new ItemStack(Material.TIDE_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.VEX_ARMOR_TRIM_SMITHING_TEMPLATE),
                 new ItemStack(Material.WARD_ARMOR_TRIM_SMITHING_TEMPLATE), new ItemStack(Material.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE), false);
-        ItemStackGenerator.createSmallShapedRecipe(trimRelicKey, ItemStackGenerator.getTrimRelic(), "DDD:ABC:DDD",
+        createSmallShapedRecipe(trimRelicKey, ItemStackGenerator.getTrimRelic(), "DDD:ABC:DDD",
                 ItemStackGenerator.getFirstTrim(), null, ItemStackGenerator.getSecondTrim(), null, Material.GOLD_BLOCK, null);
 
-        ItemStackGenerator.createShapedRecipe(warriorEmblemKey, ItemStackGenerator.getWarriorEmblem(), new ItemStack(Material.NETHERITE_SWORD),
+        createShapedRecipe(warriorEmblemKey, ItemStackGenerator.getWarriorEmblem(), new ItemStack(Material.NETHERITE_SWORD),
                 new ItemStack(Material.NETHERITE_HELMET), new ItemStack(Material.NETHERITE_CHESTPLATE), new ItemStack(Material.NETHERITE_LEGGINGS),
                 new ItemStack(Material.NETHERITE_BOOTS), new ItemStack(Material.MACE), new ItemStack(Material.TRIDENT),
                 new ItemStack(Material.CROSSBOW), new ItemStack(Material.TOTEM_OF_UNDYING), false);
@@ -572,14 +622,12 @@ public class RecipeMaker {
 
     public static NamespacedKey createKey(String name, SurvivalSkills plugin) {
         NamespacedKey key = new NamespacedKey(plugin, name);
-        if (plugin.getServer().getRecipe(key) != null) plugin.getServer().removeRecipe(key);
         plugin.getRecipeKeys().add(key);
         return key;
     }
 
     public static NamespacedKey createGodKey(String name, SurvivalSkills plugin, int stage) {
         NamespacedKey key = new NamespacedKey(plugin, name);
-        if (plugin.getServer().getRecipe(key) != null) plugin.getServer().removeRecipe(key);
         plugin.getGodRecipeKeys().put(key, stage);
         return key;
     }
@@ -611,5 +659,25 @@ public class RecipeMaker {
             positions.add(17);
         }
         return positions;
+    }
+
+    public static void addShapedRecipe(SurvivalSkills plugin, ShapedRecipe recipe, NamespacedKey key) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (plugin.getServer().getRecipe(key) != null) plugin.getServer().removeRecipe(key);
+                plugin.getServer().addRecipe(recipe);
+            }
+        }.runTask(plugin);
+    }
+
+    public static void addShapelessRecipe(SurvivalSkills plugin, ShapelessRecipe recipe, NamespacedKey key) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (plugin.getServer().getRecipe(key) != null) plugin.getServer().removeRecipe(key);
+                plugin.getServer().addRecipe(recipe);
+            }
+        }.runTask(plugin);
     }
 }

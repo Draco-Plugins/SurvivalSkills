@@ -95,6 +95,9 @@ public final class SurvivalSkills extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // track how many milliseconds it takes to start the plugin
+        long start = System.currentTimeMillis();
+
         instance = this;
 
         // Make sure there are no stragglers from before
@@ -137,9 +140,19 @@ public final class SurvivalSkills extends JavaPlugin {
         // Load plugin features
         loadListeners();
         trophyManager = new TrophyManager(this);
-        RecipeMaker.trophyRecipes(this);
-        RecipeMaker.rewardRecipes(this);
-        RecipeMaker.godRecipes(this);
+
+        long recipeStart = System.currentTimeMillis();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                RecipeMaker.trophyRecipes(SurvivalSkills.getInstance());
+                RecipeMaker.rewardRecipes(SurvivalSkills.getInstance());
+                RecipeMaker.godRecipes(SurvivalSkills.getInstance());
+                new SkillStatsCommand(SurvivalSkills.getInstance());
+            }
+        }.runTaskAsynchronously(this);
+        Bukkit.getLogger().info("Recipes loaded in " + (System.currentTimeMillis() - recipeStart) + "ms");
+
         abilityManager = new AbilityManager(this);
         loadCommands();
 
@@ -165,6 +178,11 @@ public final class SurvivalSkills extends JavaPlugin {
 
         Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
         if (citizens != null && citizens.isEnabled()) citizensEnabled = true;
+
+        // milliseconds it took to start the plugin
+        long end = System.currentTimeMillis();
+        double time = (end - start) / 1000.0;
+        Bukkit.getLogger().info("SurvivalSkills is enabled..." + time);
     }
 
     @Override
@@ -219,7 +237,6 @@ public final class SurvivalSkills extends JavaPlugin {
         new NightVisionCommand(this);
         new PeacefulMinerCommand(this);
         new PermaTrashCommand(this);
-        new SkillStatsCommand(this);
         new SpelunkerCommand(this);
         new ToggleMaxSkillMessageCommand(this);
         new TogglePhantomsCommand(this);

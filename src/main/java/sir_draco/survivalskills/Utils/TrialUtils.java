@@ -20,7 +20,7 @@ public class TrialUtils {
         ArrayList<Block> blocks = new ArrayList<>();
         for (int i = -(x/2); i <= x/2; i++) {
             for (int j = -1; j < y; j++) {
-                for (int k = -(z/2); k <= z; k++) {
+                for (int k = -(z/2); k <= z/2; k++) {
                     Block block = location.clone().add(i, j, k).getBlock();
                     if (block.getType().isAir()) continue;
                     blocks.add(block);
@@ -97,7 +97,7 @@ public class TrialUtils {
 
     public static void clearTrialBuilding(Location centerLocation) {
         for (int i = -25; i <= 25; i++) {
-            for (int j = 0; j <= 30; j++) {
+            for (int j = -1; j <= 30; j++) {
                 for (int k = -25; k <= 25; k++) {
                     Block block = centerLocation.clone().add(i, j, k).getBlock();
                     if (block.getType().isAir()) continue;

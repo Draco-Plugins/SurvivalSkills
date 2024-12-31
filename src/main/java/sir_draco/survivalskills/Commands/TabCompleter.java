@@ -41,8 +41,9 @@ public class TabCompleter implements Listener {
         else if (buffer.contains("/toggletrail ")) handleTrails(p, buffer, e);
         else if (buffer.contains("/bossmusic ")) handleBossMusic(buffer, p, e);
         else if (buffer.contains("/flight ")) handleFlight(buffer, e);
-        else if (buffer.contains("/godtrial ")) handleGodTrial(buffer, p, e);
         else if (buffer.contains("/godtrial end ")) handleActiveTrials(buffer, p, e);
+        else if (buffer.contains("/godtrial delete ")) handleActiveTrials(buffer, p, e);
+        else if (buffer.contains("/godtrial ")) handleGodTrial(buffer, p, e);
     }
 
     public void handleSpelunker(String buffer, Player p, TabCompleteEvent e) {
@@ -322,6 +323,7 @@ public class TabCompleter implements Listener {
         if (!p.hasPermission("survivalskills.op")) return;
         ArrayList<String> words = new ArrayList<>();
         words.add("end");
+        words.add("delete");
         e.setCompletions(getCompletions(buffer, words));
     }
 

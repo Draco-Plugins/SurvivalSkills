@@ -7,6 +7,7 @@ sir_draco\survivalskills\Trophy\Trophy.class
 sir_draco\survivalskills\Commands\AdminCommands\ToggleOverworldFirstDragon.class
 sir_draco\survivalskills\Bosses\GiantBoss$9.class
 sir_draco\survivalskills\Abilities\TrailEffect.class
+sir_draco\survivalskills\SurvivalSkills$2.class
 sir_draco\survivalskills\Abilities\PowerDrillAsync$1.class
 sir_draco\survivalskills\Trophy\TrophyManager.class
 sir_draco\survivalskills\Abilities\GodItems\EnderEssence$1.class
@@ -101,6 +102,7 @@ sir_draco\survivalskills\Utils\MusicPhrase.class
 sir_draco\survivalskills\SkillListeners\ArmorListener$4.class
 sir_draco\survivalskills\SkillListeners\PlayerListener$1.class
 sir_draco\survivalskills\Boards\Leaderboard.class
+sir_draco\survivalskills\GodQuestline\Trial$1.class
 sir_draco\survivalskills\Bosses\GiantBoss$6.class
 sir_draco\survivalskills\SkillListeners\ArmorListener$10.class
 sir_draco\survivalskills\SkillListeners\ExploringSkill.class
@@ -112,6 +114,7 @@ sir_draco\survivalskills\Abilities\Grave.class
 sir_draco\survivalskills\Skills\SkillsHolder.class
 sir_draco\survivalskills\Bosses\VillagerBoss$14.class
 sir_draco\survivalskills\GodQuestline\GodRecipeUI.class
+sir_draco\survivalskills\Utils\RecipeMaker$1.class
 sir_draco\survivalskills\Commands\SkillCommands\TogglePhantomsCommand.class
 sir_draco\survivalskills\Commands\SkillCommands\EatCommand.class
 sir_draco\survivalskills\Commands\SkillCommands\UpCommand.class
@@ -126,6 +129,7 @@ sir_draco\survivalskills\Commands\SkillCommands\AutoTrashCommand.class
 sir_draco\survivalskills\Rewards\RewardNotifications.class
 sir_draco\survivalskills\Abilities\Armor\GillArmor.class
 sir_draco\survivalskills\Commands\DefaultCommands\ToggleScoreboardCommand.class
+sir_draco\survivalskills\Utils\RecipeMaker$2.class
 sir_draco\survivalskills\Skills\SkillManager$1$1.class
 sir_draco\survivalskills\GodQuestline\PowerOreConversion.class
 sir_draco\survivalskills\Bosses\GiantBoss$5.class
@@ -151,6 +155,7 @@ sir_draco\survivalskills\Commands\SkillCommands\ToggleTrashCommand.class
 sir_draco\survivalskills\Utils\ExiledBossMusic.class
 sir_draco\survivalskills\SkillListeners\BuildingSkill.class
 sir_draco\survivalskills\Commands\AdminCommands\BossMusicCommand.class
+sir_draco\survivalskills\GodQuestline\Trial.class
 sir_draco\survivalskills\Bosses\VillagerBoss.class
 sir_draco\survivalskills\Abilities\DeathLocationTimer.class
 sir_draco\survivalskills\Commands\AdminCommands\GetTrophyCommand.class

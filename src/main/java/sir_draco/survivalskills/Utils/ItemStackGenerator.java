@@ -14,8 +14,6 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.*;
 
-import static org.bukkit.Bukkit.getServer;
-
 @SuppressWarnings("UnstableApiUsage")
 public class ItemStackGenerator {
 
@@ -50,86 +48,6 @@ public class ItemStackGenerator {
         if (hideEnchants) meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         item.setItemMeta(meta);
         return item;
-    }
-
-    public static void createSmallShapedRecipe(NamespacedKey key, ItemStack result, String shape, ItemStack as, ItemStack bs, ItemStack cs, Material am, Material bm, Material cm) {
-        if (getServer().getRecipe(key) != null) getServer().removeRecipe(key);
-        ShapedRecipe recipe = new ShapedRecipe(key, result);
-        String[] shapes = shape.split(":");
-
-        if (shapes[0].contains("DDD")) recipe.shape(shapes[1], shapes[2]);
-        else if (shapes[2].contains("DDD")) recipe.shape(shapes[0], shapes[1]);
-        else recipe.shape(shapes[0], shapes[1], shapes[2]);
-
-        if (as != null) recipe.setIngredient('A', new RecipeChoice.ExactChoice(as));
-        else if (am != null) recipe.setIngredient('A', am);
-
-        if (bs != null) recipe.setIngredient('B', new RecipeChoice.ExactChoice(bs));
-        else if (bm != null) recipe.setIngredient('B', bm);
-
-        if (cs != null) recipe.setIngredient('C', new RecipeChoice.ExactChoice(cs));
-        else if (cm != null) recipe.setIngredient('C', cm);
-
-        Bukkit.getServer().addRecipe(recipe);
-    }
-
-    public static void createShapedRecipe(NamespacedKey key, ItemStack result, ItemStack a, ItemStack b, ItemStack c, ItemStack d,
-                                          ItemStack e, ItemStack f, ItemStack g, ItemStack h, ItemStack i, boolean unique) {
-        if (getServer().getRecipe(key) != null) getServer().removeRecipe(key);
-        ShapedRecipe recipe = new ShapedRecipe(key, result);
-
-        // Create the shape
-        StringBuilder shape1 = new StringBuilder();
-        if (a != null) shape1.append("A");
-        else shape1.append(" ");
-        if (b != null) shape1.append("B");
-        else shape1.append(" ");
-        if (c != null) shape1.append("C");
-        else shape1.append(" ");
-
-        StringBuilder shape2 = new StringBuilder();
-        if (d != null) shape2.append("D");
-        else shape2.append(" ");
-        if (e != null) shape2.append("E");
-        else shape2.append(" ");
-        if (f != null) shape2.append("F");
-        else shape2.append(" ");
-
-        StringBuilder shape3 = new StringBuilder();
-        if (g != null) shape3.append("G");
-        else shape3.append(" ");
-        if (h != null) shape3.append("H");
-        else shape3.append(" ");
-        if (i != null) shape3.append("I");
-        else shape3.append(" ");
-
-        recipe.shape(shape1.toString(), shape2.toString(), shape3.toString());
-
-        // Set the ingredients
-        if (unique) {
-            if (a != null) recipe.setIngredient('A', new RecipeChoice.ExactChoice(a));
-            if (b != null) recipe.setIngredient('B', new RecipeChoice.ExactChoice(b));
-            if (c != null) recipe.setIngredient('C', new RecipeChoice.ExactChoice(c));
-            if (d != null) recipe.setIngredient('D', new RecipeChoice.ExactChoice(d));
-            if (e != null) recipe.setIngredient('E', new RecipeChoice.ExactChoice(e));
-            if (f != null) recipe.setIngredient('F', new RecipeChoice.ExactChoice(f));
-            if (g != null) recipe.setIngredient('G', new RecipeChoice.ExactChoice(g));
-            if (h != null) recipe.setIngredient('H', new RecipeChoice.ExactChoice(h));
-            if (i != null) recipe.setIngredient('I', new RecipeChoice.ExactChoice(i));
-        }
-        else {
-            if (a != null) recipe.setIngredient('A', a.getType());
-            if (b != null) recipe.setIngredient('B', b.getType());
-            if (c != null) recipe.setIngredient('C', c.getType());
-            if (d != null) recipe.setIngredient('D', d.getType());
-            if (e != null) recipe.setIngredient('E', e.getType());
-            if (f != null) recipe.setIngredient('F', f.getType());
-            if (g != null) recipe.setIngredient('G', g.getType());
-            if (h != null) recipe.setIngredient('H', h.getType());
-            if (i != null) recipe.setIngredient('I', i.getType());
-        }
-
-        Bukkit.getServer().addRecipe(recipe);
     }
 
     public static boolean isCustomItem(ItemStack item, int modelData) {

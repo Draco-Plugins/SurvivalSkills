@@ -36,31 +36,44 @@ public class GodTrialCommand implements CommandExecutor {
         if (!(sender instanceof Player p)) return false;
 
         if (p.hasPermission("survivalskills.op") && strings.length >= 1) {
+            if (strings.length < 2) {
+                p.sendRawMessage(ChatColor.RED + "Usage: /godtrial <start/end> <player>");
+                p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return true;
+            }
+
+            // Find the player
+            Player target = null;
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                if (!player.getName().equalsIgnoreCase(strings[1])) continue;
+                target = player;
+                break;
+            }
+
+            if (target == null) {
+                p.sendRawMessage(ChatColor.RED + "Player not found");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return false;
+            }
+
             if (strings[0].equalsIgnoreCase("end")) {
-                if (strings.length < 2) {
-                    p.sendRawMessage(ChatColor.RED + "Usage: /godtrial end <player>");
-                    p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    return true;
-                }
-
-                // Find the player
-                Player target = null;
-                for (Player player : Bukkit.getOnlinePlayers()) {
-                    if (!player.getName().equalsIgnoreCase(strings[1])) continue;
-                    target = player;
-                    break;
-                }
-
-                if (target == null) {
-                    p.sendRawMessage(ChatColor.RED + "Player not found");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    return false;
-                }
-
                 for (Trial trial : TrialManager.getTrials()) {
                     if (!trial.getPlayer().equals(target)) continue;
                     trial.endTrial();
                     p.sendRawMessage(ChatColor.GREEN + "Ended trial for " + target.getName());
+                    p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                    return true;
+                }
+
+                p.sendRawMessage(ChatColor.RED + "Player is not in a trial");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return true;
+            }
+            else if (strings[0].equalsIgnoreCase("delete")) {
+                for (Trial trial : TrialManager.getTrials()) {
+                    if (!trial.getPlayer().equals(target)) continue;
+                    trial.deleteTrial();
+                    p.sendRawMessage(ChatColor.GREEN + "Deleted trial for " + target.getName());
                     p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                     return true;
                 }
@@ -82,11 +95,13 @@ public class GodTrialCommand implements CommandExecutor {
             config = YamlConfiguration.loadConfiguration(file);
         }
 
-        Location pLocation = p.getLocation().getBlock().getLocation();
+        Location pLocation = p.getLocation().clone().add(0, 0.1, 0).getBlock().getLocation();
 
         // Check if the player has an active god quest
 
         // Check if they have unlocked the god trial
+
+        // Check if the player has a pre-existing structure
 
         // Check if the player has an empty 50x50x30 area around them
         for (int i = -25; i <= 25; i++) {
@@ -107,13 +122,13 @@ public class GodTrialCommand implements CommandExecutor {
 
         // Create bounding box around the trial building
         BoundingBox box = new BoundingBox();
-        box.resize(pLocation.getX() - 25, pLocation.getY() - 1, pLocation.getZ() - 25,
+        box.resize(pLocation.getX() - 25, pLocation.getY(), pLocation.getZ() - 25,
                 pLocation.getX() + 25, pLocation.getY() + 30, pLocation.getZ() + 25);
 
         // Create the Trial
         Trial trial = new Trial(blocks, p, box, pLocation);
-        trial.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
         TrialManager.getTrials().add(trial);
+        trial.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
         return true;
     }
 }

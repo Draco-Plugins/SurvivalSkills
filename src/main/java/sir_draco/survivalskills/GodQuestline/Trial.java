@@ -16,6 +16,7 @@ public class Trial extends BukkitRunnable {
     private final Location centerLocation;
 
     private boolean buildingCreated = false;
+    private int timer;
 
     public Trial(ArrayList<RelativeBlock> building, Player p, BoundingBox boundingBox, Location centerLocation) {
         this.p = p;
@@ -27,10 +28,11 @@ public class Trial extends BukkitRunnable {
     @Override
     public void run() {
         if (!buildingCreated) return;
+        timer++;
     }
 
     public void loadBuilding(ArrayList<RelativeBlock> building) {
-        int increment = building.size() / 60;
+        int increment = building.size() / 120;
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -41,7 +43,7 @@ public class Trial extends BukkitRunnable {
                     return;
                 }
 
-                int amount = Math.max(increment, building.size());
+                int amount = Math.min(increment, building.size());
                 for (int i = 0; i < amount; i++) {
                     if (building.isEmpty()) continue;
                     RelativeBlock block = TrialUtils.getRandomBlock(building);
@@ -52,6 +54,11 @@ public class Trial extends BukkitRunnable {
     }
 
     public void endTrial() {
+        TrialManager.getTrials().remove(this);
+        cancel();
+    }
+
+    public void deleteTrial() {
         TrialUtils.clearTrialBuilding(centerLocation);
         TrialManager.getTrials().remove(this);
         cancel();
