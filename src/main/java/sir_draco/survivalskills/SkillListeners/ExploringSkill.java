@@ -16,6 +16,8 @@ import org.bukkit.event.vehicle.VehicleMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.CaveFinderAsync;
 import sir_draco.survivalskills.Abilities.Magnet;
@@ -111,6 +113,10 @@ public class ExploringSkill implements Listener {
     public void exploringSkill(PlayerMoveEvent e) {
         Player p = e.getPlayer();
         if (p.isSwimming()) setSwimSpeed(p);
+        if (!p.hasPotionEffect(PotionEffectType.REGENERATION)) {
+            if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "HealthRegen").isApplied()) return;
+            p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, Integer.MAX_VALUE, 0, true, false));
+        }
     }
 
     @EventHandler

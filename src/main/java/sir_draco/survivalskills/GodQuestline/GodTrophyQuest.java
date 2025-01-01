@@ -386,7 +386,7 @@ public class GodTrophyQuest {
                 currentItemCount = 0;
                 break;
             case 3:
-                if (handleItemCheck(500, p, Material.DIAMOND_BLOCK, "diamond blocks")) return;
+                if (handleItemCheck(250, p, Material.DIAMOND_BLOCK, "diamond blocks")) return;
                 ArrayList<String> messages3 = new ArrayList<>();
                 messages3.add("Excellent work!");
                 messages3.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "emerald blocks");
@@ -395,7 +395,7 @@ public class GodTrophyQuest {
                 currentItemCount = 0;
                 break;
             case 4:
-                if (handleItemCheck(500, p, Material.EMERALD_BLOCK, "emerald blocks")) return;
+                if (handleItemCheck(250, p, Material.EMERALD_BLOCK, "emerald blocks")) return;
                 ArrayList<String> messages4 = new ArrayList<>();
                 messages4.add("Excellent work!");
                 messages4.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "netherite blocks");

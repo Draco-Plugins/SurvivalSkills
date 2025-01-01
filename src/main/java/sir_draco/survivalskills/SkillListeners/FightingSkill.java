@@ -114,6 +114,8 @@ public class FightingSkill implements Listener {
         if (isBoss(e.getEntity()) || e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
             summonTracker.remove(p);
 
+            Location entLocation = e.getEntity().getLocation();
+            if (entLocation.getWorld() == null) return;
             ArrayList<ItemStack> drops = new ArrayList<>();
             switch (e.getEntity().getType()) {
                 case ZOMBIE:
@@ -158,7 +160,7 @@ public class FightingSkill implements Listener {
                     break;
             }
             for (ItemStack drop : drops)
-                e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), drop);
+                entLocation.getWorld().dropItemNaturally(entLocation, drop);
             e.setDroppedExp(0);
             return;
         }

@@ -33,6 +33,7 @@ import sir_draco.survivalskills.Boards.SkillScoreboard;
 import sir_draco.survivalskills.Commands.AdminCommands.*;
 import sir_draco.survivalskills.Commands.DefaultCommands.*;
 import sir_draco.survivalskills.Commands.SkillCommands.*;
+import sir_draco.survivalskills.GodQuestline.TrialManager;
 import sir_draco.survivalskills.SkillListeners.*;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.Skills.SkillManager;
@@ -95,9 +96,6 @@ public final class SurvivalSkills extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // track how many milliseconds it takes to start the plugin
-        long start = System.currentTimeMillis();
-
         instance = this;
 
         // Make sure there are no stragglers from before
@@ -141,20 +139,20 @@ public final class SurvivalSkills extends JavaPlugin {
         loadListeners();
         trophyManager = new TrophyManager(this);
 
-        long recipeStart = System.currentTimeMillis();
         new BukkitRunnable() {
             @Override
             public void run() {
                 RecipeMaker.trophyRecipes(SurvivalSkills.getInstance());
                 RecipeMaker.rewardRecipes(SurvivalSkills.getInstance());
                 RecipeMaker.godRecipes(SurvivalSkills.getInstance());
-                new SkillStatsCommand(SurvivalSkills.getInstance());
+                RecipeMaker.emptyRecipeStack(SurvivalSkills.getInstance());
             }
         }.runTaskAsynchronously(this);
-        Bukkit.getLogger().info("Recipes loaded in " + (System.currentTimeMillis() - recipeStart) + "ms");
 
         abilityManager = new AbilityManager(this);
         loadCommands();
+
+        TrialManager.loadProtectedAreas();
 
         // If the plugin is reloaded without a restart
         if (!getServer().getOnlinePlayers().isEmpty()){
@@ -178,11 +176,6 @@ public final class SurvivalSkills extends JavaPlugin {
 
         Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
         if (citizens != null && citizens.isEnabled()) citizensEnabled = true;
-
-        // milliseconds it took to start the plugin
-        long end = System.currentTimeMillis();
-        double time = (end - start) / 1000.0;
-        Bukkit.getLogger().info("SurvivalSkills is enabled..." + time);
     }
 
     @Override
@@ -221,6 +214,8 @@ public final class SurvivalSkills extends JavaPlugin {
         savePotionBags();
         abilityManager.saveToolBelts();
         abilityManager.removeGlowFromScannedMobs();
+
+        TrialManager.handleTrials();
 
         getMiningListener().endSpelunkerAll();
     }
@@ -309,6 +304,7 @@ public final class SurvivalSkills extends JavaPlugin {
                         Bukkit.getLogger().warning("Material " + key + " for " + uuid + " is not valid");
                         return;
                     }
+                    if (trash.getTrashMaterials().contains(material)) return;
                     trash.addTrashItem(new ItemStack(material));
                 }
                 else Bukkit.getLogger().warning("Material " + key + " for " + uuid + " is not valid");
@@ -375,6 +371,7 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(tabCompleter, this);
         getServer().getPluginManager().registerEvents(armorListener, this);
         getServer().getPluginManager().registerEvents(godListener, this);
+        getServer().getPluginManager().registerEvents(new TrialManager(), this);
     }
 
     public void loadData(Player p, FileConfiguration data) {
@@ -617,6 +614,7 @@ public final class SurvivalSkills extends JavaPlugin {
         AutoTrash trash = getFishingListener().getPermaTrash().get(p);
         if (trash == null) return;
 
+        permaTrashData.set(uuid.toString(), null);
         permaTrashData.set(uuid + ".BigTrash", trash.isBig());
 
         int i = 0;
@@ -784,9 +782,6 @@ public final class SurvivalSkills extends JavaPlugin {
             GodTrophyQuest quest = new GodTrophyQuest(p.getUniqueId());
             SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().put(p.getUniqueId(), quest);
         }
-
-        // Try to remove boss bars from player
-
     }
 
     public void createFarmingList() {

@@ -3,7 +3,6 @@ package sir_draco.survivalskills.GodQuestline;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.BoundingBox;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Utils.TrialUtils;
 
@@ -12,23 +11,33 @@ import java.util.ArrayList;
 public class Trial extends BukkitRunnable {
 
     private final Player p;
-    private final BoundingBox boundingBox;
+    private final ProtectedArea protectedArea;
     private final Location centerLocation;
 
     private boolean buildingCreated = false;
-    private int timer;
+    private int cycle;
+    private int timer = 30;
+    private int wave = 1;
 
-    public Trial(ArrayList<RelativeBlock> building, Player p, BoundingBox boundingBox, Location centerLocation) {
+    public Trial(ArrayList<RelativeBlock> building, Player p, ProtectedArea protectedArea, Location centerLocation) {
         this.p = p;
-        this.boundingBox = boundingBox;
+        this.protectedArea = protectedArea;
         this.centerLocation = centerLocation;
         loadBuilding(building);
+    }
+
+    public Trial(Player p, ProtectedArea protectedArea, Location centerLocation) {
+        this.p = p;
+        this.protectedArea = protectedArea;
+        this.centerLocation = centerLocation;
+        startTrial();
     }
 
     @Override
     public void run() {
         if (!buildingCreated) return;
-        timer++;
+        if (cycle % 20 == 0) timer--;
+        cycle++;
     }
 
     public void loadBuilding(ArrayList<RelativeBlock> building) {
@@ -37,8 +46,7 @@ public class Trial extends BukkitRunnable {
             @Override
             public void run() {
                 if (building.isEmpty()) {
-                    buildingCreated = true;
-                    p.teleport(centerLocation.clone().add(0.5, 1, 0.5));
+                    startTrial();
                     cancel();
                     return;
                 }
@@ -53,6 +61,16 @@ public class Trial extends BukkitRunnable {
         }.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
     }
 
+    public void startTrial() {
+        buildingCreated = true;
+        p.teleport(centerLocation.clone().add(0.5, 1, 0.5));
+    }
+
+    public void restartTrial() {
+        p.teleport(centerLocation.clone().add(0.5, 1, 0.5));
+        timer = 0;
+    }
+
     public void endTrial() {
         TrialManager.getTrials().remove(this);
         cancel();
@@ -61,6 +79,7 @@ public class Trial extends BukkitRunnable {
     public void deleteTrial() {
         TrialUtils.clearTrialBuilding(centerLocation);
         TrialManager.getTrials().remove(this);
+        TrialManager.getProtectedAreas().remove(p.getUniqueId());
         cancel();
     }
 
@@ -68,7 +87,7 @@ public class Trial extends BukkitRunnable {
         return p;
     }
 
-    public BoundingBox getBoundingBox() {
-        return boundingBox;
+    public ProtectedArea getProtectedArea() {
+        return protectedArea;
     }
 }

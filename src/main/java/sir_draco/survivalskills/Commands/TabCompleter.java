@@ -43,7 +43,8 @@ public class TabCompleter implements Listener {
         else if (buffer.contains("/flight ")) handleFlight(buffer, e);
         else if (buffer.contains("/godtrial end ")) handleActiveTrials(buffer, p, e);
         else if (buffer.contains("/godtrial delete ")) handleActiveTrials(buffer, p, e);
-        else if (buffer.contains("/godtrial ")) handleGodTrial(buffer, p, e);
+        else if (buffer.contains("/godtrial restart ")) handleActiveTrials(buffer, p, e);
+        else if (buffer.contains("/godtrial ")) handleGodTrial(buffer, e);
     }
 
     public void handleSpelunker(String buffer, Player p, TabCompleteEvent e) {
@@ -319,11 +320,11 @@ public class TabCompleter implements Listener {
         e.setCompletions(getCompletions(buffer, words));
     }
 
-    public void handleGodTrial(String buffer, Player p, TabCompleteEvent e) {
-        if (!p.hasPermission("survivalskills.op")) return;
+    public void handleGodTrial(String buffer, TabCompleteEvent e) {
         ArrayList<String> words = new ArrayList<>();
         words.add("end");
         words.add("delete");
+        words.add("restart");
         e.setCompletions(getCompletions(buffer, words));
     }
 

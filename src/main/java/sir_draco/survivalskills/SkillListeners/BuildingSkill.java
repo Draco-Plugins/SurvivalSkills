@@ -49,8 +49,8 @@ public class BuildingSkill implements Listener {
         if (e.getBlock().getType().toString().contains("WALL_SIGN")) return;
         if (brokenBlocks.contains(e.getBlock().getType().toString())) return;
         if (plugin.getFarmingList().contains(e.getBlock().getType())) return;
-        if (p.getInventory().getItemInMainHand().getType().toString().contains("SHOVEL")) return;
-        if (p.getInventory().getItemInMainHand().getType().toString().contains("HOE")) return;
+        if (e.getHand().equals(EquipmentSlot.OFF_HAND) && p.getInventory().getItemInMainHand().getType().toString().contains("SHOVEL")) return;
+        if (e.getHand().equals(EquipmentSlot.OFF_HAND) && p.getInventory().getItemInMainHand().getType().toString().contains("HOE")) return;
 
         SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getBuildingXP(), "Building");
 

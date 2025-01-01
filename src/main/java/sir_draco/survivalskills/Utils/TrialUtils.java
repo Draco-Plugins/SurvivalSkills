@@ -8,11 +8,14 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.scheduler.BukkitRunnable;
+import sir_draco.survivalskills.GodQuestline.ProtectedArea;
 import sir_draco.survivalskills.GodQuestline.RelativeBlock;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class TrialUtils {
 
@@ -105,5 +108,36 @@ public class TrialUtils {
                 }
             }
         }
+    }
+
+    public static void removeProtectedArea(ProtectedArea protectedArea) {
+        for (int i = (int) protectedArea.boundingBox().getMinX(); i <= protectedArea.boundingBox().getMaxX(); i++) {
+            for (int j = (int) protectedArea.boundingBox().getMinY(); j <= protectedArea.boundingBox().getMaxY(); j++) {
+                for (int k = (int) protectedArea.boundingBox().getMinZ(); k <= protectedArea.boundingBox().getMaxZ(); k++) {
+                    Block block = new Location(protectedArea.world(), i, j, k).getBlock();
+                    if (block.getType().isAir()) continue;
+                    block.setType(Material.AIR);
+                }
+            }
+        }
+    }
+
+    public static void removeSavedProtectedArea(UUID uuid) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                File file = new File(SurvivalSkills.getInstance().getDataFolder(), "godquests.yml");
+                if (!file.exists()) SurvivalSkills.getInstance().saveResource("godquests.yml", true);
+                FileConfiguration data = YamlConfiguration.loadConfiguration(file);
+
+                data.set(uuid.toString() + ".ProtectedArea", null);
+
+                try {
+                    data.save(file);
+                } catch (Exception e) {
+                    SurvivalSkills.getInstance().getLogger().warning("Failed to save protected areas to godquests.yml");
+                }
+            }
+        }.runTaskAsynchronously(SurvivalSkills.getInstance());
     }
 }

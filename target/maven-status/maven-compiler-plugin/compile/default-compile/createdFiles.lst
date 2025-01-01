@@ -72,6 +72,7 @@ sir_draco\survivalskills\Commands\DefaultCommands\SkillStatsCommand$2.class
 sir_draco\survivalskills\Commands\DefaultCommands\ToggleBossMusic.class
 sir_draco\survivalskills\Abilities\CaveFinderAsync.class
 sir_draco\survivalskills\Bosses\GiantBoss$7.class
+sir_draco\survivalskills\Utils\TrialUtils$1.class
 sir_draco\survivalskills\Trophy\TrophyEffects.class
 sir_draco\survivalskills\Abilities\AbilityTimer.class
 sir_draco\survivalskills\Abilities\PowerLaser.class
@@ -104,6 +105,7 @@ sir_draco\survivalskills\SkillListeners\PlayerListener$1.class
 sir_draco\survivalskills\Boards\Leaderboard.class
 sir_draco\survivalskills\GodQuestline\Trial$1.class
 sir_draco\survivalskills\Bosses\GiantBoss$6.class
+sir_draco\survivalskills\Utils\RecipeRecord.class
 sir_draco\survivalskills\SkillListeners\ArmorListener$10.class
 sir_draco\survivalskills\SkillListeners\ExploringSkill.class
 sir_draco\survivalskills\SkillListeners\ArmorListener$5.class
@@ -124,12 +126,12 @@ sir_draco\survivalskills\Rewards\PlayerRewards.class
 sir_draco\survivalskills\Bosses\VillagerBoss$13.class
 sir_draco\survivalskills\SkillListeners\ArmorListener$15.class
 sir_draco\survivalskills\Abilities\GraveTimer.class
+sir_draco\survivalskills\GodQuestline\ProtectedArea.class
 sir_draco\survivalskills\SkillListeners\PlayerListener$2.class
 sir_draco\survivalskills\Commands\SkillCommands\AutoTrashCommand.class
 sir_draco\survivalskills\Rewards\RewardNotifications.class
 sir_draco\survivalskills\Abilities\Armor\GillArmor.class
 sir_draco\survivalskills\Commands\DefaultCommands\ToggleScoreboardCommand.class
-sir_draco\survivalskills\Utils\RecipeMaker$2.class
 sir_draco\survivalskills\Skills\SkillManager$1$1.class
 sir_draco\survivalskills\GodQuestline\PowerOreConversion.class
 sir_draco\survivalskills\Bosses\GiantBoss$5.class

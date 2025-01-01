@@ -87,7 +87,7 @@ public class GodListener implements Listener {
 
         // Special cases
         if (type.equals(EntityType.ENDER_DRAGON) && chance <= 0.1) {
-            e.getDrops().add(godItems.get(type));
+            e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), godItems.get(type));
             e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
         }
         else if (type.equals(EntityType.CREEPER)) {

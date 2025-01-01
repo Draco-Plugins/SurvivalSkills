@@ -2,20 +2,17 @@ package sir_draco.survivalskills.Utils;
 
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.RecipeChoice;
-import org.bukkit.inventory.ShapedRecipe;
-import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.MusicInstrumentMeta;
 import org.bukkit.scheduler.BukkitRunnable;
+import sir_draco.survivalskills.Commands.DefaultCommands.SkillStatsCommand;
 import sir_draco.survivalskills.SurvivalSkills;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class RecipeMaker {
+
+    private final static Deque<RecipeRecord> recipeStack = new ArrayDeque<>();
 
     public static void createSmallShapedRecipe(NamespacedKey key, ItemStack result, String shape, ItemStack as, ItemStack bs, ItemStack cs, Material am, Material bm, Material cm) {
         ShapedRecipe recipe = new ShapedRecipe(key, result);
@@ -34,7 +31,7 @@ public class RecipeMaker {
         if (cs != null) recipe.setIngredient('C', new RecipeChoice.ExactChoice(cs));
         else if (cm != null) recipe.setIngredient('C', cm);
 
-        RecipeMaker.addShapedRecipe(SurvivalSkills.getInstance(), recipe, key);
+        RecipeMaker.addShapedRecipe(recipe, key);
     }
 
     public static void createShapedRecipe(NamespacedKey key, ItemStack result, ItemStack a, ItemStack b, ItemStack c, ItemStack d,
@@ -92,7 +89,7 @@ public class RecipeMaker {
             if (i != null) recipe.setIngredient('I', i.getType());
         }
 
-        RecipeMaker.addShapedRecipe(SurvivalSkills.getInstance(), recipe, key);
+        RecipeMaker.addShapedRecipe(recipe, key);
     }
 
     /**
@@ -131,7 +128,7 @@ public class RecipeMaker {
         caveRecipe.addIngredient(Material.AMETHYST_BLOCK);
         caveRecipe.addIngredient(Material.EMERALD_BLOCK);
         caveRecipe.addIngredient(Material.COPPER_BLOCK);
-        addShapelessRecipe(plugin, caveRecipe, caveKey);
+        addShapelessRecipe(caveRecipe, caveKey);
 
         // Forest Trophy
         String name2 = ChatColor.GREEN + ChatColor.BOLD.toString() + "Forest Trophy";
@@ -148,7 +145,7 @@ public class RecipeMaker {
         forestRecipe.addIngredient(Material.DARK_OAK_LOG);
         forestRecipe.addIngredient(Material.JUNGLE_LOG);
         forestRecipe.addIngredient(Material.MUSHROOM_STEW);
-        addShapelessRecipe(plugin, forestRecipe, forestKey);
+        addShapelessRecipe(forestRecipe, forestKey);
 
         // Farming Trophy
         String name3 = ChatColor.GOLD + ChatColor.BOLD.toString() + "Farming Trophy";
@@ -165,7 +162,7 @@ public class RecipeMaker {
         farmingRecipe.addIngredient(Material.COOKIE);
         farmingRecipe.addIngredient(Material.MELON_SLICE);
         farmingRecipe.addIngredient(Material.CAKE);
-        addShapelessRecipe(plugin, farmingRecipe, farmingKey);
+        addShapelessRecipe(farmingRecipe, farmingKey);
 
         // Ocean Trophy
         String name4 = ChatColor.DARK_BLUE + ChatColor.BOLD.toString() + "Ocean Trophy";
@@ -182,7 +179,7 @@ public class RecipeMaker {
         oceanRecipe.addIngredient(Material.PUFFERFISH_BUCKET);
         oceanRecipe.addIngredient(Material.TRIDENT);
         oceanRecipe.addIngredient(Material.SEA_PICKLE);
-        addShapelessRecipe(plugin, oceanRecipe, oceanKey);
+        addShapelessRecipe(oceanRecipe, oceanKey);
 
         // Fishing Recipe
         String name5 = ChatColor.DARK_AQUA + ChatColor.BOLD.toString() + "Fishing Trophy";
@@ -201,7 +198,7 @@ public class RecipeMaker {
         fishingRecipe.setIngredient('H', Material.LILY_PAD);
         // Fishing Boss
         fishingRecipe.setIngredient('I', new RecipeChoice.ExactChoice(ItemStackGenerator.getFishingBossItem()));
-        addShapedRecipe(plugin, fishingRecipe, fishingKey);
+        addShapedRecipe(fishingRecipe, fishingKey);
 
         // Color Recipe
         Map<Enchantment, Integer> enchants = new HashMap<>();
@@ -219,7 +216,7 @@ public class RecipeMaker {
         blackRecipe.setIngredient('E', new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.RED_WOOL, 1, "Bundle Of Dense Red Wool", ChatColor.RED, "The sheep are naked", null, 15, true, enchants)));
         blackRecipe.setIngredient('F', new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.ORANGE_WOOL, 1, "Bundle Of Dense Orange Wool", ChatColor.getByChar("#FF8C00"), "The sheep are naked", null, 15, true, enchants)));
         blackRecipe.setIngredient('G', new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.YELLOW_WOOL, 1, "Bundle Of Dense Yellow Wool", ChatColor.YELLOW, "The sheep are naked", null, 15, true, enchants)));
-        addShapedRecipe(plugin, blackRecipe, blackKey);
+        addShapedRecipe(blackRecipe, blackKey);
 
         // White
         String name7 = ChatColor.WHITE + ChatColor.BOLD.toString() + "White Fragment";
@@ -236,7 +233,7 @@ public class RecipeMaker {
         whiteRecipe.setIngredient('G', new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.GREEN_WOOL, 1, "Bundle Of Dense Green Wool", ChatColor.DARK_GREEN, "The sheep are naked", null, 15, true, enchants)));
         whiteRecipe.setIngredient('H', new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.LIME_WOOL, 1, "Bundle Of Dense Lime Wool", ChatColor.GREEN, "The sheep are naked", null, 15, true, enchants)));
         whiteRecipe.setIngredient('I', new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.WHITE_WOOL, 1, "Bundle Of Dense White Wool", ChatColor.GRAY, "The sheep are naked", null, 15, true, enchants)));
-        addShapedRecipe(plugin, whiteRecipe, whiteKey);
+        addShapedRecipe(whiteRecipe, whiteKey);
 
         // Color
         List<List<String>> colors = new ArrayList<>();
@@ -258,7 +255,7 @@ public class RecipeMaker {
         colorRecipe.setIngredient('A', new RecipeChoice.ExactChoice(whiteFragment));
         colorRecipe.setIngredient('B', new RecipeChoice.ExactChoice(blackFragment));
         colorRecipe.setIngredient('C', Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-        addShapedRecipe(plugin, colorRecipe, colorKey);
+        addShapedRecipe(colorRecipe, colorKey);
 
         // Nether Recipe
         String name9 = ChatColor.DARK_RED + ChatColor.BOLD.toString() + "Nether Trophy";
@@ -275,7 +272,7 @@ public class RecipeMaker {
         netherRecipe.addIngredient(Material.QUARTZ);
         netherRecipe.addIngredient(Material.NETHER_WART);
         netherRecipe.addIngredient(Material.BLAZE_ROD);
-        addShapelessRecipe(plugin, netherRecipe, netherKey);
+        addShapelessRecipe(netherRecipe, netherKey);
 
         // End Recipe
         String name10 = ColorParser.colorizeString("End Trophy", ColorParser.generateGradient("#9600FF", "#C800FF", 10), true);
@@ -292,7 +289,7 @@ public class RecipeMaker {
         endRecipe.addIngredient(Material.END_STONE);
         endRecipe.addIngredient(Material.SHULKER_BOX);
         endRecipe.addIngredient(Material.CHORUS_FLOWER);
-        addShapelessRecipe(plugin, endRecipe, endKey);
+        addShapelessRecipe(endRecipe, endKey);
 
         // Champion Trophy
         String name11 = ColorParser.colorizeString("Champion Trophy", ColorParser.generateGradient("#FF0000", "#FFE200", 15), true);
@@ -314,7 +311,7 @@ public class RecipeMaker {
         championRecipe.setIngredient('F', new RecipeChoice.ExactChoice(ItemStackGenerator.getWardenBossItem()));
         // Villager Boss
         championRecipe.setIngredient('G', new RecipeChoice.ExactChoice(ItemStackGenerator.getVillagerBossItem()));
-        addShapedRecipe(plugin, championRecipe, championKey);
+        addShapedRecipe(championRecipe, championKey);
 
         // God Trophy
         String name12 = ColorParser.colorizeString("God Trophy", ColorParser.generateGradient("#FFFF00", "#FFFFFF", 10), true);
@@ -373,7 +370,7 @@ public class RecipeMaker {
         ShapedRecipe recipe = new ShapedRecipe(key, result);
         recipe.shape("AAA", "AAA", "AAA");
         recipe.setIngredient('A', new RecipeChoice.ExactChoice(ingredient));
-        addShapedRecipe(plugin, recipe, key);
+        addShapedRecipe(recipe, key);
         return key;
     }
 
@@ -661,23 +658,28 @@ public class RecipeMaker {
         return positions;
     }
 
-    public static void addShapedRecipe(SurvivalSkills plugin, ShapedRecipe recipe, NamespacedKey key) {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (plugin.getServer().getRecipe(key) != null) plugin.getServer().removeRecipe(key);
-                plugin.getServer().addRecipe(recipe);
-            }
-        }.runTask(plugin);
+    public static void addShapedRecipe(ShapedRecipe recipe, NamespacedKey key) {
+        recipeStack.push(new RecipeRecord(recipe, key));
     }
 
-    public static void addShapelessRecipe(SurvivalSkills plugin, ShapelessRecipe recipe, NamespacedKey key) {
+    public static void addShapelessRecipe(ShapelessRecipe recipe, NamespacedKey key) {
+        recipeStack.push(new RecipeRecord(recipe, key));
+    }
+
+    public static void emptyRecipeStack(SurvivalSkills plugin) {
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (plugin.getServer().getRecipe(key) != null) plugin.getServer().removeRecipe(key);
-                plugin.getServer().addRecipe(recipe);
+                if (recipeStack.isEmpty()) {
+                    new SkillStatsCommand(SurvivalSkills.getInstance());
+                    cancel();
+                    return;
+                }
+
+                RecipeRecord record = recipeStack.pop();
+                if (plugin.getServer().getRecipe(record.key()) != null) plugin.getServer().removeRecipe(record.key());
+                plugin.getServer().addRecipe(record.recipe());
             }
-        }.runTask(plugin);
+        }.runTaskTimer(plugin, 1, 1);
     }
 }
