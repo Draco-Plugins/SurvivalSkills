@@ -6,6 +6,7 @@ import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import sir_draco.survivalskills.Boards.SkillScoreboard;
 import sir_draco.survivalskills.GodQuestline.TrialMobs.WaveMob;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -78,6 +79,8 @@ public class Trial extends BukkitRunnable {
         }
 
         if (activeWave && wave != null) {
+            SkillScoreboard.updateTrialScoreboard(SurvivalSkills.getInstance(), p, score, timeSpent);
+
             int mobsLeft = wave.getMobsLeft();
             ChatColor color;
             if (mobsLeft > 1) color = ChatColor.YELLOW;

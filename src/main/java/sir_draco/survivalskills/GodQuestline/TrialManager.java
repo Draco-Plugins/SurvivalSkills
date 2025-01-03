@@ -24,6 +24,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import sir_draco.survivalskills.GodQuestline.TrialMobs.*;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -41,6 +42,7 @@ public class TrialManager implements Listener {
     private static final NamespacedKey trialObjectKey = new NamespacedKey(SurvivalSkills.getInstance(), "trialobject");
     private static final HashMap<Player, Location> spectatingPlayers = new HashMap<>();
     private static final HashMap<Player, Player> target = new HashMap<>();
+    private static final HashMap<Player, Scoreboard> trialScoreboards = new HashMap<>();
 
     public TrialManager() {
         createWaves();
@@ -524,6 +526,11 @@ public class TrialManager implements Listener {
         if (e.getEntity() instanceof Enderman) e.setCancelled(true);
     }
 
+    public static boolean isTrialPlayer(Player p) {
+        for (Trial trial : trials) if (trial.getPlayer().equals(p)) return true;
+        return false;
+    }
+
     public static void loadProtectedAreas() {
         File file = new File(SurvivalSkills.getInstance().getDataFolder(), "godquests.yml");
         if (!file.exists()) SurvivalSkills.getInstance().saveResource("godquests.yml", true);
@@ -971,5 +978,9 @@ public class TrialManager implements Listener {
 
     public static HashMap<Player, Player> getTarget() {
         return target;
+    }
+
+    public static HashMap<Player, Scoreboard> getTrialScoreboards() {
+        return trialScoreboards;
     }
 }

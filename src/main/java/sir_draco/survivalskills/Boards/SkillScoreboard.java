@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.*;
+import sir_draco.survivalskills.GodQuestline.TrialManager;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -31,6 +32,26 @@ public class SkillScoreboard {
         // Add the scoreboard to the tracker
         p.setScoreboard(board);
         plugin.getScoreboardTracker().put(p, board);
+    }
+
+    public static void initializeTrialScoreboard(SurvivalSkills plugin, Player p) {
+        // Make a new scoreboard
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        if (manager == null) return;
+        Scoreboard board = manager.getNewScoreboard();
+        p.setScoreboard(board);
+        plugin.getScoreboardTracker().put(p, board);
+
+        // Register the main and death objectives
+        if (board.getObjective("Main") == null) {
+            Objective main = board.registerNewObjective("Main", Criteria.DUMMY, "Main");
+            main.setDisplayName(ChatColor.AQUA + "Trial");
+            main.setDisplaySlot(DisplaySlot.SIDEBAR);
+        }
+
+        // Add the scoreboard to the tracker
+        p.setScoreboard(board);
+        TrialManager.getTrialScoreboards().put(p, board);
     }
 
     /**
@@ -129,6 +150,8 @@ public class SkillScoreboard {
      * Changes a player's scoreboard to represent a change in the XP of a skill
      */
     public static void updateScoreboard(SurvivalSkills plugin, Player p) {
+        if (TrialManager.isTrialPlayer(p)) return;
+
         // If the player has never toggled the scoreboard, initialize it
         if (plugin.getToggledScoreboard().get(p.getUniqueId()) == null) {
             plugin.getToggledScoreboard().put(p.getUniqueId(), true);
@@ -183,6 +206,20 @@ public class SkillScoreboard {
         p.setScoreboard(board);
     }
 
+    public static void updateTrialScoreboard(SurvivalSkills plugin, Player p, int scoreAmount, int timeAmount) {
+        Scoreboard board = TrialManager.getTrialScoreboards().get(p);
+        if (board == null) {
+            initializeTrialScoreboard(plugin, p);
+            return;
+        }
+
+        // Color the main level in the scoreboard display
+        String scoreString = ChatColor.GOLD + "Score: " + ChatColor.AQUA + scoreAmount;
+        String timeString = ChatColor.GOLD + "Time: " + ChatColor.AQUA + timeConverter(timeAmount);
+        newTeam(board, "Score", ChatColor.GRAY.toString(), scoreString, 1);
+        newTeam(board, "Time", ChatColor.GRAY.toString(), timeString, 2);
+    }
+
     /**
      * Creates a new team for the scoreboard
      */
@@ -216,5 +253,11 @@ public class SkillScoreboard {
         else if (playerMainLevel < 100) color = ChatColor.DARK_RED;
         else color = ChatColor.GOLD;
         return color;
+    }
+
+    private static String timeConverter(int time) {
+        int minutes = time / 60;
+        int seconds = time % 60;
+        return minutes + ":" + seconds;
     }
 }
