@@ -23,6 +23,7 @@ sir_draco\survivalskills\Bosses\DragonBoss$2.class
 sir_draco\survivalskills\Bosses\VillagerBoss$11.class
 sir_draco\survivalskills\GodQuestline\TrialLootTable.class
 sir_draco\survivalskills\Abilities\HarvesterAsync.class
+sir_draco\survivalskills\GodQuestline\Trial$4.class
 sir_draco\survivalskills\GodQuestline\ToggleGodQuestCommand.class
 sir_draco\survivalskills\SkillListeners\ArmorListener$13.class
 sir_draco\survivalskills\Abilities\VeinMinerAsync.class

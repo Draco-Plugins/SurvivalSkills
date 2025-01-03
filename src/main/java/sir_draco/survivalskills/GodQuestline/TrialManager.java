@@ -307,14 +307,13 @@ public class TrialManager implements Listener {
         if (!(entityDamageByEntityEvent.getDamager() instanceof Snowball)) return;
 
         if (trial.getWave() == null) return;
-        if (trial.getWave().isBossWave()) {
-            // Freeze the player for 2 seconds
-            float walkSpeed = p.getWalkSpeed();
-            if (walkSpeed == 0) return;
-            p.setWalkSpeed(0);
-            Bukkit.getScheduler().runTaskLater(SurvivalSkills.getInstance(), () -> p.setWalkSpeed(walkSpeed), 40);
-            return;
-        }
+        if (!trial.getWave().isBossWave()) return;
+
+        // Freeze the player for 2 seconds
+        float walkSpeed = p.getWalkSpeed();
+        if (walkSpeed == 0) return;
+        p.setWalkSpeed(0);
+        Bukkit.getScheduler().runTaskLater(SurvivalSkills.getInstance(), () -> p.setWalkSpeed(walkSpeed), 40);
     }
 
     @EventHandler

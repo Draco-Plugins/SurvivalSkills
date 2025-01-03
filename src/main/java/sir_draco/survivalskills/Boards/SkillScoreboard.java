@@ -126,6 +126,64 @@ public class SkillScoreboard {
     }
 
     /**
+     * Changes a player's scoreboard to represent a change in the XP of a skill
+     */
+    public static void updateScoreboard(SurvivalSkills plugin, Player p) {
+        // If the player has never toggled the scoreboard, initialize it
+        if (plugin.getToggledScoreboard().get(p.getUniqueId()) == null) {
+            plugin.getToggledScoreboard().put(p.getUniqueId(), true);
+            initializeScoreboard(plugin, p);
+            return;
+        }
+        if (!plugin.getToggledScoreboard().get(p.getUniqueId())) return;
+        Scoreboard board = plugin.getScoreboardTracker().get(p);
+        if (board == null) {
+            initializeScoreboard(plugin, p);
+            return;
+        }
+
+        // Get main skill and death objectives
+        Skill mainSkill = SkillManager.getSkill(p.getUniqueId(), "Main");
+        Objective main = board.getObjective("Main");
+        Objective deaths = board.getObjective("Deaths");
+        if (main == null) return;
+        if (deaths == null) return;
+        int playerLevel = mainSkill.getLevel();
+
+        // Color the main level in the scoreboard display
+        ChatColor mainColor = getChatColor(mainSkill);
+        String mainString;
+        if (mainSkill.getLevel() == 100) mainString = ChatColor.BOLD.toString() + mainColor;
+        else mainString = mainColor.toString();
+        main.setDisplayName(ChatColor.GOLD + "Player Main Level " + mainString + "(" + playerLevel + ")");
+
+        // Deaths
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            LeaderboardPlayer leaderboardPlayer = plugin.getLeaderboardTracker().get(player.getUniqueId());
+            if (leaderboardPlayer != null) deaths.getScore(player.getName()).setScore(leaderboardPlayer.getDeathScore());
+            else deaths.getScore(player.getName()).setScore(0);
+        }
+
+        // Player NameTags
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            Skill playerMainSkill = SkillManager.getSkill(player.getUniqueId(), "Main");
+            ChatColor color = getChatColor(playerMainSkill);
+            String colorString;
+            if (playerMainSkill.getLevel() == 100) colorString = ChatColor.BOLD.toString() + color;
+            else colorString = color.toString();
+            Team team = board.getTeam(player.getName());
+            if (team == null) {
+                team = board.registerNewTeam(player.getName());
+                team.addEntry(player.getName());
+                team.setPrefix(colorString + "(" + playerMainSkill.getLevel() + ") ");
+            }
+            else team.setPrefix(colorString + "(" + playerMainSkill.getLevel() + ") ");
+        }
+
+        p.setScoreboard(board);
+    }
+
+    /**
      * Creates a new team for the scoreboard
      */
     public static void newTeam(Scoreboard board, String name, String holder, String display, int score) {

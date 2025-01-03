@@ -78,7 +78,7 @@ public class SkillManager {
         }
 
         if (skill.getLevel() >= 100) {
-            SkillScoreboard.updateScoreboard(plugin, p, skillName);
+            SkillScoreboard.updateScoreboard(plugin, p);
             return;
         }
         xp = checkXPCap(skill.getExperience(), xp, plugin.getTrophyManager().playerMaxSkillLevel(uuid), skillName);
