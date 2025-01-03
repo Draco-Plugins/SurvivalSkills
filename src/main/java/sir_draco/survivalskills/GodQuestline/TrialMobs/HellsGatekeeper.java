@@ -122,6 +122,7 @@ public class HellsGatekeeper extends TrialBoss {
             if (randomSpawnLocation.getWorld() == null) continue;
             MagmaCube magmaCube = (MagmaCube) randomSpawnLocation.getWorld().spawnEntity(randomSpawnLocation, EntityType.MAGMA_CUBE);
             magmaCube.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
+            magmaCube.setMetadata("spawned", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
             magmaCube.setCustomName(ChatColor.RED + "Hell's Cube");
             magmaCube.setCustomNameVisible(true);
             magmaCube.setSize(3);
@@ -140,6 +141,7 @@ public class HellsGatekeeper extends TrialBoss {
             if (randomSpawnLocation.getWorld() == null) continue;
             Blaze blaze = (Blaze) randomSpawnLocation.getWorld().spawnEntity(randomSpawnLocation, EntityType.BLAZE);
             blaze.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
+            blaze.setMetadata("spawned", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
             blaze.setCustomName(ChatColor.RED + "Hell's Blaze");
             blaze.setCustomNameVisible(true);
             getSummons().add(blaze);
@@ -153,6 +155,7 @@ public class HellsGatekeeper extends TrialBoss {
             if (randomSpawnLocation.getWorld() == null) continue;
             PiglinBrute piglinBrute = (PiglinBrute) randomSpawnLocation.getWorld().spawnEntity(randomSpawnLocation, EntityType.PIGLIN_BRUTE);
             piglinBrute.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
+            piglinBrute.setMetadata("spawned", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
             piglinBrute.setCustomName(ChatColor.RED + "Hell's Brute");
             piglinBrute.setCustomNameVisible(true);
             getSummons().add(piglinBrute);

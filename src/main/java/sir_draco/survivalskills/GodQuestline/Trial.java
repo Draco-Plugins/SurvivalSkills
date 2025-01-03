@@ -7,6 +7,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.GodQuestline.TrialMobs.WaveMob;
+import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Utils.TrialUtils;
 
@@ -27,7 +28,9 @@ public class Trial extends BukkitRunnable {
     private boolean waveEnded = false;
     private int cycle;
     private int timer = 15;
+    private int timeSpent = 0;
     private int waveNumber = 1;
+    private int score = 0;
     private Wave wave = null;
 
     public Trial(ArrayList<RelativeBlock> building, Player p, ProtectedArea protectedArea, Location centerLocation, int maxWave) {
@@ -54,6 +57,7 @@ public class Trial extends BukkitRunnable {
         if (!spawningSpotsGenerated) return;
 
         if (activeWave && !waveSpawned) spawnWave();
+        if (cycle % 20 == 0) timeSpent++;
 
         if (!activeWave) {
             if (cycle % 20 == 0) {
@@ -248,6 +252,8 @@ public class Trial extends BukkitRunnable {
         TrialUtils.removeGroundItemsInProtectedArea(protectedArea);
         removeWaveMobs();
         p.getInventory().clear();
+        int timeBonus = 3600 - timeSpent;
+        if (timeBonus > 0) changeScore(timeBonus);
         cancel();
 
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + p.getName()
@@ -256,6 +262,20 @@ public class Trial extends BukkitRunnable {
         Bukkit.broadcastMessage(ChatColor.GOLD + "Congratulations to " + ChatColor.AQUA + p.getName() + ChatColor.GOLD
                 + " for becoming a " + ChatColor.AQUA + "God" + ChatColor.GOLD + "!");
         for (Player player : Bukkit.getOnlinePlayers()) player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
+
+        new BukkitRunnable() {
+            final int time = timeSpent;
+            @Override
+            public void run() {
+                p.sendTitle(ChatColor.YELLOW + "Final Score", ChatColor.GRAY + "" + score, 5, 30, 5);
+                String timeSpent = RewardNotifications.cooldown(time);
+                p.sendRawMessage(ChatColor.YELLOW + "Trial completed in " + timeSpent);
+            }
+        }.runTaskLater(SurvivalSkills.getInstance(), 100);
+    }
+
+    public void changeScore(int amount) {
+        score += amount;
     }
 
     public Player getPlayer() {

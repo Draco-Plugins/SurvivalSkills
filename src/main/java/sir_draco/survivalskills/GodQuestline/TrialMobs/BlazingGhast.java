@@ -122,6 +122,7 @@ public class BlazingGhast extends TrialBoss {
             if (randomSpawnLocation.getWorld() == null) continue;
             MagmaCube cube = (MagmaCube) randomSpawnLocation.getWorld().spawnEntity(randomSpawnLocation, EntityType.MAGMA_CUBE);
             cube.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
+            cube.setMetadata("spawned", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
             cube.setSize(3);
             cube.setCustomName(ChatColor.RED + "Blazing Magma Cube");
             cube.setCustomNameVisible(true);

@@ -5,13 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f98fc54c-90a8-439b-8b76-f1b1bc4cf67d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/AdminCommands/GodTrialCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/AdminCommands/GodTrialCommand.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/GodTrophyQuest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/GodTrophyQuest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/Trial.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/Trial.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialMobs/BlazingGhast.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialMobs/BlazingGhast.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialMobs/FrostRevenant.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialMobs/FrostRevenant.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialMobs/HellsGatekeeper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialMobs/HellsGatekeeper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/Wave.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/Wave.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -89,6 +89,7 @@ public class FrostRevenant extends TrialBoss{
             if (randomSpawnLocation.getWorld() == null) continue;
             Wolf wolf = (Wolf) randomSpawnLocation.getWorld().spawnEntity(randomSpawnLocation, EntityType.WOLF);
             wolf.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
+            wolf.setMetadata("spawned", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
             wolf.setCustomName(ChatColor.RED + "Revenant Wolf");
             wolf.setCustomNameVisible(true);
             wolf.setAngry(true);

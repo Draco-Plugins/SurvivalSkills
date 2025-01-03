@@ -138,10 +138,19 @@ public class TrialManager implements Listener {
             Wave wave = trial.getWave();
             if (wave == null) continue;
 
+            int scoreMultiplier = (trial.getWaveNumber() / 5) + 1;
+
             if (wave.isBossWave()) {
+                e.getDrops().clear();
+                if (e.getEntity().hasMetadata("spawned")) {
+                    trial.changeScore(scoreMultiplier * 10);
+                    return;
+                }
+
                 if (!e.getEntity().hasMetadata("trialboss")) return;
 
                 wave.getBoss().death();
+                trial.changeScore(scoreMultiplier * 1000);
 
                 if (trial.getWaveNumber() == trial.getMaxWave()) {
                     trial.completeTrial();
@@ -160,6 +169,7 @@ public class TrialManager implements Listener {
 
             if (e.getEntity().hasMetadata("extramob")) {
                 wave.removeExtraMob(e.getEntity());
+                trial.changeScore(scoreMultiplier * 10);
             }
             else {
                 WaveMob waveMob = wave.getWaveMob(e.getEntity());
@@ -167,6 +177,7 @@ public class TrialManager implements Listener {
                 e.getDrops().clear();
                 waveMob.dropItems();
                 wave.removeWaveMob(waveMob);
+                trial.changeScore(scoreMultiplier * 100);
             }
 
             if (wave.getMobsLeft() == 0) {
@@ -280,22 +291,29 @@ public class TrialManager implements Listener {
         if (trials.isEmpty()) return;
         if (!(e.getEntity() instanceof Player p)) return;
 
+        // Get the amount of damage and subtract it from the player's trial score
+        double damage = e.getDamage();
+        Trial trial = null;
+        for (Trial t : trials) {
+            if (!t.getPlayer().equals(p)) continue;
+            trial = t;
+        }
+        if (trial == null) return;
+        trial.changeScore((int) -damage);
+
         // Check if they were hit by a snowball
         if (!e.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE)) return;
         if (!(e instanceof EntityDamageByEntityEvent entityDamageByEntityEvent)) return;
         if (!(entityDamageByEntityEvent.getDamager() instanceof Snowball)) return;
 
-        for (Trial trial : trials) {
-            if (!trial.getPlayer().equals(p)) continue;
-            if (trial.getWave() == null) return;
-            if (trial.getWave().isBossWave()) {
-                // Freeze the player for 2 seconds
-                float walkSpeed = p.getWalkSpeed();
-                if (walkSpeed == 0) return;
-                p.setWalkSpeed(0);
-                Bukkit.getScheduler().runTaskLater(SurvivalSkills.getInstance(), () -> p.setWalkSpeed(walkSpeed), 40);
-                return;
-            }
+        if (trial.getWave() == null) return;
+        if (trial.getWave().isBossWave()) {
+            // Freeze the player for 2 seconds
+            float walkSpeed = p.getWalkSpeed();
+            if (walkSpeed == 0) return;
+            p.setWalkSpeed(0);
+            Bukkit.getScheduler().runTaskLater(SurvivalSkills.getInstance(), () -> p.setWalkSpeed(walkSpeed), 40);
+            return;
         }
     }
 
