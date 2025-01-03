@@ -104,9 +104,7 @@ public final class SurvivalSkills extends JavaPlugin {
         if (world != null) {
             for (Entity ent : world.getEntities()) {
                 if (!ent.getType().equals(EntityType.ITEM)) continue;
-                Item item = (Item) ent;
-                if (item.getOwner() == null) continue;
-                if (item.getOwner().equals(UUID.fromString("00000000-0000-0000-0000-000000000000"))) item.remove();
+                if (ent.hasMetadata("TrophyItem")) ent.remove();
             }
         }
 

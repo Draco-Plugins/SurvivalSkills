@@ -5,6 +5,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -127,6 +128,7 @@ public class TrophyEffects extends BukkitRunnable {
         if (world == null) return;
         Location newLoc = loc.clone().add(x, y, z);
         entity = (Item) world.spawnEntity(newLoc, EntityType.ITEM);
+        entity.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
         entity.setItemStack(trophy);
         setFloatingItemProperties(entity);
     }
@@ -140,19 +142,15 @@ public class TrophyEffects extends BukkitRunnable {
     }
 
     public void checkForDuplicate(Material mat) {
-        World world = Bukkit.getWorld("world");
-        if (world != null) {
-            for (Entity ent : world.getEntities()) {
-                if (!ent.getType().equals(EntityType.ITEM)) continue;
-                Item item = (Item) ent;
-                if (item.getOwner() == null) continue;
-                if (!item.getItemStack().getType().equals(mat)) continue;
-                if (item.getLocation().getWorld() == null) continue;
-                if (loc.getWorld() == null) continue;
-                if (!item.getLocation().getWorld().equals(loc.getWorld())) continue;
-                if (item.getLocation().distance(loc) > 5) continue;
-                if (item.getOwner().equals(UUID.fromString("00000000-0000-0000-0000-000000000000"))) item.remove();
-            }
+        World world = loc.getWorld();
+        if (world == null) return;
+        for (Entity ent : world.getEntities()) {
+            if (!ent.getType().equals(EntityType.ITEM)) continue;
+            if (!ent.hasMetadata("TrophyItem")) continue;
+            Item item = (Item) ent;
+            if (!item.getItemStack().getType().equals(mat)) continue;
+            if (item.getLocation().distance(loc) > 5) continue;
+            ent.remove();
         }
     }
 
@@ -598,36 +596,43 @@ public class TrophyEffects extends BukkitRunnable {
         World world = loc.getWorld();
         if (world == null) return;
         Item giant = (Item) world.spawnEntity(loc, EntityType.ITEM);
+        giant.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
         giant.setItemStack(addPersistentDataContainer(new ItemStack(Material.ZOMBIE_HEAD)));
         setFloatingItemProperties(giant);
         itemList.add(giant);
 
         Item guardian = (Item) world.spawnEntity(loc, EntityType.ITEM);
+        guardian.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
         guardian.setItemStack(addPersistentDataContainer(new ItemStack(Material.ENDER_EYE)));
         setFloatingItemProperties(guardian);
         itemList.add(guardian);
 
         Item wither = (Item) world.spawnEntity(loc, EntityType.ITEM);
+        wither.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
         wither.setItemStack(addPersistentDataContainer(new ItemStack(Material.NETHER_STAR)));
         setFloatingItemProperties(wither);
         itemList.add(wither);
 
         Item warden = (Item) world.spawnEntity(loc, EntityType.ITEM);
+        warden.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
         warden.setItemStack(addPersistentDataContainer(new ItemStack(Material.ECHO_SHARD)));
         setFloatingItemProperties(warden);
         itemList.add(warden);
 
         Item dragon = (Item) world.spawnEntity(loc, EntityType.ITEM);
+        dragon.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
         dragon.setItemStack(addPersistentDataContainer(new ItemStack(Material.DRAGON_HEAD)));
         setFloatingItemProperties(dragon);
         itemList.add(dragon);
 
         Item brood = (Item) world.spawnEntity(loc, EntityType.ITEM);
+        brood.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
         brood.setItemStack(addPersistentDataContainer(new ItemStack(Material.COBWEB)));
         setFloatingItemProperties(brood);
         itemList.add(brood);
 
         Item villager = (Item) world.spawnEntity(loc, EntityType.ITEM);
+        villager.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
         villager.setItemStack(addPersistentDataContainer(new ItemStack(Material.PLAYER_HEAD)));
         setFloatingItemProperties(villager);
         itemList.add(villager);

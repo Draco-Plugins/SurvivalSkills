@@ -33,6 +33,6 @@ public class MojangAPI {
         String value = properties.get("value").getAsString();
         String signature = properties.get("signature").getAsString();
 
-        return new String[]{value, signature};
+        return new String[]{signature, value};
     }
 }
