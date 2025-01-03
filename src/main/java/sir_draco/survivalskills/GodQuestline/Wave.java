@@ -11,6 +11,7 @@ import java.util.ArrayList;
 public class Wave {
 
     private final ArrayList<WaveMob> waveMobs = new ArrayList<>();
+    private final ArrayList<Entity> extraMobs = new ArrayList<>();
 
     private TrialBoss boss = null;
     private boolean bossWave = false;
@@ -23,6 +24,14 @@ public class Wave {
 
     public void addWaveMob(WaveMob waveMob, int count) {
         for (int i = 0; i < count; i++) waveMobs.add(waveMob.duplicate());
+    }
+
+    public void addExtraMob(Entity entity) {
+        extraMobs.add(entity);
+    }
+
+    public void removeExtraMob(Entity entity) {
+        extraMobs.remove(entity);
     }
 
     public void removeWaveMob(WaveMob waveMob) {
@@ -58,6 +67,7 @@ public class Wave {
         int mobsLeft = 0;
         for (WaveMob waveMob : waveMobs)
             if (waveMob.getEntity() != null && !waveMob.getEntity().isDead()) mobsLeft++;
+        for (Entity entity : extraMobs) if (!entity.isDead()) mobsLeft++;
         return mobsLeft;
     }
 
@@ -75,5 +85,9 @@ public class Wave {
 
     public TrialBoss getBoss() {
         return boss;
+    }
+
+    public ArrayList<Entity> getExtraMobs() {
+        return extraMobs;
     }
 }

@@ -139,27 +139,38 @@ public class TrialManager implements Listener {
             if (wave == null) continue;
 
             if (wave.isBossWave()) {
-                if (e.getEntity().hasMetadata("trialboss")) {
-                    wave.getBoss().death();
-                    trial.endWave();
-                    return;
-                }
-                if (trial.getWaveNumber() == 20) {
+                if (!e.getEntity().hasMetadata("trialboss")) return;
+
+                wave.getBoss().death();
+
+                if (trial.getWaveNumber() == trial.getMaxWave()) {
                     trial.completeTrial();
                     return;
                 }
+
+                trial.endWave();
                 return;
             }
 
-            if (wave.getWaveMobs().isEmpty()) continue;
-            WaveMob waveMob = wave.getWaveMob(e.getEntity());
-            if (waveMob == null) continue;
-            e.getDrops().clear();
-            waveMob.dropItems();
-            wave.removeWaveMob(waveMob);
-
             if (wave.getWaveMobs().isEmpty()) {
-                if (trial.getWaveNumber() == 20) {
+                if (!trial.isActiveWave()) continue;
+                trial.endWave();
+                continue;
+            }
+
+            if (e.getEntity().hasMetadata("extramob")) {
+                wave.removeExtraMob(e.getEntity());
+            }
+            else {
+                WaveMob waveMob = wave.getWaveMob(e.getEntity());
+                if (waveMob == null) continue;
+                e.getDrops().clear();
+                waveMob.dropItems();
+                wave.removeWaveMob(waveMob);
+            }
+
+            if (wave.getMobsLeft() == 0) {
+                if (trial.getWaveNumber() == trial.getMaxWave()) {
                     trial.completeTrial();
                     return;
                 }
@@ -457,10 +468,18 @@ public class TrialManager implements Listener {
         Entity caster = e.getEntity();
         if (caster instanceof Evoker) {
             if (!caster.hasMetadata("trialmob")) return;
-            // Loop through the Vexes spawned by the Evoker and give them a tag
+            // Loop through spawned entities
             for (Entity spawnedEntity : caster.getWorld().getEntities()) {
-                if (spawnedEntity instanceof Vex vex)
-                    vex.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true)); // 'true' is the metadata value
+                spawnedEntity.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
+                spawnedEntity.setMetadata("extramob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
+
+                // Find the trial the mob belongs to
+                for (Trial trial : trials) {
+                    if (trial.getWave() == null) continue;
+                    if (trial.getWave().getWaveMob(spawnedEntity) == null) continue;
+                    // Add the mob to the extra entities of the wave
+                    trial.getWave().addExtraMob(spawnedEntity);
+                }
             }
         }
     }
@@ -686,17 +705,18 @@ public class TrialManager implements Listener {
 
         // Wave 9
         Wave wave9 = new Wave();
-        HashMap<ItemStack, Double> ebookDrops = new HashMap<>();
-        ebookDrops.put(getEBook(Enchantment.SHARPNESS), 0.1);
-        ebookDrops.put(getEBook(Enchantment.SMITE), 0.1);
-        ebookDrops.put(getEBook(Enchantment.BANE_OF_ARTHROPODS), 0.1);
-        ebookDrops.put(getEBook(Enchantment.KNOCKBACK), 0.1);
-        ebookDrops.put(getEBook(Enchantment.FIRE_ASPECT), 0.1);
-        ebookDrops.put(getEBook(Enchantment.POWER), 0.1);
+        HashMap<ItemStack, Double> weaponBooks = new HashMap<>();
+        weaponBooks.put(getEBook(Enchantment.SHARPNESS), 0.1);
+        weaponBooks.put(getEBook(Enchantment.SMITE), 0.1);
+        weaponBooks.put(getEBook(Enchantment.BANE_OF_ARTHROPODS), 0.1);
+        weaponBooks.put(getEBook(Enchantment.SWEEPING_EDGE), 0.1);
+        weaponBooks.put(getEBook(Enchantment.KNOCKBACK), 0.1);
+        weaponBooks.put(getEBook(Enchantment.FIRE_ASPECT), 0.1);
+        weaponBooks.put(getEBook(Enchantment.POWER), 0.1);
         WaveMob silverfish = new WaveMob(ChatColor.GRAY + "Silverfish", EntityType.SILVERFISH, 7, 3,
-                0.3, 1, null, null, ebookDrops);
+                0.3, 1, null, null, weaponBooks);
         WaveMob endermite = new WaveMob(ChatColor.DARK_PURPLE + "Endermite", EntityType.ENDERMITE, 7, 3,
-                0.3, 1, null, null, ebookDrops);
+                0.3, 1, null, null, weaponBooks);
         wave9.addWaveMob(silverfish.duplicate(), 6);
         wave9.addWaveMob(endermite.duplicate(), 6);
         waves.put(9, wave9);
@@ -704,7 +724,12 @@ public class TrialManager implements Listener {
         // Wave 10
         Wave wave10 = new Wave();
         wave10.setBossWave(true);
-        BlazingGhast ghast = new BlazingGhast(null);
+        HashMap<ItemStack, Double> armorBooks = new HashMap<>();
+        armorBooks.put(getEBook(Enchantment.PROTECTION), 0.1);
+        armorBooks.put(getEBook(Enchantment.FIRE_PROTECTION), 0.1);
+        armorBooks.put(getEBook(Enchantment.BLAST_PROTECTION), 0.1);
+        armorBooks.put(getEBook(Enchantment.PROJECTILE_PROTECTION), 0.1);
+        BlazingGhast ghast = new BlazingGhast(armorBooks);
         wave10.setBoss(ghast);
         waves.put(10, wave10);
 
@@ -735,7 +760,7 @@ public class TrialManager implements Listener {
         // Wave 13
         Wave wave13 = new Wave();
         WaveMob evoker = new WaveMob(ChatColor.LIGHT_PURPLE + "Evoker", EntityType.EVOKER, 30, 9,
-                0.2, 1, null, null, null);
+                0.2, 1, null, null, armorBooks);
         WaveMob caveSpider = new WaveMob(ChatColor.DARK_GREEN + "Cave Spider", EntityType.CAVE_SPIDER, 20, 5,
                 0.3, 1, null, null, null);
         wave13.addWaveMob(evoker.duplicate());
@@ -752,7 +777,7 @@ public class TrialManager implements Listener {
 
         // Wave 15
         Wave wave15 = new Wave();
-        FrostRevenant frostRevenant = new FrostRevenant(ebookDrops);
+        FrostRevenant frostRevenant = new FrostRevenant(weaponBooks);
         wave15.setBossWave(true);
         wave15.setBoss(frostRevenant);
         waves.put(15, wave15);

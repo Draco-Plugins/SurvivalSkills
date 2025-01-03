@@ -1,18 +1,15 @@
 package sir_draco.survivalskills.GodQuestline.TrialMobs;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
+import sir_draco.survivalskills.GodQuestline.TrialManager;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Utils.ColorParser;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
 
@@ -24,7 +21,6 @@ public class HellsGatekeeper extends TrialBoss {
     private int summonCooldown = 0;
 
     private WitherSkeleton witherSkeleton = null;
-    private ArrayList<Location> spawnLocations = null;
 
     public HellsGatekeeper(HashMap<ItemStack, Double> drops) {
         super(ColorParser.colorizeString("Hell's Gatekeeper",
@@ -50,7 +46,6 @@ public class HellsGatekeeper extends TrialBoss {
             cooldown = maxCooldown;
             attack();
         }
-
     }
 
     @Override
@@ -68,6 +63,13 @@ public class HellsGatekeeper extends TrialBoss {
     @Override
     public void handleTypeSpecificSpawn() {
         this.witherSkeleton = (WitherSkeleton) getBoss();
+        ItemStack[] armor = new ItemStack[4];
+        armor[0] = null;
+        armor[1] = null;
+        armor[2] = TrialManager.getTrialItem(Material.NETHERITE_CHESTPLATE, 1);
+        armor[3] = null;
+        if (witherSkeleton.getEquipment() != null)
+            witherSkeleton.getEquipment().setArmorContents(armor);
     }
 
     public void fireStorm() {
@@ -114,9 +116,9 @@ public class HellsGatekeeper extends TrialBoss {
     }
 
     public void spawnMagmaCubes() {
-        if (spawnLocations == null) return;
+        if (getSpawnLocations() == null) return;
         for (int i = 0; i <= 4; i++) {
-            Location randomSpawnLocation = spawnLocations.get((int) (Math.random() * spawnLocations.size()));
+            Location randomSpawnLocation = getSpawnLocations().get((int) (Math.random() * getSpawnLocations().size()));
             if (randomSpawnLocation.getWorld() == null) continue;
             MagmaCube magmaCube = (MagmaCube) randomSpawnLocation.getWorld().spawnEntity(randomSpawnLocation, EntityType.MAGMA_CUBE);
             magmaCube.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
@@ -132,9 +134,9 @@ public class HellsGatekeeper extends TrialBoss {
     }
 
     public void spawnBlazes() {
-        if (spawnLocations == null) return;
+        if (getSpawnLocations() == null) return;
         for (int i = 0; i <= 4; i++) {
-            Location randomSpawnLocation = spawnLocations.get((int) (Math.random() * spawnLocations.size()));
+            Location randomSpawnLocation = getSpawnLocations().get((int) (Math.random() * getSpawnLocations().size()));
             if (randomSpawnLocation.getWorld() == null) continue;
             Blaze blaze = (Blaze) randomSpawnLocation.getWorld().spawnEntity(randomSpawnLocation, EntityType.BLAZE);
             blaze.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
@@ -145,9 +147,9 @@ public class HellsGatekeeper extends TrialBoss {
     }
 
     public void spawnPiglinBrutes() {
-        if (spawnLocations == null) return;
+        if (getSpawnLocations() == null) return;
         for (int i = 0; i <= 4; i++) {
-            Location randomSpawnLocation = spawnLocations.get((int) (Math.random() * spawnLocations.size()));
+            Location randomSpawnLocation = getSpawnLocations().get((int) (Math.random() * getSpawnLocations().size()));
             if (randomSpawnLocation.getWorld() == null) continue;
             PiglinBrute piglinBrute = (PiglinBrute) randomSpawnLocation.getWorld().spawnEntity(randomSpawnLocation, EntityType.PIGLIN_BRUTE);
             piglinBrute.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
@@ -155,10 +157,6 @@ public class HellsGatekeeper extends TrialBoss {
             piglinBrute.setCustomNameVisible(true);
             getSummons().add(piglinBrute);
         }
-    }
-
-    public void setSpawnLocations(ArrayList<Location> spawnLocations) {
-        this.spawnLocations = spawnLocations;
     }
 
     @Override

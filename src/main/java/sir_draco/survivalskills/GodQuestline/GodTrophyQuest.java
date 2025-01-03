@@ -44,7 +44,7 @@ public class GodTrophyQuest {
     }
 
     public void handleNPCInteract(Player p) {
-        if (phase >= 49) return;
+        if (phase >= 58) return;
         switch (phase) {
             case 0:
                 dialogueOpener(p);
@@ -71,126 +71,153 @@ public class GodTrophyQuest {
                 checkFarmingQuest(p, 7);
                 break;
             case 8:
-                checkOreQuest(p, 1);
+                checkFarmingQuest(p, 8);
                 break;
             case 9:
-                checkOreQuest(p, 2);
+                checkFarmingQuest(p, 9);
                 break;
             case 10:
-                checkOreQuest(p, 3);
+                checkFarmingQuest(p, 10);
                 break;
             case 11:
-                checkOreQuest(p, 4);
+                checkFarmingQuest(p, 11);
                 break;
             case 12:
-                checkOreQuest(p, 5);
+                checkFarmingQuest(p, 12);
                 break;
             case 13:
-                checkCreatureQuest(p, 1);
+                checkOreQuest(p, 1);
                 break;
             case 14:
-                checkCreatureQuest(p, 2);
+                checkOreQuest(p, 2);
                 break;
             case 15:
-                checkCreatureQuest(p, 3);
+                checkOreQuest(p, 3);
                 break;
             case 16:
-                checkCreatureQuest(p, 4);
+                checkOreQuest(p, 4);
                 break;
             case 17:
-                checkCreatureQuest(p, 5);
+                checkOreQuest(p, 5);
                 break;
             case 18:
-                checkKnowledgeQuest(p, 1);
+                checkOreQuest(p, 6);
                 break;
             case 19:
-                checkKnowledgeQuest(p, 2);
+                checkOreQuest(p, 7);
                 break;
             case 20:
-                checkKnowledgeQuest(p, 3);
+                checkOreQuest(p, 8);
                 break;
             case 21:
-                checkKnowledgeQuest(p, 4);
+                checkOreQuest(p, 9);
                 break;
             case 22:
-                checkKnowledgeQuest(p, 5);
+                checkCreatureQuest(p, 1);
                 break;
             case 23:
-                checkKnowledgeQuest(p, 6);
+                checkCreatureQuest(p, 2);
                 break;
             case 24:
-                checkKnowledgeQuest(p, 7);
+                checkCreatureQuest(p, 3);
                 break;
             case 25:
-                checkKnowledgeQuest(p, 8);
+                checkCreatureQuest(p, 4);
                 break;
             case 26:
-                checkKnowledgeQuest(p, 9);
+                checkCreatureQuest(p, 5);
                 break;
             case 27:
-                checkKnowledgeQuest(p, 10);
+                checkKnowledgeQuest(p, 1);
                 break;
             case 28:
-                checkKnowledgeQuest(p, 11);
+                checkKnowledgeQuest(p, 2);
                 break;
             case 29:
-                checkKnowledgeQuest(p, 12);
+                checkKnowledgeQuest(p, 3);
                 break;
             case 30:
-                checkKnowledgeQuest(p, 13);
+                checkKnowledgeQuest(p, 4);
                 break;
             case 31:
-                checkKnowledgeQuest(p, 14);
+                checkKnowledgeQuest(p, 5);
                 break;
             case 32:
-                checkKnowledgeQuest(p, 15);
+                checkKnowledgeQuest(p, 6);
                 break;
             case 33:
-                checkKnowledgeQuest(p, 16);
+                checkKnowledgeQuest(p, 7);
                 break;
             case 34:
-                checkKnowledgeQuest(p, 17);
+                checkKnowledgeQuest(p, 8);
                 break;
             case 35:
-                checkKnowledgeQuest(p, 18);
+                checkKnowledgeQuest(p, 9);
                 break;
             case 36:
-                checkRelicQuest(p, 1);
+                checkKnowledgeQuest(p, 10);
                 break;
             case 37:
-                checkRelicQuest(p, 2);
+                checkKnowledgeQuest(p, 11);
                 break;
             case 38:
-                checkVillagerTradingQuest(p);
+                checkKnowledgeQuest(p, 12);
                 break;
             case 39:
-                checkCombatQuest(p);
+                checkKnowledgeQuest(p, 13);
                 break;
             case 40:
-                checkMobItemQuest(p, 1);
+                checkKnowledgeQuest(p, 14);
                 break;
             case 41:
-                checkMobItemQuest(p, 2);
+                checkKnowledgeQuest(p, 15);
                 break;
             case 42:
-                checkMobItemQuest(p, 3);
+                checkKnowledgeQuest(p, 16);
                 break;
             case 43:
-                checkMobItemQuest(p, 4);
+                checkKnowledgeQuest(p, 17);
                 break;
             case 44:
-                checkMobItemQuest(p, 5);
+                checkKnowledgeQuest(p, 18);
                 break;
             case 45:
-                checkMobItemQuest(p, 6);
+                checkRelicQuest(p, 1);
                 break;
             case 46:
-                checkMobItemQuest(p, 7);
+                checkRelicQuest(p, 2);
                 break;
             case 47:
-                checkMobItemQuest(p, 8);
+                checkVillagerTradingQuest(p);
                 break;
             case 48:
+                checkCombatQuest(p);
+                break;
+            case 49:
+                checkMobItemQuest(p, 1);
+                break;
+            case 50:
+                checkMobItemQuest(p, 2);
+                break;
+            case 51:
+                checkMobItemQuest(p, 3);
+                break;
+            case 52:
+                checkMobItemQuest(p, 4);
+                break;
+            case 53:
+                checkMobItemQuest(p, 5);
+                break;
+            case 54:
+                checkMobItemQuest(p, 6);
+                break;
+            case 55:
+                checkMobItemQuest(p, 7);
+                break;
+            case 56:
+                checkMobItemQuest(p, 8);
+                break;
+            case 57:
                 checkMobItemQuest(p, 9);
                 break;
         }
@@ -282,7 +309,7 @@ public class GodTrophyQuest {
         messages.add("First you must bring me items that show your dedication to this world");
         messages.add("Farming is the foundation of any society");
         messages.add("Bring me crops to show me you can feed a civilization");
-        messages.add("Bring me " + ChatColor.AQUA + "25,000 " + ChatColor.WHITE + "carrots to start!");
+        messages.add("Bring me " + ChatColor.AQUA + "2,000 " + ChatColor.WHITE + "bread to start!");
         dialogue(p, messages);
         phase++;
     }
@@ -298,25 +325,25 @@ public class GodTrophyQuest {
     public void checkFarmingQuest(Player p, int cropType) {
         switch (cropType) {
             case 1:
-                if (handleItemCheck(25000, p, Material.CARROT, "carrots")) return;
+                if (handleItemCheck(2000, p, Material.BREAD, "bread")) return;
                 ArrayList<String> messages = new ArrayList<>();
                 messages.add("Excellent work!");
-                messages.add("Now bring me " + ChatColor.AQUA + "25,000 " + ChatColor.WHITE + "melon slices");
+                messages.add("Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "carrots");
                 dialogue(p, messages);
                 phase++;
                 currentItemCount = 0;
                 break;
             case 2:
-                if (handleItemCheck(25000, p, Material.MELON_SLICE, "melon slices")) return;
+                if (handleItemCheck(5000, p, Material.CARROT, "carrots")) return;
                 ArrayList<String> messages2 = new ArrayList<>();
                 messages2.add("Excellent work!");
-                messages2.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "apples");
+                messages2.add("Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "potatoes");
                 dialogue(p, messages2);
                 phase++;
                 currentItemCount = 0;
                 break;
             case 3:
-                if (handleItemCheck(500, p, Material.APPLE, "apples")) return;
+                if (handleItemCheck(5000, p, Material.POTATO, "potatoes")) return;
                 ArrayList<String> messages3 = new ArrayList<>();
                 messages3.add("Excellent work!");
                 messages3.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "poisonous potatoes");
@@ -328,36 +355,81 @@ public class GodTrophyQuest {
                 if (handleItemCheck(500, p, Material.POISONOUS_POTATO, "poisonous potatoes")) return;
                 ArrayList<String> messages4 = new ArrayList<>();
                 messages4.add("Excellent work!");
-                messages4.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "glow berries");
+                messages4.add("Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "beetroots");
                 dialogue(p, messages4);
                 phase++;
                 currentItemCount = 0;
                 break;
             case 5:
-                if (handleItemCheck(500, p, Material.GLOW_BERRIES, "glow berries")) return;
+                if (handleItemCheck(5000, p, Material.BEETROOT, "beetroots")) return;
                 ArrayList<String> messages5 = new ArrayList<>();
                 messages5.add("Excellent work!");
-                messages5.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "chorus flowers");
+                messages5.add("Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "melon slices");
                 dialogue(p, messages5);
                 phase++;
                 currentItemCount = 0;
                 break;
             case 6:
-                if (handleItemCheck(64, p, Material.CHORUS_FLOWER, "chorus flowers")) return;
+                if (handleItemCheck(5000, p, Material.MELON_SLICE, "melon slices")) return;
                 ArrayList<String> messages6 = new ArrayList<>();
                 messages6.add("Excellent work!");
-                messages6.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "cakes");
+                messages6.add("Now bring me " + ChatColor.AQUA + "2,500 " + ChatColor.WHITE + "pumpkins");
                 dialogue(p, messages6);
                 phase++;
                 currentItemCount = 0;
                 break;
             case 7:
-                if (handleItemCheck(64, p, Material.CAKE, "cake")) return;
+                if (handleItemCheck(2500, p, Material.PUMPKIN, "pumpkins")) return;
                 ArrayList<String> messages7 = new ArrayList<>();
-                messages7.add("You have proven your dedication to farming");
-                messages7.add("Now you must bring me your riches");
-                messages7.add("Bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "iron blocks");
+                messages7.add("Excellent work!");
+                messages7.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "sweet berries");
                 dialogue(p, messages7);
+                phase++;
+                currentItemCount = 0;
+                break;
+            case 8:
+                if (handleItemCheck(500, p, Material.SWEET_BERRIES, "sweet berries")) return;
+                ArrayList<String> messages8 = new ArrayList<>();
+                messages8.add("Excellent work!");
+                messages8.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "glow berries");
+                dialogue(p, messages8);
+                phase++;
+                currentItemCount = 0;
+                break;
+            case 9:
+                if (handleItemCheck(500, p, Material.GLOW_BERRIES, "glow berries")) return;
+                ArrayList<String> messages9 = new ArrayList<>();
+                messages9.add("Excellent work!");
+                messages9.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "apples");
+                dialogue(p, messages9);
+                phase++;
+                currentItemCount = 0;
+                break;
+            case 10:
+                if (handleItemCheck(500, p, Material.APPLE, "apples")) return;
+                ArrayList<String> messages10 = new ArrayList<>();
+                messages10.add("Excellent work!");
+                messages10.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "chorus flowers");
+                dialogue(p, messages10);
+                phase++;
+                currentItemCount = 0;
+                break;
+            case 11:
+                if (handleItemCheck(64, p, Material.CHORUS_FLOWER, "chorus flowers")) return;
+                ArrayList<String> messages11 = new ArrayList<>();
+                messages11.add("Excellent work!");
+                messages11.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "cakes");
+                dialogue(p, messages11);
+                phase++;
+                currentItemCount = 0;
+                break;
+            case 12:
+                if (handleItemCheck(64, p, Material.CAKE, "cake")) return;
+                ArrayList<String> messages12 = new ArrayList<>();
+                messages12.add("You have proven your dedication to farming");
+                messages12.add("Now you must bring me your riches");
+                messages12.add("Bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "coal blocks");
+                dialogue(p, messages12);
                 phase++;
                 currentItemCount = 0;
                 updateGodTrophyParticles();
@@ -368,50 +440,86 @@ public class GodTrophyQuest {
     public void checkOreQuest(Player p, int oreType) {
         switch (oreType) {
             case 1:
-                if (handleItemCheck(500, p, Material.IRON_BLOCK, "iron blocks")) return;
+                if (handleItemCheck(500, p, Material.COAL_BLOCK, "coal blocks")) return;
                 ArrayList<String> messages = new ArrayList<>();
                 messages.add("Excellent work!");
-                messages.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "gold blocks");
+                messages.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "copper blocks");
                 dialogue(p, messages);
                 phase++;
                 currentItemCount = 0;
                 break;
             case 2:
-                if (handleItemCheck(500, p, Material.GOLD_BLOCK, "gold blocks")) return;
+                if (handleItemCheck(500, p, Material.COPPER_BLOCK, "copper blocks")) return;
                 ArrayList<String> messages2 = new ArrayList<>();
                 messages2.add("Excellent work!");
-                messages2.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "diamond blocks");
+                messages2.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "iron blocks");
                 dialogue(p, messages2);
                 phase++;
                 currentItemCount = 0;
                 break;
             case 3:
-                if (handleItemCheck(250, p, Material.DIAMOND_BLOCK, "diamond blocks")) return;
+                if (handleItemCheck(500, p, Material.IRON_BLOCK, "iron blocks")) return;
                 ArrayList<String> messages3 = new ArrayList<>();
                 messages3.add("Excellent work!");
-                messages3.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "emerald blocks");
+                messages3.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "lapis blocks");
                 dialogue(p, messages3);
                 phase++;
                 currentItemCount = 0;
                 break;
             case 4:
-                if (handleItemCheck(250, p, Material.EMERALD_BLOCK, "emerald blocks")) return;
+                if (handleItemCheck(500, p, Material.LAPIS_BLOCK, "lapis blocks")) return;
                 ArrayList<String> messages4 = new ArrayList<>();
                 messages4.add("Excellent work!");
-                messages4.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "netherite blocks");
+                messages4.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "redstone blocks");
                 dialogue(p, messages4);
                 phase++;
                 currentItemCount = 0;
                 break;
             case 5:
-                if (handleItemCheck(64, p, Material.NETHERITE_BLOCK, "netherite blocks")) return;
+                if (handleItemCheck(500, p, Material.REDSTONE_BLOCK, "redstone blocks")) return;
                 ArrayList<String> messages5 = new ArrayList<>();
-                messages5.add("You truly do embody the concept of wealth");
-                messages5.add("Show me the exotic trophies of the creatures of this world");
-                messages5.add("You must detach yourself from the idea of life or death");
-                messages5.add("Bring me a modified turtle helmet");
-                messages5.add("You can see the recipe by using " + ChatColor.YELLOW + "/godquest");
+                messages5.add("Excellent work!");
+                messages5.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "gold blocks");
                 dialogue(p, messages5);
+                phase++;
+                currentItemCount = 0;
+                break;
+            case 6:
+                if (handleItemCheck(500, p, Material.GOLD_BLOCK, "gold blocks")) return;
+                ArrayList<String> messages6 = new ArrayList<>();
+                messages6.add("Excellent work!");
+                messages6.add("Now bring me " + ChatColor.AQUA + "200 " + ChatColor.WHITE + "diamond blocks");
+                dialogue(p, messages6);
+                phase++;
+                currentItemCount = 0;
+                break;
+            case 7:
+                if (handleItemCheck(200, p, Material.DIAMOND_BLOCK, "diamond blocks")) return;
+                ArrayList<String> messages7 = new ArrayList<>();
+                messages7.add("Excellent work!");
+                messages7.add("Now bring me " + ChatColor.AQUA + "200 " + ChatColor.WHITE + "emerald blocks");
+                dialogue(p, messages7);
+                phase++;
+                currentItemCount = 0;
+                break;
+            case 8:
+                if (handleItemCheck(200, p, Material.EMERALD_BLOCK, "emerald blocks")) return;
+                ArrayList<String> messages8 = new ArrayList<>();
+                messages8.add("Excellent work!");
+                messages8.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "netherite blocks");
+                dialogue(p, messages8);
+                phase++;
+                currentItemCount = 0;
+                break;
+            case 9:
+                if (handleItemCheck(64, p, Material.NETHERITE_BLOCK, "netherite blocks")) return;
+                ArrayList<String> messages9 = new ArrayList<>();
+                messages9.add("You truly do embody the concept of wealth");
+                messages9.add("Show me the exotic trophies of the creatures of this world");
+                messages9.add("You must detach yourself from the idea of life or death");
+                messages9.add("Bring me a modified turtle helmet");
+                messages9.add("You can see the recipe by using " + ChatColor.YELLOW + "/godquest");
+                dialogue(p, messages9);
                 phase++;
                 currentItemCount = 0;
                 updateGodTrophyParticles();

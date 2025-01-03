@@ -3,6 +3,7 @@ package sir_draco.survivalskills.GodQuestline;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.GodQuestline.TrialMobs.WaveMob;
@@ -17,6 +18,7 @@ public class Trial extends BukkitRunnable {
     private final ProtectedArea protectedArea;
     private final Location centerLocation;
     private final ArrayList<Location> spawningSpots = new ArrayList<>();
+    private final int maxWave;
 
     private boolean buildingCreated = false;
     private boolean spawningSpotsGenerated = false;
@@ -28,18 +30,20 @@ public class Trial extends BukkitRunnable {
     private int waveNumber = 1;
     private Wave wave = null;
 
-    public Trial(ArrayList<RelativeBlock> building, Player p, ProtectedArea protectedArea, Location centerLocation) {
+    public Trial(ArrayList<RelativeBlock> building, Player p, ProtectedArea protectedArea, Location centerLocation, int maxWave) {
         this.p = p;
         this.protectedArea = protectedArea;
         this.centerLocation = centerLocation;
+        this.maxWave = maxWave;
         generateSpawningSpots();
         loadBuilding(building);
     }
 
-    public Trial(Player p, ProtectedArea protectedArea, Location centerLocation) {
+    public Trial(Player p, ProtectedArea protectedArea, Location centerLocation, int maxWave) {
         this.p = p;
         this.protectedArea = protectedArea;
         this.centerLocation = centerLocation;
+        this.maxWave = maxWave;
         generateSpawningSpots();
         startTrial();
     }
@@ -164,6 +168,10 @@ public class Trial extends BukkitRunnable {
                 waveNumber++;
                 timer = 15;
                 TrialManager.openRewardGUI(p, waveNumber);
+
+                String message = ChatColor.GRAY + "Wave " + ChatColor.AQUA + waveNumber + ChatColor.GRAY + " in " +
+                        ChatColor.YELLOW + timer + ChatColor.GRAY + " seconds";
+                p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(message));
             }
         }.runTaskLater(SurvivalSkills.getInstance(), 40);
     }
@@ -176,9 +184,13 @@ public class Trial extends BukkitRunnable {
             return;
         }
 
-        if (wave.getWaveMobs().isEmpty()) return;
-        for (WaveMob mob : wave.getWaveMobs())
-            if (mob.getEntity() != null) mob.getEntity().remove();
+        if (!wave.getWaveMobs().isEmpty())
+            for (WaveMob mob : wave.getWaveMobs())
+                if (mob.getEntity() != null) mob.getEntity().remove();
+
+        if (!wave.getExtraMobs().isEmpty())
+            for (Entity entity : wave.getExtraMobs())
+                entity.remove();
     }
 
     public void setWave(int waveNumber) {
@@ -232,9 +244,9 @@ public class Trial extends BukkitRunnable {
     }
 
     public void completeTrial() {
+        TrialManager.getTrials().remove(this);
         TrialUtils.removeGroundItemsInProtectedArea(protectedArea);
         removeWaveMobs();
-        TrialManager.getTrials().remove(this);
         p.getInventory().clear();
         cancel();
 
@@ -264,5 +276,13 @@ public class Trial extends BukkitRunnable {
 
     public boolean isBuildingCreated() {
         return buildingCreated;
+    }
+
+    public int getMaxWave() {
+        return maxWave;
+    }
+
+    public boolean isActiveWave() {
+        return activeWave;
     }
 }

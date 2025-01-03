@@ -330,7 +330,7 @@ public class GodTrialCommand implements CommandExecutor {
             Location centerLocation = new Location(pLocation.getWorld(), box.getCenterX(), box.getMinY() + 1, box.getCenterZ());
 
             // Create the Trial
-            Trial trial = new Trial(p, area, centerLocation);
+            Trial trial = new Trial(p, area, centerLocation, 20);
             TrialManager.getTrials().add(trial);
             trial.runTaskTimer(SurvivalSkills.getInstance(), 60, 1);
             return true;
@@ -370,7 +370,7 @@ public class GodTrialCommand implements CommandExecutor {
         TrialManager.getProtectedAreas().put(p.getUniqueId(), protectedArea);
 
         // Create the Trial
-        Trial trial = new Trial(blocks, p, protectedArea, pLocation);
+        Trial trial = new Trial(blocks, p, protectedArea, pLocation, 20);
         TrialManager.getTrials().add(trial);
         trial.runTaskTimer(SurvivalSkills.getInstance(), 60, 1);
         return true;
