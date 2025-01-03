@@ -33,6 +33,7 @@ import sir_draco.survivalskills.Boards.SkillScoreboard;
 import sir_draco.survivalskills.Commands.AdminCommands.*;
 import sir_draco.survivalskills.Commands.DefaultCommands.*;
 import sir_draco.survivalskills.Commands.SkillCommands.*;
+import sir_draco.survivalskills.GodQuestline.Trial;
 import sir_draco.survivalskills.GodQuestline.TrialManager;
 import sir_draco.survivalskills.SkillListeners.*;
 import sir_draco.survivalskills.Skills.Skill;
@@ -247,6 +248,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new ToggleBossMusic();
         new UpCommand(this);
         new GodTrialCommand(this);
+        new CreativeCommand(this);
 
         // Admin Commands
         new BossCommand(this);
@@ -262,6 +264,7 @@ public final class SurvivalSkills extends JavaPlugin {
         new ToggleGodQuestCommand(this);
         new ResetAllCommand(this);
         new StoreTrialBuildingCommand(this);
+        new CancelAbilityCooldownsCommand(this);
     }
 
     public void loadLeaderboard() {
@@ -733,6 +736,11 @@ public final class SurvivalSkills extends JavaPlugin {
         }
         fightingListener.getNoPhantomSpawns().remove(p);
         fightingListener.getActiveBerserkers().remove(p);
+
+        if (!TrialManager.getTrials().isEmpty()) {
+            for (Trial trial : TrialManager.getTrials())
+                if (trial.getPlayer().equals(p)) trial.endTrial();
+        }
     }
 
     public void playerJoin(Player p, boolean overrideNewPlayer) {

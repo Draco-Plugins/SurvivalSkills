@@ -8,11 +8,16 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Utils.TrialUtils;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 @SuppressWarnings("NullableProblems")
@@ -26,6 +31,23 @@ public class StoreTrialBuildingCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (!(sender instanceof Player p)) return false;
+
+        if (strings.length >= 1 && strings[0].equalsIgnoreCase("load")) {
+            // Load the default configuration from the JAR
+            InputStream defConfigStream = getClass().getClassLoader().getResourceAsStream("trialbuilding.yml");
+            if (defConfigStream == null) {
+                throw new RuntimeException("Failed to load default config");
+            }
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream, StandardCharsets.UTF_8));
+
+            // Save the merged configuration
+            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialbuilding.yml");
+            try {
+                defConfig.save(file);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to save config file", e);
+            }
+        }
 
         new BukkitRunnable() {
             @Override

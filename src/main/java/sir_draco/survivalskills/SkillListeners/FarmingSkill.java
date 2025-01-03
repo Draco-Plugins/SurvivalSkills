@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.HarvesterAsync;
 import sir_draco.survivalskills.Abilities.HarvesterTimer;
+import sir_draco.survivalskills.GodQuestline.TrialManager;
 import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Utils.ProjectileCalculator;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
@@ -105,6 +106,9 @@ public class FarmingSkill implements Listener {
     public void hungerEvent(FoodLevelChangeEvent e) {
         Player p = e.getEntity() instanceof Player player ? player : null;
         if (p == null) return;
+
+        // If a player is in a trial, don't apply the no hunger effect
+        if (TrialManager.isInTrial(p)) return;
 
         if (plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "NoHunger").isApplied()) {
             e.setCancelled(true);

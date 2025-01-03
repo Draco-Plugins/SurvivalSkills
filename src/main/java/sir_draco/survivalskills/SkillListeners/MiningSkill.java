@@ -159,6 +159,7 @@ public class MiningSkill implements Listener {
         World world = e.getClickedBlock().getWorld();
         Location loc = e.getClickedBlock().getLocation();
         world.strikeLightning(loc);
+        e.setCancelled(true);
     }
 
     @EventHandler

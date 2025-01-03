@@ -79,6 +79,7 @@ public class AbilityTimer extends BukkitRunnable {
     public void endCooldown() {
         timeTillReset = 0;
         this.cancel();
+        plugin.getAbilityManager().removeAbility(p, name);
     }
 
     public void setFlightSpeed(float flightSpeed) {

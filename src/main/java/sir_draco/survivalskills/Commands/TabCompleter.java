@@ -44,7 +44,11 @@ public class TabCompleter implements Listener {
         else if (buffer.contains("/godtrial end ")) handleActiveTrials(buffer, p, e);
         else if (buffer.contains("/godtrial delete ")) handleActiveTrials(buffer, p, e);
         else if (buffer.contains("/godtrial restart ")) handleActiveTrials(buffer, p, e);
-        else if (buffer.contains("/godtrial ")) handleGodTrial(buffer, e);
+        else if (buffer.contains("/godtrial spectate ")) handleActiveTrials(buffer, p, e);
+        else if (buffer.contains("/godtrial nextwave ")) handleGodTrial(buffer, p, e);
+        else if (buffer.contains("/godtrial setwave ")) handleGodTrial(buffer, p, e);
+        else if (buffer.contains("/godtrial ")) handleGodTrial(buffer, p, e);
+        else if (buffer.contains("/cancelabilitycooldowns ")) handlePlayers(buffer, e);
     }
 
     public void handleSpelunker(String buffer, Player p, TabCompleteEvent e) {
@@ -320,11 +324,17 @@ public class TabCompleter implements Listener {
         e.setCompletions(getCompletions(buffer, words));
     }
 
-    public void handleGodTrial(String buffer, TabCompleteEvent e) {
+    public void handleGodTrial(String buffer, Player p, TabCompleteEvent e) {
         ArrayList<String> words = new ArrayList<>();
         words.add("end");
         words.add("delete");
         words.add("restart");
+        words.add("spectate");
+        if (p.hasPermission("survivalskills.op")) {
+            words.add("nextwave");
+            words.add("setwave");
+            words.add("delink");
+        }
         e.setCompletions(getCompletions(buffer, words));
     }
 

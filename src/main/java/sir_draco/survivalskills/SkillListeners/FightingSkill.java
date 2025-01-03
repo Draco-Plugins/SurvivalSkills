@@ -24,6 +24,8 @@ import sir_draco.survivalskills.Abilities.AbilityTimer;
 import sir_draco.survivalskills.Abilities.BerserkerEffects;
 import sir_draco.survivalskills.Bosses.*;
 import sir_draco.survivalskills.Bosses.Boss;
+import sir_draco.survivalskills.GodQuestline.ProtectedArea;
+import sir_draco.survivalskills.GodQuestline.TrialManager;
 import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Utils.ExiledBossMusic;
 import sir_draco.survivalskills.Utils.ItemStackGenerator;
@@ -448,6 +450,12 @@ public class FightingSkill implements Listener {
 
     @EventHandler
     public void phantomSpawn(EntitySpawnEvent e) {
+        if (e.getEntity().hasMetadata("trialmob")) return;
+
+        // If the phantom spawns in a trial chamber ignore it
+        for (ProtectedArea area : TrialManager.getProtectedAreas().values())
+            if (area.boundingBox().contains(e.getLocation().toVector())) return;
+
         if (!e.getEntity().getType().equals(EntityType.PHANTOM)) return;
         if (noPhantomSpawns.isEmpty()) return;
         Location loc = e.getLocation();

@@ -3,14 +3,20 @@ package sir_draco.survivalskills.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Item;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.GodQuestline.ProtectedArea;
 import sir_draco.survivalskills.GodQuestline.RelativeBlock;
+import sir_draco.survivalskills.GodQuestline.TrialManager;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
@@ -139,5 +145,21 @@ public class TrialUtils {
                 }
             }
         }.runTaskAsynchronously(SurvivalSkills.getInstance());
+    }
+
+    public static void removeGroundItemsInProtectedArea(ProtectedArea protectedArea) {
+        // Get all entities in the protected area
+        protectedArea.world().getNearbyEntities(protectedArea.boundingBox(), entity -> true).forEach(entity -> {
+            if (entity instanceof Item) {
+                if (isTrialItem((Item) entity)) entity.remove();
+            }
+        });
+    }
+
+    public static boolean isTrialItem(Item item) {
+        ItemStack itemStack = item.getItemStack();
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) return false;
+        return meta.getPersistentDataContainer().has(TrialManager.getTrialObjectKey(), PersistentDataType.STRING);
     }
 }

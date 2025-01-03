@@ -130,7 +130,7 @@ public class Boss extends BukkitRunnable {
     }
 
     public void applyAttributes() {
-        boss.setMetadata("boss", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
+        boss.setMetadata("boss", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
         boss.setCustomName(name);
         boss.setCustomNameVisible(true);
         boss.setRemoveWhenFarAway(false);

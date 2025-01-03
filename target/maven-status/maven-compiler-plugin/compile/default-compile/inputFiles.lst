@@ -20,6 +20,7 @@ C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\su
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\AutoEatCommand.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\PowerOreConversion.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\ToggleGodQuestCommand.java
+C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Utils\RecipeRecord.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\GodQuestCommand.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\TabCompleter.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Trophy\TrophyListener.java
@@ -30,6 +31,7 @@ C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\su
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\FishingSkill.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\DefaultCommands\ToggleScoreboardCommand.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\AutoTrashCommand.java
+C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialMobs\WaveMob.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Boards\SkillScoreboard.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\SurvivalSkillsCommand.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Trophy\TrophyManager.java
@@ -59,6 +61,7 @@ C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\su
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\Armor\RainbowArmor.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\Armor\AdventurerArmor.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Skills\SkillsHolder.java
+C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\CancelAbilityCooldownsCommand.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\GodItems\EnderEssence.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\ProtectedArea.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\AbilityTimer.java
@@ -77,7 +80,10 @@ C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\su
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\CaveFinderAsync.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Utils\ExiledBossMusic.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\AbilityManager.java
+C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialMobs\TrialBoss.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\MainSkill.java
+C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialMobs\BlazingGhast.java
+C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialLootTable.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\FarmingSkill.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Boards\LeaderboardPlayer.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\BossCommand.java
@@ -103,6 +109,7 @@ C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\su
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\AutoTrash.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Rewards\Reward.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\PeacefulMinerCommand.java
+C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\Wave.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\FightingSkill.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Trophy\ParticleColumnThread.java
 C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\BloodyDomain.java

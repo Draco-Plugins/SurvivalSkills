@@ -401,7 +401,7 @@ public class GodListener implements Listener {
             PowerDrillAsync drillTask = new PowerDrillAsync(SurvivalSkills.getInstance(), p, this, e.getBlock());
             drillTask.runTaskAsynchronously(SurvivalSkills.getInstance());
         }
-        }
+    }
 
     @EventHandler
     public void onPlayerClickPowerOreConversion(PlayerInteractEvent e) {
@@ -633,6 +633,7 @@ public class GodListener implements Listener {
         godItems.put(EntityType.BREEZE, ItemStackGenerator.getMagicBagOfWind());
         godItems.put(EntityType.ENDER_DRAGON, ItemStackGenerator.getDragonBreathCannon());
         godItems.put(EntityType.GUARDIAN, ItemStackGenerator.getUnlimitedSponge());
+        godItems.put(EntityType.WITHER_SKELETON, ItemStackGenerator.getUnlimitedWitherRose());
     }
 
     public void createPotionList() {

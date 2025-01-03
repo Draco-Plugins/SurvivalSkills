@@ -88,6 +88,11 @@ commands:
     description: Allows a player to start the god trial
     permission: survivalskills.default
 
+  sscreative:
+    description: Allows for creative mode
+    permission: survivalskills.creative
+    aliases: [ ssc ]
+
   gettrophy:
     description: Gives a specified trophy
     permission: survivalskills.op
@@ -129,6 +134,9 @@ commands:
   storetrialbuilding:
     description: Stores the trial building
     permission: survivalskills.op
+  cancelabilitycooldowns:
+    description: Cancels all ability cooldowns
+    permission: survivalskills.op
 
 permissions:
   survivalskills.default:
@@ -136,6 +144,9 @@ permissions:
     default: not op
   survivalskills.op:
     description: Op permissions
+    default: op
+  survivalskills.creative:
+    description: Allows the player to use creative mode
     default: op
   survivalskills.fishinglineI:
     description: Allows the player to use the fishing line I skill
