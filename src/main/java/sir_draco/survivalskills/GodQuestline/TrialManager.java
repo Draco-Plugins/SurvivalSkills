@@ -41,8 +41,9 @@ public class TrialManager implements Listener {
     private static final HashMap<Integer, TrialLootTable> lootTables = new HashMap<>();
     private static final NamespacedKey trialObjectKey = new NamespacedKey(SurvivalSkills.getInstance(), "trialobject");
     private static final HashMap<Player, Location> spectatingPlayers = new HashMap<>();
-    private static final HashMap<Player, Player> target = new HashMap<>();
+    private static final HashMap<Player, Player> spectatorTargets = new HashMap<>();
     private static final HashMap<Player, Scoreboard> trialScoreboards = new HashMap<>();
+    private static final HashMap<Player, Scoreboard> spectatorScoreboards = new HashMap<>();
 
     public TrialManager() {
         createWaves();
@@ -270,22 +271,6 @@ public class TrialManager implements Listener {
             if (!trial.getPlayer().equals(e.getEntity())) continue;
             trial.endTrial();
             e.getEntity().getInventory().clear();
-
-            Player target = e.getEntity();
-            for (Map.Entry<Player, Player> spectator : TrialManager.getTarget().entrySet()) {
-                if (!spectator.getValue().equals(target)) continue;
-                Player p = spectator.getKey();
-                spectator.getValue().showPlayer(SurvivalSkills.getInstance(), p); // Show the spectator to the world
-                if (p.getGameMode().equals(GameMode.SPECTATOR))
-                    p.setSpectatorTarget(null);
-                p.teleport(TrialManager.getSpectatingPlayers().get(p));
-                TrialManager.getSpectatingPlayers().remove(p);
-                TrialManager.getTarget().remove(p);
-                p.setGameMode(GameMode.SURVIVAL);
-                p.sendRawMessage(ChatColor.GREEN + "You are no longer spectating");
-                p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-                return;
-            }
             return;
         }
     }
@@ -979,11 +964,15 @@ public class TrialManager implements Listener {
         return spectatingPlayers;
     }
 
-    public static HashMap<Player, Player> getTarget() {
-        return target;
+    public static HashMap<Player, Player> getSpectatorTargets() {
+        return spectatorTargets;
     }
 
     public static HashMap<Player, Scoreboard> getTrialScoreboards() {
         return trialScoreboards;
+    }
+
+    public static HashMap<Player, Scoreboard> getSpectatorScoreboards() {
+        return spectatorScoreboards;
     }
 }

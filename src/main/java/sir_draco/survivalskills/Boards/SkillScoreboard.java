@@ -39,7 +39,6 @@ public class SkillScoreboard {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager == null) return;
         Scoreboard board = manager.getNewScoreboard();
-        p.setScoreboard(board);
 
         // Register the main and death objectives
         if (board.getObjective("Main") == null) {
@@ -51,6 +50,24 @@ public class SkillScoreboard {
         // Add the scoreboard to the tracker
         p.setScoreboard(board);
         TrialManager.getTrialScoreboards().put(p, board);
+    }
+
+    public static void initializeTrialSpectatorScoreboard(Player p, String targetName) {
+        // Make a new scoreboard
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        if (manager == null) return;
+        Scoreboard board = manager.getNewScoreboard();
+
+        // Register the main and death objectives
+        if (board.getObjective("Main") == null) {
+            Objective main = board.registerNewObjective("Main", Criteria.DUMMY, "Main");
+            main.setDisplayName(ChatColor.AQUA + targetName);
+            main.setDisplaySlot(DisplaySlot.SIDEBAR);
+        }
+
+        // Add the scoreboard to the tracker
+        p.setScoreboard(board);
+        TrialManager.getSpectatorScoreboards().put(p, board);
     }
 
     /**
@@ -219,6 +236,25 @@ public class SkillScoreboard {
         String timeString = ChatColor.GOLD + "Time: " + ChatColor.AQUA + timeConverter(timeAmount);
         newTeam(board, "Score", ChatColor.GRAY.toString(), scoreString, 1);
         newTeam(board, "Time", ChatColor.BLUE.toString(), timeString, 2);
+        p.setScoreboard(board);
+    }
+
+    public static void updateTrialSpectatorScoreboard(Player p, String targetName, double health, int food, int scoreAmount, int timeAmount) {
+        Scoreboard board = TrialManager.getTrialScoreboards().get(p);
+        if (board == null) {
+            initializeTrialSpectatorScoreboard(p, targetName);
+            return;
+        }
+
+        // Color the main level in the scoreboard display
+        String healthString = ChatColor.GOLD + "Health: " + ChatColor.AQUA + health;
+        String foodString = ChatColor.GOLD + "Food: " + ChatColor.AQUA + food;
+        String scoreString = ChatColor.GOLD + "Score: " + ChatColor.AQUA + scoreAmount;
+        String timeString = ChatColor.GOLD + "Time: " + ChatColor.AQUA + timeConverter(timeAmount);
+        newTeam(board, "Health", ChatColor.GRAY.toString(), healthString, 1);
+        newTeam(board, "Food", ChatColor.BLUE.toString(), foodString, 2);
+        newTeam(board, "Score", ChatColor.GRAY.toString(), scoreString, 3);
+        newTeam(board, "Time", ChatColor.BLUE.toString(), timeString, 4);
         p.setScoreboard(board);
     }
 

@@ -1,21 +1,20 @@
 package sir_draco.survivalskills.Utils;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.GodQuestline.ProtectedArea;
 import sir_draco.survivalskills.GodQuestline.RelativeBlock;
+import sir_draco.survivalskills.GodQuestline.Trial;
 import sir_draco.survivalskills.GodQuestline.TrialManager;
 import sir_draco.survivalskills.SurvivalSkills;
 
@@ -161,5 +160,47 @@ public class TrialUtils {
         ItemMeta meta = itemStack.getItemMeta();
         if (meta == null) return false;
         return meta.getPersistentDataContainer().has(TrialManager.getTrialObjectKey(), PersistentDataType.STRING);
+    }
+
+    public static boolean addTrialSpectator(Player p, Player target) {
+        for (Trial trial : TrialManager.getTrials()) {
+            if (!trial.getPlayer().equals(target)) continue;
+            TrialManager.getSpectatingPlayers().put(p, p.getLocation());
+            TrialManager.getSpectatorTargets().put(p, target);
+            trial.addSpectator(p);
+            p.teleport(target.getLocation()); // Teleport the spectator to the target
+            p.setGameMode(GameMode.SPECTATOR);
+
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    target.hidePlayer(SurvivalSkills.getInstance(), p);
+                    p.setSpectatorTarget(target);
+                }
+            }.runTaskLater(SurvivalSkills.getInstance(), 20);
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean removeTrialSpectator(Player p, Player target) {
+        if (TrialManager.getSpectatingPlayers().containsKey(p)) {
+            target.showPlayer(SurvivalSkills.getInstance(), p); // Show the spectator to the world
+            if (p.getGameMode().equals(GameMode.SPECTATOR))
+                p.setSpectatorTarget(null);
+            p.teleport(TrialManager.getSpectatingPlayers().get(p));
+            TrialManager.getSpectatingPlayers().remove(p);
+            TrialManager.getSpectatorTargets().remove(p);
+            p.setGameMode(GameMode.SURVIVAL);
+            p.sendRawMessage(ChatColor.GREEN + "You are no longer spectating");
+            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+
+            for (Trial trial : TrialManager.getTrials()) {
+                if (!trial.getPlayer().equals(target)) continue;
+                trial.removeSpectator(p);
+            }
+            return true;
+        }
+        return false;
     }
 }

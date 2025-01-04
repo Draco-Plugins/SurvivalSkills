@@ -9,7 +9,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import sir_draco.survivalskills.Abilities.BloodyDomain;
 import sir_draco.survivalskills.GodQuestline.*;
@@ -50,36 +49,8 @@ public class GodTrialCommand implements CommandExecutor {
                 return false;
             }
 
-            if (TrialManager.getSpectatingPlayers().containsKey(p)) {
-                target.showPlayer(SurvivalSkills.getInstance(), p); // Show the spectator to the world
-                if (p.getGameMode().equals(GameMode.SPECTATOR))
-                    p.setSpectatorTarget(null);
-                p.teleport(TrialManager.getSpectatingPlayers().get(p));
-                TrialManager.getSpectatingPlayers().remove(p);
-                TrialManager.getTarget().remove(p);
-                p.setGameMode(GameMode.SURVIVAL);
-                p.sendRawMessage(ChatColor.GREEN + "You are no longer spectating");
-                p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-                return true;
-            }
-
-            for (Trial trial : TrialManager.getTrials()) {
-                if (!trial.getPlayer().equals(target)) continue;
-                TrialManager.getSpectatingPlayers().put(p, p.getLocation());
-                TrialManager.getTarget().put(p, target);
-                p.teleport(target.getLocation()); // Teleport the spectator to the target
-
-                Player finalTarget = target;
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        p.setGameMode(GameMode.SPECTATOR);
-                        finalTarget.hidePlayer(SurvivalSkills.getInstance(), p); // Hide the spectator from the world
-                        p.setSpectatorTarget(finalTarget);
-                    }
-                }.runTaskLater(SurvivalSkills.getInstance(), 2);
-                return true;
-            }
+            if (TrialUtils.removeTrialSpectator(p, target)) return true;
+            if (TrialUtils.addTrialSpectator(p, target)) return true;
 
             p.sendRawMessage(ChatColor.RED + "Player is not in a trial");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

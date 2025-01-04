@@ -3,6 +3,8 @@ package sir_draco.survivalskills.GodQuestline;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -20,6 +22,7 @@ public class Trial extends BukkitRunnable {
     private final ProtectedArea protectedArea;
     private final Location centerLocation;
     private final ArrayList<Location> spawningSpots = new ArrayList<>();
+    private final ArrayList<Player> spectators = new ArrayList<>();
     private final int maxWave;
 
     private boolean buildingCreated = false;
@@ -59,7 +62,7 @@ public class Trial extends BukkitRunnable {
         if (!buildingCreated) return;
         if (!spawningSpotsGenerated) return;
 
-        SkillScoreboard.updateTrialScoreboard(p, score, timeSpent);
+        updateScoreboards();
         if (activeWave && !waveSpawned) spawnWave();
         if (cycle % 20 == 0) timeSpent++;
 
@@ -243,7 +246,8 @@ public class Trial extends BukkitRunnable {
         waveSpawned = false;
 
         p.getInventory().clear();
-        p.setHealth(40);
+        AttributeInstance maxHealthAttribute = p.getAttribute(Attribute.MAX_HEALTH);
+        if (maxHealthAttribute != null) p.setHealth(maxHealthAttribute.getValue());
         p.setFoodLevel(20);
         removeWaveMobs();
         wave = null;
@@ -257,9 +261,10 @@ public class Trial extends BukkitRunnable {
         TrialUtils.removeGroundItemsInProtectedArea(protectedArea);
         removeWaveMobs();
         p.getInventory().clear();
+        cancel();
         TrialManager.getTrialScoreboards().remove(p);
         SkillScoreboard.updateScoreboard(SurvivalSkills.getInstance(), p);
-        cancel();
+        for (Player specator : spectators) TrialUtils.removeTrialSpectator(specator, p);
     }
 
     public void deleteTrial() {
@@ -304,6 +309,22 @@ public class Trial extends BukkitRunnable {
 
     public void changeScore(int amount) {
         score += amount;
+    }
+
+    public void updateScoreboards() {
+        SkillScoreboard.updateTrialScoreboard(p, score, timeSpent);
+        if (spectators.isEmpty()) return;
+        for (Player player : spectators)
+            SkillScoreboard.updateTrialSpectatorScoreboard(player, p.getDisplayName(),
+                    p.getHealth(), p.getFoodLevel(), score, timeSpent);
+    }
+
+    public void addSpectator(Player player) {
+        spectators.add(player);
+    }
+
+    public void removeSpectator(Player player) {
+        spectators.remove(player);
     }
 
     public Player getPlayer() {
