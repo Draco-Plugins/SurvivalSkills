@@ -280,8 +280,9 @@ public final class SurvivalSkills extends JavaPlugin {
             int crafting = leaderboardData.getInt(key + ".Crafting");
             int main = leaderboardData.getInt(key + ".Main");
             int deaths = leaderboardData.getInt(key + ".Deaths");
+            int trialScore = leaderboardData.getInt(key + ".Trials");
             LeaderboardPlayer leaderboard = new LeaderboardPlayer(name, level, building, mining, fishing, exploring,
-                    farming, fighting, crafting, main, deaths);
+                    farming, fighting, crafting, main, deaths, trialScore);
             leaderboardTracker.put(UUID.fromString(key), leaderboard);
         });
     }
@@ -599,6 +600,7 @@ public final class SurvivalSkills extends JavaPlugin {
             leaderboardData.set(player.getKey() + ".Crafting", player.getValue().getCraftingScore());
             leaderboardData.set(player.getKey() + ".Main", player.getValue().getMainScore());
             leaderboardData.set(player.getKey() + ".Deaths", player.getValue().getDeathScore());
+            leaderboardData.set(player.getKey() + ".Trials", player.getValue().getTrialScore());
         }
 
         try {

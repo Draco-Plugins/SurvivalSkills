@@ -28,9 +28,10 @@ public class Leaderboard {
         int miningScore = getLeaderboardScore(plugin, p, "Mining");
         int mainScore = getLeaderboardScore(plugin, p, "Main");
         int deathScore = getLeaderboardScore(plugin, p, "Deaths");
+        int trialScore = getLeaderboardScore(plugin, p, "Trials");
 
         return new LeaderboardPlayer(p.getDisplayName(), score, buildingScore, craftingScore, exploringScore,
-                farmingScore, fightingScore, fishingScore, miningScore, mainScore, deathScore);
+                farmingScore, fightingScore, fishingScore, miningScore, mainScore, deathScore, trialScore);
     }
 
     public static int getLeaderboardScore(SurvivalSkills plugin, Player p, String skillName) {
@@ -41,48 +42,44 @@ public class Leaderboard {
             return score;
         }
         else if (skillName.equals("Building")) {
-            int score = 0;
-            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
+            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return 0;
             return SkillManager.getSkill(p.getUniqueId(), "Building").getLevel();
         }
         else if (skillName.equals("Crafting")) {
-            int score = 0;
-            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
+            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return 0;
             return SkillManager.getSkill(p.getUniqueId(), "Crafting").getLevel();
         }
         else if (skillName.equals("Exploring")) {
-            int score = 0;
-            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
+            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return 0;
             return SkillManager.getSkill(p.getUniqueId(), "Exploring").getLevel();
         }
         else if (skillName.equals("Farming")) {
-            int score = 0;
-            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
+            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return 0;
             return SkillManager.getSkill(p.getUniqueId(), "Farming").getLevel();
         }
         else if (skillName.equals("Mining")) {
-            int score = 0;
-            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
+            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return 0;
             return SkillManager.getSkill(p.getUniqueId(), "Mining").getLevel();
         }
         else if (skillName.equals("Fighting")) {
-            int score = 0;
-            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
+            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return 0;
             return SkillManager.getSkill(p.getUniqueId(), "Fighting").getLevel();
         }
         else if (skillName.equals("Fishing")) {
-            int score = 0;
-            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
+            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return 0;
             return SkillManager.getSkill(p.getUniqueId(), "Fishing").getLevel();
         }
         else if (skillName.equals("Main")) {
-            int score = 0;
-            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return score;
+            if (!plugin.getSkillManager().getPlayerSkills().containsKey(p.getUniqueId())) return 0;
             return SkillManager.getSkill(p.getUniqueId(), "Main").getLevel();
         }
         else if (skillName.equalsIgnoreCase("Deaths")) {
             if (!plugin.getLeaderboardData().contains(p.getUniqueId().toString())) return 0;
             return plugin.getLeaderboardData().getInt(p.getUniqueId() + ".Deaths");
+        }
+        else if (skillName.equalsIgnoreCase("Trials")) {
+            if (!plugin.getLeaderboardData().contains(p.getUniqueId().toString())) return 0;
+            return plugin.getLeaderboardData().getInt(p.getUniqueId() + ".Trials");
         }
 
         return 0;
@@ -150,6 +147,11 @@ public class Leaderboard {
                     topScore = entry.getValue().getDeathScore();
                     name = entry.getValue().getName();
                 }
+                else if (skillName.equalsIgnoreCase("trials") && entry.getValue().getTrialScore() > topScore) {
+                    topPlayer = entry.getKey();
+                    topScore = entry.getValue().getTrialScore();
+                    name = entry.getValue().getName();
+                }
             }
             if (topPlayer == null) break;
             sortedPlayers.put(topPlayer, plugin.getLeaderboardTracker().get(topPlayer));
@@ -212,6 +214,8 @@ public class Leaderboard {
             else if (skillName.equalsIgnoreCase("fishing") && entry.getValue().getFishingScore() > skillScore) rank++;
             else if (skillName.equalsIgnoreCase("mining") && entry.getValue().getMiningScore() > skillScore) rank++;
             else if (skillName.equalsIgnoreCase("main") && entry.getValue().getMainScore() > skillScore) rank++;
+            else if (skillName.equalsIgnoreCase("deaths") && entry.getValue().getDeathScore() < skillScore) rank++;
+            else if (skillName.equalsIgnoreCase("trials") && entry.getValue().getTrialScore() > skillScore) rank++;
         }
         p.sendRawMessage(ChatColor.GREEN + "You are currently ranked " + ChatColor.GOLD + rank + ChatColor.GREEN + " in "
                 + ChatColor.GOLD + skillName + ChatColor.GREEN + " out of " + ChatColor.GOLD + plugin.getLeaderboardTracker().size() + ChatColor.GREEN + "!");

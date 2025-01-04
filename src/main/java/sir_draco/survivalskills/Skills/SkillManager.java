@@ -186,6 +186,9 @@ public class SkillManager {
             case "Death":
                 player.setDeathScore(skillScore);
                 break;
+            case "TrialScore":
+                player.setTrialScore(skillScore);
+                break;
         }
     }
 

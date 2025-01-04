@@ -196,7 +196,7 @@ public class SkillStatsCommand implements CommandExecutor {
             int maxPage = Math.max(1, (int) Math.ceil(size));
 
             for (String skill : acceptableSkillList) {
-                if (!skill.equalsIgnoreCase(strings[1])) continue;
+                if (!skill.equalsIgnoreCase(strings[1]) && !strings[1].equalsIgnoreCase("trials")) continue;
 
                 // If they don't specify a page number print the first page
                 if (strings.length != 3) {

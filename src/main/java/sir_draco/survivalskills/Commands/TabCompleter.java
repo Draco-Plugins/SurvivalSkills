@@ -201,7 +201,10 @@ public class TabCompleter implements Listener {
         words.add("crafting");
         words.add("main");
         words.add("deaths");
-        if (buffer.contains("leaderboard")) words.add("all");
+        if (buffer.contains("leaderboard")) {
+            words.add("all");
+            words.add("trials");
+        }
         e.setCompletions(getCompletions(buffer, words));
     }
 

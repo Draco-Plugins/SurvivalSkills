@@ -14,9 +14,11 @@ public class LeaderboardPlayer {
     private int craftingScore;
     private int mainScore;
     private int deathScore;
+    private int trialScore;
 
     public LeaderboardPlayer(String name, int score, int buildingScore, int miningScore, int farmingScore,
-                             int fightingScore, int fishingScore, int exploringScore, int craftingScore, int mainScore, int deathScore) {
+                             int fightingScore, int fishingScore, int exploringScore, int craftingScore, int mainScore,
+                             int deathScore, int trialScore) {
         this.name = name;
         this.score = score;
         this.buildingScore = buildingScore;
@@ -28,6 +30,7 @@ public class LeaderboardPlayer {
         this.craftingScore = craftingScore;
         this.mainScore = mainScore;
         this.deathScore = deathScore;
+        this.trialScore = trialScore;
     }
 
     public String getName() {
@@ -112,5 +115,13 @@ public class LeaderboardPlayer {
 
     public void setDeathScore(int deathScore) {
         this.deathScore = deathScore;
+    }
+
+    public int getTrialScore() {
+        return trialScore;
+    }
+
+    public void setTrialScore(int trialScore) {
+        this.trialScore = trialScore;
     }
 }

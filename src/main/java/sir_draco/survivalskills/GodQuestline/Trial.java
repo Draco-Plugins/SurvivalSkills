@@ -296,6 +296,12 @@ public class Trial extends BukkitRunnable {
                 + " for becoming a " + ChatColor.AQUA + "God" + ChatColor.GOLD + "!");
         for (Player player : Bukkit.getOnlinePlayers()) player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
 
+        boolean newHighScore;
+        if (SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId()).getTrialScore() < score) {
+            newHighScore = true;
+            SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId()).setTrialScore(score);
+        } else newHighScore = false;
+
         new BukkitRunnable() {
             final int time = timeSpent;
             @Override
@@ -303,6 +309,11 @@ public class Trial extends BukkitRunnable {
                 p.sendTitle(ChatColor.YELLOW + "Final Score", ChatColor.GRAY + "" + score, 5, 30, 5);
                 String timeSpent = RewardNotifications.cooldown(time);
                 p.sendRawMessage(ChatColor.YELLOW + "Trial completed in " + timeSpent);
+
+                if (newHighScore) {
+                    p.sendRawMessage(ChatColor.YELLOW + "New High Score!");
+                    p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+                }
             }
         }.runTaskLater(SurvivalSkills.getInstance(), 100);
     }
