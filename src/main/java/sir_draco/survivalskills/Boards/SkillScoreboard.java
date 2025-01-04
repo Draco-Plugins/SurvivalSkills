@@ -34,13 +34,12 @@ public class SkillScoreboard {
         plugin.getScoreboardTracker().put(p, board);
     }
 
-    public static void initializeTrialScoreboard(SurvivalSkills plugin, Player p) {
+    public static void initializeTrialScoreboard(Player p) {
         // Make a new scoreboard
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager == null) return;
         Scoreboard board = manager.getNewScoreboard();
         p.setScoreboard(board);
-        plugin.getScoreboardTracker().put(p, board);
 
         // Register the main and death objectives
         if (board.getObjective("Main") == null) {
@@ -73,6 +72,8 @@ public class SkillScoreboard {
      * Changes a player's scoreboard to represent a change in the XP of a skill
      */
     public static void updateScoreboard(SurvivalSkills plugin, Player p, String skillName) {
+        if (TrialManager.isTrialPlayer(p)) return;
+
         // If the player has never toggled the scoreboard, initialize it
         if (plugin.getToggledScoreboard().get(p.getUniqueId()) == null) {
             plugin.getToggledScoreboard().put(p.getUniqueId(), true);
@@ -206,10 +207,10 @@ public class SkillScoreboard {
         p.setScoreboard(board);
     }
 
-    public static void updateTrialScoreboard(SurvivalSkills plugin, Player p, int scoreAmount, int timeAmount) {
+    public static void updateTrialScoreboard(Player p, int scoreAmount, int timeAmount) {
         Scoreboard board = TrialManager.getTrialScoreboards().get(p);
         if (board == null) {
-            initializeTrialScoreboard(plugin, p);
+            initializeTrialScoreboard(p);
             return;
         }
 
@@ -217,7 +218,8 @@ public class SkillScoreboard {
         String scoreString = ChatColor.GOLD + "Score: " + ChatColor.AQUA + scoreAmount;
         String timeString = ChatColor.GOLD + "Time: " + ChatColor.AQUA + timeConverter(timeAmount);
         newTeam(board, "Score", ChatColor.GRAY.toString(), scoreString, 1);
-        newTeam(board, "Time", ChatColor.GRAY.toString(), timeString, 2);
+        newTeam(board, "Time", ChatColor.BLUE.toString(), timeString, 2);
+        p.setScoreboard(board);
     }
 
     /**

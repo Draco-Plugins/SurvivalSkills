@@ -195,9 +195,10 @@ public class TrialManager implements Listener {
     @EventHandler
     public void onTrialMobDamage(EntityDamageEvent e) {
         if (trials.isEmpty()) return;
+        if (e.getEntity() instanceof Player) return;
 
         // Check if it is a trial mob
-        if (!e.getEntity().hasMetadata("trialmob") && !(e.getEntity().hasMetadata("trialmob"))) return;
+        if (!e.getEntity().hasMetadata("trialmob") && !e.getEntity().hasMetadata("trialboss")) return;
 
         // See if a player damaged the mob
         if (!(e instanceof EntityDamageByEntityEvent)) e.setCancelled(true);
@@ -206,6 +207,7 @@ public class TrialManager implements Listener {
     @EventHandler
     public void onTrialMobDamageByPlayer(EntityDamageByEntityEvent e) {
         if (trials.isEmpty()) return;
+        if (e.getEntity() instanceof Player) return;
 
         // Check if it is a trial mob
         if (!e.getEntity().hasMetadata("trialmob") && !(e.getEntity().hasMetadata("trialboss"))) return;
@@ -299,6 +301,7 @@ public class TrialManager implements Listener {
         for (Trial t : trials) {
             if (!t.getPlayer().equals(p)) continue;
             trial = t;
+            break;
         }
         if (trial == null) return;
         trial.changeScore((int) -damage);

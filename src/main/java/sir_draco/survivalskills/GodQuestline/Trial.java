@@ -41,6 +41,7 @@ public class Trial extends BukkitRunnable {
         this.maxWave = maxWave;
         generateSpawningSpots();
         loadBuilding(building);
+        SkillScoreboard.initializeTrialScoreboard(p);
     }
 
     public Trial(Player p, ProtectedArea protectedArea, Location centerLocation, int maxWave) {
@@ -50,6 +51,7 @@ public class Trial extends BukkitRunnable {
         this.maxWave = maxWave;
         generateSpawningSpots();
         startTrial();
+        SkillScoreboard.initializeTrialScoreboard(p);
     }
 
     @Override
@@ -57,6 +59,7 @@ public class Trial extends BukkitRunnable {
         if (!buildingCreated) return;
         if (!spawningSpotsGenerated) return;
 
+        SkillScoreboard.updateTrialScoreboard(p, score, timeSpent);
         if (activeWave && !waveSpawned) spawnWave();
         if (cycle % 20 == 0) timeSpent++;
 
@@ -79,8 +82,6 @@ public class Trial extends BukkitRunnable {
         }
 
         if (activeWave && wave != null) {
-            SkillScoreboard.updateTrialScoreboard(SurvivalSkills.getInstance(), p, score, timeSpent);
-
             int mobsLeft = wave.getMobsLeft();
             ChatColor color;
             if (mobsLeft > 1) color = ChatColor.YELLOW;
@@ -95,6 +96,8 @@ public class Trial extends BukkitRunnable {
 
             if (wave.isBossWave() && wave.getBoss() != null)
                 wave.getBoss().setTarget(p);
+
+            if (cycle % 40 == 0) keepMobsInCage();
         }
     }
 
@@ -172,15 +175,30 @@ public class Trial extends BukkitRunnable {
                 removeWaveMobs();
                 activeWave = false;
                 waveSpawned = false;
+                TrialManager.openRewardGUI(p, waveNumber);
                 waveNumber++;
                 timer = 15;
-                TrialManager.openRewardGUI(p, waveNumber);
 
                 String message = ChatColor.GRAY + "Wave " + ChatColor.AQUA + waveNumber + ChatColor.GRAY + " in " +
                         ChatColor.YELLOW + timer + ChatColor.GRAY + " seconds";
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(message));
             }
         }.runTaskLater(SurvivalSkills.getInstance(), 40);
+    }
+
+    public void keepMobsInCage() {
+        for (WaveMob mob : wave.getWaveMobs()) {
+            if (mob.getEntity() == null) continue;
+            if (mob.getEntity().isDead()) continue;
+            if (protectedArea.boundingBox().contains(mob.getEntity().getLocation().toVector())) continue;
+            mob.getEntity().teleport(centerLocation.clone().add(0.5, 1, 0.5));
+        }
+
+        for (Entity entity : wave.getExtraMobs()) {
+            if (entity.isDead()) continue;
+            if (protectedArea.boundingBox().contains(entity.getLocation().toVector())) continue;
+            entity.teleport(centerLocation.clone().add(0.5, 1, 0.5));
+        }
     }
 
     public void removeWaveMobs() {
@@ -225,6 +243,8 @@ public class Trial extends BukkitRunnable {
         waveSpawned = false;
 
         p.getInventory().clear();
+        p.setHealth(40);
+        p.setFoodLevel(20);
         removeWaveMobs();
         wave = null;
         TrialUtils.removeGroundItemsInProtectedArea(protectedArea);
@@ -237,6 +257,8 @@ public class Trial extends BukkitRunnable {
         TrialUtils.removeGroundItemsInProtectedArea(protectedArea);
         removeWaveMobs();
         p.getInventory().clear();
+        TrialManager.getTrialScoreboards().remove(p);
+        SkillScoreboard.updateScoreboard(SurvivalSkills.getInstance(), p);
         cancel();
     }
 
@@ -258,6 +280,9 @@ public class Trial extends BukkitRunnable {
         int timeBonus = 3600 - timeSpent;
         if (timeBonus > 0) changeScore(timeBonus);
         cancel();
+
+        TrialManager.getTrialScoreboards().remove(p);
+        SkillScoreboard.updateScoreboard(SurvivalSkills.getInstance(), p);
 
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + p.getName()
                 + " permission set survivalskills.creative true");

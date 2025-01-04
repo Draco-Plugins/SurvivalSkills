@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.Commands.AdminCommands;
+package sir_draco.survivalskills.Commands.SkillCommands;
 
 import org.bukkit.*;
 import org.bukkit.command.Command;
@@ -287,7 +287,7 @@ public class GodTrialCommand implements CommandExecutor {
         }
 
         // Check if they have unlocked the god trial
-        if (quest.getPhase() != 49) {
+        if (quest.getPhase() != quest.getMaxPhase()) {
             p.sendRawMessage(ChatColor.RED + "You have not unlocked the god trial");
             p.sendRawMessage(ChatColor.YELLOW + "Complete the god questline to unlock the god trial");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

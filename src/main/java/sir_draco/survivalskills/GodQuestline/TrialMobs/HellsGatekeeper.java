@@ -25,7 +25,7 @@ public class HellsGatekeeper extends TrialBoss {
     public HellsGatekeeper(HashMap<ItemStack, Double> drops) {
         super(ColorParser.colorizeString("Hell's Gatekeeper",
                 ColorParser.generateGradient("#EC6000", "#FB0808", 17), true),
-                250, 10, 0, 0.2, 2, EntityType.WITHER_SKELETON, drops);
+                250, 10, 0, 0.3, 2, EntityType.WITHER_SKELETON, drops);
     }
 
     @Override
@@ -163,7 +163,7 @@ public class HellsGatekeeper extends TrialBoss {
     }
 
     @Override
-    public FrostRevenant duplicate() {
-        return new FrostRevenant(getDrops());
+    public HellsGatekeeper duplicate() {
+        return new HellsGatekeeper(getDrops());
     }
 }

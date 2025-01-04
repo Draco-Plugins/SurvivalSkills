@@ -169,7 +169,7 @@ public class FarmingSkill implements Listener {
                 Block b = block.getRelative(x, 0, z);
                 spawnWateringCanParticle(particleStart, b.getLocation().clone().add(0.5, 0, 0.5));
                 if (plugin.getFarmingList().contains(b.getType())) {
-                    Ageable age = (Ageable) b.getState().getBlockData();
+                    if (!(b.getState().getBlockData() instanceof Ageable age)) continue;
                     if (age.getAge() != age.getMaximumAge()) {
                         double chance = Math.random();
                         if (chance < 0.1) continue;

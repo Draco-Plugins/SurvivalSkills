@@ -23,6 +23,7 @@ import java.util.UUID;
 public class GodTrophyQuest {
 
     private final UUID uuid;
+    private final int maxPhase = 58;
 
     private int currentItemCount = 0;
 
@@ -44,7 +45,7 @@ public class GodTrophyQuest {
     }
 
     public void handleNPCInteract(Player p) {
-        if (phase >= 58) return;
+        if (phase >= maxPhase) return;
         switch (phase) {
             case 0:
                 dialogueOpener(p);
@@ -969,5 +970,9 @@ public class GodTrophyQuest {
 
     public int getPhase() {
         return phase;
+    }
+
+    public int getMaxPhase() {
+        return maxPhase;
     }
 }
