@@ -4,37 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f98fc54c-90a8-439b-8b76-f1b1bc4cf67d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Boards/SkillScoreboard.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Boards/SkillScoreboard.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/AdminCommands/GodTrialCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/SkillCommands/GodTrialCommand.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/GodTrophyQuest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/GodTrophyQuest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/Trial.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/Trial.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialMobs/HellsGatekeeper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialMobs/HellsGatekeeper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SkillListeners/FarmingSkill.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SkillListeners/FarmingSkill.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/SurvivalSkills-2.21.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/SurvivalSkills-2.21.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Boards/SkillScoreboard.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Boards/SkillScoreboard.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Commands/AdminCommands/GodTrialCommand$1.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Commands/AdminCommands/GodTrialCommand.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/GodTrophyQuest$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/GodTrophyQuest$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/GodTrophyQuest.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/GodTrophyQuest.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/MojangAPI.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/MojangAPI.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$2.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$3.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$4.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/TrialManager$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/TrialManager$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/TrialManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/TrialManager.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/TrialMobs/HellsGatekeeper.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/TrialMobs/HellsGatekeeper.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SkillListeners/FarmingSkill.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SkillListeners/FarmingSkill.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$2.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Trophy/TrophyEffects.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Trophy/TrophyEffects.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
-    </list>
+    <list default="true" id="f98fc54c-90a8-439b-8b76-f1b1bc4cf67d" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

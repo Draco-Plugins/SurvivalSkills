@@ -874,26 +874,26 @@ public class GodTrophyQuest {
                 removeItemFromMainHand(p);
                 ArrayList<String> messages7 = new ArrayList<>();
                 messages7.add("Excellent Work!");
-                messages7.add("Bring me the item from a " + ChatColor.AQUA + "ender dragon");
+                messages7.add("Bring me the item from a " + ChatColor.AQUA + "wither skeleton");
                 dialogue(p, messages7);
                 phase++;
                 break;
             case 8:
-                if (handleItemCheck(p, ItemStackGenerator.getDragonBreathCannon(), "Dragon Breath Cannon")) return;
+                if (handleItemCheck(p, ItemStackGenerator.getUnlimitedWitherRose(), "Unlimited Wither Rose")) return;
                 removeItemFromMainHand(p);
                 ArrayList<String> messages8 = new ArrayList<>();
                 messages8.add("Excellent Work!");
-                messages8.add("Bring me the item from a " + ChatColor.AQUA + "wither skeleton");
+                messages8.add("Bring me the item from a " + ChatColor.AQUA + "ender dragon");
                 dialogue(p, messages8);
                 phase++;
+                updateGodTrophyParticles();
                 break;
             case 9:
-                if (handleItemCheck(p, ItemStackGenerator.getUnlimitedWitherRose(), "Unlimited Wither Rose")) return;
+                if (handleItemCheck(p, ItemStackGenerator.getDragonBreathCannon(), "Dragon Breath Cannon")) return;
                 removeItemFromMainHand(p);
                 ArrayList<String> messages9 = getStrings();
                 dialogue(p, messages9);
                 phase++;
-                updateGodTrophyParticles();
                 break;
         }
     }
