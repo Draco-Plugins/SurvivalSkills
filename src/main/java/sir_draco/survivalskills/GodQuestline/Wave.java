@@ -38,8 +38,8 @@ public class Wave {
         waveMobs.remove(waveMob);
     }
 
-    public void spawnMob(Location location, WaveMob waveMob, Player target) {
-        waveMob.spawnMob(location, target);
+    public void spawnMob(Location location, WaveMob waveMob, ArrayList<Player> players) {
+        waveMob.spawnMob(location, players);
     }
 
     public ArrayList<WaveMob> getWaveMobs() {
@@ -61,6 +61,13 @@ public class Wave {
 
         for (WaveMob waveMob : waveMobs) wave.addWaveMob(waveMob.duplicate());
         return wave;
+    }
+
+    public void scaleMobs(int scale) {
+        ArrayList<WaveMob> mobsToAdd = new ArrayList<>();
+        for (int i = 0; i < scale; i++)
+            for (WaveMob waveMob : waveMobs) mobsToAdd.add(waveMob.duplicate());
+        waveMobs.addAll(mobsToAdd);
     }
 
     public int getMobsLeft() {

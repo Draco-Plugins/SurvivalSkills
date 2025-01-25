@@ -602,6 +602,10 @@ public class RecipeMaker {
         createSmallShapedRecipe(trimRelicKey, ItemStackGenerator.getTrimRelic(), "DDD:ABC:DDD",
                 ItemStackGenerator.getFirstTrim(), null, ItemStackGenerator.getSecondTrim(), null, Material.GOLD_BLOCK, null);
 
+        ShapelessRecipe warriorEmblemRecipe = new ShapelessRecipe(warriorEmblemKey, ItemStackGenerator.getWarriorEmblem());
+        warriorEmblemRecipe.addIngredient(Material.NETHERITE_SWORD);
+        warriorEmblemRecipe.addIngredient(Material.NETHERITE_HELMET);
+        addShapelessRecipe(warriorEmblemRecipe, warriorEmblemKey);
         createShapedRecipe(warriorEmblemKey, ItemStackGenerator.getWarriorEmblem(), new ItemStack(Material.NETHERITE_SWORD),
                 new ItemStack(Material.NETHERITE_HELMET), new ItemStack(Material.NETHERITE_CHESTPLATE), new ItemStack(Material.NETHERITE_LEGGINGS),
                 new ItemStack(Material.NETHERITE_BOOTS), new ItemStack(Material.MACE), new ItemStack(Material.TRIDENT),

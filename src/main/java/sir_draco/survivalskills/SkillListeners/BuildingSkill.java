@@ -378,5 +378,21 @@ public class BuildingSkill implements Listener {
         brokenBlocks.add("DRAGON_WALL_HEAD");
         brokenBlocks.add("TRIPWIRE");
         brokenBlocks.add("FIRE");
+        brokenBlocks.add("WHITE_WALL_BANNER");
+        brokenBlocks.add("ORANGE_WALL_BANNER");
+        brokenBlocks.add("MAGENTA_WALL_BANNER");
+        brokenBlocks.add("LIGHT_BLUE_WALL_BANNER");
+        brokenBlocks.add("YELLOW_WALL_BANNER");
+        brokenBlocks.add("LIME_WALL_BANNER");
+        brokenBlocks.add("PINK_WALL_BANNER");
+        brokenBlocks.add("GRAY_WALL_BANNER");
+        brokenBlocks.add("LIGHT_GRAY_WALL_BANNER");
+        brokenBlocks.add("CYAN_WALL_BANNER");
+        brokenBlocks.add("PURPLE_WALL_BANNER");
+        brokenBlocks.add("BLUE_WALL_BANNER");
+        brokenBlocks.add("BROWN_WALL_BANNER");
+        brokenBlocks.add("GREEN_WALL_BANNER");
+        brokenBlocks.add("RED_WALL_BANNER");
+        brokenBlocks.add("BLACK_WALL_BANNER");
     }
 }

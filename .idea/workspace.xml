@@ -5,11 +5,44 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f98fc54c-90a8-439b-8b76-f1b1bc4cf67d" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Boards/Leaderboard.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Boards/Leaderboard.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Boards/LeaderboardPlayer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Boards/LeaderboardPlayer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/PendingTrial.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Boards/SkillScoreboard.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Boards/SkillScoreboard.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/SkillCommands/GodTrialCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/SkillCommands/GodTrialCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/TabCompleter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Commands/TabCompleter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/Trial.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/Trial.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Skills/SkillManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Skills/SkillManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialMobs/TrialBoss.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialMobs/TrialBoss.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialMobs/WaveMob.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialMobs/WaveMob.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/Wave.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/Wave.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SkillListeners/BuildingSkill.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SkillListeners/BuildingSkill.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SurvivalSkills.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SurvivalSkills.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Utils/RecipeMaker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Utils/RecipeMaker.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Utils/TrialUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/Utils/TrialUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/SurvivalSkills-2.21.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/SurvivalSkills-2.21.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Boards/Leaderboard.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Boards/Leaderboard.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Boards/LeaderboardPlayer.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Boards/LeaderboardPlayer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Boards/SkillScoreboard.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Boards/SkillScoreboard.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Commands/DefaultCommands/SkillStatsCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Commands/DefaultCommands/SkillStatsCommand.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Commands/SkillCommands/GodTrialCommand$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Commands/SkillCommands/GodTrialCommand.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Commands/SkillCommands/GodTrialCommand.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Commands/TabCompleter.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Commands/TabCompleter.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/GodTrophyQuest.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/GodTrophyQuest.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial$4.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/Trial.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/TrialManager$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/TrialManager$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/TrialManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/GodQuestline/TrialManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Skills/SkillManager$1$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Skills/SkillManager$1$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Skills/SkillManager$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Skills/SkillManager$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Skills/SkillManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Skills/SkillManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Utils/TrialUtils$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Utils/TrialUtils$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Utils/TrialUtils.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Utils/TrialUtils.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" beforeDir="false" afterPath="$PROJECT_DIR$/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,33 +87,50 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.MojangAPI.executor&quot;: &quot;Run&quot;,
-    &quot;Application.UnitTest.executor&quot;: &quot;Run&quot;,
-    &quot;Maven.SurvivalSkills [clean].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.SurvivalSkills [compile].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.SurvivalSkills [install].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.SurvivalSkills [site].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.SurvivalSkills [test].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.SurvivalSkills [validate].executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/dylan/Documents/IdeaProjects/CustomEvents&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.MojangAPI.executor": "Run",
+    "Application.UnitTest.executor": "Run",
+    "Maven.SurvivalSkills [clean].executor": "Run",
+    "Maven.SurvivalSkills [compile].executor": "Run",
+    "Maven.SurvivalSkills [install].executor": "Run",
+    "Maven.SurvivalSkills [site].executor": "Run",
+    "Maven.SurvivalSkills [test].executor": "Run",
+    "Maven.SurvivalSkills [validate].executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/dylan/Documents/IdeaProjects/CustomEvents",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "terminal"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="sir_draco.survivalskills.Commands" />
     </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="ShConfigurationType">
+      <option name="SCRIPT_TEXT" value="" />
+      <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
+      <option name="SCRIPT_PATH" value="" />
+      <option name="SCRIPT_OPTIONS" value="" />
+      <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
+      <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
+      <option name="INTERPRETER_PATH" value="powershell.exe" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="EXECUTE_IN_TERMINAL" value="true" />
+      <option name="EXECUTE_SCRIPT_FILE" value="true" />
+      <envs />
+      <method v="2" />
+    </configuration>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">

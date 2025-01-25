@@ -107,7 +107,6 @@ sir_draco\survivalskills\Abilities\VeinMinerAsync$1.class
 sir_draco\survivalskills\SkillListeners\ArmorListener$11.class
 sir_draco\survivalskills\Bosses\VillagerBoss$16.class
 sir_draco\survivalskills\Commands\AdminCommands\GodQuestCommand.class
-sir_draco\survivalskills\Commands\SkillCommands\GodTrialCommand$1.class
 sir_draco\survivalskills\Commands\AdminCommands\ResetFirstDragon$1.class
 sir_draco\survivalskills\Commands\AdminCommands\StoreTrialBuildingCommand.class
 sir_draco\survivalskills\Trophy\TrophyManager$1.class
@@ -127,6 +126,7 @@ sir_draco\survivalskills\SkillListeners\ExploringSkill.class
 sir_draco\survivalskills\SkillListeners\ArmorListener$5.class
 sir_draco\survivalskills\Bosses\VillagerBoss$4.class
 sir_draco\survivalskills\Abilities\Armor\TravelerArmor.class
+sir_draco\survivalskills\Utils\TrialUtils$2.class
 sir_draco\survivalskills\SkillListeners\FightingSkill$1.class
 sir_draco\survivalskills\Abilities\Grave.class
 sir_draco\survivalskills\Skills\SkillsHolder.class

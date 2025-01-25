@@ -28,22 +28,28 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.BoundingBox;
 import sir_draco.survivalskills.GodQuestline.TrialMobs.*;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Utils.TrialUtils;
 
 import java.io.File;
 import java.util.*;
 
 public class TrialManager implements Listener {
 
+    private static final HashMap<Player, PendingTrial> pendingTrials = new HashMap<>();
     private static final ArrayList<Trial> trials = new ArrayList<>();
     private static final ArrayList<Inventory> rewardInventories = new ArrayList<>();
+    private static final ArrayList<Inventory> trialSelectionInventories = new ArrayList<>();
     private static final HashMap<UUID, ProtectedArea> protectedAreas = new HashMap<>();
     private static final HashMap<Integer, Wave> waves = new HashMap<>();
     private static final HashMap<Integer, TrialLootTable> lootTables = new HashMap<>();
-    private static final NamespacedKey trialObjectKey = new NamespacedKey(SurvivalSkills.getInstance(), "trialobject");
     private static final HashMap<Player, Location> spectatingPlayers = new HashMap<>();
     private static final HashMap<Player, Player> spectatorTargets = new HashMap<>();
     private static final HashMap<Player, Scoreboard> trialScoreboards = new HashMap<>();
     private static final HashMap<Player, Scoreboard> spectatorScoreboards = new HashMap<>();
+    private static final HashMap<Player, ArrayList<Integer>> playerGamemodesBeaten = new HashMap<>();
+    private static final NamespacedKey trialObjectKey = new NamespacedKey(SurvivalSkills.getInstance(), "trialobject");
+
+    private static FileConfiguration trialBuildingConfig = null;
 
     public TrialManager() {
         createWaves();
@@ -124,12 +130,10 @@ public class TrialManager implements Listener {
         }
 
         if (trials.isEmpty()) return;
-        for (Trial trial : trials) {
-            if (!trial.getPlayer().equals(e.getPlayer())) continue;
-            // Check if the first letters of the message are "/godtrial"
-            if (e.getMessage().toLowerCase().startsWith("/godtrial")) return;
-            e.setCancelled(true);
-        }
+        if (!isTrialPlayer(e.getPlayer())) return;
+        // Check if the first letters of the message are "/godtrial"
+        if (e.getMessage().toLowerCase().startsWith("/godtrial")) return;
+        e.setCancelled(true);
     }
 
     @EventHandler
@@ -247,7 +251,7 @@ public class TrialManager implements Listener {
             if (wave.getWaveMobs().isEmpty()) continue;
             WaveMob waveMob = wave.getWaveMob(e.getEntity());
             if (waveMob == null) continue;
-            if (!trial.getPlayer().equals(p)) {
+            if (!trial.getPlayers().contains(p)) {
                 e.setCancelled(true);
                 return;
             }
@@ -268,7 +272,7 @@ public class TrialManager implements Listener {
     public void onPlayerDeath(PlayerDeathEvent e) {
         if (trials.isEmpty()) return;
         for (Trial trial : trials) {
-            if (!trial.getPlayer().equals(e.getEntity())) continue;
+            if (!trial.getPlayers().contains(e.getEntity())) continue;
             trial.endTrial();
             e.getEntity().getInventory().clear();
             return;
@@ -284,7 +288,7 @@ public class TrialManager implements Listener {
         double damage = e.getDamage();
         Trial trial = null;
         for (Trial t : trials) {
-            if (!t.getPlayer().equals(p)) continue;
+            if (!t.getPlayers().contains(p)) continue;
             trial = t;
             break;
         }
@@ -374,6 +378,50 @@ public class TrialManager implements Listener {
     }
 
     @EventHandler
+    public void onTrialSelectionClick(InventoryClickEvent e) {
+        if (trialSelectionInventories.contains(e.getView().getTopInventory())
+                && !trialSelectionInventories.contains(e.getInventory())) {
+            e.setCancelled(true);
+            return;
+        }
+
+        if (!trialSelectionInventories.contains(e.getInventory())) return;
+        e.setCancelled(true);
+        TrialUtils.handleTrialSelectionClick(e.getClickedInventory(), (Player) e.getWhoClicked(), e.getCurrentItem());
+    }
+
+    @EventHandler
+    public void onTrialSelectionDrag(InventoryDragEvent e) {
+        if (trialSelectionInventories.contains(e.getView().getTopInventory())
+                && !trialSelectionInventories.contains(e.getInventory())) {
+            e.setCancelled(true);
+            return;
+        }
+
+        if (!trialSelectionInventories.contains(e.getInventory())) return;
+        e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onTrialPartyInventoryClose(InventoryCloseEvent e) {
+        if (pendingTrials.isEmpty()) return;
+        Player p = (Player) e.getPlayer();
+        if (!pendingTrials.containsKey(p)) return;
+
+        new BukkitRunnable() {
+
+            @Override
+            public void run() {
+                // Check if the player has any inventory open
+                if (p.getOpenInventory().getTopInventory().getSize() != 9) {
+                    if (pendingTrials.containsKey(p)) pendingTrials.get(p).endPendingTrial();
+                    pendingTrials.remove(p);
+                }
+            }
+        }.runTaskLater(SurvivalSkills.getInstance(), 2);
+    }
+
+    @EventHandler
     public void onRewardGUIDrag(InventoryDragEvent e) {
         if (rewardInventories.contains(e.getView().getTopInventory())) {
             e.setCancelled(true);
@@ -402,7 +450,7 @@ public class TrialManager implements Listener {
 
         boolean playerInTrial = false;
         for (Trial trial : trials) {
-            if (!trial.getPlayer().equals(p)) continue;
+            if (!trial.getPlayers().contains(p)) continue;
             playerInTrial = true;
         }
 
@@ -420,10 +468,10 @@ public class TrialManager implements Listener {
     public void onPlayerLeaveTrialArea(PlayerMoveEvent e) {
         if (trials.isEmpty()) return;
         for (Trial trial : trials) {
-            if (!trial.getPlayer().equals(e.getPlayer())) continue;
+            if (!trial.getPlayers().contains(e.getPlayer())) continue;
             if (trial.getProtectedArea().boundingBox().contains(e.getPlayer().getLocation().toVector())) continue;
             if (!trial.isBuildingCreated()) continue;
-            trial.endTrial();
+            trial.quitTrial(e.getPlayer());
             return;
         }
     }
@@ -440,7 +488,7 @@ public class TrialManager implements Listener {
                 && !cause.equals(EntityPotionEffectEvent.Cause.POTION_SPLASH)) return;
 
         for (Trial trial : trials) {
-            if (!trial.getPlayer().equals(p)) continue;
+            if (!trial.getPlayers().contains(p)) continue;
             e.setCancelled(true);
         }
     }
@@ -458,14 +506,14 @@ public class TrialManager implements Listener {
         if (!entity.hasMetadata("trialmob")) return;
 
         // Ensure that the mobs can only target the trial player near them
-        if (!(e.getTarget() instanceof Player)) {
+        if (!(e.getTarget() instanceof Player target)) {
             e.setCancelled(true);
             return;
         }
 
         // Ensure they are targeting the right trial player
         for (Trial trial : trials)
-            if (trial.getPlayer().equals(e.getTarget())) return;
+            if (trial.getPlayers().contains(target)) return;
         e.setCancelled(true);
     }
 
@@ -515,7 +563,7 @@ public class TrialManager implements Listener {
     }
 
     public static boolean isTrialPlayer(Player p) {
-        for (Trial trial : trials) if (trial.getPlayer().equals(p)) return true;
+        for (Trial trial : trials) if (trial.getPlayers().contains(p)) return true;
         return false;
     }
 
@@ -585,7 +633,7 @@ public class TrialManager implements Listener {
         }
     }
 
-    public static Wave spawnWave(int wave, ArrayList<Location> spawningSpots, Player target) {
+    public static Wave spawnWave(int wave, ArrayList<Location> spawningSpots, ArrayList<Player> players, int playerCount) {
         if (waves.get(wave) == null) return null;
         Wave waveObject = waves.get(wave).duplicate();
         if (waveObject == null) {
@@ -596,6 +644,7 @@ public class TrialManager implements Listener {
         if (waveObject.isBossWave()) {
             TrialBoss boss = waveObject.getBoss();
 
+            boss.scaleHealth(playerCount);
             boss.setSpawnLocations(spawningSpots);
             boss.spawn(spawningSpots.get((int) (Math.random() * spawningSpots.size())));
             boss.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
@@ -603,9 +652,11 @@ public class TrialManager implements Listener {
             return waveObject;
         }
 
+        if (playerCount > 1) waveObject.scaleMobs(playerCount);
+
         for (WaveMob waveMob : waveObject.getWaveMobs()) {
             Location location = getRandomSpawningSpot(spawningSpots);
-            waveObject.spawnMob(location, waveMob, target);
+            waveObject.spawnMob(location, waveMob, players);
         }
 
         return waveObject;
@@ -674,18 +725,18 @@ public class TrialManager implements Listener {
         // Wave 5
         Wave wave5 = new Wave();
         HashMap<ItemStack, Double> knightDrops = new HashMap<>();
-        knightDrops.put(getTrialItem(Material.IRON_SWORD, 1), 0.1);
-        knightDrops.put(getTrialItem(Material.IRON_BOOTS, 1), 0.1);
-        knightDrops.put(getTrialItem(Material.IRON_LEGGINGS, 1), 0.1);
-        knightDrops.put(getTrialItem(Material.IRON_CHESTPLATE, 1), 0.1);
-        knightDrops.put(getTrialItem(Material.IRON_HELMET, 1), 0.1);
+        knightDrops.put(getTrialItem(Material.IRON_SWORD, 1), 0.15);
+        knightDrops.put(getTrialItem(Material.IRON_BOOTS, 1), 0.15);
+        knightDrops.put(getTrialItem(Material.IRON_LEGGINGS, 1), 0.15);
+        knightDrops.put(getTrialItem(Material.IRON_CHESTPLATE, 1), 0.15);
+        knightDrops.put(getTrialItem(Material.IRON_HELMET, 1), 0.15);
         ItemStack[] armor = new ItemStack[4];
         armor[0] = getTrialItem(Material.IRON_BOOTS, 1);
         armor[1] = getTrialItem(Material.IRON_LEGGINGS, 1);
         armor[2] = getTrialItem(Material.IRON_CHESTPLATE, 1);
         armor[3] = getTrialItem(Material.IRON_HELMET, 1);
         WaveMob zombieBoss = new WaveMob(ChatColor.GREEN + "Zombie Knight", EntityType.ZOMBIE, 25, 5,
-                0.2, 1.25, getTrialItem(Material.IRON_SWORD, 1), armor, knightDrops);
+                0.25, 1.25, getTrialItem(Material.IRON_SWORD, 1), armor, knightDrops);
         wave5.addWaveMob(zombieBoss);
         wave5.addWaveMob(zombie.duplicate(), 3);
         waves.put(5, wave5);
@@ -925,7 +976,7 @@ public class TrialManager implements Listener {
 
     public static boolean isInTrial(Player p) {
         if (trials.isEmpty()) return false;
-        for (Trial trial : trials) if (trial.getPlayer().equals(p)) return true;
+        for (Trial trial : trials) if (trial.getPlayers().contains(p)) return true;
         return false;
     }
 
@@ -974,5 +1025,25 @@ public class TrialManager implements Listener {
 
     public static HashMap<Player, Scoreboard> getSpectatorScoreboards() {
         return spectatorScoreboards;
+    }
+
+    public static ArrayList<Inventory> getTrialSelectionInventories() {
+        return trialSelectionInventories;
+    }
+
+    public static FileConfiguration getTrialBuildingConfig() {
+        return trialBuildingConfig;
+    }
+
+    public static void setTrialBuildingConfig(FileConfiguration trialBuildingConfig) {
+        TrialManager.trialBuildingConfig = trialBuildingConfig;
+    }
+
+    public static HashMap<Player, PendingTrial> getPendingTrials() {
+        return pendingTrials;
+    }
+
+    public static HashMap<Player, ArrayList<Integer>> getPlayerGamemodesBeaten() {
+        return playerGamemodesBeaten;
     }
 }

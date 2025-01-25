@@ -41,12 +41,13 @@ public class TabCompleter implements Listener {
         else if (buffer.contains("/toggletrail ")) handleTrails(p, buffer, e);
         else if (buffer.contains("/bossmusic ")) handleBossMusic(buffer, p, e);
         else if (buffer.contains("/flight ")) handleFlight(buffer, e);
-        else if (buffer.contains("/godtrial end ")) handleActiveTrials(buffer, p, e);
-        else if (buffer.contains("/godtrial delete ")) handleActiveTrials(buffer, p, e);
-        else if (buffer.contains("/godtrial restart ")) handleActiveTrials(buffer, p, e);
-        else if (buffer.contains("/godtrial spectate ")) handleActiveTrials(buffer, p, e);
-        else if (buffer.contains("/godtrial nextwave ")) handleGodTrial(buffer, p, e);
-        else if (buffer.contains("/godtrial setwave ")) handleGodTrial(buffer, p, e);
+        else if (buffer.contains("/godtrial end ")) handleActiveTrials(buffer, p, e, true);
+        else if (buffer.contains("/godtrial delete ")) handleActiveTrials(buffer, p, e, true);
+        else if (buffer.contains("/godtrial restart ")) handleActiveTrials(buffer, p, e, true);
+        else if (buffer.contains("/godtrial spectate ")) handleActiveTrials(buffer, p, e, false);
+        else if (buffer.contains("/godtrial nextwave ")) handleActiveTrials(buffer, p, e, true);
+        else if (buffer.contains("/godtrial setwave ")) handleActiveTrials(buffer, p, e, true);
+        else if (buffer.contains("/godtrial delink ")) handleActiveTrials(buffer, p, e, true);
         else if (buffer.contains("/godtrial ")) handleGodTrial(buffer, p, e);
         else if (buffer.contains("/cancelabilitycooldowns ")) handlePlayers(buffer, e);
     }
@@ -341,10 +342,19 @@ public class TabCompleter implements Listener {
         e.setCompletions(getCompletions(buffer, words));
     }
 
-    public void handleActiveTrials(String buffer, Player p, TabCompleteEvent e) {
-        if (!p.hasPermission("survivalskills.op")) return;
+    public void handleActiveTrials(String buffer, Player p, TabCompleteEvent e, boolean op) {
+        if (op && !p.hasPermission("survivalskills.op")) return;
         ArrayList<String> words = new ArrayList<>();
-        for (Trial trial : TrialManager.getTrials()) words.add(trial.getPlayer().getName());
+
+        if (op) {
+            for (Trial trial : TrialManager.getTrials())
+                words.add(trial.getTrialMaster().getName());
+        }
+        else {
+            for (Trial trial : TrialManager.getTrials())
+                for (Player player : trial.getPlayers())
+                    words.add(player.getName());
+        }
         e.setCompletions(getCompletions(buffer, words));
     }
 

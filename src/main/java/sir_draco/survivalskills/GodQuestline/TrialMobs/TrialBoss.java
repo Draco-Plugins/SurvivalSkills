@@ -119,6 +119,12 @@ public class TrialBoss extends BukkitRunnable{
         boss.setHealth(maxHealth);
     }
 
+    public void scaleHealth(int scale) {
+        AttributeInstance health = boss.getAttribute(Attribute.MAX_HEALTH);
+        if (health != null) health.setBaseValue(maxHealth * scale);
+        boss.setHealth(maxHealth * scale);
+    }
+
     public void death() {
         dropItems();
         if (bossBar != null) bossBar.removeAll();

@@ -296,6 +296,7 @@ public class SkillScoreboard {
     private static String timeConverter(int time) {
         int minutes = time / 60;
         int seconds = time % 60;
-        return minutes + ":" + seconds;
+        String formatSeconds = seconds < 10 ? "0" + seconds : String.valueOf(seconds);
+        return minutes + ":" + formatSeconds;
     }
 }

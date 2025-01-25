@@ -737,10 +737,9 @@ public final class SurvivalSkills extends JavaPlugin {
         fightingListener.getNoPhantomSpawns().remove(p);
         fightingListener.getActiveBerserkers().remove(p);
 
-        if (!TrialManager.getTrials().isEmpty()) {
+        if (!TrialManager.getTrials().isEmpty())
             for (Trial trial : TrialManager.getTrials())
-                if (trial.getPlayer().equals(p)) trial.endTrial();
-        }
+                if (trial.getPlayers().contains(p)) trial.quitTrial(p);
     }
 
     public void playerJoin(Player p, boolean overrideNewPlayer) {

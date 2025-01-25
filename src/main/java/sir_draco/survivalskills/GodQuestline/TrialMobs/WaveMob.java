@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import sir_draco.survivalskills.SurvivalSkills;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class WaveMob {
@@ -37,7 +38,7 @@ public class WaveMob {
         this.drops = drops;
     }
 
-    public void spawnMob(Location location, Player target) {
+    public void spawnMob(Location location, ArrayList<Player> players) {
         // Add mob to wave
         if (location.getWorld() == null) return;
         Entity mob = location.getWorld().spawnEntity(location, type);
@@ -45,8 +46,30 @@ public class WaveMob {
         entity = mob;
 
         if (entity instanceof Ageable ageable) ageable.setAdult();
-        if (mob instanceof Spider spider) spider.setTarget(target);
-        if (mob instanceof Enderman enderman) enderman.setTarget(target);
+        if (mob instanceof Spider spider) {
+            Player closestPlayer = null;
+            double closestDistance = Double.MAX_VALUE;
+            for (Player player : players) {
+                double distance = player.getLocation().distance(location);
+                if (distance < closestDistance) {
+                    closestPlayer = player;
+                    closestDistance = distance;
+                }
+            }
+            spider.setTarget(closestPlayer);
+        }
+        if (mob instanceof Enderman enderman) {
+            Player closestPlayer = null;
+            double closestDistance = Double.MAX_VALUE;
+            for (Player player : players) {
+                double distance = player.getLocation().distance(location);
+                if (distance < closestDistance) {
+                    closestPlayer = player;
+                    closestDistance = distance;
+                }
+            }
+            enderman.setTarget(closestPlayer);
+        }
 
         LivingEntity livingEntity = (LivingEntity) mob;
         livingEntity.setCanPickupItems(false);
