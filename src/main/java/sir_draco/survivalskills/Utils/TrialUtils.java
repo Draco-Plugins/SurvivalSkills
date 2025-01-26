@@ -162,10 +162,12 @@ public class TrialUtils {
                 if (!file.exists()) SurvivalSkills.getInstance().saveResource("godquests.yml", true);
                 FileConfiguration data = YamlConfiguration.loadConfiguration(file);
 
+                ArrayList<Integer> completedTrials = TrialManager.getPlayerGamemodesBeaten().get(p);
+
                 try {
                     data.save(file);
                 } catch (Exception e) {
-                    SurvivalSkills.getInstance().getLogger().warning("Failed to save protected areas to godquests.yml");
+                    SurvivalSkills.getInstance().getLogger().warning("Failed to save completed trials to godquests.yml");
                 }
             }
         }.runTaskAsynchronously(SurvivalSkills.getInstance());
@@ -312,8 +314,8 @@ public class TrialUtils {
         if (pendingTrial.getTrialDifficulty() == 4 && !completedGodQuest(pendingTrial.getTrialMaster())) return;
 
         Trial trial;
-        if (blocks == null) trial = new Trial(pendingTrial.getTrialMaster(), area, centerLocation);
-        else trial = new Trial(blocks, pendingTrial.getTrialMaster(), area, centerLocation);
+        if (blocks == null) trial = new Trial(pendingTrial.getTrialMaster(), area, centerLocation, pendingTrial.getTrialDifficulty());
+        else trial = new Trial(blocks, pendingTrial.getTrialMaster(), area, centerLocation, pendingTrial.getTrialDifficulty());
         for (Player p : pendingTrial.getPlayers()) trial.getPlayers().add(p);
         trial.initializeScoreboards();
         trial.setSolo(pendingTrial.isSolo());
@@ -480,11 +482,19 @@ public class TrialUtils {
         inv.setItem(0, filler);
         inv.setItem(1, easy);
         inv.setItem(2, filler);
-        inv.setItem(3, medium);
+
+        if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(1)) inv.setItem(3, medium);
+        else inv.setItem(3, filler);
+
         inv.setItem(4, filler);
-        inv.setItem(5, hard);
+
+        if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(3)) inv.setItem(5, hard);
+        else inv.setItem(5, filler);
+
         inv.setItem(6, filler);
-        inv.setItem(7, god);
+
+        if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(5)) inv.setItem(7, god);
+        else inv.setItem(7, filler);
 
         if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(7)) inv.setItem(8, death);
         else inv.setItem(8, filler);
@@ -493,26 +503,28 @@ public class TrialUtils {
     }
 
     public static void partyDifficulty(Player p, int difficulty) {
+        PendingTrial trial = TrialManager.getPendingTrials().get(p);
         // Check if they can attempt this trial difficulty
+        int trueDifficulty = difficulty * 2;
+        if (trial.isSolo()) trueDifficulty -= 1;
 
         // If co-op, check if they have beaten the solo version of this difficulty
-        PendingTrial trial = TrialManager.getPendingTrials().get(p);
         if (!trial.isSolo()) {
-            if (TrialManager.getPlayerGamemodesBeaten().get(p).contains((difficulty * 2) - 1)) {
+            if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(trueDifficulty - 1)) {
                 p.sendRawMessage(ChatColor.RED + "You have not beaten solo mode on this difficulty");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
             }
         }
 
-        if (trial.isSolo() && difficulty != 1
-                && !TrialManager.getPlayerGamemodesBeaten().get(p).contains((difficulty - 1) * 2 - 1)) {
+        if (trial.isSolo() && trueDifficulty != 1
+                && !TrialManager.getPlayerGamemodesBeaten().get(p).contains(trueDifficulty - 2)) {
             p.sendRawMessage(ChatColor.RED + "You have not beaten the previous difficulty");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
 
-        trial.setTrialDifficulty(difficulty);
+        trial.setTrialDifficulty(trueDifficulty);
         trial.setChosenDifficulty(true);
 
         if (trial.isSolo()) initializeTrial(p, p.getLocation());

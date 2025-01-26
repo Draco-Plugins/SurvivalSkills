@@ -26,6 +26,8 @@ public class Trial extends BukkitRunnable {
     private final ArrayList<Location> spawningSpots = new ArrayList<>();
     private final HashMap<Player, ArrayList<Player>> spectators = new HashMap<>();
     private final Player trialMaster;
+    private final int trueDifficulty;
+    private final int difficulty;
 
     private boolean solo = true;
     private boolean buildingCreated = false;
@@ -43,18 +45,22 @@ public class Trial extends BukkitRunnable {
     private int playerCount = 1;
     private Wave wave = null;
 
-    public Trial(ArrayList<RelativeBlock> building, Player p, ProtectedArea protectedArea, Location centerLocation) {
+    public Trial(ArrayList<RelativeBlock> building, Player p, ProtectedArea protectedArea, Location centerLocation, int trueDifficulty) {
         trialMaster = p;
         this.protectedArea = protectedArea;
         this.centerLocation = centerLocation;
+        this.trueDifficulty = trueDifficulty;
+        this.difficulty = (int) Math.max(1, (double) (trueDifficulty / 2));
         generateSpawningSpots();
         loadBuilding(building);
     }
 
-    public Trial(Player p, ProtectedArea protectedArea, Location centerLocation) {
+    public Trial(Player p, ProtectedArea protectedArea, Location centerLocation, int trueDifficulty) {
         trialMaster = p;
         this.protectedArea = protectedArea;
         this.centerLocation = centerLocation;
+        this.trueDifficulty = trueDifficulty;
+        this.difficulty = (int) Math.max(1, (double) (trueDifficulty / 2));
         generateSpawningSpots();
         startTrial();
     }
@@ -356,7 +362,7 @@ public class Trial extends BukkitRunnable {
         if (timeBonus > 0) changeScore(timeBonus);
         cancel();
 
-        if (solo) {
+        if (solo && trueDifficulty == 7) {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + trialMaster.getName()
                     + " permission set survivalskills.creative true");
             trialMaster.sendTitle(ChatColor.GOLD + "Trial Complete", ChatColor.GRAY + "You can now use creative mode", 5, 30, 5);
@@ -366,6 +372,10 @@ public class Trial extends BukkitRunnable {
         }
 
         for (Player p : players) {
+            // Add the difficulty to the player's completed gamemodes
+            if (!TrialManager.getPlayerGamemodesBeaten().get(p).contains(trueDifficulty))
+                TrialManager.getPlayerGamemodesBeaten().get(p).add(trueDifficulty);
+
             boolean newHighScore;
             if (SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId()).getTrialScore() < score / playerCount) {
                 newHighScore = true;
