@@ -130,8 +130,8 @@ public class TrialUtils {
         new BukkitRunnable() {
             @Override
             public void run() {
-                File file = new File(SurvivalSkills.getInstance().getDataFolder(), "godquests.yml");
-                if (!file.exists()) SurvivalSkills.getInstance().saveResource("godquests.yml", true);
+                File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
+                if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
                 FileConfiguration data = YamlConfiguration.loadConfiguration(file);
 
                 data.set(uuid.toString() + ".ProtectedArea", null);
@@ -139,7 +139,7 @@ public class TrialUtils {
                 try {
                     data.save(file);
                 } catch (Exception e) {
-                    SurvivalSkills.getInstance().getLogger().warning("Failed to save protected areas to godquests.yml");
+                    SurvivalSkills.getInstance().getLogger().warning("Failed to save protected areas to trialdata.yml");
                 }
             }
         }.runTaskAsynchronously(SurvivalSkills.getInstance());
@@ -158,16 +158,19 @@ public class TrialUtils {
         new BukkitRunnable() {
             @Override
             public void run() {
-                File file = new File(SurvivalSkills.getInstance().getDataFolder(), "godquests.yml");
-                if (!file.exists()) SurvivalSkills.getInstance().saveResource("godquests.yml", true);
+                File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
+                if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
                 FileConfiguration data = YamlConfiguration.loadConfiguration(file);
 
                 ArrayList<Integer> completedTrials = TrialManager.getPlayerGamemodesBeaten().get(p);
+                if (completedTrials == null) return;
+                if (completedTrials.isEmpty()) return;
+                data.set(p.getUniqueId() + ".CompletedTrials", completedTrials);
 
                 try {
                     data.save(file);
                 } catch (Exception e) {
-                    SurvivalSkills.getInstance().getLogger().warning("Failed to save completed trials to godquests.yml");
+                    SurvivalSkills.getInstance().getLogger().warning("Failed to save completed trials to trialdata.yml");
                 }
             }
         }.runTaskAsynchronously(SurvivalSkills.getInstance());

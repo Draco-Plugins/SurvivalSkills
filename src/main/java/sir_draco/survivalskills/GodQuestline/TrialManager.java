@@ -16,6 +16,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -50,10 +51,28 @@ public class TrialManager implements Listener {
     private static final NamespacedKey trialObjectKey = new NamespacedKey(SurvivalSkills.getInstance(), "trialobject");
 
     private static FileConfiguration trialBuildingConfig = null;
+    private FileConfiguration trialDataConfig = null;
 
     public TrialManager() {
         createWaves();
         createRewards();
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent e) {
+        if (trialDataConfig == null) {
+            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
+            if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
+            trialDataConfig = YamlConfiguration.loadConfiguration(file);
+        }
+
+        if (trialDataConfig.contains(e.getPlayer().getUniqueId().toString() + ".GamemodesBeaten")) {
+            ArrayList<Integer> gamemodesBeaten = new ArrayList<>();
+            for (String gamemode : trialDataConfig.getStringList(e.getPlayer().getUniqueId().toString() + ".GamemodesBeaten"))
+                gamemodesBeaten.add(Integer.parseInt(gamemode));
+            playerGamemodesBeaten.put(e.getPlayer(), gamemodesBeaten);
+        }
+        else playerGamemodesBeaten.put(e.getPlayer(), new ArrayList<>());
     }
 
     @EventHandler
@@ -568,8 +587,8 @@ public class TrialManager implements Listener {
     }
 
     public static void loadProtectedAreas() {
-        File file = new File(SurvivalSkills.getInstance().getDataFolder(), "godquests.yml");
-        if (!file.exists()) SurvivalSkills.getInstance().saveResource("godquests.yml", true);
+        File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
+        if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
         FileConfiguration data = YamlConfiguration.loadConfiguration(file);
 
         ConfigurationSection section = data.getConfigurationSection("");
@@ -612,8 +631,8 @@ public class TrialManager implements Listener {
         if (protectedAreas.isEmpty()) return;
 
         // Save the protected areas to the config
-        File file = new File(SurvivalSkills.getInstance().getDataFolder(), "godquests.yml");
-        if (!file.exists()) SurvivalSkills.getInstance().saveResource("godquests.yml", true);
+        File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
+        if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
         FileConfiguration data = YamlConfiguration.loadConfiguration(file);
 
         for (Map.Entry<UUID, ProtectedArea> protectedArea : protectedAreas.entrySet()) {
@@ -629,7 +648,7 @@ public class TrialManager implements Listener {
         try {
             data.save(file);
         } catch (Exception e) {
-            SurvivalSkills.getInstance().getLogger().warning("Failed to save protected areas to godquests.yml");
+            SurvivalSkills.getInstance().getLogger().warning("Failed to save protected areas to trialdata.yml");
         }
     }
 
