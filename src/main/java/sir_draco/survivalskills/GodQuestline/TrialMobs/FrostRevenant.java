@@ -27,6 +27,11 @@ public class FrostRevenant extends TrialBoss{
                 1.5, EntityType.STRAY, drops);
     }
 
+    public FrostRevenant(HashMap<ItemStack, Double> drops, double healthMultiplier, double damageMultiplier) {
+        super(ChatColor.LIGHT_PURPLE + "Frost Revenant", 200 * healthMultiplier, 10 * damageMultiplier,
+                0, 0.35, 1.5, EntityType.STRAY, drops);
+    }
+
     @Override
     public void run() {
         if (getBoss() == null || getBoss().isDead()) {
@@ -104,7 +109,7 @@ public class FrostRevenant extends TrialBoss{
     }
 
     @Override
-    public FrostRevenant duplicate() {
-        return new FrostRevenant(getDrops());
+    public FrostRevenant duplicate(double healthMultiplier, double damageMultiplier) {
+        return new FrostRevenant(getDrops(), healthMultiplier, damageMultiplier);
     }
 }

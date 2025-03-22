@@ -41,7 +41,6 @@ public class TrialManager implements Listener {
     private static final ArrayList<Inventory> rewardInventories = new ArrayList<>();
     private static final ArrayList<Inventory> trialSelectionInventories = new ArrayList<>();
     private static final HashMap<UUID, ProtectedArea> protectedAreas = new HashMap<>();
-    private static final HashMap<Integer, Wave> waves = new HashMap<>();
     private static final HashMap<Integer, TrialLootTable> lootTables = new HashMap<>();
     private static final HashMap<Player, Location> spectatingPlayers = new HashMap<>();
     private static final HashMap<Player, Player> spectatorTargets = new HashMap<>();
@@ -49,12 +48,12 @@ public class TrialManager implements Listener {
     private static final HashMap<Player, Scoreboard> spectatorScoreboards = new HashMap<>();
     private static final HashMap<Player, ArrayList<Integer>> playerGamemodesBeaten = new HashMap<>();
     private static final NamespacedKey trialObjectKey = new NamespacedKey(SurvivalSkills.getInstance(), "trialobject");
+    private static final WaveGenerator waveGenerator = new WaveGenerator();
 
     private static FileConfiguration trialBuildingConfig = null;
     private FileConfiguration trialDataConfig = null;
 
     public TrialManager() {
-        createWaves();
         createRewards();
     }
 
@@ -66,9 +65,9 @@ public class TrialManager implements Listener {
             trialDataConfig = YamlConfiguration.loadConfiguration(file);
         }
 
-        if (trialDataConfig.contains(e.getPlayer().getUniqueId().toString() + ".GamemodesBeaten")) {
+        if (trialDataConfig.contains(e.getPlayer().getUniqueId() + ".GamemodesBeaten")) {
             ArrayList<Integer> gamemodesBeaten = new ArrayList<>();
-            for (String gamemode : trialDataConfig.getStringList(e.getPlayer().getUniqueId().toString() + ".GamemodesBeaten"))
+            for (String gamemode : trialDataConfig.getStringList(e.getPlayer().getUniqueId() + ".GamemodesBeaten"))
                 gamemodesBeaten.add(Integer.parseInt(gamemode));
             playerGamemodesBeaten.put(e.getPlayer(), gamemodesBeaten);
         }
@@ -652,9 +651,9 @@ public class TrialManager implements Listener {
         }
     }
 
-    public static Wave spawnWave(int wave, ArrayList<Location> spawningSpots, ArrayList<Player> players, int playerCount) {
-        if (waves.get(wave) == null) return null;
-        Wave waveObject = waves.get(wave).duplicate();
+    public static Wave spawnWave(Wave wave, ArrayList<Location> spawningSpots, ArrayList<Player> players, int playerCount) {
+        if (wave == null) return null;
+        Wave waveObject = wave.duplicate();
         if (waveObject == null) {
             SurvivalSkills.getInstance().getLogger().warning("Wave " + wave + " does not exist");
             return null;
@@ -700,212 +699,6 @@ public class TrialManager implements Listener {
 
         rewardInventories.add(inv);
         p.openInventory(inv);
-    }
-
-    public void createWaves() {
-        // Wave 1
-        Wave wave1 = new Wave();
-        HashMap<ItemStack, Double> zombieDrops = new HashMap<>();
-        zombieDrops.put(getTrialItem(Material.STONE_SWORD, 1), 0.1);
-        WaveMob zombie = new WaveMob(ChatColor.GREEN + "Zombie", EntityType.ZOMBIE, 15, 3,
-                0.3, 1, null, null, zombieDrops);
-        wave1.addWaveMob(zombie.duplicate());
-        wave1.addWaveMob(zombie.duplicate());
-        wave1.addWaveMob(zombie.duplicate());
-        waves.put(1, wave1);
-
-        // Wave 2
-        Wave wave2 = new Wave();
-        HashMap<ItemStack, Double> skeletonDrops = new HashMap<>();
-        skeletonDrops.put(getTrialItem(Material.BOW, 1), 0.1);
-        skeletonDrops.put(getTrialItem(Material.ARROW, 8), 0.1);
-        WaveMob weakSkeleton = new WaveMob(ChatColor.GRAY + "Weak Skeleton", EntityType.SKELETON, 10, 5,
-                0.2, 1, new ItemStack(Material.BOW), null, skeletonDrops);
-        wave2.addWaveMob(weakSkeleton.duplicate(), 3);
-        waves.put(2, wave2);
-
-        // Wave 3
-        Wave wave3 = new Wave();
-        WaveMob spider = new WaveMob(ChatColor.BLACK + "Spider", EntityType.SPIDER, 20, 5,
-                0.3, 1.25, null, null, null);
-        wave3.addWaveMob(spider.duplicate(), 5);
-        waves.put(3, wave3);
-
-        // Wave 4
-        Wave wave4 = new Wave();
-        WaveMob weakZombie = new WaveMob(ChatColor.GREEN + "Weak Zombie", EntityType.ZOMBIE, 10, 3,
-                0.2, 1, null, null, zombieDrops);
-        WaveMob skeleton = new WaveMob(ChatColor.GRAY + "Skeleton", EntityType.SKELETON, 15, 2,
-                0.2, 1, new ItemStack(Material.BOW), null, skeletonDrops);
-        wave4.addWaveMob(weakZombie.duplicate(), 3);
-        wave4.addWaveMob(skeleton.duplicate(), 2);
-        waves.put(4, wave4);
-
-        // Wave 5
-        Wave wave5 = new Wave();
-        HashMap<ItemStack, Double> knightDrops = new HashMap<>();
-        knightDrops.put(getTrialItem(Material.IRON_SWORD, 1), 0.15);
-        knightDrops.put(getTrialItem(Material.IRON_BOOTS, 1), 0.15);
-        knightDrops.put(getTrialItem(Material.IRON_LEGGINGS, 1), 0.15);
-        knightDrops.put(getTrialItem(Material.IRON_CHESTPLATE, 1), 0.15);
-        knightDrops.put(getTrialItem(Material.IRON_HELMET, 1), 0.15);
-        ItemStack[] armor = new ItemStack[4];
-        armor[0] = getTrialItem(Material.IRON_BOOTS, 1);
-        armor[1] = getTrialItem(Material.IRON_LEGGINGS, 1);
-        armor[2] = getTrialItem(Material.IRON_CHESTPLATE, 1);
-        armor[3] = getTrialItem(Material.IRON_HELMET, 1);
-        WaveMob zombieBoss = new WaveMob(ChatColor.GREEN + "Zombie Knight", EntityType.ZOMBIE, 25, 5,
-                0.25, 1.25, getTrialItem(Material.IRON_SWORD, 1), armor, knightDrops);
-        wave5.addWaveMob(zombieBoss);
-        wave5.addWaveMob(zombie.duplicate(), 3);
-        waves.put(5, wave5);
-
-        // Wave 6
-        Wave wave6 = new Wave();
-        WaveMob stray = new WaveMob(ChatColor.GRAY + "Stray", EntityType.STRAY, 20, 5,
-                0.2, 1, new ItemStack(Material.BOW), null, skeletonDrops);
-        wave6.addWaveMob(stray.duplicate(), 3);
-        wave6.addWaveMob(spider.duplicate(), 3);
-        waves.put(6, wave6);
-
-        // Wave 7
-        Wave wave7 = new Wave();
-        WaveMob husk = new WaveMob(ChatColor.GOLD + "Husk", EntityType.HUSK, 30, 9,
-                0.2, 1, null, null, null);
-        wave7.addWaveMob(husk.duplicate(), 6);
-        waves.put(7, wave7);
-
-        // Wave 8
-        Wave wave8 = new Wave();
-        HashMap<ItemStack, Double> creeperDrops = new HashMap<>();
-        creeperDrops.put(getTrialItem(Material.BREAD, 4), 0.25);
-        WaveMob creeper = new WaveMob(ChatColor.GREEN + "Creeper", EntityType.CREEPER, 20, 5,
-                0.3, 1, null, null, creeperDrops);
-        wave8.addWaveMob(creeper.duplicate(), 4);
-        wave8.addWaveMob(weakSkeleton.duplicate(), 2);
-        waves.put(8, wave8);
-
-        // Wave 9
-        Wave wave9 = new Wave();
-        HashMap<ItemStack, Double> weaponBooks = new HashMap<>();
-        weaponBooks.put(getEBook(Enchantment.SHARPNESS), 0.1);
-        weaponBooks.put(getEBook(Enchantment.SMITE), 0.1);
-        weaponBooks.put(getEBook(Enchantment.BANE_OF_ARTHROPODS), 0.1);
-        weaponBooks.put(getEBook(Enchantment.SWEEPING_EDGE), 0.1);
-        weaponBooks.put(getEBook(Enchantment.KNOCKBACK), 0.1);
-        weaponBooks.put(getEBook(Enchantment.FIRE_ASPECT), 0.1);
-        weaponBooks.put(getEBook(Enchantment.POWER), 0.1);
-        WaveMob silverfish = new WaveMob(ChatColor.GRAY + "Silverfish", EntityType.SILVERFISH, 7, 3,
-                0.3, 1, null, null, weaponBooks);
-        WaveMob endermite = new WaveMob(ChatColor.DARK_PURPLE + "Endermite", EntityType.ENDERMITE, 7, 3,
-                0.3, 1, null, null, weaponBooks);
-        wave9.addWaveMob(silverfish.duplicate(), 6);
-        wave9.addWaveMob(endermite.duplicate(), 6);
-        waves.put(9, wave9);
-
-        // Wave 10
-        Wave wave10 = new Wave();
-        wave10.setBossWave(true);
-        HashMap<ItemStack, Double> armorBooks = new HashMap<>();
-        armorBooks.put(getEBook(Enchantment.PROTECTION), 0.1);
-        armorBooks.put(getEBook(Enchantment.FIRE_PROTECTION), 0.1);
-        armorBooks.put(getEBook(Enchantment.BLAST_PROTECTION), 0.1);
-        armorBooks.put(getEBook(Enchantment.PROJECTILE_PROTECTION), 0.1);
-        BlazingGhast ghast = new BlazingGhast(armorBooks);
-        wave10.setBoss(ghast);
-        waves.put(10, wave10);
-
-        // Wave 11
-        Wave wave11 = new Wave();
-        HashMap<ItemStack, Double> crossbowDrops = new HashMap<>();
-        crossbowDrops.put(getTrialItem(Material.CROSSBOW, 1), 0.1);
-        crossbowDrops.put(getTrialItem(Material.ARROW, 16), 0.1);
-        HashMap<ItemStack, Double> vindicatorDrops = new HashMap<>();
-        vindicatorDrops.put(getTrialItem(Material.IRON_AXE, 1), 0.2);
-        WaveMob pillager = new WaveMob(ChatColor.GRAY + "Pillager", EntityType.PILLAGER, 20, 5,
-                0.2, 1, new ItemStack(Material.CROSSBOW), null, crossbowDrops);
-        WaveMob vindicator = new WaveMob(ChatColor.DARK_GREEN + "Vindicator", EntityType.VINDICATOR, 25, 7,
-                0.3, 1, new ItemStack(Material.IRON_AXE), null, vindicatorDrops);
-        wave11.addWaveMob(pillager.duplicate(), 4);
-        wave11.addWaveMob(vindicator.duplicate(), 2);
-        waves.put(11, wave11);
-
-        // Wave 12
-        Wave wave12 = new Wave();
-        HashMap<ItemStack, Double> tridentDrops = new HashMap<>();
-        tridentDrops.put(getTrialItem(Material.TRIDENT, 1), 0.1);
-        WaveMob drowned = new WaveMob(ChatColor.DARK_BLUE + "Drowned", EntityType.DROWNED, 25, 7,
-                0.2, 1, new ItemStack(Material.TRIDENT), null, tridentDrops);
-        wave12.addWaveMob(drowned.duplicate(), 3);
-        waves.put(12, wave12);
-
-        // Wave 13
-        Wave wave13 = new Wave();
-        WaveMob evoker = new WaveMob(ChatColor.LIGHT_PURPLE + "Evoker", EntityType.EVOKER, 30, 9,
-                0.2, 1, null, null, armorBooks);
-        WaveMob caveSpider = new WaveMob(ChatColor.DARK_GREEN + "Cave Spider", EntityType.CAVE_SPIDER, 20, 5,
-                0.3, 1, null, null, null);
-        wave13.addWaveMob(evoker.duplicate());
-        wave13.addWaveMob(caveSpider.duplicate(), 4);
-        wave13.addWaveMob(pillager.duplicate(), 2);
-        waves.put(13, wave13);
-
-        // Wave 14
-        Wave wave14 = new Wave();
-        WaveMob phantom = new WaveMob(ChatColor.DARK_PURPLE + "Phantom", EntityType.PHANTOM, 20, 5,
-                0.3, 1, null, null, null);
-        wave14.addWaveMob(phantom.duplicate(), 8);
-        waves.put(14, wave14);
-
-        // Wave 15
-        Wave wave15 = new Wave();
-        FrostRevenant frostRevenant = new FrostRevenant(weaponBooks);
-        wave15.setBossWave(true);
-        wave15.setBoss(frostRevenant);
-        waves.put(15, wave15);
-
-        // Wave 16
-        Wave wave16 = new Wave();
-        HashMap<ItemStack, Double> meatDrops = new HashMap<>();
-        meatDrops.put(getTrialItem(Material.COOKED_BEEF, 4), 0.1);
-        WaveMob witherSkeleton = new WaveMob(ChatColor.BLACK + "Wither Skeleton", EntityType.WITHER_SKELETON, 20, 7,
-                0.35, 1, new ItemStack(Material.STONE_SWORD), null, null);
-        WaveMob piglinBrute = new WaveMob(ChatColor.GOLD + "Piglin Brute", EntityType.PIGLIN_BRUTE, 30, 9,
-                0.3, 1, new ItemStack(Material.GOLDEN_AXE), null, meatDrops);
-        wave16.addWaveMob(witherSkeleton.duplicate(), 3);
-        wave16.addWaveMob(piglinBrute.duplicate(), 3);
-        waves.put(16, wave16);
-
-        // Wave 17
-        Wave wave17 = new Wave();
-        WaveMob ravager = new WaveMob(ChatColor.DARK_RED + "Ravager", EntityType.RAVAGER, 40, 11,
-                0.1, 1, null, null, meatDrops);
-        wave17.addWaveMob(ravager.duplicate(), 2);
-        wave17.addWaveMob(pillager.duplicate(), 4);
-        waves.put(17, wave17);
-
-        // Wave 18
-        Wave wave18 = new Wave();
-        WaveMob enderman = new WaveMob(ChatColor.DARK_PURPLE + "Enderman", EntityType.ENDERMAN, 30, 9,
-                0.25, 0.75, null, null, null);
-        wave18.addWaveMob(enderman.duplicate(), 4);
-        waves.put(18, wave18);
-
-        // Wave 19
-        Wave wave19 = new Wave();
-        WaveMob blaze = new WaveMob(ChatColor.RED + "Blaze", EntityType.BLAZE, 25, 7,
-                0.3, 1, null, null, null);
-        wave19.addWaveMob(blaze.duplicate(), 4);
-        wave19.addWaveMob(witherSkeleton.duplicate(), 2);
-        wave19.addWaveMob(evoker.duplicate());
-        waves.put(19, wave19);
-
-        // Wave 20
-        Wave wave20 = new Wave();
-        wave20.setBossWave(true);
-        HellsGatekeeper gatekeeper = new HellsGatekeeper(null);
-        wave20.setBoss(gatekeeper);
-        waves.put(20, wave20);
     }
 
     public void createRewards() {
@@ -1008,16 +801,6 @@ public class TrialManager implements Listener {
         return item;
     }
 
-    public static ItemStack getEBook(Enchantment ench) {
-        ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
-        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
-        if (meta == null) return item;
-        meta.addStoredEnchant(ench, 1, true);
-        meta.getPersistentDataContainer().set(trialObjectKey, PersistentDataType.STRING, "trialitem");
-        item.setItemMeta(meta);
-        return item;
-    }
-
     public static ArrayList<Trial> getTrials() {
         return trials;
     }
@@ -1064,5 +847,9 @@ public class TrialManager implements Listener {
 
     public static HashMap<Player, ArrayList<Integer>> getPlayerGamemodesBeaten() {
         return playerGamemodesBeaten;
+    }
+
+    public static WaveGenerator getWaveGenerator() {
+        return waveGenerator;
     }
 }

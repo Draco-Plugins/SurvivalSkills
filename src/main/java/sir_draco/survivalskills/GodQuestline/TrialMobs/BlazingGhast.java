@@ -27,7 +27,13 @@ public class BlazingGhast extends TrialBoss {
     private Ghast ghast = null;
 
     public BlazingGhast(HashMap<ItemStack, Double> drops) {
-        super(ChatColor.RED + "Blazing Ghast", 100, 10, 0, 0.2, 1, EntityType.GHAST, drops);
+        super(ChatColor.RED + "Blazing Ghast", 100, 10, 0, 0.2, 1,
+                EntityType.GHAST, drops);
+    }
+
+    public BlazingGhast(HashMap<ItemStack, Double> drops, double healthMultiplier, double damageMultiplier) {
+        super(ChatColor.RED + "Blazing Ghast", 100 * healthMultiplier, 10 * damageMultiplier,
+                0, 0.2, 1, EntityType.GHAST, drops);
     }
 
     @Override
@@ -135,7 +141,7 @@ public class BlazingGhast extends TrialBoss {
     }
 
     @Override
-    public BlazingGhast duplicate() {
-        return new BlazingGhast(getDrops());
+    public BlazingGhast duplicate(double healthMultiplier, double damageMultiplier) {
+        return new BlazingGhast(getDrops(), healthMultiplier, damageMultiplier);
     }
 }

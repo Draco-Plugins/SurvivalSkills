@@ -15,14 +15,14 @@ public class WaveMob {
 
     private final String name;
     private final EntityType type;
-    private final int health;
-    private final int damage;
     private final double speed;
     private final double size;
     private final ItemStack hand;
     private final ItemStack[] armor;
     private final HashMap<ItemStack, Double> drops;
 
+    private int health;
+    private int damage;
     private Entity entity = null;
 
     public WaveMob(String name, EntityType type, int health, int damage, double speed, double size, ItemStack hand,
@@ -108,6 +108,22 @@ public class WaveMob {
 
         AttributeInstance sizeAttribute = livingEntity.getAttribute(Attribute.SCALE);
         if (sizeAttribute != null) sizeAttribute.setBaseValue(size);
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void setMaxHealth(int health) {
+        this.health = health;
+    }
+
+    public int getDamage() {
+        return damage;
+    }
+
+    public void setDamage(int damage) {
+        this.damage = damage;
     }
 
     public void dropItems() {

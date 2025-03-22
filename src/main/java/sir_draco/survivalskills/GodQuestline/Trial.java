@@ -24,6 +24,7 @@ public class Trial extends BukkitRunnable {
     private final ProtectedArea protectedArea;
     private final Location centerLocation;
     private final ArrayList<Location> spawningSpots = new ArrayList<>();
+    private final HashMap<Integer, Wave> waves;
     private final HashMap<Player, ArrayList<Player>> spectators = new HashMap<>();
     private final Player trialMaster;
     private final int trueDifficulty;
@@ -51,6 +52,7 @@ public class Trial extends BukkitRunnable {
         this.centerLocation = centerLocation;
         this.trueDifficulty = trueDifficulty;
         this.difficulty = (int) Math.max(1, (double) (trueDifficulty / 2));
+        waves = TrialManager.getWaveGenerator().getWavesForDifficulty(difficulty);
         generateSpawningSpots();
         loadBuilding(building);
     }
@@ -61,6 +63,7 @@ public class Trial extends BukkitRunnable {
         this.centerLocation = centerLocation;
         this.trueDifficulty = trueDifficulty;
         this.difficulty = (int) Math.max(1, (double) (trueDifficulty / 2));
+        waves = TrialManager.getWaveGenerator().getWavesForDifficulty(difficulty);
         generateSpawningSpots();
         startTrial();
     }
@@ -180,7 +183,7 @@ public class Trial extends BukkitRunnable {
         waveEnded = false;
         waveSpawned = true;
         activeWave = true;
-        wave = TrialManager.spawnWave(waveNumber, spawningSpots, players, playerCount);
+        wave = TrialManager.spawnWave(waves.get(waveNumber), spawningSpots, players, playerCount);
 
         for (ArrayList<Player> spectatorList : spectators.values()) {
             for (Player player : spectatorList) {

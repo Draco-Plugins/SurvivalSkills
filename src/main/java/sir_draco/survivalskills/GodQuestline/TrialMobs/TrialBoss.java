@@ -34,8 +34,8 @@ public class TrialBoss extends BukkitRunnable{
     public TrialBoss(String name, double maxHealth, double damage, double defense, double speed, double scale,
                      EntityType type, HashMap<ItemStack, Double> drops) {
         this.name = name;
-        this.maxHealth = maxHealth;
-        this.damage = damage;
+        this.maxHealth = Math.ceil(maxHealth);
+        this.damage = Math.ceil(damage);
         this.defense = defense;
         this.speed = speed;
         this.scale = scale;
@@ -228,5 +228,9 @@ public class TrialBoss extends BukkitRunnable{
 
     public TrialBoss duplicate() {
         return new TrialBoss(name, maxHealth, damage, defense, speed, scale, type, drops);
+    }
+
+    public TrialBoss duplicate(double healthMultiplier, double damageMultiplier) {
+        return new TrialBoss(name, maxHealth * healthMultiplier, damage * damageMultiplier, defense, speed, scale, type, drops);
     }
 }
