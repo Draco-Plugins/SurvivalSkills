@@ -57,8 +57,6 @@ public class WaveGenerator {
     }
 
     private void initializeMobRegistry() {
-        // Initialize all mobs with base stats
-
         // Basic mobs
         // Zombie
         HashMap<ItemStack, Double> zombieDrops = new HashMap<>();
@@ -192,6 +190,7 @@ public class WaveGenerator {
         bossRegistry.put("blazingGhast", new BlazingGhast(armorBooks));
         bossRegistry.put("frostRevenant", new FrostRevenant(weaponBooks));
         bossRegistry.put("hellsGatekeeper", new HellsGatekeeper(null));
+        bossRegistry.put("grimwither", new GrimWither(null));
     }
 
     private Wave createWave(int waveNum, double healthMultiplier, double damageMultiplier, double countMultiplier) {
@@ -299,7 +298,38 @@ public class WaveGenerator {
                 wave.setBossWave(true);
                 wave.setBoss(getScaledBoss("hellsGatekeeper", healthMultiplier, damageMultiplier));
                 break;
-            // Add more cases for DEATH difficulty (waves 21-25)
+            case 21:
+                wave.addWaveMob(getScaledMob("creeper", healthMultiplier, damageMultiplier),
+                        scaleCount(4, countMultiplier));
+                wave.addWaveMob(getScaledMob("enderman", healthMultiplier, damageMultiplier),
+                        scaleCount(3, countMultiplier));
+                break;
+            case 22:
+                wave.addWaveMob(getScaledMob("zombieBoss", healthMultiplier, damageMultiplier),
+                        scaleCount(3, countMultiplier));
+                wave.addWaveMob(getScaledMob("drowned", healthMultiplier, damageMultiplier),
+                        scaleCount(2, countMultiplier));
+                wave.addWaveMob(getScaledMob("skeleton", healthMultiplier, damageMultiplier),
+                        scaleCount(3, countMultiplier));
+                break;
+            case 23:
+                wave.addWaveMob(getScaledMob("husk", healthMultiplier, damageMultiplier),
+                        scaleCount(6, countMultiplier));
+                wave.addWaveMob(getScaledMob("blaze", healthMultiplier, damageMultiplier),
+                        scaleCount(3, countMultiplier));
+                break;
+            case 24:
+                wave.addWaveMob(getScaledMob("ravager", healthMultiplier, damageMultiplier),
+                        scaleCount(2, countMultiplier));
+                wave.addWaveMob(getScaledMob("vindicator", healthMultiplier, damageMultiplier),
+                        scaleCount(3, countMultiplier));
+                wave.addWaveMob(getScaledMob("evoker", healthMultiplier, damageMultiplier),
+                        scaleCount(2, countMultiplier));
+                break;
+            case 25:
+                wave.setBossWave(true);
+                wave.setBoss(getScaledBoss("grimwither", healthMultiplier, damageMultiplier));
+                break;
         }
 
         return wave;

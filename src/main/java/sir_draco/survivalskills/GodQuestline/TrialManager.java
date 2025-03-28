@@ -784,6 +784,21 @@ public class TrialManager implements Listener {
         stage4Rewards.addItem(getTrialItem(Material.GOLDEN_APPLE, 8), 1);
         stage4Rewards.addItem(getTrialItem(Material.ENCHANTED_GOLDEN_APPLE, 1), 1);
         lootTables.put(4, stage4Rewards);
+
+        // Stage 5 Rewards
+        TrialLootTable stage5Rewards = new TrialLootTable();
+        stage5Rewards.addItem(getTrialItem(Material.NETHERITE_SWORD, 1), 2);
+        stage5Rewards.addItem(getTrialItem(Material.NETHERITE_AXE, 1), 2);
+        stage5Rewards.addItem(getTrialItem(Material.COOKED_BEEF, 32), 2);
+        stage5Rewards.addItem(getTrialItem(Material.NETHERITE_BOOTS, 1), 3);
+        stage5Rewards.addItem(getTrialItem(Material.NETHERITE_CHESTPLATE, 1), 4);
+        stage5Rewards.addItem(getTrialItem(Material.NETHERITE_HELMET, 1), 4);
+        stage5Rewards.addItem(getTrialItem(Material.NETHERITE_LEGGINGS, 1), 3);
+        stage5Rewards.addItem(getTrialItem(Material.CROSSBOW, 1), 2);
+        stage5Rewards.addItem(getTrialItem(Material.BOW, 1), 2);
+        stage5Rewards.addItem(getTrialItem(Material.ARROW, 64), 3);
+        stage5Rewards.addItem(getTrialItem(Material.ENCHANTED_GOLDEN_APPLE, 3), 1);
+        lootTables.put(5, stage5Rewards);
     }
 
     public static boolean isInTrial(Player p) {

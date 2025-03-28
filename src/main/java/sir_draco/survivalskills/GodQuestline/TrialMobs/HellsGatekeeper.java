@@ -25,13 +25,13 @@ public class HellsGatekeeper extends TrialBoss {
     public HellsGatekeeper(HashMap<ItemStack, Double> drops) {
         super(ColorParser.colorizeString("Hell's Gatekeeper",
                 ColorParser.generateGradient("#EC6000", "#FB0808", 17), true),
-                250, 10, 0, 0.3, 2, EntityType.WITHER_SKELETON, drops);
+                166, 10, 0, 0.3, 2, EntityType.WITHER_SKELETON, drops);
     }
 
     public HellsGatekeeper(HashMap<ItemStack, Double> drops, double healthMultiplier, double damageMultiplier) {
         super(ColorParser.colorizeString("Hell's Gatekeeper",
                 ColorParser.generateGradient("#EC6000", "#FB0808", 17), true),
-                250 * healthMultiplier, 10 * damageMultiplier, 0, 0.3, 2, EntityType.WITHER_SKELETON, drops);
+                166 * healthMultiplier, 10 * damageMultiplier, 0, 0.3, 2, EntityType.WITHER_SKELETON, drops);
     }
 
     @Override
