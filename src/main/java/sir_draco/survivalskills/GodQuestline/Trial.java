@@ -380,10 +380,18 @@ public class Trial extends BukkitRunnable {
                 TrialManager.getPlayerGamemodesBeaten().get(p).add(trueDifficulty);
 
             boolean newHighScore;
-            if (SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId()).getTrialScore() < score / playerCount) {
-                newHighScore = true;
-                SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId()).setTrialScore(score / playerCount);
-            } else newHighScore = false;
+            if (solo) {
+                if (SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId()).getTrialScore() < score / playerCount) {
+                    newHighScore = true;
+                    SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId()).setTrialScore(score / playerCount);
+                } else newHighScore = false;
+            }
+            else {
+                if (SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId()).getCoopTrialScore() < score / playerCount) {
+                    newHighScore = true;
+                    SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId()).setCoopTrialScore(score / playerCount);
+                } else newHighScore = false;
+            }
 
             new BukkitRunnable() {
                 final int time = timeSpent;
@@ -394,7 +402,10 @@ public class Trial extends BukkitRunnable {
                     p.sendRawMessage(ChatColor.YELLOW + "Trial completed in " + timeSpent);
 
                     if (newHighScore) {
-                        p.sendRawMessage(ChatColor.YELLOW + "New High Score!");
+                        String type = "";
+                        if (solo) type = " Solo";
+                        else type = "Co-op";
+                        p.sendRawMessage(ChatColor.YELLOW + "New " + type + " High Score!");
                         p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                     }
                 }

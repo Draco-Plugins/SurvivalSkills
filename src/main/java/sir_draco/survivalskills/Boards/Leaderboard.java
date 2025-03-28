@@ -28,10 +28,11 @@ public class Leaderboard {
         int miningScore = getLeaderboardScore(plugin, p, "Mining");
         int mainScore = getLeaderboardScore(plugin, p, "Main");
         int deathScore = getLeaderboardScore(plugin, p, "Deaths");
-        int trialScore = getLeaderboardScore(plugin, p, "Trials");
+        int trialScore = getLeaderboardScore(plugin, p, "SoloTrials");
+        int coopTrialScore = getLeaderboardScore(plugin, p, "CoopTrials");
 
         return new LeaderboardPlayer(p.getDisplayName(), score, buildingScore, craftingScore, exploringScore,
-                farmingScore, fightingScore, fishingScore, miningScore, mainScore, deathScore, trialScore);
+                farmingScore, fightingScore, fishingScore, miningScore, mainScore, deathScore, trialScore, coopTrialScore);
     }
 
     public static int getLeaderboardScore(SurvivalSkills plugin, Player p, String skillName) {
@@ -77,9 +78,13 @@ public class Leaderboard {
             if (!plugin.getLeaderboardData().contains(p.getUniqueId().toString())) return 0;
             return plugin.getLeaderboardData().getInt(p.getUniqueId() + ".Deaths");
         }
-        else if (skillName.equalsIgnoreCase("Trials")) {
+        else if (skillName.equalsIgnoreCase("Solo Trials")) {
             if (!plugin.getLeaderboardData().contains(p.getUniqueId().toString())) return 0;
-            return plugin.getLeaderboardData().getInt(p.getUniqueId() + ".Trials");
+            return plugin.getLeaderboardData().getInt(p.getUniqueId() + ".SoloTrials");
+        }
+        else if (skillName.equalsIgnoreCase("Co-op Trials")) {
+            if (!plugin.getLeaderboardData().contains(p.getUniqueId().toString())) return 0;
+            return plugin.getLeaderboardData().getInt(p.getUniqueId() + ".CoopTrials");
         }
 
         return 0;
@@ -147,7 +152,12 @@ public class Leaderboard {
                     topScore = entry.getValue().getDeathScore();
                     name = entry.getValue().getName();
                 }
-                else if (skillName.equalsIgnoreCase("trials") && entry.getValue().getTrialScore() > topScore) {
+                else if (skillName.equalsIgnoreCase("solo trials") && entry.getValue().getTrialScore() > topScore) {
+                    topPlayer = entry.getKey();
+                    topScore = entry.getValue().getTrialScore();
+                    name = entry.getValue().getName();
+                }
+                else if (skillName.equalsIgnoreCase("co-op trials") && entry.getValue().getTrialScore() > topScore) {
                     topPlayer = entry.getKey();
                     topScore = entry.getValue().getTrialScore();
                     name = entry.getValue().getName();
@@ -215,7 +225,8 @@ public class Leaderboard {
             else if (skillName.equalsIgnoreCase("mining") && entry.getValue().getMiningScore() > skillScore) rank++;
             else if (skillName.equalsIgnoreCase("main") && entry.getValue().getMainScore() > skillScore) rank++;
             else if (skillName.equalsIgnoreCase("deaths") && entry.getValue().getDeathScore() < skillScore) rank++;
-            else if (skillName.equalsIgnoreCase("trials") && entry.getValue().getTrialScore() > skillScore) rank++;
+            else if (skillName.equalsIgnoreCase("solo trials") && entry.getValue().getTrialScore() > skillScore) rank++;
+            else if (skillName.equalsIgnoreCase("co-op trials") && entry.getValue().getTrialScore() > skillScore) rank++;
         }
         p.sendRawMessage(ChatColor.GREEN + "You are currently ranked " + ChatColor.GOLD + rank + ChatColor.GREEN + " in "
                 + ChatColor.GOLD + skillName + ChatColor.GREEN + " out of " + ChatColor.GOLD + plugin.getLeaderboardTracker().size() + ChatColor.GREEN + "!");
