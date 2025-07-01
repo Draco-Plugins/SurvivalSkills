@@ -36,7 +36,7 @@ public class ColorParser {
         Color startColor = hexToColor(color1);
         Color endColor = hexToColor(color2);
 
-        List<String> gradiant = new ArrayList<>();
+        List<String> gradient = new ArrayList<>();
         for (int i = 0; i <= length; i++) {
 
             int r = interpolate(startColor.getRed(), endColor.getRed(), i, length);
@@ -44,9 +44,9 @@ public class ColorParser {
             int b = interpolate(startColor.getBlue(), endColor.getBlue(), i, length);
 
             String hexColor = "#" + intToString(r) + intToString(g) + intToString(b);
-            gradiant.add(hexColor);
+            gradient.add(hexColor);
         }
-        return gradiant;
+        return gradient;
     }
 
     public static List<String> generateGradient(String color1, String color2, String string) {
@@ -54,7 +54,7 @@ public class ColorParser {
         Color startColor = hexToColor(color1);
         Color endColor = hexToColor(color2);
 
-        List<String> gradiant = new ArrayList<>();
+        List<String> gradient = new ArrayList<>();
         for (int i = 0; i <= length; i++) {
 
             int r = interpolate(startColor.getRed(), endColor.getRed(), i, length);
@@ -62,9 +62,9 @@ public class ColorParser {
             int b = interpolate(startColor.getBlue(), endColor.getBlue(), i, length);
 
             String hexColor = "#" + intToString(r) + intToString(g) + intToString(b);
-            gradiant.add(hexColor);
+            gradient.add(hexColor);
         }
-        return gradiant;
+        return gradient;
     }
 
     private static String hexToChatColor(String hex) {
