@@ -157,9 +157,9 @@ public class Leaderboard {
                     topScore = entry.getValue().getTrialScore();
                     name = entry.getValue().getName();
                 }
-                else if (skillName.equalsIgnoreCase("co-op trials") && entry.getValue().getTrialScore() > topScore) {
+                else if (skillName.equalsIgnoreCase("co-op trials") && entry.getValue().getCoopTrialScore() > topScore) {
                     topPlayer = entry.getKey();
-                    topScore = entry.getValue().getTrialScore();
+                    topScore = entry.getValue().getCoopTrialScore();
                     name = entry.getValue().getName();
                 }
             }
@@ -226,7 +226,7 @@ public class Leaderboard {
             else if (skillName.equalsIgnoreCase("main") && entry.getValue().getMainScore() > skillScore) rank++;
             else if (skillName.equalsIgnoreCase("deaths") && entry.getValue().getDeathScore() < skillScore) rank++;
             else if (skillName.equalsIgnoreCase("solo trials") && entry.getValue().getTrialScore() > skillScore) rank++;
-            else if (skillName.equalsIgnoreCase("co-op trials") && entry.getValue().getTrialScore() > skillScore) rank++;
+            else if (skillName.equalsIgnoreCase("co-op trials") && entry.getValue().getCoopTrialScore() > skillScore) rank++;
         }
         p.sendRawMessage(ChatColor.GREEN + "You are currently ranked " + ChatColor.GOLD + rank + ChatColor.GREEN + " in "
                 + ChatColor.GOLD + skillName + ChatColor.GREEN + " out of " + ChatColor.GOLD + plugin.getLeaderboardTracker().size() + ChatColor.GREEN + "!");
