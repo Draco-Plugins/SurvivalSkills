@@ -33,15 +33,12 @@ import sir_draco.survivalskills.Boards.SkillScoreboard;
 import sir_draco.survivalskills.Commands.AdminCommands.*;
 import sir_draco.survivalskills.Commands.DefaultCommands.*;
 import sir_draco.survivalskills.Commands.SkillCommands.*;
-import sir_draco.survivalskills.GodQuestline.Trial;
-import sir_draco.survivalskills.GodQuestline.TrialManager;
+import sir_draco.survivalskills.GodQuestline.*;
 import sir_draco.survivalskills.SkillListeners.*;
 import sir_draco.survivalskills.Skills.Skill;
 import sir_draco.survivalskills.Skills.SkillManager;
 import sir_draco.survivalskills.Skills.SkillsHolder;
 import sir_draco.survivalskills.Commands.AdminCommands.GodQuestCommand;
-import sir_draco.survivalskills.GodQuestline.GodTrophyQuest;
-import sir_draco.survivalskills.GodQuestline.ToggleGodQuestCommand;
 import sir_draco.survivalskills.Trophy.Trophy;
 import sir_draco.survivalskills.Trophy.TrophyListener;
 import sir_draco.survivalskills.Trophy.TrophyManager;
@@ -375,6 +372,7 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(armorListener, this);
         getServer().getPluginManager().registerEvents(godListener, this);
         getServer().getPluginManager().registerEvents(new TrialManager(), this);
+        getServer().getPluginManager().registerEvents(new TrialUpgradeManager(), this);
     }
 
     public void loadData(Player p, FileConfiguration data) {

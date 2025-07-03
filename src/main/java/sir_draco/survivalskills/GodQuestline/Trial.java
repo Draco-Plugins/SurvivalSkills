@@ -7,6 +7,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.Boards.SkillScoreboard;
 import sir_draco.survivalskills.GodQuestline.TrialMobs.WaveMob;
@@ -16,6 +17,7 @@ import sir_draco.survivalskills.Utils.TrialUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Trial extends BukkitRunnable {
@@ -271,11 +273,19 @@ public class Trial extends BukkitRunnable {
             p.setAllowFlight(false);
             p.setFlying(false);
 
-            p.getInventory().addItem(TrialManager.getTrialItem(Material.WOODEN_SWORD, 1));
-            p.getInventory().addItem(TrialManager.getTrialItem(Material.COOKED_BEEF, 2));
+            // Get player upgrades and apply starting items
+            PlayerTrialUpgrades upgrades = PlayerTrialUpgrades.getPlayerUpgrades(p);
+            List<ItemStack> startingItems = TrialTree.getStartingItems(upgrades);
+
+            for (ItemStack item : startingItems) {
+                p.getInventory().addItem(item);
+            }
+
             p.teleport(centerLocation.clone().add(0.5, 1, 0.5));
             p.playSound(p, Sound.ENTITY_WOLF_GROWL, 1, 1);
             p.sendTitle(ChatColor.GRAY + "Wave " + ChatColor.AQUA + waveNumber, "", 5, 30, 5);
+
+            p.setWalkSpeed((float) (0.3 * TrialTree.getSpeedMultiplier(TrialUpgradeManager.getPlayerUpgrades(p))));
         }
 
         playerCount = players.size();
@@ -402,11 +412,22 @@ public class Trial extends BukkitRunnable {
                     p.sendRawMessage(ChatColor.YELLOW + "Trial completed in " + timeSpent);
 
                     if (newHighScore) {
-                        String type = "";
+                        String type;
                         if (solo) type = " Solo";
                         else type = "Co-op";
                         p.sendRawMessage(ChatColor.YELLOW + "New " + type + " High Score!");
                         p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+                    }
+                }
+            }.runTaskLater(SurvivalSkills.getInstance(), 60);
+
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    int pointsAwarded = Math.max(100, score / (playerCount * 10));
+                    for (Player p : players) {
+                        TrialUpgradeManager.awardTrialPoints(p, pointsAwarded);
+                        p.sendMessage(ChatColor.GREEN + "You earned " + pointsAwarded + " trial points!");
                     }
                 }
             }.runTaskLater(SurvivalSkills.getInstance(), 100);

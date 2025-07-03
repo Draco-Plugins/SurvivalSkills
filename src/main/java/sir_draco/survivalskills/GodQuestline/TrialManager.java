@@ -242,21 +242,24 @@ public class TrialManager implements Listener {
         }
 
         Player p = null;
-        if (e.getDamager() instanceof Arrow arrow) {
-            if (!(arrow.getShooter() instanceof Player)) {
-                e.setCancelled(true);
-                return;
+        switch (e.getDamager()) {
+            case Arrow arrow -> {
+                if (!(arrow.getShooter() instanceof Player)) {
+                    e.setCancelled(true);
+                    return;
+                }
+                p = (Player) arrow.getShooter();
             }
-            p = (Player) arrow.getShooter();
-        }
-        else if (e.getDamager() instanceof Trident trident) {
-            if (!(trident.getShooter() instanceof Player)) {
-                e.setCancelled(true);
-                return;
+            case Trident trident -> {
+                if (!(trident.getShooter() instanceof Player)) {
+                    e.setCancelled(true);
+                    return;
+                }
+                p = (Player) trident.getShooter();
             }
-            p = (Player) trident.getShooter();
+            case Player player -> p = player;
+            default -> {}
         }
-        else if (e.getDamager() instanceof Player) p = (Player) e.getDamager();
 
         if (p == null) {
             e.setCancelled(true);
@@ -274,6 +277,9 @@ public class TrialManager implements Listener {
                 return;
             }
         }
+
+        // Apply damage multiplier based on trial upgrades
+        e.setDamage(e.getDamage() * TrialTree.getDamageMultiplier(TrialUpgradeManager.getPlayerUpgrades(p)));
     }
 
     @EventHandler
@@ -312,6 +318,10 @@ public class TrialManager implements Listener {
         }
         if (trial == null) return;
         trial.changeScore((int) -damage);
+        if (Math.random() < TrialTree.getDodgeChance(TrialUpgradeManager.getPlayerUpgrades(p))) {
+            e.setCancelled(true);
+            return;
+        }
 
         // Check if they were hit by a snowball
         if (!e.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE)) return;
@@ -692,7 +702,15 @@ public class TrialManager implements Listener {
             Bukkit.getLogger().warning("No loot table found for stage " + stage);
             return;
         }
+
+        PlayerTrialUpgrades upgrades = PlayerTrialUpgrades.getPlayerUpgrades(p);
+        double enchantChance = TrialTree.getEnchantChance(upgrades);
+
         ArrayList<ItemStack> rewards = lootTables.get(stage).getItems(3);
+
+        // Apply enchantments based on upgrade level
+        rewards.replaceAll(item -> TrialTree.applyRandomEnchantments(item, enchantChance));
+
         inv.setItem(2, rewards.get(0));
         inv.setItem(4, rewards.get(1));
         inv.setItem(6, rewards.get(2));
