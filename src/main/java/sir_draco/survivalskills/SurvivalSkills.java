@@ -631,7 +631,7 @@ public final class SurvivalSkills extends JavaPlugin {
         i = 0;
         if (trash.getEnchants().isEmpty()) permaTrashData.set(uuid + ".Enchants", null);
         for (Enchantment enchant : trash.getEnchants()) {
-            permaTrashData.set(uuid + ".Enchants." + i, enchant.getKey().toString());
+            permaTrashData.set(uuid + ".Enchants." + i, enchant.getKeyOrThrow().toString());
             i++;
         }
 
@@ -858,7 +858,7 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public Enchantment getEnchantFromKey(String key) {
         for (Enchantment enchant : Registry.ENCHANTMENT) {
-            if (enchant.getKey().toString().equalsIgnoreCase(key)) return enchant;
+            if (enchant.getKeyOrThrow().toString().equalsIgnoreCase(key)) return enchant;
         }
         return Enchantment.EFFICIENCY;
     }

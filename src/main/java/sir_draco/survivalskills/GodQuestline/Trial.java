@@ -13,6 +13,7 @@ import sir_draco.survivalskills.Boards.SkillScoreboard;
 import sir_draco.survivalskills.GodQuestline.TrialMobs.WaveMob;
 import sir_draco.survivalskills.Rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.TrialGUI;
 import sir_draco.survivalskills.Utils.TrialUtils;
 
 import java.util.ArrayList;
@@ -428,6 +429,7 @@ public class Trial extends BukkitRunnable {
                     for (Player p : players) {
                         TrialUpgradeManager.awardTrialPoints(p, pointsAwarded);
                         p.sendMessage(ChatColor.GREEN + "You earned " + pointsAwarded + " trial points!");
+                        TrialGUI.openUpgradeGUI(p);
                     }
                 }
             }.runTaskLater(SurvivalSkills.getInstance(), 100);

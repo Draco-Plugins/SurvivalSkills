@@ -5,14 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f98fc54c-90a8-439b-8b76-f1b1bc4cf67d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/PlayerTrialUpgrades.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialTree.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialUpgradeManager.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/Trial.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/Trial.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/TrialManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SurvivalSkills.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SurvivalSkills.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/PlayerTrialUpgrades.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/GodQuestline/PlayerTrialUpgrades.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

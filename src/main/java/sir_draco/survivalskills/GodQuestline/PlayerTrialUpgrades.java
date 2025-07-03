@@ -1,5 +1,6 @@
 package sir_draco.survivalskills.GodQuestline;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -45,21 +46,16 @@ public class PlayerTrialUpgrades {
 
     public boolean purchaseUpgrade(String upgradeId) {
         if (!canUpgrade(upgradeId)) return false;
-
-        TrialTree.TrialUpgrade upgrade = TrialTree.getUpgrade(upgradeId);
         int currentLevel = getUpgradeLevel(upgradeId);
-        int cost = upgrade.getCost(currentLevel + 1);
 
-        availablePoints -= cost;
+        resetPoints();
         upgradeLevels.put(upgradeId, currentLevel + 1);
 
-        saveToFile();
         return true;
     }
 
     public void addPoints(int points) {
         this.availablePoints += points;
-        saveToFile();
     }
 
     public void resetPoints() {
@@ -76,7 +72,6 @@ public class PlayerTrialUpgrades {
         FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 
         String path = playerId.toString();
-        config.set(path + ".points", availablePoints);
 
         for (Map.Entry<String, Integer> entry : upgradeLevels.entrySet()) {
             config.set(path + ".upgrades." + entry.getKey(), entry.getValue());
@@ -98,10 +93,10 @@ public class PlayerTrialUpgrades {
 
         if (!config.contains(path)) return;
 
-        availablePoints = config.getInt(path + ".points", 0);
-
         if (config.contains(path + ".upgrades")) {
-            for (String upgradeId : config.getConfigurationSection(path + ".upgrades").getKeys(false)) {
+            ConfigurationSection section = config.getConfigurationSection(path + ".upgrades");
+            if (section == null) return;
+            for (String upgradeId : section.getKeys(false)) {
                 int level = config.getInt(path + ".upgrades." + upgradeId, 0);
                 upgradeLevels.put(upgradeId, level);
             }
