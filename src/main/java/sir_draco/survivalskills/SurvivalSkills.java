@@ -471,11 +471,12 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public void loadScoreboardSetting(UUID uuid, FileConfiguration data) {
         if (toggledScoreboard.containsKey(uuid)) return;
-        if (data.contains(uuid + ".Scoreboard")) {
+        if (!data.contains(uuid + ".Scoreboard")) {
+            // default to having the scoreboard enabled when no setting exists
             toggledScoreboard.put(uuid, true);
-            return;
+        } else {
+            toggledScoreboard.put(uuid, data.getBoolean(uuid + ".Scoreboard"));
         }
-        toggledScoreboard.put(uuid, data.getBoolean(uuid + ".Scoreboard"));
     }
 
     public void savePlayerData(Player p) {

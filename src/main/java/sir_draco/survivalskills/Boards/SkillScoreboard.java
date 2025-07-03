@@ -259,7 +259,7 @@ public class SkillScoreboard {
     }
 
     /**
-     * Creates a new team for the scoreboard
+     * Creates a new team for the scoreboard or updates an existing one
      */
     public static void newTeam(Scoreboard board, String name, String holder, String display, int score) {
         Team team = board.getTeam(name);
