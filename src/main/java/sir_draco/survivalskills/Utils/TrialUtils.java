@@ -94,7 +94,7 @@ public class TrialUtils {
             trialBuildingBlocks.addAll(blocks);
         }
 
-        return blocks;
+        return trialBuildingBlocks;
     }
 
     // Takes a block, finds the new relative location for the block, and copies the data into the new block

@@ -56,7 +56,7 @@ public class TrialManager implements Listener {
     private static FileConfiguration trialBuildingConfig = null;
     private static FileConfiguration trialDataConfig = null;
 
-    private static final long CLEANUP_INTERVAL = 60 * 60 * 20L; // 24 hours in ticks
+    private static final long CLEANUP_INTERVAL = 60 * 60 * 20L; // 1 hour in ticks
 
     public TrialManager() {
         createRewards();
@@ -732,7 +732,14 @@ public class TrialManager implements Listener {
     }
 
     private static void loadTrialBuildingData() {
-        if (trialDataConfig == null) return;
+        if (trialDataConfig == null) {
+            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialbuilding.yml");
+            if (!file.exists()) {
+                Bukkit.getLogger().warning("No trial building saved in trialbuilding.yml");
+                return;
+            }
+            trialDataConfig = YamlConfiguration.loadConfiguration(file);
+        }
 
         ConfigurationSection section = trialDataConfig.getConfigurationSection("");
         if (section == null) return;
@@ -799,6 +806,8 @@ public class TrialManager implements Listener {
         } catch (Exception e) {
             SurvivalSkills.getInstance().getLogger().warning("Failed to save protected areas to trialdata.yml");
         }
+
+        saveTrialBuildingData();
     }
 
     public static Wave spawnWave(Wave wave, ArrayList<Location> spawningSpots, ArrayList<Player> players, int playerCount) {
