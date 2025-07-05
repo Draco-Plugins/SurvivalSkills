@@ -18,6 +18,7 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -49,12 +50,18 @@ public class TrialManager implements Listener {
     private static final HashMap<Player, ArrayList<Integer>> playerGamemodesBeaten = new HashMap<>();
     private static final NamespacedKey trialObjectKey = new NamespacedKey(SurvivalSkills.getInstance(), "trialobject");
     private static final WaveGenerator waveGenerator = new WaveGenerator();
+    private static final HashMap<UUID, TrialBuildingData> trialBuildingOwnership = new HashMap<>();
+    private static final HashMap<UUID, Long> trialBuildingCreationCooldownList = new HashMap<>();
 
     private static FileConfiguration trialBuildingConfig = null;
-    private FileConfiguration trialDataConfig = null;
+    private static FileConfiguration trialDataConfig = null;
+
+    private static final long CLEANUP_INTERVAL = 60 * 60 * 20L; // 24 hours in ticks
 
     public TrialManager() {
         createRewards();
+        loadTrialBuildingData();
+        startCleanupTask();
     }
 
     @EventHandler
@@ -590,6 +597,11 @@ public class TrialManager implements Listener {
         if (e.getEntity() instanceof Enderman) e.setCancelled(true);
     }
 
+    @EventHandler
+    public void playerQuit(PlayerQuitEvent e) {
+        TrialUtils.saveCompletedTrials(e.getPlayer());
+    }
+
     public static boolean isTrialPlayer(Player p) {
         for (Trial trial : trials) if (trial.getPlayers().contains(p)) return true;
         return false;
@@ -628,6 +640,134 @@ public class TrialManager implements Listener {
             UUID uuid = UUID.fromString(key);
             protectedAreas.put(uuid, protectedArea);
         }
+    }
+
+    public static void startCleanupTask() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                cleanupExpiredTrialBuildings();
+            }
+        }.runTaskTimer(SurvivalSkills.getInstance(), CLEANUP_INTERVAL, CLEANUP_INTERVAL);
+    }
+
+    private static void cleanupExpiredTrialBuildings() {
+        ArrayList<UUID> toRemove = new ArrayList<>();
+
+        for (Map.Entry<UUID, TrialBuildingData> entry : trialBuildingOwnership.entrySet()) {
+            if (entry.getValue().isExpired()) {
+                UUID buildingId = entry.getKey();
+
+                // Remove the protected area
+                TrialUtils.removeProtectedArea(protectedAreas.get(buildingId));
+                protectedAreas.remove(buildingId);
+
+                // Remove building data
+                toRemove.add(buildingId);
+
+                SurvivalSkills.getInstance().getLogger().info("Removed expired trial building owned by " +
+                                                                      Bukkit.getOfflinePlayer(entry.getValue().owner()).getName());
+            }
+        }
+
+        for (UUID id : toRemove) trialBuildingOwnership.remove(id);
+        if (!toRemove.isEmpty()) saveTrialBuildingData();
+    }
+
+    public static void updateTrialUsage(UUID trialBuildingId) {
+        TrialBuildingData data = trialBuildingOwnership.get(trialBuildingId);
+        if (data != null) {
+            trialBuildingOwnership.put(trialBuildingId, new TrialBuildingData(
+                    data.owner(),
+                    System.currentTimeMillis(),
+                    data.location()
+            ));
+            saveTrialBuildingData();
+        }
+    }
+
+    public static void registerTrialBuilding(UUID userId, Location location) {
+        if (trialBuildingOwnership.containsKey(userId)) {
+            updateTrialUsage(userId);
+            return;
+        }
+
+        trialBuildingOwnership.put(userId, new TrialBuildingData(userId, System.currentTimeMillis(), location));
+    }
+
+    private static void saveTrialBuildingData() {
+        if (trialDataConfig == null) {
+            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
+            if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
+            trialDataConfig = YamlConfiguration.loadConfiguration(file);
+        }
+
+        // Get a list of all currently stored UUIDs
+        List<String> existingKeys = new ArrayList<>(trialDataConfig.getKeys(false));
+        // Remove keys that are no longer in use
+        for (String key : existingKeys)
+            if (!trialBuildingOwnership.containsKey(UUID.fromString(key)))
+                trialDataConfig.set(key, null);
+
+        for (Map.Entry<UUID, TrialBuildingData> entry : trialBuildingOwnership.entrySet()) {
+            String key = entry.getKey().toString();
+            TrialBuildingData data = entry.getValue();
+
+            trialDataConfig.set(key + ".Owner", data.owner().toString());
+            trialDataConfig.set(key + ".LastUsed", data.lastUsed());
+            trialDataConfig.set(key + ".Location", locationToString(data.location()));
+        }
+
+        try {
+            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
+            trialDataConfig.save(file);
+        } catch (Exception e) {
+            SurvivalSkills.getInstance().getLogger().warning("Failed to save trial building data: " + e.getMessage());
+        }
+    }
+
+    public static void removeTrialBuilding(UUID buildingId) {
+        trialBuildingOwnership.remove(buildingId);
+        trialDataConfig.set(buildingId.toString(), null);
+    }
+
+    private static void loadTrialBuildingData() {
+        if (trialDataConfig == null) return;
+
+        ConfigurationSection section = trialDataConfig.getConfigurationSection("");
+        if (section == null) return;
+
+        for (String key : section.getKeys(false)) {
+            if (!trialDataConfig.contains(key + ".Owner")) continue;
+
+            try {
+                UUID buildingId = UUID.fromString(key);
+                UUID owner = UUID.fromString(Objects.requireNonNull(trialDataConfig.getString(key + ".Owner")));
+                long lastUsed = trialDataConfig.getLong(key + ".LastUsed", System.currentTimeMillis());
+                String locationStr = trialDataConfig.getString(key + ".Location");
+
+                if (locationStr != null) {
+                    Location location = stringToLocation(locationStr);
+                    trialBuildingOwnership.put(buildingId, new TrialBuildingData(owner, lastUsed, location));
+                }
+            } catch (Exception e) {
+                SurvivalSkills.getInstance().getLogger().warning("Failed to load trial building data for " + key);
+            }
+        }
+    }
+
+    private static String locationToString(Location loc) {
+        return Objects.requireNonNull(loc.getWorld()).getUID() + ":" + loc.getX() + ":" + loc.getY() + ":" + loc.getZ();
+    }
+
+    private static Location stringToLocation(String str) {
+        String[] parts = str.split(":");
+        if (parts.length != 4) return null;
+
+        World world = Bukkit.getWorld(UUID.fromString(parts[0]));
+        if (world == null) return null;
+
+        return new Location(world, Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
     }
 
     public static void handleTrials() {
@@ -884,5 +1024,9 @@ public class TrialManager implements Listener {
 
     public static WaveGenerator getWaveGenerator() {
         return waveGenerator;
+    }
+
+    public static HashMap<UUID, Long> getTrialBuildingCreationCooldownList() {
+        return trialBuildingCreationCooldownList;
     }
 }

@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.GodQuestline;
+package sir_draco.survivalskills.Commands.AdminCommands;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;

@@ -23,6 +23,8 @@ import java.util.UUID;
 
 public class TrialUtils {
 
+    public static ArrayList<RelativeBlock> trialBuildingBlocks = new ArrayList<>();
+
     public static ArrayList<Block> getBlocks(Location location, int x, int y, int z) {
         ArrayList<Block> blocks = new ArrayList<>();
         for (int i = -(x/2); i <= x/2; i++) {
@@ -64,6 +66,8 @@ public class TrialUtils {
     }
 
     public static ArrayList<RelativeBlock> loadTrialBuilding(FileConfiguration config) {
+        if (!trialBuildingBlocks.isEmpty()) return trialBuildingBlocks;
+
         ArrayList<RelativeBlock> blocks = new ArrayList<>();
         ConfigurationSection section = config.getConfigurationSection("Blocks");
         if (section == null) return blocks;
@@ -81,6 +85,13 @@ public class TrialUtils {
             if (blockDataString == null) continue;
             BlockData data = Bukkit.createBlockData(blockDataString);
             blocks.add(new RelativeBlock(x, y, z, data, material));
+        }
+
+        if (blocks.isEmpty()) {
+            Bukkit.getLogger().warning("No trial building blocks found in trialbuilding.yml");
+        } else {
+            Bukkit.getLogger().info("Loaded " + blocks.size() + " trial building blocks from trialbuilding.yml");
+            trialBuildingBlocks.addAll(blocks);
         }
 
         return blocks;
@@ -319,6 +330,8 @@ public class TrialUtils {
         Trial trial;
         if (blocks == null) trial = new Trial(pendingTrial.getTrialMaster(), area, centerLocation, pendingTrial.getTrialDifficulty());
         else trial = new Trial(blocks, pendingTrial.getTrialMaster(), area, centerLocation, pendingTrial.getTrialDifficulty());
+        TrialManager.registerTrialBuilding(pendingTrial.getTrialMaster().getUniqueId(), centerLocation);
+
         for (Player p : pendingTrial.getPlayers()) trial.getPlayers().add(p);
         trial.initializeScoreboards();
         trial.setSolo(pendingTrial.isSolo());

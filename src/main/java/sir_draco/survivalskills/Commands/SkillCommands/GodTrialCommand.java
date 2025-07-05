@@ -14,12 +14,15 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Utils.TrialUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 @SuppressWarnings("NullableProblems")
 public class GodTrialCommand implements CommandExecutor {
+
+    private static final long COOLDOWN = 5 * 60 * 1000L;
 
     public GodTrialCommand(SurvivalSkills plugin) {
         PluginCommand command = plugin.getCommand("godtrial");
@@ -96,6 +99,9 @@ public class GodTrialCommand implements CommandExecutor {
                     p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                     return true;
                 }
+
+                // Remove the trial building from the TrialManager
+                TrialManager.removeTrialBuilding(p.getUniqueId());
 
                 p.sendRawMessage(ChatColor.RED + "No active trials or trial buildings found");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -291,7 +297,24 @@ public class GodTrialCommand implements CommandExecutor {
             TrialManager.setTrialBuildingConfig(YamlConfiguration.loadConfiguration(file));
         }
 
-        // Location pLocation = p.getLocation().clone().add(0, 1, 0).getBlock().getLocation();
+        if (!TrialManager.getProtectedAreas().containsKey(p.getUniqueId())) {
+            if (TrialManager.getTrialBuildingCreationCooldownList().containsKey(p.getUniqueId())) {
+                long timeSinceLastCreation = System.currentTimeMillis() - TrialManager.getTrialBuildingCreationCooldownList().get(p.getUniqueId());
+                if (timeSinceLastCreation < COOLDOWN) { // 5 minutes
+                    long timeLeft = (COOLDOWN - timeSinceLastCreation) / 1000;
+                    int minutesLeft = (int) (timeLeft / 60);
+                    int secondsLeft = (int) (timeLeft % 60);
+                    p.sendRawMessage(ChatColor.RED + "You can only create a new trial building every 5 minutes");
+                    p.sendRawMessage(ChatColor.YELLOW + "Time left: " + minutesLeft + " minutes and " + secondsLeft + " seconds");
+                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    return true;
+                }
+            }
+            else {
+                // Store the time that a new trial building is created
+                TrialManager.getTrialBuildingCreationCooldownList().put(p.getUniqueId(), System.currentTimeMillis());
+            }
+        }
 
         // Check if the player's inventory is empty
         if (checkInventory(p)) return true;
