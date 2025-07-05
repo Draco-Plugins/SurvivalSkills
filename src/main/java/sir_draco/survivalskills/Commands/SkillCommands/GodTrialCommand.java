@@ -14,7 +14,6 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Utils.TrialUtils;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
