@@ -30,6 +30,7 @@ import sir_draco.survivalskills.Utils.ItemStackGenerator;
 
 import java.util.*;
 
+@SuppressWarnings("deprecation")
 public class BuildingSkill implements Listener {
 
     private final SurvivalSkills plugin;

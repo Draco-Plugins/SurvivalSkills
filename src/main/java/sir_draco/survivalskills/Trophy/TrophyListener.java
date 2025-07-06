@@ -37,13 +37,17 @@ public class TrophyListener implements Listener {
         for (Map.Entry<Location, Trophy> trophy : plugin.getTrophyManager().getTrophies().entrySet()) {
             if (trophy.getKey().getBlockX() != e.getBlock().getX()) continue;
             if (trophy.getKey().getBlockZ() != e.getBlock().getZ()) continue;
-            if (trophy.getKey().getBlockY() > e.getBlock().getY()) continue;
+            // Prevent placement where a trophy is
+            if (trophy.getKey().getBlockY() != e.getBlock().getY()) continue;
+            // Prevent placement on the block below a trophy
+            if (trophy.getKey().getBlockY() - 1 != e.getBlock().getY()) continue;
             e.setCancelled(true);
             e.getPlayer().sendRawMessage(ChatColor.RED + "There is a " + trophy.getValue().getType() + " trophy below you");
             return;
         }
     }
 
+    @SuppressWarnings("deprecation")
     @EventHandler
     public void playerPlaceTrophy(PlayerInteractEvent e) {
         Player p = e.getPlayer();
@@ -72,6 +76,13 @@ public class TrophyListener implements Listener {
         Block above = clicked.getLocation().add(0, 1, 0).getBlock();
         if (!above.getType().isAir() || !clicked.getLocation().add(0, 2, 0).getBlock().getType().isAir()) {
             p.sendRawMessage(ChatColor.RED + "You can't place a trophy there");
+            p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+            return;
+        }
+
+        // Prevent placing a trophy where one already exists
+        if (plugin.getTrophyManager().getTrophies().containsKey(above.getLocation())) {
+            p.sendRawMessage(ChatColor.RED + "There is already a trophy at this location");
             p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
             return;
         }

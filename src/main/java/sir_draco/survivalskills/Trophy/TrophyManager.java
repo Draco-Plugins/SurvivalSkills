@@ -51,6 +51,12 @@ public class TrophyManager {
         ConfigurationSection section = trophyData.getConfigurationSection("");
         if (section == null) return;
 
+        // Shutdown and clear existing trophies to avoid duplicates
+        for (Trophy t : trophies.values()) {
+            t.shutdownTrophy();
+        }
+        trophies.clear();
+
         section.getKeys(false).forEach(key -> {
             Location loc = trophyData.getLocation(key + ".Location");
             String uuidString = trophyData.getString(key + ".UUID");
@@ -173,9 +179,18 @@ public class TrophyManager {
     }
 
     public int generateTrophyID() {
-        int id = (int) Math.ceil(Math.random() * 1000000);
-        if (trophies.isEmpty()) return id;
-        for (Map.Entry<Location, Trophy> trophy : trophies.entrySet()) if (trophy.getValue().getID() == id) return generateTrophyID();
+        int id;
+        boolean unique;
+        do {
+            id = (int) Math.ceil(Math.random() * 1000000);
+            unique = true;
+            for (Trophy trophy : trophies.values()) {
+                if (trophy.getID() == id) {
+                    unique = false;
+                    break;
+                }
+            }
+        } while (!unique);
         return id;
     }
 
@@ -183,6 +198,7 @@ public class TrophyManager {
         FileConfiguration trophyData = plugin.getTrophyData();
         Trophy trophy = trophies.get(loc);
         trophies.remove(loc);
+        if (trophy == null) return;
         if (trophyData.get("" + trophy.getID()) == null) return;
         trophyData.set("" + trophy.getID(), null);
     }
