@@ -105,7 +105,10 @@ public class GodTrophyEffects {
     }
 
     public void removeDisplay() {
-        if (display != null) display.remove();
+        if (display != null) {
+            display.remove();
+            display = null;
+        }
     }
 
     public void remove() {
@@ -125,11 +128,15 @@ public class GodTrophyEffects {
     }
 
     public void changeBlackHoleSize(float change) {
-        blackHole.setShadowRadius(blackHole.getShadowRadius() - change);
+        if (blackHole == null) return;
+        blackHole.setShadowRadius(Math.max(0, blackHole.getShadowRadius() - change));
     }
 
     public void removeBlackHole() {
-        if (blackHole != null) blackHole.remove();
+        if (blackHole != null) {
+            blackHole.remove();
+            blackHole = null;
+        }
     }
 
     public void spawnPlayer(String name, UUID playerUUID) {
@@ -221,6 +228,7 @@ public class GodTrophyEffects {
     public void removePlayer() {
         if (npcPlayer == null) return;
         npcPlayer.despawn();
+        npcPlayer = null;
     }
 
     public void destroyPlayer() {
@@ -228,11 +236,13 @@ public class GodTrophyEffects {
         npcPlayer.despawn();
         npcPlayer.destroy();
         TrophyManager.getRegistry().deregister(npcPlayer);
+        npcPlayer = null;
     }
 
     public void spawnCrystal(double x, double y, double z) {
         World world = trophyLoc.getWorld();
         if (world == null) return;
+        removeCrystal();
         crystal = (EnderCrystal) world.spawnEntity(new Location(trophyLoc.getWorld(), x, y, z), EntityType.END_CRYSTAL);
         crystal.setBeamTarget(trophyLoc.clone().add(0.5, 2, 0.5));
         crystal.setMetadata("trophy", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
@@ -241,12 +251,14 @@ public class GodTrophyEffects {
     }
 
     public void removeCrystal() {
-        if (crystal == null) return;
-        crystal.remove();
+        if (crystal != null) {
+            crystal.remove();
+            crystal = null;
+        }
     }
 
     public void moveCrystal() {
-        crystal.remove();
+        if (crystal != null) crystal.remove();
         double radians = crystalRadians;
         spawnCrystal(centerX + (Math.cos(radians) * 2.5), centerY, centerZ + (Math.sin(radians) * 2.5));
         crystalRadians += 0.2;

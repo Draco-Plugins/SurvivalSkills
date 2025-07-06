@@ -43,20 +43,25 @@ public class Trophy {
         loc.getBlock().setType(Material.AIR);
         loc.getBlock().getState().update();
 
-        if (effects.getGodTrophy() != null) effects.getGodTrophy().destroyPlayer();
-        effects.removeItem();
-        effects.cancel();
+        if (effects != null) {
+            if (effects.getGodTrophy() != null) effects.getGodTrophy().destroyPlayer();
+            effects.removeItem();
+            effects.cancel();
+        }
     }
 
     public void shutdownTrophy() {
         if (loc.getWorld() == null) return;
         loc.getBlock().setType(Material.AIR);
         loc.getBlock().getState().update();
-        effects.removeItem();
-        effects.cancel();
+        if (effects != null) {
+            effects.removeItem();
+            effects.cancel();
+        }
     }
 
     public void restartTrophy(boolean run) {
+        if (effects == null) return;
         if (!run) {
             effects.removeItem();
             effects.setRun(false);

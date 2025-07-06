@@ -100,7 +100,8 @@ public class TrophyEffects extends BukkitRunnable {
             case 10:
                 try {
                     godParticles();
-                } catch (IOException | InterruptedException e) {
+                }
+                catch (IOException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
                 break;
@@ -212,6 +213,9 @@ public class TrophyEffects extends BukkitRunnable {
             mobTrophyOrbital = new CircularRotationObject(loc, 1, 7);
             populateItemList();
             resetLocation();
+        }
+        else if (type == 10 && godTrophy == null && citizensEnabled) {
+            godTrophy = new GodTrophyEffects(loc);
         }
     }
 
@@ -647,7 +651,7 @@ public class TrophyEffects extends BukkitRunnable {
 
     public void godParticles() throws IOException, InterruptedException {
         if (!citizensEnabled) return;
-        if (cycle == 1) godTrophy = new GodTrophyEffects(loc);
+        if (cycle == 1 && godTrophy == null) godTrophy = new GodTrophyEffects(loc);
 
         if (cycle < 122) {
             // Spawn grass block item and send it to the sky
@@ -711,8 +715,8 @@ public class TrophyEffects extends BukkitRunnable {
                 if (world == null) return;
                 world.spawnParticle(Particle.ENCHANT, loc.clone().add(0.5, 0, 0.5), 40);
             }
-            if (cycle % 4 == 0) godTrophy.moveCrystal();
-            godTrophy.questParticleEffect();
+            if (cycle % 4 == 0 && godTrophy != null) godTrophy.moveCrystal();
+            if (godTrophy != null) godTrophy.questParticleEffect();
         }
     }
 
@@ -728,3 +732,4 @@ public class TrophyEffects extends BukkitRunnable {
         return cycle;
     }
 }
+
