@@ -296,6 +296,9 @@ public class GodTrialCommand implements CommandExecutor {
             TrialManager.setTrialBuildingConfig(YamlConfiguration.loadConfiguration(file));
         }
 
+        // Check if the player's inventory is empty
+        if (checkInventory(p)) return true;
+
         if (!TrialManager.getProtectedAreas().containsKey(p.getUniqueId())) {
             if (TrialManager.getTrialBuildingCreationCooldownList().containsKey(p.getUniqueId())) {
                 long timeSinceLastCreation = System.currentTimeMillis() - TrialManager.getTrialBuildingCreationCooldownList().get(p.getUniqueId());
@@ -314,9 +317,6 @@ public class GodTrialCommand implements CommandExecutor {
                 TrialManager.getTrialBuildingCreationCooldownList().put(p.getUniqueId(), System.currentTimeMillis());
             }
         }
-
-        // Check if the player's inventory is empty
-        if (checkInventory(p)) return true;
 
         // Set the player's gamemode to survival
         if (p.getGameMode().equals(GameMode.CREATIVE)) p.setGameMode(org.bukkit.GameMode.SURVIVAL);

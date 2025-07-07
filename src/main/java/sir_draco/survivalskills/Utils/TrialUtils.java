@@ -499,21 +499,23 @@ public class TrialUtils {
         inv.setItem(1, easy);
         inv.setItem(2, filler);
 
-        if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(1)) inv.setItem(3, medium);
-        else inv.setItem(3, filler);
+        if (TrialManager.getPlayerGamemodesBeaten().containsKey(p)) {
+            if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(1)) inv.setItem(3, medium);
+            else inv.setItem(3, filler);
 
-        inv.setItem(4, filler);
+            inv.setItem(4, filler);
 
-        if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(3)) inv.setItem(5, hard);
-        else inv.setItem(5, filler);
+            if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(3)) inv.setItem(5, hard);
+            else inv.setItem(5, filler);
 
-        inv.setItem(6, filler);
+            inv.setItem(6, filler);
 
-        if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(5)) inv.setItem(7, god);
-        else inv.setItem(7, filler);
+            if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(5)) inv.setItem(7, god);
+            else inv.setItem(7, filler);
 
-        if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(7)) inv.setItem(8, death);
-        else inv.setItem(8, filler);
+            if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(7)) inv.setItem(8, death);
+            else inv.setItem(8, filler);
+        }
         TrialManager.getTrialSelectionInventories().add(inv);
         p.openInventory(inv);
     }
@@ -526,6 +528,11 @@ public class TrialUtils {
 
         // If co-op, check if they have beaten the solo version of this difficulty
         if (!trial.isSolo()) {
+            if (!TrialManager.getPlayerGamemodesBeaten().containsKey(p)) {
+                p.sendRawMessage(ChatColor.RED + "You have not beaten any solo mode trials");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return;
+            }
             if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(trueDifficulty - 1)) {
                 p.sendRawMessage(ChatColor.RED + "You have not beaten solo mode on this difficulty");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -533,7 +540,7 @@ public class TrialUtils {
             }
         }
 
-        if (trial.isSolo() && trueDifficulty != 1
+        if (trial.isSolo() && trueDifficulty != 1 && TrialManager.getPlayerGamemodesBeaten().containsKey(p)
                 && !TrialManager.getPlayerGamemodesBeaten().get(p).contains(trueDifficulty - 2)) {
             p.sendRawMessage(ChatColor.RED + "You have not beaten the previous difficulty");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
