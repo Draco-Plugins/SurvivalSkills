@@ -28,6 +28,7 @@ public class SkillManager {
 
     private static final ArrayList<String> skillNames = new ArrayList<>();
     public static final double scalar = 2749.22119298367;
+    public static final double exponentialScalar = 2.260176;
 
     public static final String MINING = "Mining";
     public static final String EXPLORING = "Exploring";
@@ -198,10 +199,13 @@ public class SkillManager {
      */
     public static int totalExperienceForLevel(int level, String skillName) {
         double sum = 0;
-        for (int i = 1; i <= level; i++) sum += Math.log(i) * scalar;
-
-        if (skillName.equals("Main"))
-            if (level >= 100) return 1000000;
+        if (SurvivalSkills.getInstance().isExponentialXP()) {
+            for (int i = 1; i <= level; i++) sum += Math.pow(i, exponentialScalar);
+        }
+        else {
+            for (int i = 1; i <= level; i++) sum += Math.log(i) * scalar;
+        }
+        if (skillName.equals("Main")) if (level >= 100) return 1000000;
         return (int) Math.floor(sum);
     }
 
@@ -219,6 +223,7 @@ public class SkillManager {
 
         // Load global multiplier
         if (config.get("SkillXPMultiplier") != null) multiplier = config.getDouble("SkillXPMultiplier");
+        if (config.get("ExponentialXP") != null) plugin.setExponentialXP(config.getBoolean("ExponentialXP"));
     }
 
     /**

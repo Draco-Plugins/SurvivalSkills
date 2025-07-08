@@ -90,6 +90,7 @@ public final class SurvivalSkills extends JavaPlugin {
     private boolean griefPreventionEnabled = false;
     private boolean worldGuardEnabled = false;
     private boolean citizensEnabled = false;
+    private boolean exponentialXP = false;
     private RegionContainer container = null;
 
     @Override
@@ -983,6 +984,14 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public boolean isCitizensEnabled() {
         return citizensEnabled;
+    }
+
+    public boolean isExponentialXP() {
+        return exponentialXP;
+    }
+
+    public void setExponentialXP(boolean exponentialXP) {
+        this.exponentialXP = exponentialXP;
     }
 
     public static SurvivalSkills getInstance() {

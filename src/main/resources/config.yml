@@ -13,6 +13,7 @@ GraveLifespan: 3600
 SkillXPMultiplier: 1.0
 # Whether the God Trophy Quest should be available to players or not
 GodQuestEnabled: true
+ExponentialXP: true
 
 # Reward Settings
 # Mining Rewards Tree

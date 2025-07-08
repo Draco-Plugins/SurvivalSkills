@@ -3,6 +3,7 @@ package sir_draco.survivalskills.Skills;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import sir_draco.survivalskills.SurvivalSkills;
 
 public class Skill {
     private final int maxLevel = 100;
@@ -126,7 +127,8 @@ public class Skill {
      * the next level regardless of current XP
      */
     public int experienceForNextLevel(int currentLevel) {
-        return SkillManager.totalExperienceForLevel(currentLevel + 1, skillName) - SkillManager.totalExperienceForLevel(currentLevel, skillName);
+        return SkillManager.totalExperienceForLevel(currentLevel + 1, skillName)
+                - SkillManager.totalExperienceForLevel(currentLevel, skillName);
     }
 
     /**
@@ -158,7 +160,12 @@ public class Skill {
         int level = 1;
         double sum = 0;
         while (level <= 100) {
-            sum += Math.log(level + 1) * SkillManager.scalar;
+            if (SurvivalSkills.getInstance().isExponentialXP()) {
+                sum += Math.pow(level, SkillManager.exponentialScalar);
+            }
+            else {
+                sum += Math.log(level + 1) * SkillManager.scalar;
+            }
             int sumCheck = (int) Math.floor(sum);
             if (sumCheck > exp) break;
             level++;
