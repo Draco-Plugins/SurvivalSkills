@@ -38,7 +38,7 @@ public class TrialGUI {
         inv.setItem(4, pointsDisplay);
 
         // Place upgrades in specific slots
-        int[] upgradeSlots = {19, 20, 21, 22, 28, 29, 30, 31};
+        int[] upgradeSlots = {19, 21, 23, 25, 28, 30, 32, 34};
         int slotIndex = 0;
 
         for (String upgradeId : List.of("starting_weapon", "starting_armor", "starting_food",
@@ -210,26 +210,32 @@ public class TrialGUI {
         for (Map.Entry<String, TrialTree.TrialUpgrade> entry : TrialTree.getAllUpgrades().entrySet()) {
             TrialTree.TrialUpgrade upgrade = entry.getValue();
 
-            if (displayName.contains(upgrade.getName())) {
-                // Purchase the upgrade
-                boolean success = playerUpgrades.purchaseUpgrade(upgrade.getId());
-                if (!success) {
-                    player.sendMessage(ChatColor.RED + "You are unable to upgrade " + upgrade.getName() + "!");
-                    return;
-                }
-
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        playerUpgrades.saveToFile();
-                    }
-                }.runTaskAsynchronously(SurvivalSkills.getInstance());
-
-                player.sendMessage(ChatColor.GREEN + "Upgraded " + upgrade.getName() + "!");
-                player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-                player.closeInventory();
+            if (!displayName.contains(upgrade.getName())) continue;
+            // Purchase the upgrade
+            boolean success = playerUpgrades.purchaseUpgrade(upgrade.getId());
+            if (!success) {
+                player.sendMessage(ChatColor.RED + "You are unable to upgrade " + upgrade.getName() + "!");
                 return;
             }
+
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    playerUpgrades.saveToFile();
+                }
+            }.runTaskAsynchronously(SurvivalSkills.getInstance());
+
+            player.sendMessage(ChatColor.GREEN + "Upgraded " + upgrade.getName() + "!");
+            player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+
+            if (!canUpgradeAnythingElse(player)) {
+                player.sendMessage(ChatColor.RED + "You have no more upgrades available!");
+                player.closeInventory();
+            } else {
+                // Reopen the upgrade GUI to reflect changes
+                openUpgradeGUI(player);
+            }
+            return;
         }
     }
 
@@ -239,5 +245,17 @@ public class TrialGUI {
 
     public static void removeInventory(Inventory inventory) {
         upgradeInventories.remove(inventory);
+    }
+
+    public static boolean canUpgradeAnythingElse(Player p) {
+        PlayerTrialUpgrades playerUpgrades = TrialUpgradeManager.getPlayerUpgrades(p);
+
+        for (TrialTree.TrialUpgrade upgrade : TrialTree.getAllUpgrades().values()) {
+            if (playerUpgrades.getAvailablePoints() >= upgrade.getCost(playerUpgrades.getUpgradeLevel(upgrade.getId()) + 1)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

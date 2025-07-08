@@ -21,9 +21,10 @@ import java.util.UUID;
 @SuppressWarnings("NullableProblems")
 public class GodTrialCommand implements CommandExecutor {
 
-    private static final long COOLDOWN = 5 * 60 * 1000L;
+    private final SurvivalSkills plugin;
 
     public GodTrialCommand(SurvivalSkills plugin) {
+        this.plugin = plugin;
         PluginCommand command = plugin.getCommand("godtrial");
         if (command != null) command.setExecutor(this);
     }
@@ -296,33 +297,26 @@ public class GodTrialCommand implements CommandExecutor {
             TrialManager.setTrialBuildingConfig(YamlConfiguration.loadConfiguration(file));
         }
 
-        // Check if the player's inventory is empty
-        if (checkInventory(p)) return true;
-
-        if (!TrialManager.getProtectedAreas().containsKey(p.getUniqueId())) {
-            if (TrialManager.getTrialBuildingCreationCooldownList().containsKey(p.getUniqueId())) {
-                long timeSinceLastCreation = System.currentTimeMillis() - TrialManager.getTrialBuildingCreationCooldownList().get(p.getUniqueId());
-                if (timeSinceLastCreation < COOLDOWN) { // 5 minutes
-                    long timeLeft = (COOLDOWN - timeSinceLastCreation) / 1000;
-                    int minutesLeft = (int) (timeLeft / 60);
-                    int secondsLeft = (int) (timeLeft % 60);
-                    p.sendRawMessage(ChatColor.RED + "You can only create a new trial building every 5 minutes");
-                    p.sendRawMessage(ChatColor.YELLOW + "Time left: " + minutesLeft + " minutes and " + secondsLeft + " seconds");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    return true;
-                }
-            }
-            else {
-                // Store the time that a new trial building is created
-                TrialManager.getTrialBuildingCreationCooldownList().put(p.getUniqueId(), System.currentTimeMillis());
+        // Check if a player is already in a trial
+        for (Trial trial : TrialManager.getTrials()) {
+            if (trial.getPlayers().contains(p)) {
+                p.sendRawMessage(ChatColor.RED + "You are already in a trial");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return true;
             }
         }
+
+        // Check if the player's inventory is empty
+        if (checkInventory(p)) return true;
 
         // Set the player's gamemode to survival
         if (p.getGameMode().equals(GameMode.CREATIVE)) p.setGameMode(org.bukkit.GameMode.SURVIVAL);
 
         // Strip potion effects from the player
         p.getActivePotionEffects().forEach(effect -> p.removePotionEffect(effect.getType()));
+
+        // Disable autotrash and permatrash
+        plugin.getFishingListener().getDisabledAutoTrash().add(p);
 
         // Disable peaceful miner and bloody domain if active
         disableSkills(p);

@@ -58,14 +58,14 @@ public class TrialTree {
 
     private static void initializeUpgrades() {
         // Starting Weapon Upgrades
-        Map<Integer, Integer> weaponCosts = Map.of(1, 500, 2, 1000, 3, 2000, 4, 3500);
+        Map<Integer, Integer> weaponCosts = Map.of(1, 300, 2, 1000, 3, 2000, 4, 3500);
         Map<String, Object> weaponData = Map.of("materials", Arrays.asList(
                 Material.WOODEN_SWORD, Material.STONE_SWORD, Material.IRON_SWORD, Material.DIAMOND_SWORD, Material.NETHERITE_SWORD));
         UPGRADES.put("starting_weapon", new TrialUpgrade("starting_weapon", "Better Starting Weapon",
                 "Upgrade your starting weapon quality", UpgradeType.STARTING_WEAPON, 4, weaponCosts, weaponData));
 
         // Starting Armor Upgrades
-        Map<Integer, Integer> armorCosts = Map.of(1, 750, 2, 1500, 3, 3000, 4, 5000);
+        Map<Integer, Integer> armorCosts = Map.of(1, 500, 2, 1500, 3, 3000, 4, 5000, 5, 7500);
         Map<String, Object> armorData = Map.of(
                 "helmet", Arrays.asList(Material.LEATHER_HELMET, Material.CHAINMAIL_HELMET, Material.IRON_HELMET,
                                         Material.DIAMOND_HELMET, Material.NETHERITE_HELMET),
@@ -79,13 +79,13 @@ public class TrialTree {
                 "Upgrade your starting armor quality", UpgradeType.STARTING_ARMOR, 4, armorCosts, armorData));
 
         // Starting Food Upgrades
-        Map<Integer, Integer> foodCosts = Map.of(1, 200, 2, 400, 3, 800, 4, 1600);
-        Map<String, Object> foodData = Map.of("amounts", Arrays.asList(2, 4, 8, 16, 32));
+        Map<Integer, Integer> foodCosts = Map.of(1, 200, 2, 700, 3, 1400, 4, 2500);
+        Map<String, Object> foodData = Map.of("amounts", Arrays.asList(1, 3, 8, 16, 32));
         UPGRADES.put("starting_food", new TrialUpgrade("starting_food", "More Starting Food",
                 "Increase starting food quantity", UpgradeType.STARTING_FOOD, 4, foodCosts, foodData));
 
         // Arrow Quantity Upgrades
-        Map<Integer, Integer> arrowCosts = Map.of(1, 300, 2, 600, 3, 1200, 4, 2000, 5, 3000);
+        Map<Integer, Integer> arrowCosts = Map.of(1, 1000, 2, 1500, 3, 1700, 4, 2000, 5, 3000);
         Map<String, Object> arrowData = Map.of("amounts", Arrays.asList(0, 16, 32, 48, 64, 96));
         UPGRADES.put("arrow_quantity", new TrialUpgrade("arrow_quantity", "Starting Arrows",
                 "Start with arrows for ranged combat", UpgradeType.ARROW_QUANTITY, 5, arrowCosts, arrowData));
@@ -103,13 +103,13 @@ public class TrialTree {
                 "Increase movement speed during trials", UpgradeType.SPEED_BOOST, 3, speedCosts, speedData));
 
         // Dodge Chance Upgrades
-        Map<Integer, Integer> dodgeCosts = Map.of(1, 1500, 2, 3000, 3, 5000, 4, 7500);
+        Map<Integer, Integer> dodgeCosts = Map.of(1, 1250, 2, 3000, 3, 5000, 4, 7500);
         Map<String, Object> dodgeData = Map.of("chances", Arrays.asList(0.0, 0.05, 0.1, 0.15, 0.25));
         UPGRADES.put("dodge_chance", new TrialUpgrade("dodge_chance", "Dodge Chance",
                 "Chance to avoid damage completely", UpgradeType.DODGE_CHANCE, 4, dodgeCosts, dodgeData));
 
         // Enchant Chance Upgrades
-        Map<Integer, Integer> enchantCosts = Map.of(1, 2000, 2, 4000, 3, 8000);
+        Map<Integer, Integer> enchantCosts = Map.of(1, 1600, 2, 4000, 3, 8000);
         Map<String, Object> enchantData = Map.of("chances", Arrays.asList(0.0, 0.15, 0.3, 0.5));
         UPGRADES.put("enchant_chance", new TrialUpgrade("enchant_chance", "Enchanted Rewards",
                 "Chance for wave rewards to have enchantments", UpgradeType.ENCHANT_CHANCE, 3, enchantCosts, enchantData));

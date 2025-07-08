@@ -23,12 +23,12 @@ public class FrostRevenant extends TrialBoss{
     private boolean firstSpawn = false;
 
     public FrostRevenant(HashMap<ItemStack, Double> drops) {
-        super(ChatColor.LIGHT_PURPLE + "Frost Revenant", 200, 10, 0, 0.35,
+        super("frostRevenant", ChatColor.LIGHT_PURPLE + "Frost Revenant", 200, 10, 0, 0.35,
                 1.5, EntityType.STRAY, drops);
     }
 
     public FrostRevenant(HashMap<ItemStack, Double> drops, double healthMultiplier, double damageMultiplier) {
-        super(ChatColor.LIGHT_PURPLE + "Frost Revenant", 200 * healthMultiplier, 10 * damageMultiplier,
+        super("frostRevenant", ChatColor.LIGHT_PURPLE + "Frost Revenant", 200 * healthMultiplier, 10 * damageMultiplier,
                 0, 0.35, 1.5, EntityType.STRAY, drops);
     }
 
@@ -72,6 +72,10 @@ public class FrostRevenant extends TrialBoss{
         this.stray = (Stray) getBoss();
     }
 
+    public void startScript() {
+        this.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
+    }
+
     public void freezingSnowBall() {
         new BukkitRunnable() {
             Snowball snowball = null;
@@ -108,8 +112,11 @@ public class FrostRevenant extends TrialBoss{
         }
     }
 
-    @Override
     public FrostRevenant duplicate(double healthMultiplier, double damageMultiplier) {
         return new FrostRevenant(getDrops(), healthMultiplier, damageMultiplier);
+    }
+
+    public FrostRevenant duplicate() {
+        return new FrostRevenant(getDrops());
     }
 }

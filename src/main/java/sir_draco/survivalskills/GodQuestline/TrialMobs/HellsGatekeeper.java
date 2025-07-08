@@ -23,13 +23,13 @@ public class HellsGatekeeper extends TrialBoss {
     private WitherSkeleton witherSkeleton = null;
 
     public HellsGatekeeper(HashMap<ItemStack, Double> drops) {
-        super(ColorParser.colorizeString("Hell's Gatekeeper",
+        super("hellsGatekeeper", ColorParser.colorizeString("Hell's Gatekeeper",
                 ColorParser.generateGradient("#EC6000", "#FB0808", 17), true),
                 166, 10, 0, 0.3, 2, EntityType.WITHER_SKELETON, drops);
     }
 
     public HellsGatekeeper(HashMap<ItemStack, Double> drops, double healthMultiplier, double damageMultiplier) {
-        super(ColorParser.colorizeString("Hell's Gatekeeper",
+        super("hellsGatekeeper", ColorParser.colorizeString("Hell's Gatekeeper",
                 ColorParser.generateGradient("#EC6000", "#FB0808", 17), true),
                 166 * healthMultiplier, 10 * damageMultiplier, 0, 0.3, 2, EntityType.WITHER_SKELETON, drops);
     }
@@ -76,6 +76,10 @@ public class HellsGatekeeper extends TrialBoss {
         armor[3] = null;
         if (witherSkeleton.getEquipment() != null)
             witherSkeleton.getEquipment().setArmorContents(armor);
+    }
+
+    public void startScript() {
+        this.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
     }
 
     public void fireStorm() {
@@ -168,8 +172,11 @@ public class HellsGatekeeper extends TrialBoss {
         }
     }
 
-    @Override
     public HellsGatekeeper duplicate(double healthMultiplier, double damageMultiplier) {
         return new HellsGatekeeper(getDrops(), healthMultiplier, damageMultiplier);
+    }
+
+    public HellsGatekeeper duplicate() {
+        return new HellsGatekeeper(getDrops());
     }
 }

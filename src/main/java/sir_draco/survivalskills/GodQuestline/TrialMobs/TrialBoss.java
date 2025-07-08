@@ -15,8 +15,9 @@ import sir_draco.survivalskills.SurvivalSkills;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class TrialBoss extends BukkitRunnable{
+public abstract class TrialBoss extends BukkitRunnable{
 
+    private final String id;
     private final String name;
     private final double maxHealth;
     private final double damage;
@@ -31,8 +32,9 @@ public class TrialBoss extends BukkitRunnable{
     private BossBar bossBar;
     private ArrayList<Location> spawnLocations = null;
 
-    public TrialBoss(String name, double maxHealth, double damage, double defense, double speed, double scale,
+    public TrialBoss(String id, String name, double maxHealth, double damage, double defense, double speed, double scale,
                      EntityType type, HashMap<ItemStack, Double> drops) {
+        this.id = id;
         this.name = name;
         this.maxHealth = Math.ceil(maxHealth);
         this.damage = Math.ceil(damage);
@@ -45,7 +47,10 @@ public class TrialBoss extends BukkitRunnable{
 
     @Override
     public void run() {
-        if (!boss.isDead()) cancel();
+        if (!boss.isDead()) {
+            boss.remove();
+            cancel();
+        }
     }
 
     public boolean spawn(Location loc) {
@@ -125,6 +130,12 @@ public class TrialBoss extends BukkitRunnable{
         boss.setHealth(maxHealth * scale);
     }
 
+    public abstract void startScript();
+
+    public abstract TrialBoss duplicate();
+
+    public abstract TrialBoss duplicate(double healthMultiplier, double damageMultiplier);
+
     public void death() {
         dropItems();
         if (bossBar != null) bossBar.removeAll();
@@ -148,6 +159,7 @@ public class TrialBoss extends BukkitRunnable{
         });
         NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "boss" + boss.getUniqueId());
         bossBar = Bukkit.createBossBar(key, name, BarColor.WHITE, BarStyle.SOLID);
+        bossBar.setProgress(1.0);
         addNearbyPlayersToBossBar();
     }
 
@@ -226,11 +238,7 @@ public class TrialBoss extends BukkitRunnable{
         return spawnLocations;
     }
 
-    public TrialBoss duplicate() {
-        return new TrialBoss(name, maxHealth, damage, defense, speed, scale, type, drops);
-    }
-
-    public TrialBoss duplicate(double healthMultiplier, double damageMultiplier) {
-        return new TrialBoss(name, maxHealth * healthMultiplier, damage * damageMultiplier, defense, speed, scale, type, drops);
+    public String getId() {
+        return id;
     }
 }

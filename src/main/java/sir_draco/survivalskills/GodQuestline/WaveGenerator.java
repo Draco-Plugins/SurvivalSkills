@@ -21,9 +21,13 @@ public class WaveGenerator {
 
     // Store mobs to reuse across difficulties
     private final HashMap<String, WaveMob> mobRegistry = new HashMap<>();
-    private final HashMap<String, TrialBoss> bossRegistry = new HashMap<>();
 
     private final HashMap<Integer, HashMap<Integer, Wave>> cachedWaves = new HashMap<>();
+
+    private BlazingGhast blazingGhast;
+    private FrostRevenant frostRevenant;
+    private HellsGatekeeper hellsGatekeeper;
+    private GrimWither grimWither;
 
     public HashMap<Integer, Wave> getWavesForDifficulty(int difficulty) {
         // Return cached waves if available
@@ -45,7 +49,7 @@ public class WaveGenerator {
         int maxWaves = getMaxWaves(difficulty);
 
         // Initialize mob and boss registry if empty
-        if (mobRegistry.isEmpty() || bossRegistry.isEmpty()) initializeMobRegistry();
+        if (mobRegistry.isEmpty()) initializeMobRegistry();
 
         // Generate waves for this difficulty
         for (int waveNum = 1; waveNum <= maxWaves; waveNum++) {
@@ -187,10 +191,10 @@ public class WaveGenerator {
                 0.3, 1, null, null, null));
 
         // Boss mobs
-        bossRegistry.put("blazingGhast", new BlazingGhast(armorBooks));
-        bossRegistry.put("frostRevenant", new FrostRevenant(weaponBooks));
-        bossRegistry.put("hellsGatekeeper", new HellsGatekeeper(null));
-        bossRegistry.put("grimwither", new GrimWither(null));
+        blazingGhast = new BlazingGhast(armorBooks);
+        frostRevenant = new FrostRevenant(weaponBooks);
+        hellsGatekeeper = new HellsGatekeeper(null);
+        grimWither = new GrimWither(null);
     }
 
     private Wave createWave(int waveNum, double healthMultiplier, double damageMultiplier, double countMultiplier) {
@@ -198,7 +202,7 @@ public class WaveGenerator {
 
         switch (waveNum) {
             case 1:
-                wave.addWaveMob(getScaledMob("zombie", healthMultiplier, damageMultiplier),
+                wave.addWaveMob(getScaledMob("weakZombie", healthMultiplier, damageMultiplier),
                         scaleCount(3, countMultiplier));
                 break;
             case 2:
@@ -244,7 +248,7 @@ public class WaveGenerator {
                 break;
             case 10:
                 wave.setBossWave(true);
-                wave.setBoss(getScaledBoss("blazingGhast", healthMultiplier, damageMultiplier));
+                wave.setBoss(getBlazingGhast(healthMultiplier, damageMultiplier));
                 break;
             case 11:
                 wave.addWaveMob(getScaledMob("pillager", healthMultiplier, damageMultiplier),
@@ -269,7 +273,7 @@ public class WaveGenerator {
                 break;
             case 15:
                 wave.setBossWave(true);
-                wave.setBoss(getScaledBoss("frostRevenant", healthMultiplier, damageMultiplier));
+                wave.setBoss(getFrostRevenant(healthMultiplier, damageMultiplier));
                 break;
             case 16:
                 wave.addWaveMob(getScaledMob("witherSkeleton", healthMultiplier, damageMultiplier),
@@ -296,7 +300,7 @@ public class WaveGenerator {
                 break;
             case 20:
                 wave.setBossWave(true);
-                wave.setBoss(getScaledBoss("hellsGatekeeper", healthMultiplier, damageMultiplier));
+                wave.setBoss(getHellsGatekeeper(healthMultiplier, damageMultiplier));
                 break;
             case 21:
                 wave.addWaveMob(getScaledMob("creeper", healthMultiplier, damageMultiplier),
@@ -328,7 +332,7 @@ public class WaveGenerator {
                 break;
             case 25:
                 wave.setBossWave(true);
-                wave.setBoss(getScaledBoss("grimwither", healthMultiplier, damageMultiplier));
+                wave.setBoss(getGrimWither(healthMultiplier, damageMultiplier));
                 break;
         }
 
@@ -344,23 +348,6 @@ public class WaveGenerator {
         scaledMob.setDamage((int)(Math.ceil(scaledMob.getDamage() * damageMultiplier)));
 
         return scaledMob;
-    }
-
-    private TrialBoss getScaledBoss(String bossId, double healthMultiplier, double damageMultiplier) {
-        // Similar to getScaledMob but handles boss-specific scaling
-        TrialBoss baseBoss = bossRegistry.get(bossId);
-
-        // Create a duplicate - may need special handling for custom boss classes
-        // For simplicity, assuming all bosses have scale methods
-        if (baseBoss instanceof BlazingGhast boss) {
-            return boss.duplicate(healthMultiplier, damageMultiplier);
-        } else if (baseBoss instanceof FrostRevenant boss) {
-            return boss.duplicate(healthMultiplier, damageMultiplier);
-        } else if (baseBoss instanceof HellsGatekeeper boss) {
-            return boss.duplicate(healthMultiplier, damageMultiplier);
-        }
-
-        return baseBoss; // Fallback
     }
 
     private int scaleCount(int baseCount, double countMultiplier) {
@@ -415,5 +402,21 @@ public class WaveGenerator {
         meta.getPersistentDataContainer().set(TrialManager.getTrialObjectKey(), PersistentDataType.STRING, "trialitem");
         item.setItemMeta(meta);
         return item;
+    }
+
+    public BlazingGhast getBlazingGhast(double healthMultiplier, double damageMultiplier) {
+        return blazingGhast.duplicate(healthMultiplier, damageMultiplier);
+    }
+
+    public FrostRevenant getFrostRevenant(double healthMultiplier, double damageMultiplier) {
+        return frostRevenant.duplicate(healthMultiplier, damageMultiplier);
+    }
+
+    public HellsGatekeeper getHellsGatekeeper(double healthMultiplier, double damageMultiplier) {
+        return hellsGatekeeper.duplicate(healthMultiplier, damageMultiplier);
+    }
+
+    public GrimWither getGrimWither(double healthMultiplier, double damageMultiplier) {
+        return grimWither.duplicate(healthMultiplier, damageMultiplier);
     }
 }

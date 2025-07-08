@@ -680,9 +680,24 @@ public class RecipeMaker {
                     return;
                 }
 
-                RecipeRecord record = recipeStack.pop();
-                if (plugin.getServer().getRecipe(record.key()) != null) plugin.getServer().removeRecipe(record.key());
-                plugin.getServer().addRecipe(record.recipe());
+                // Process multiple recipes per tick to reduce total processing time
+                int batchSize = Math.min(10, recipeStack.size()); // Process up to 10 recipes per tick
+                List<RecipeRecord> batch = new ArrayList<>();
+
+                // Collect batch of recipes
+                for (int i = 0; i < batchSize; i++) {
+                    if (!recipeStack.isEmpty()) {
+                        batch.add(recipeStack.pop());
+                    }
+                }
+
+                // Process the entire batch
+                for (RecipeRecord record : batch) {
+                    // Remove existing recipe if it exists (no need to check first)
+                    plugin.getServer().removeRecipe(record.key());
+                    // Add the new recipe
+                    plugin.getServer().addRecipe(record.recipe());
+                }
             }
         }.runTaskTimer(plugin, 1, 1);
     }

@@ -5,7 +5,10 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -32,6 +35,7 @@ public class Trial extends BukkitRunnable {
     private final Player trialMaster;
     private final int trueDifficulty;
     private final int difficulty;
+    private final boolean existingStructure;
 
     private boolean solo = true;
     private boolean buildingCreated = false;
@@ -54,10 +58,12 @@ public class Trial extends BukkitRunnable {
         this.protectedArea = protectedArea;
         this.centerLocation = centerLocation;
         this.trueDifficulty = trueDifficulty;
-        this.difficulty = (int) Math.max(1, (double) (trueDifficulty / 2));
+        this.difficulty = (int) Math.max(1, (double) ((trueDifficulty + 1) / 2));
+        this.maxWave = difficulty * 5;
+        this.existingStructure = false;
         waves = TrialManager.getWaveGenerator().getWavesForDifficulty(difficulty);
-        generateSpawningSpots();
         loadBuilding(building);
+        generateSpawningSpots();
     }
 
     public Trial(Player p, ProtectedArea protectedArea, Location centerLocation, int trueDifficulty) {
@@ -65,10 +71,11 @@ public class Trial extends BukkitRunnable {
         this.protectedArea = protectedArea;
         this.centerLocation = centerLocation;
         this.trueDifficulty = trueDifficulty;
-        this.difficulty = (int) Math.max(1, (double) (trueDifficulty / 2));
+        this.difficulty = (int) Math.max(1, (double) ((trueDifficulty + 1) / 2));
+        this.maxWave = difficulty * 5;
+        this.existingStructure = true;
         waves = TrialManager.getWaveGenerator().getWavesForDifficulty(difficulty);
         generateSpawningSpots();
-        startTrial();
     }
 
     @Override
@@ -82,6 +89,18 @@ public class Trial extends BukkitRunnable {
             timeCycle++;
             if (timeCycle % 20 == 0)
                 timeSpent++;
+
+            // Make sure all mobs are targeting players
+            for (WaveMob mob : wave.getWaveMobs()) {
+                if (mob.getEntity() == null || mob.getEntity().isDead()) continue;
+                if (!(mob.getEntity() instanceof Mob waveMob)) continue;
+
+                // Target a random player
+                if (waveMob.getTarget() == null) {
+                    Player target = getClosestPlayer(waveMob.getLocation());
+                    if (target != null) waveMob.setTarget(target);
+                }
+            }
         }
 
         if (!activeWave) {
@@ -152,40 +171,45 @@ public class Trial extends BukkitRunnable {
     }
 
     public void generateSpawningSpots() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                // Generate spawning spots for the mobs at 25 locations around the centerLocation
-                for (int x = -15; x <= 15; x += 5) {
-                    for (int z = -15; z <= 15; z += 5) {
-                        if (x == 0 && z == 0) continue;
-                        // Make sure the spawning spot has 3 air blocks above it
-                        Location spot = validateSpawningSpot(centerLocation.clone().add(x, 0, z));
-                        spawningSpots.add(spot);
-                    }
-                }
-                spawningSpotsGenerated = true;
+        // Generate spawning spots for the mobs at 25 locations around the centerLocation
+        for (int x = -15; x <= 15; x += 5) {
+            for (int z = -15; z <= 15; z += 5) {
+                if (x == 0 && z == 0) continue;
+                // Make sure the spawning spot has 3 air blocks above it
+                Location spot = validateSpawningSpot(centerLocation.clone().add(x, 0, z));
+                if (spot == null) continue;
+                spawningSpots.add(spot);
             }
-        }.runTaskAsynchronously(SurvivalSkills.getInstance());
+        }
+        spawningSpotsGenerated = true;
     }
 
     public Location validateSpawningSpot(Location location) {
-        // Make sure it isn't too high
-        if (location.getY() >= centerLocation.getY() + 27) return validateSpawningSpot(location.clone().add(1, -27, 1));
-
         // Check if the location is a valid spawning spot
-        if (location.getBlock().getType().isAir()
-                && location.clone().add(0, 1, 0).getBlock().getType().isAir()
-                && location.clone().add(0, 2, 0).getBlock().getType().isAir()) {
-            return location;
+        while (location.getY() < centerLocation.getY() + 27) {
+            Block block = location.getBlock();
+            if (block.getType().isAir()
+                    && block.getRelative(0, 1, 0).getType().isAir()
+                    && block.getRelative(0, 2, 0).getType().isAir()
+                    && block.getRelative(0, -1, 0).getType().isSolid()) {
+                return location;
+            }
+            location.add(0, 1, 0);
         }
-        return validateSpawningSpot(location.clone().add(0, 1, 0));
+        return null;
     }
 
     public void spawnWave() {
         waveEnded = false;
         waveSpawned = true;
         activeWave = true;
+
+        if (waveNumber > waves.size()) {
+            Bukkit.getLogger().warning("No more waves available for wave number: " + waveNumber);
+            endTrial();
+            return;
+        }
+
         wave = TrialManager.spawnWave(waves.get(waveNumber), spawningSpots, players, playerCount);
 
         for (ArrayList<Player> spectatorList : spectators.values()) {
@@ -270,9 +294,15 @@ public class Trial extends BukkitRunnable {
     }
 
     public void startTrial() {
+        if (players.isEmpty()) {
+            Bukkit.getLogger().warning("Cannot start trial with no players!");
+            return;
+        }
+
         for (Player p : players) {
             p.setAllowFlight(false);
             p.setFlying(false);
+            p.setFoodLevel(20);
 
             // Get player upgrades and apply starting items
             PlayerTrialUpgrades upgrades = PlayerTrialUpgrades.getPlayerUpgrades(p);
@@ -292,6 +322,7 @@ public class Trial extends BukkitRunnable {
         playerCount = players.size();
         buildingCreated = true;
         activeWave = true;
+        TrialUtils.removeGroundItemsInProtectedArea(protectedArea);
     }
 
     public void restartTrial() {
@@ -320,6 +351,7 @@ public class Trial extends BukkitRunnable {
         cancel();
 
         for (Player p : players) {
+            SurvivalSkills.getInstance().getFishingListener().getDisabledAutoTrash().remove(p);
             p.getInventory().clear();
             TrialManager.getTrialScoreboards().remove(p);
             SkillScoreboard.updateScoreboard(SurvivalSkills.getInstance(), p);
@@ -372,7 +404,7 @@ public class Trial extends BukkitRunnable {
             SkillScoreboard.updateScoreboard(SurvivalSkills.getInstance(), p);
         }
 
-        int timeBonus = 3600 - timeSpent;
+        int timeBonus = (3600 * difficulty) - timeSpent;
         if (timeBonus > 0) changeScore(timeBonus);
         cancel();
 
@@ -387,6 +419,10 @@ public class Trial extends BukkitRunnable {
 
         for (Player p : players) {
             // Add the difficulty to the player's completed gamemodes
+            if (!TrialManager.getPlayerGamemodesBeaten().containsKey(p)) {
+                TrialManager.getPlayerGamemodesBeaten().put(p, new ArrayList<>());
+            }
+
             if (!TrialManager.getPlayerGamemodesBeaten().get(p).contains(trueDifficulty))
                 TrialManager.getPlayerGamemodesBeaten().get(p).add(trueDifficulty);
 
@@ -408,15 +444,17 @@ public class Trial extends BukkitRunnable {
                 final int time = timeSpent;
                 @Override
                 public void run() {
-                    p.sendTitle(ChatColor.YELLOW + "Final Score", ChatColor.GRAY + "" + (score / playerCount), 5, 30, 5);
+                    p.sendTitle(ChatColor.YELLOW + "Final Score", ChatColor.GRAY + "" + (score / playerCount), 5, 50,
+                                5);
                     String timeSpent = RewardNotifications.cooldown(time);
                     p.sendRawMessage(ChatColor.YELLOW + "Trial completed in " + timeSpent);
 
                     if (newHighScore) {
                         String type;
-                        if (solo) type = " Solo";
+                        if (solo) type = "Solo";
                         else type = "Co-op";
-                        p.sendRawMessage(ChatColor.YELLOW + "New " + type + " High Score!");
+                        p.sendRawMessage(ChatColor.YELLOW + "New " + type + " High Score: " + ChatColor.AQUA
+                                                 + (score / playerCount) + ChatColor.YELLOW + "!");
                         p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                     }
                 }
@@ -516,10 +554,6 @@ public class Trial extends BukkitRunnable {
         return maxWave;
     }
 
-    public void setMaxWave(int maxWave) {
-        this.maxWave = maxWave;
-    }
-
     public boolean isActiveWave() {
         return activeWave;
     }
@@ -530,5 +564,9 @@ public class Trial extends BukkitRunnable {
 
     public void setSolo(boolean solo) {
         this.solo = solo;
+    }
+
+    public boolean isExistingStructure() {
+        return existingStructure;
     }
 }

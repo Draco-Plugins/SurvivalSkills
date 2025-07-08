@@ -66,19 +66,7 @@ public class TrialManager implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
-        if (trialDataConfig == null) {
-            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
-            if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
-            trialDataConfig = YamlConfiguration.loadConfiguration(file);
-        }
-
-        if (trialDataConfig.contains(e.getPlayer().getUniqueId() + ".GamemodesBeaten")) {
-            ArrayList<Integer> gamemodesBeaten = new ArrayList<>();
-            for (String gamemode : trialDataConfig.getStringList(e.getPlayer().getUniqueId() + ".GamemodesBeaten"))
-                gamemodesBeaten.add(Integer.parseInt(gamemode));
-            playerGamemodesBeaten.put(e.getPlayer(), gamemodesBeaten);
-        }
-        else playerGamemodesBeaten.put(e.getPlayer(), new ArrayList<>());
+        loadCompletedTrials(e.getPlayer());
     }
 
     @EventHandler
@@ -324,7 +312,7 @@ public class TrialManager implements Listener {
             break;
         }
         if (trial == null) return;
-        trial.changeScore((int) -damage);
+        trial.changeScore((int) -damage * 2);
         if (Math.random() < TrialTree.getDodgeChance(TrialUpgradeManager.getPlayerUpgrades(p))) {
             e.setCancelled(true);
             return;
@@ -382,13 +370,14 @@ public class TrialManager implements Listener {
 
             // Apply the book enchant to the item
             for (Map.Entry<Enchantment, Integer> enchant : bookMeta.getStoredEnchants().entrySet()) {
-                if (item.getEnchantments().containsKey(enchant.getKey())
-                        && Objects.equals(item.getEnchantments().get(enchant.getKey()), enchant.getValue())) {
-                    itemMeta.removeStoredEnchant(enchant.getKey());
-                    itemMeta.addEnchant(enchant.getKey(), enchant.getValue() + 1, true);
+                Enchantment enchantment = enchant.getKey();
+                if (item.getEnchantments().containsKey(enchantment)
+                        && Objects.equals(item.getEnchantments().get(enchantment), enchant.getValue())) {
+                    itemMeta.removeStoredEnchant(enchantment);
+                    itemMeta.addEnchant(enchantment, enchant.getValue() + 1, true);
                     continue;
                 }
-                itemMeta.addStoredEnchant(enchant.getKey(), enchant.getValue(), true);
+                itemMeta.addStoredEnchant(enchantment, enchant.getValue(), true);
             }
             item.setItemMeta(itemMeta);
             e.setCancelled(true);
@@ -408,8 +397,8 @@ public class TrialManager implements Listener {
             }
             item.addEnchantment(enchant.getKey(), enchant.getValue());
         }
-        e.setCancelled(true);
         e.getWhoClicked().setItemOnCursor(null);
+        e.setCancelled(true);
     }
 
     @EventHandler
@@ -548,7 +537,12 @@ public class TrialManager implements Listener {
 
         // Ensure they are targeting the right trial player
         for (Trial trial : trials)
-            if (trial.getPlayers().contains(target)) return;
+            if (trial.getPlayers().contains(target)) {
+                // Pick a random player to target
+                ArrayList<Player> players = new ArrayList<>(trial.getPlayers());
+                e.setTarget(players.get((int) (Math.random() * players.size())));
+                return;
+            }
         e.setCancelled(true);
     }
 
@@ -599,7 +593,7 @@ public class TrialManager implements Listener {
 
     @EventHandler
     public void playerQuit(PlayerQuitEvent e) {
-        TrialUtils.saveCompletedTrials(e.getPlayer());
+        TrialUtils.saveCompletedTrials(e.getPlayer(), trialDataConfig, false);
     }
 
     public static boolean isTrialPlayer(Player p) {
@@ -608,20 +602,22 @@ public class TrialManager implements Listener {
     }
 
     public static void loadProtectedAreas() {
-        File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
-        if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
-        FileConfiguration data = YamlConfiguration.loadConfiguration(file);
+        if (trialDataConfig == null) {
+            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
+            if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
+            trialDataConfig = YamlConfiguration.loadConfiguration(file);
+        }
 
-        ConfigurationSection section = data.getConfigurationSection("");
+        ConfigurationSection section = trialDataConfig.getConfigurationSection("");
         if (section == null) return;
         if (section.getKeys(false).isEmpty()) return;
 
         for (String key : section.getKeys(false)) {
             // Get the min and max boundaries of the bounding box
-            if (!data.contains(key + ".ProtectedArea")) continue;
-            String minString = (String) data.get(key + ".ProtectedArea.Min");
+            if (!trialDataConfig.contains(key + ".ProtectedArea")) continue;
+            String minString = (String) trialDataConfig.get(key + ".ProtectedArea.Min");
             if (minString == null) continue;
-            String maxString = (String) data.get(key + ".ProtectedArea.Max");
+            String maxString = (String) trialDataConfig.get(key + ".ProtectedArea.Max");
             if (maxString == null) continue;
             String[] minLocation = minString.split(":");
             String[] maxLocation = maxString.split(":");
@@ -631,15 +627,32 @@ public class TrialManager implements Listener {
             box.resize(Double.parseDouble(minLocation[0]), Double.parseDouble(minLocation[1]), Double.parseDouble(minLocation[2]),
                     Double.parseDouble(maxLocation[0]), Double.parseDouble(maxLocation[1]), Double.parseDouble(maxLocation[2]));
 
-            String worldString = (String) data.get(key + ".ProtectedArea.World");
+            String worldString = (String) trialDataConfig.get(key + ".ProtectedArea.World");
             if (worldString == null) continue;
-            World world = Bukkit.getWorld(UUID.fromString(worldString));
+            // Use world name instead of UUID for reliability
+            World world = Bukkit.getWorld(worldString);
 
             ProtectedArea protectedArea = new ProtectedArea(box, world);
 
             UUID uuid = UUID.fromString(key);
             protectedAreas.put(uuid, protectedArea);
         }
+    }
+
+    public static void loadCompletedTrials(Player p) {
+        if (trialDataConfig == null) {
+            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
+            if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
+            trialDataConfig = YamlConfiguration.loadConfiguration(file);
+        }
+
+        if (trialDataConfig.contains(p.getUniqueId() + ".CompletedTrials")) {
+            ArrayList<Integer> gamemodesBeaten = new ArrayList<>();
+            for (String gamemode : trialDataConfig.getStringList(p.getUniqueId() + ".CompletedTrials"))
+                gamemodesBeaten.add(Integer.parseInt(gamemode));
+            playerGamemodesBeaten.put(p, gamemodesBeaten);
+        }
+        else playerGamemodesBeaten.put(p, new ArrayList<>());
     }
 
     public static void startCleanupTask() {
@@ -671,18 +684,14 @@ public class TrialManager implements Listener {
         }
 
         for (UUID id : toRemove) trialBuildingOwnership.remove(id);
-        if (!toRemove.isEmpty()) saveTrialBuildingData();
+        if (!toRemove.isEmpty()) saveTrialBuildingData(true);
     }
 
     public static void updateTrialUsage(UUID trialBuildingId) {
         TrialBuildingData data = trialBuildingOwnership.get(trialBuildingId);
         if (data != null) {
-            trialBuildingOwnership.put(trialBuildingId, new TrialBuildingData(
-                    data.owner(),
-                    System.currentTimeMillis(),
-                    data.location()
-            ));
-            saveTrialBuildingData();
+            trialBuildingOwnership.put(trialBuildingId, new TrialBuildingData(data.owner(), System.currentTimeMillis(),
+                    data.location()));
         }
     }
 
@@ -695,7 +704,7 @@ public class TrialManager implements Listener {
         trialBuildingOwnership.put(userId, new TrialBuildingData(userId, System.currentTimeMillis(), location));
     }
 
-    private static void saveTrialBuildingData() {
+    private static void saveTrialBuildingData(boolean saveFile) {
         if (trialDataConfig == null) {
             File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
             if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
@@ -705,9 +714,15 @@ public class TrialManager implements Listener {
         // Get a list of all currently stored UUIDs
         List<String> existingKeys = new ArrayList<>(trialDataConfig.getKeys(false));
         // Remove keys that are no longer in use
-        for (String key : existingKeys)
-            if (!trialBuildingOwnership.containsKey(UUID.fromString(key)))
-                trialDataConfig.set(key, null);
+        for (String key : existingKeys) {
+            try {
+                UUID uuid = UUID.fromString(key);
+                if (!trialBuildingOwnership.containsKey(uuid))
+                    trialDataConfig.set(key, null);
+            } catch (IllegalArgumentException e) {
+                // Not a UUID, skip
+            }
+        }
 
         for (Map.Entry<UUID, TrialBuildingData> entry : trialBuildingOwnership.entrySet()) {
             String key = entry.getKey().toString();
@@ -717,6 +732,8 @@ public class TrialManager implements Listener {
             trialDataConfig.set(key + ".LastUsed", data.lastUsed());
             trialDataConfig.set(key + ".Location", locationToString(data.location()));
         }
+
+        if (!saveFile) return;
 
         try {
             File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
@@ -733,9 +750,9 @@ public class TrialManager implements Listener {
 
     private static void loadTrialBuildingData() {
         if (trialDataConfig == null) {
-            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialbuilding.yml");
+            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
             if (!file.exists()) {
-                Bukkit.getLogger().warning("No trial building saved in trialbuilding.yml");
+                Bukkit.getLogger().warning("No trial building saved in trialdata.yml");
                 return;
             }
             trialDataConfig = YamlConfiguration.loadConfiguration(file);
@@ -786,31 +803,37 @@ public class TrialManager implements Listener {
 
         if (protectedAreas.isEmpty()) return;
 
-        // Save the protected areas to the config
-        File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
-        if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
-        FileConfiguration data = YamlConfiguration.loadConfiguration(file);
-
         for (Map.Entry<UUID, ProtectedArea> protectedArea : protectedAreas.entrySet()) {
             String minLocation = protectedArea.getValue().boundingBox().getMinX() + ":"
                     + protectedArea.getValue().boundingBox().getMinY() + ":" + protectedArea.getValue().boundingBox().getMinZ();
             String maxLocation = protectedArea.getValue().boundingBox().getMaxX() + ":"
                     + protectedArea.getValue().boundingBox().getMaxY() + ":" + protectedArea.getValue().boundingBox().getMaxZ();
-            data.set(protectedArea.getKey().toString() + ".ProtectedArea.Min", minLocation);
-            data.set(protectedArea.getKey().toString() + ".ProtectedArea.Max", maxLocation);
-            data.set(protectedArea.getKey().toString() + ".ProtectedArea.World", protectedArea.getValue().world().getUID().toString());
+            trialDataConfig.set(protectedArea.getKey().toString() + ".ProtectedArea.Min", minLocation);
+            trialDataConfig.set(protectedArea.getKey().toString() + ".ProtectedArea.Max", maxLocation);
+            // Save world name instead of UUID for reliability
+            trialDataConfig.set(protectedArea.getKey().toString() + ".ProtectedArea.World", protectedArea.getValue().world().getName());
+        }
+
+        saveTrialBuildingData(false);
+
+        for (Map.Entry<Player, ArrayList<Integer>> entry : playerGamemodesBeaten.entrySet()) {
+            TrialUtils.saveCompletedTrials(entry.getKey(), trialDataConfig, true);
         }
 
         try {
-            data.save(file);
+            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
+            trialDataConfig.save(file);
         } catch (Exception e) {
             SurvivalSkills.getInstance().getLogger().warning("Failed to save protected areas to trialdata.yml");
         }
-
-        saveTrialBuildingData();
     }
 
     public static Wave spawnWave(Wave wave, ArrayList<Location> spawningSpots, ArrayList<Player> players, int playerCount) {
+        if (spawningSpots == null || spawningSpots.isEmpty()) {
+            SurvivalSkills.getInstance().getLogger().warning("No spawning spots provided for wave " + wave);
+            return null;
+        }
+
         if (wave == null) return null;
         Wave waveObject = wave.duplicate();
         if (waveObject == null) {
@@ -820,12 +843,11 @@ public class TrialManager implements Listener {
 
         if (waveObject.isBossWave()) {
             TrialBoss boss = waveObject.getBoss();
-
-            boss.scaleHealth(playerCount);
             boss.setSpawnLocations(spawningSpots);
             boss.spawn(spawningSpots.get((int) (Math.random() * spawningSpots.size())));
-            boss.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
 
+            boss.scaleHealth(playerCount);
+            boss.startScript();
             return waveObject;
         }
 

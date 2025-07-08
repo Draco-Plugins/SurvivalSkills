@@ -1,5 +1,6 @@
 package sir_draco.survivalskills.GodQuestline.TrialMobs;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -27,12 +28,12 @@ public class BlazingGhast extends TrialBoss {
     private Ghast ghast = null;
 
     public BlazingGhast(HashMap<ItemStack, Double> drops) {
-        super(ChatColor.RED + "Blazing Ghast", 100, 10, 0, 0.2, 1,
+        super("blazingGhast", ChatColor.RED + "Blazing Ghast", 100, 10, 0, 0.2, 1,
                 EntityType.GHAST, drops);
     }
 
     public BlazingGhast(HashMap<ItemStack, Double> drops, double healthMultiplier, double damageMultiplier) {
-        super(ChatColor.RED + "Blazing Ghast", 100 * healthMultiplier, 10 * damageMultiplier,
+        super("blazingGhast", ChatColor.RED + "Blazing Ghast", 100 * healthMultiplier, 10 * damageMultiplier,
                 0, 0.2, 1, EntityType.GHAST, drops);
     }
 
@@ -73,6 +74,10 @@ public class BlazingGhast extends TrialBoss {
     @Override
     public void handleTypeSpecificSpawn() {
         this.ghast = (Ghast) getBoss();
+    }
+
+    public void startScript() {
+        this.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
     }
 
     public void checkTooFar() {
@@ -140,8 +145,11 @@ public class BlazingGhast extends TrialBoss {
         }
     }
 
-    @Override
     public BlazingGhast duplicate(double healthMultiplier, double damageMultiplier) {
         return new BlazingGhast(getDrops(), healthMultiplier, damageMultiplier);
+    }
+
+    public BlazingGhast duplicate() {
+        return new BlazingGhast(getDrops());
     }
 }

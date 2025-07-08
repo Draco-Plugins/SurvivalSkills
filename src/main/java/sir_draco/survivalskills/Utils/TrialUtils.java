@@ -24,6 +24,7 @@ import java.util.UUID;
 public class TrialUtils {
 
     public static ArrayList<RelativeBlock> trialBuildingBlocks = new ArrayList<>();
+    private static final long COOLDOWN = 5 * 60 * 1000L;
 
     public static ArrayList<Block> getBlocks(Location location, int x, int y, int z) {
         ArrayList<Block> blocks = new ArrayList<>();
@@ -165,24 +166,28 @@ public class TrialUtils {
         });
     }
 
-    public static void saveCompletedTrials(Player p) {
+    public static void saveCompletedTrials(Player p, FileConfiguration data, boolean disabling) {
+        if (disabling) {
+            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
+            if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
+
+            ArrayList<Integer> completedTrials = TrialManager.getPlayerGamemodesBeaten().get(p);
+            if (completedTrials == null) return;
+            if (completedTrials.isEmpty()) return;
+            data.set(p.getUniqueId() + ".CompletedTrials", completedTrials);
+            return;
+        }
+
         new BukkitRunnable() {
             @Override
             public void run() {
                 File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
                 if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
-                FileConfiguration data = YamlConfiguration.loadConfiguration(file);
 
                 ArrayList<Integer> completedTrials = TrialManager.getPlayerGamemodesBeaten().get(p);
                 if (completedTrials == null) return;
                 if (completedTrials.isEmpty()) return;
                 data.set(p.getUniqueId() + ".CompletedTrials", completedTrials);
-
-                try {
-                    data.save(file);
-                } catch (Exception e) {
-                    SurvivalSkills.getInstance().getLogger().warning("Failed to save completed trials to trialdata.yml");
-                }
             }
         }.runTaskAsynchronously(SurvivalSkills.getInstance());
     }
@@ -243,6 +248,26 @@ public class TrialUtils {
         // Check if the player has an empty 50x50x30 area around them
         if (emptyArea(p, pLocation)) return;
 
+        // Check if the player can create a new building
+        if (!TrialManager.getProtectedAreas().containsKey(p.getUniqueId())) {
+            if (TrialManager.getTrialBuildingCreationCooldownList().containsKey(p.getUniqueId())) {
+                long timeSinceLastCreation = System.currentTimeMillis() - TrialManager.getTrialBuildingCreationCooldownList().get(p.getUniqueId());
+                if (timeSinceLastCreation < COOLDOWN) { // 5 minutes
+                    long timeLeft = (COOLDOWN - timeSinceLastCreation) / 1000;
+                    int minutesLeft = (int) (timeLeft / 60);
+                    int secondsLeft = (int) (timeLeft % 60);
+                    p.sendRawMessage(ChatColor.RED + "You can only create a new trial building every 5 minutes");
+                    p.sendRawMessage(ChatColor.YELLOW + "Time left: " + minutesLeft + " minutes and " + secondsLeft + " seconds");
+                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    return;
+                }
+            }
+            else {
+                // Store the time that a new trial building is created
+                TrialManager.getTrialBuildingCreationCooldownList().put(p.getUniqueId(), System.currentTimeMillis());
+            }
+        }
+
         // Load the default trial building
         ArrayList<RelativeBlock> blocks = TrialUtils.loadTrialBuilding(TrialManager.getTrialBuildingConfig());
 
@@ -276,6 +301,14 @@ public class TrialUtils {
             BoundingBox box = area.boundingBox();
             Location centerLocation = new Location(pLocation.getWorld(), box.getCenterX(), box.getMinY() + 1, box.getCenterZ());
 
+            // Check if the player is within 100 blocks of the center of the trial building
+            if (pLocation.distance(centerLocation) > 100) {
+                p.sendRawMessage(ChatColor.RED + "You are too far away from the trial building");
+                p.sendRawMessage(ChatColor.YELLOW + "Stand within 100 blocks of the trial building to start the trial");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return true;
+            }
+
             // Get pending trial
             PendingTrial trial = TrialManager.getPendingTrials().get(p);
             if (trial == null) {
@@ -298,7 +331,8 @@ public class TrialUtils {
                 for (int k = -25; k <= 25; k++) {
                     if (!pLocation.clone().add(i, j, k).getBlock().getType().isAir()) {
                         p.sendRawMessage(ChatColor.RED + "You do not have enough space to start the trial");
-                        p.sendRawMessage(ChatColor.YELLOW + "Stand in the middle of an empty 50x50x30 area");
+                        p.sendRawMessage(ChatColor.YELLOW + "Stand in the middle of an empty 50x50 area with sky " +
+                                                 "access");
                         p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                         return true;
                     }
@@ -309,11 +343,22 @@ public class TrialUtils {
                         p.sendRawMessage(ChatColor.RED + "You are in a claim");
                         p.sendRawMessage(ChatColor.YELLOW + "Stand in an unclaimed area to start the trial");
                         p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                        p.closeInventory();
+                        return true;
+                    }
+
+                    // Check if the block has sky access
+                    Block block = pLocation.clone().add(i, j, k).getBlock();
+                    if (block.getType().isAir() && block.getLightFromSky() == 0) {
+                        p.sendRawMessage(ChatColor.RED + "You do not have enough space to start the trial");
+                        p.sendRawMessage(ChatColor.YELLOW + "Stand in the middle of an empty 50x50 area with sky access");
+                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                         return true;
                     }
                 }
             }
         }
+
         return false;
     }
 
@@ -332,13 +377,26 @@ public class TrialUtils {
         else trial = new Trial(blocks, pendingTrial.getTrialMaster(), area, centerLocation, pendingTrial.getTrialDifficulty());
         TrialManager.registerTrialBuilding(pendingTrial.getTrialMaster().getUniqueId(), centerLocation);
 
+        if (pendingTrial.getPlayers().isEmpty()) {
+            pendingTrial.getTrialMaster().sendRawMessage(ChatColor.RED + "You must have at least one player in your trial");
+            pendingTrial.getTrialMaster().playSound(pendingTrial.getTrialMaster(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            TrialManager.getPendingTrials().remove(pendingTrial.getTrialMaster());
+            pendingTrial.getTrialMaster().closeInventory();
+            return;
+        }
+
         for (Player p : pendingTrial.getPlayers()) trial.getPlayers().add(p);
+        // Make sure the trial master is added to the players list
+        if (!trial.getPlayers().contains(pendingTrial.getTrialMaster())) {
+            trial.getPlayers().add(pendingTrial.getTrialMaster());
+        }
+
         trial.initializeScoreboards();
         trial.setSolo(pendingTrial.isSolo());
-        trial.setMaxWave(pendingTrial.getTrialDifficulty() * 5);
         TrialManager.getPendingTrials().remove(pendingTrial.getTrialMaster());
         TrialManager.getTrials().add(trial);
         trial.runTaskTimer(SurvivalSkills.getInstance(), 60, 1);
+        if (trial.isExistingStructure()) trial.startTrial();
     }
 
     public static boolean completedGodQuest(Player p) {
@@ -550,7 +608,10 @@ public class TrialUtils {
         trial.setTrialDifficulty(trueDifficulty);
         trial.setChosenDifficulty(true);
 
-        if (trial.isSolo()) initializeTrial(p, p.getLocation());
+        if (trial.isSolo()) {
+            p.closeInventory();
+            initializeTrial(p, p.getLocation());
+        }
         else trial.updatePlayerManager();
     }
 

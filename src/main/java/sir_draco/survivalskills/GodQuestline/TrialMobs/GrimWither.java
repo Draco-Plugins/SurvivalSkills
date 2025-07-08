@@ -13,9 +13,7 @@ import org.bukkit.util.Vector;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.Utils.ColorParser;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 public class GrimWither extends TrialBoss {
 
@@ -26,13 +24,13 @@ public class GrimWither extends TrialBoss {
     private Wither wither = null;
 
     public GrimWither(HashMap<ItemStack, Double> drops) {
-        super(ColorParser.colorizeString("Grim Wither",
+        super("grimWither", ColorParser.colorizeString("Grim Wither",
                 ColorParser.generateGradient("#EC6000", "#FB0808", 11), true),
                 200, 15, 0, 0.3, 1.5, EntityType.WITHER, drops);
     }
 
     public GrimWither(HashMap<ItemStack, Double> drops, double healthMultiplier, double damageMultiplier) {
-        super(ColorParser.colorizeString("Grim Wither",
+        super("grimWither", ColorParser.colorizeString("Grim Wither",
                 ColorParser.generateGradient("#F7F7F7", "#3D3D3F", 11), true),
                 200 * healthMultiplier, 15 * damageMultiplier, 0, 0.3, 1.5, EntityType.WITHER, drops);
     }
@@ -63,6 +61,10 @@ public class GrimWither extends TrialBoss {
         else if (chance < 0.7) shootGravitySphere();
         else if (chance < 0.9) delayedTeleport();
         else shootDeathMistBall();
+    }
+
+    public void startScript() {
+        this.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
     }
 
     private void delayedTeleport() {
@@ -683,8 +685,11 @@ public class GrimWither extends TrialBoss {
         this.wither = (Wither) getBoss();
     }
 
-    @Override
     public GrimWither duplicate(double healthMultiplier, double damageMultiplier) {
         return new GrimWither(getDrops(), healthMultiplier, damageMultiplier);
+    }
+
+    public GrimWither duplicate() {
+        return new GrimWither(getDrops());
     }
 }
