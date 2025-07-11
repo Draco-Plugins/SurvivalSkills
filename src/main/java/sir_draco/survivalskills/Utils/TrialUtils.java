@@ -708,7 +708,5 @@ public class TrialUtils {
             // Add the player to the selected party
             trial.handleNewPartyMember(p);
         }
-
-        Bukkit.getLogger().info("Nothing clicked");
     }
 }

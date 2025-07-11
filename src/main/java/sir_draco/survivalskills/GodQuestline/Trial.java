@@ -62,7 +62,7 @@ public class Trial extends BukkitRunnable {
         this.existingStructure = false;
         waves = TrialManager.getWaveGenerator().getWavesForDifficulty(difficulty);
         loadBuilding(building);
-        generateSpawningSpots();
+        // Remove generateSpawningSpots() from here - it will be called after building is complete
     }
 
     public Trial(Player p, ProtectedArea protectedArea, Location centerLocation, int trueDifficulty) {
@@ -74,7 +74,7 @@ public class Trial extends BukkitRunnable {
         this.maxWave = difficulty * 5;
         this.existingStructure = true;
         waves = TrialManager.getWaveGenerator().getWavesForDifficulty(difficulty);
-        generateSpawningSpots();
+        generateSpawningSpots(); // Keep this for existing structures since they're already built
     }
 
     @Override
@@ -158,6 +158,8 @@ public class Trial extends BukkitRunnable {
             @Override
             public void run() {
                 if (building.isEmpty()) {
+                    // Generate spawning spots after building is complete
+                    generateSpawningSpots();
                     startTrial();
                     cancel();
                     return;
@@ -213,7 +215,26 @@ public class Trial extends BukkitRunnable {
             return;
         }
 
+        // Add validation for spawning spots
+        if (spawningSpots.isEmpty()) {
+            Bukkit.getLogger().warning("No valid spawning spots found for trial! Regenerating spawning spots...");
+            generateSpawningSpots();
+
+            if (spawningSpots.isEmpty()) {
+                Bukkit.getLogger().severe("Failed to generate spawning spots for trial! Ending trial.");
+                endTrial();
+                return;
+            }
+        }
+
         wave = TrialManager.spawnWave(waves.get(waveNumber), spawningSpots, players, playerCount);
+
+        // Additional safety check
+        if (wave == null) {
+            Bukkit.getLogger().warning("Failed to spawn wave " + waveNumber + "! Ending trial.");
+            endTrial();
+            return;
+        }
 
         for (ArrayList<Player> spectatorList : spectators.values()) {
             for (Player player : spectatorList) {
@@ -348,6 +369,12 @@ public class Trial extends BukkitRunnable {
     }
 
     public void endTrial() {
+        // Remove spectators first while the trial is still in the list
+        for (Map.Entry<Player, ArrayList<Player>> specatorLists : spectators.entrySet())
+            for (Player spectator : specatorLists.getValue())
+                TrialUtils.removeTrialSpectator(spectator, specatorLists.getKey());
+
+        // Now remove the trial from the manager
         TrialManager.getTrials().remove(this);
         TrialUtils.removeGroundItemsInProtectedArea(protectedArea);
         removeWaveMobs();
@@ -359,13 +386,15 @@ public class Trial extends BukkitRunnable {
             TrialManager.getTrialScoreboards().remove(p);
             SkillScoreboard.updateScoreboard(SurvivalSkills.getInstance(), p);
         }
-
-        for (Map.Entry<Player, ArrayList<Player>> specatorLists : spectators.entrySet())
-            for (Player spectator : specatorLists.getValue())
-                TrialUtils.removeTrialSpectator(spectator, specatorLists.getKey());
     }
 
     public void deleteTrial() {
+        // Remove spectators first while the trial is still in the list
+        for (Map.Entry<Player, ArrayList<Player>> specatorLists : spectators.entrySet())
+            for (Player spectator : specatorLists.getValue())
+                TrialUtils.removeTrialSpectator(spectator, specatorLists.getKey());
+
+        // Now remove the trial and clean up
         TrialUtils.clearTrialBuilding(centerLocation);
         TrialUtils.removeGroundItemsInProtectedArea(protectedArea);
         TrialManager.getTrials().remove(this);
@@ -397,6 +426,12 @@ public class Trial extends BukkitRunnable {
     }
 
     public void completeTrial() {
+        // Remove spectators first while the trial is still in the list
+        for (Map.Entry<Player, ArrayList<Player>> specatorLists : spectators.entrySet())
+            for (Player spectator : specatorLists.getValue())
+                TrialUtils.removeTrialSpectator(spectator, specatorLists.getKey());
+
+        // Now remove the trial from the manager
         TrialManager.getTrials().remove(this);
         TrialUtils.removeGroundItemsInProtectedArea(protectedArea);
         removeWaveMobs();
