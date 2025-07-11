@@ -1,5 +1,5 @@
 name: SurvivalSkills
-version: '2.21'
+version: '2.22'
 main: sir_draco.survivalskills.SurvivalSkills
 api-version: '1.21'
 authors: [ Sir Draco ]

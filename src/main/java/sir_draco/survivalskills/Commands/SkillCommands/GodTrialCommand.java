@@ -34,6 +34,15 @@ public class GodTrialCommand implements CommandExecutor {
         if (!(sender instanceof Player p)) return false;
 
         if (strings.length >= 2 && strings[0].equalsIgnoreCase("spectate")) {
+            // If the player is in a trial, they cannot spectate
+            for (Trial trial : TrialManager.getTrials()) {
+                if (trial.getPlayers().contains(p) && !TrialManager.getSpectatingPlayers().containsKey(p)) {
+                    p.sendRawMessage(ChatColor.RED + "You cannot spectate while in a trial");
+                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    return true;
+                }
+            }
+
             Player target = null;
             for (Player player : Bukkit.getOnlinePlayers()) {
                 if (!player.getName().equalsIgnoreCase(strings[1])) continue;
@@ -41,16 +50,23 @@ public class GodTrialCommand implements CommandExecutor {
                 break;
             }
 
+            // If the player isn't spectating already
             if (target == null) {
                 p.sendRawMessage(ChatColor.RED + "Player not found");
+                p.sendRawMessage(ChatColor.YELLOW + "Proper usage: /godtrial spectate <player>");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return false;
             }
 
-            if (TrialUtils.removeTrialSpectator(p, target)) return true;
+            if (TrialManager.getSpectatingPlayers().containsKey(p)) {
+                TrialUtils.removeTrialSpectator(p, target);
+                return true;
+            }
+
+
             if (TrialUtils.addTrialSpectator(p, target)) return true;
 
-            p.sendRawMessage(ChatColor.RED + "Player is not in a trial");
+            p.sendRawMessage(ChatColor.RED + "Player: " + target.getName() + " is not in a trial");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         }
@@ -158,6 +174,15 @@ public class GodTrialCommand implements CommandExecutor {
 
                 p.sendRawMessage(ChatColor.RED + "You are not in an active trial and have no trials pending");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return true;
+            }
+            else if (strings[0].equalsIgnoreCase("spectate")) {
+                // If the player is already spectating, they cannot spectate again
+                if (TrialManager.getSpectatingPlayers().containsKey(p)) {
+                    TrialUtils.removeTrialSpectator(p, null);
+                    return true;
+                }
+
                 return true;
             }
         }
@@ -315,9 +340,6 @@ public class GodTrialCommand implements CommandExecutor {
         // Strip potion effects from the player
         p.getActivePotionEffects().forEach(effect -> p.removePotionEffect(effect.getType()));
 
-        // Disable autotrash and permatrash
-        plugin.getFishingListener().getDisabledAutoTrash().add(p);
-
         // Disable peaceful miner and bloody domain if active
         disableSkills(p);
 
@@ -359,5 +381,7 @@ public class GodTrialCommand implements CommandExecutor {
             bloodyDomainTracker.get(p).cancel();
             bloodyDomainTracker.remove(p);
         }
+        // Disable autotrash and permatrash
+        plugin.getFishingListener().getDisabledAutoTrash().add(p);
     }
 }

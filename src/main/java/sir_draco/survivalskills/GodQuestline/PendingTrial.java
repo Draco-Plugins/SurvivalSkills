@@ -21,6 +21,7 @@ public class PendingTrial {
     private boolean chosenDifficulty = false;
     private int trialDifficulty = 1;
     private Inventory playerManager = null;
+    private boolean success = false;
 
     public PendingTrial(Player trialMaster) {
         this.trialMaster = trialMaster;
@@ -68,11 +69,13 @@ public class PendingTrial {
         confirmMeta.setDisplayName(ChatColor.GREEN + "Confirm Party");
         confirm.setItemMeta(confirmMeta);
         playerManager.setItem(8, confirm);
+        TrialManager.getTrialSelectionInventories().add(playerManager);
 
         trialMaster.openInventory(playerManager);
     }
 
     public void endPendingTrial() {
+        if (success) return;
         for (Player p : players) {
             if (p.equals(trialMaster)) continue;
             p.sendRawMessage(ChatColor.RED + "The party has been disbanded");
@@ -114,5 +117,9 @@ public class PendingTrial {
 
     public void setChosenDifficulty(boolean chosenDifficulty) {
         this.chosenDifficulty = chosenDifficulty;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
     }
 }

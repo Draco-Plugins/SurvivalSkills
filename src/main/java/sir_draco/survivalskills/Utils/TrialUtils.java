@@ -127,9 +127,9 @@ public class TrialUtils {
     }
 
     public static void removeProtectedArea(ProtectedArea protectedArea) {
-        for (int i = (int) protectedArea.boundingBox().getMinX(); i <= protectedArea.boundingBox().getMaxX(); i++) {
+        for (int i = (int) protectedArea.boundingBox().getMinX() - 1; i <= protectedArea.boundingBox().getMaxX(); i++) {
             for (int j = (int) protectedArea.boundingBox().getMinY(); j <= protectedArea.boundingBox().getMaxY(); j++) {
-                for (int k = (int) protectedArea.boundingBox().getMinZ(); k <= protectedArea.boundingBox().getMaxZ(); k++) {
+                for (int k = (int) protectedArea.boundingBox().getMinZ() - 1; k <= protectedArea.boundingBox().getMaxZ(); k++) {
                     Block block = new Location(protectedArea.world(), i, j, k).getBlock();
                     if (block.getType().isAir()) continue;
                     block.setType(Material.AIR);
@@ -220,9 +220,10 @@ public class TrialUtils {
         return false;
     }
 
-    public static boolean removeTrialSpectator(Player p, Player target) {
+    public static void removeTrialSpectator(Player p, Player target) {
         if (TrialManager.getSpectatingPlayers().containsKey(p)) {
-            target.showPlayer(SurvivalSkills.getInstance(), p); // Show the spectator to the world
+            // Show the spectator to the player
+            if (target != null) target.showPlayer(SurvivalSkills.getInstance(), p);
             if (p.getGameMode().equals(GameMode.SPECTATOR))
                 p.setSpectatorTarget(null);
             p.teleport(TrialManager.getSpectatingPlayers().get(p));
@@ -233,12 +234,10 @@ public class TrialUtils {
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
 
             for (Trial trial : TrialManager.getTrials()) {
-                if (!trial.getPlayers().contains(target)) continue;
+                if (target != null && !trial.getPlayers().contains(target)) continue;
                 trial.removeSpectator(p);
             }
-            return true;
         }
-        return false;
     }
 
     public static void initializeTrial(Player p, Location pLocation) {
@@ -591,8 +590,13 @@ public class TrialUtils {
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
             }
-            if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(trueDifficulty - 1)) {
-                p.sendRawMessage(ChatColor.RED + "You have not beaten solo mode on this difficulty");
+            int difficultyToBeat = (trueDifficulty + 1) / 2;
+            ArrayList<Integer> gamemodesBeaten = TrialManager.getPlayerGamemodesBeaten().get(p);
+            if (!gamemodesBeaten.contains(difficultyToBeat)) {
+                p.sendRawMessage(ChatColor.RED + "You have not beaten solo mode on this difficulty: " + WaveGenerator.getDifficultyName(difficultyToBeat));
+                p.sendMessage(ChatColor.YELLOW + "You have beaten:");
+                for (int beaten : gamemodesBeaten)
+                    p.sendMessage(ChatColor.GRAY + "- " + WaveGenerator.getDifficultyName(beaten));
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
             }
@@ -637,12 +641,14 @@ public class TrialUtils {
             openPartySelection(p);
         } else if (name.equalsIgnoreCase(ChatColor.GREEN + "Confirm Party")) {
             PendingTrial trial = TrialManager.getPendingTrials().get(p);
+            Bukkit.getLogger().info("Starting trial for " + p.getName());
             if (trial == null) {
                 p.sendRawMessage(ChatColor.RED + "You do not have a pending trial anymore");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
             }
 
+            trial.setSuccess(true);
             initializeTrial(p, p.getLocation());
         }
         else if (name.equalsIgnoreCase(ChatColor.GREEN + "Easy")) {
@@ -658,7 +664,7 @@ public class TrialUtils {
         }
         else if (type.equals(Material.PLAYER_HEAD)) {
             // Check if they are the Party Manager
-            if (!TrialManager.getPendingTrials().containsKey(p)) {
+            if (TrialManager.getPendingTrials().containsKey(p)) {
                 PendingTrial trial = TrialManager.getPendingTrials().get(p);
 
                 // Block the player selected from joining this party
@@ -693,7 +699,7 @@ public class TrialUtils {
             }
 
             // Check if they have beaten solo mode on this difficulty
-            if (!TrialManager.getPlayerGamemodesBeaten().get(p).contains(trial.getTrialDifficulty() * 2 - 1)) {
+            if (!TrialManager.getPlayerGamemodesBeaten().get(p).contains((trial.getTrialDifficulty() + 1) / 2)) {
                 p.sendRawMessage(ChatColor.RED + "You have not beaten solo mode on this difficulty and can't join this party");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
@@ -702,5 +708,7 @@ public class TrialUtils {
             // Add the player to the selected party
             trial.handleNewPartyMember(p);
         }
+
+        Bukkit.getLogger().info("Nothing clicked");
     }
 }

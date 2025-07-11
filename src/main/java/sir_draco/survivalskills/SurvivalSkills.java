@@ -48,6 +48,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+@SuppressWarnings("deprecation")
 public final class SurvivalSkills extends JavaPlugin {
 
     private static SurvivalSkills instance;
@@ -112,7 +113,7 @@ public final class SurvivalSkills extends JavaPlugin {
         config = YamlConfiguration.loadConfiguration(configFile);
 
         // See if an update needs to be made to the config
-        if (config.get("Version") == null || config.getDouble("Version") != 2.21) updateConfig();
+        if (config.get("Version") == null || config.getDouble("Version") != 2.22) updateConfig();
         skillManager = new SkillManager(this);
 
         trophyFile = new File(getDataFolder(), "trophydata.yml");
@@ -679,44 +680,65 @@ public final class SurvivalSkills extends JavaPlugin {
             throw new RuntimeException("Failed to load default config");
         }
         YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream, StandardCharsets.UTF_8));
-        mergeConfigWithOrder(config, defConfig, "");
-        config = defConfig;
 
-        // Save the merged configuration
+        // Merge new defaults into the existing config (existing config is modified)
+        mergeConfigWithOrder(config, defConfig, "");
+
+        // Save the updated existing configuration
         File file = new File(getDataFolder(), "config.yml");
         try {
-            defConfig.save(file);
+            config.save(file);
         } catch (Exception e) {
             throw new RuntimeException("Failed to save config file", e);
         }
     }
 
     /**
-     * Takes the new default file and copies existing values from the old config file into the new one
+     * Merges an existing config with a new default config, preserving user values while adding new defaults.
+     * The existing config is modified to include any new keys from the default config.
+     *
+     * @param existingConfig The current config file with user customizations (will be modified)
+     * @param defaultConfig The new default config with potentially new keys and structure
+     * @param parentKey Used for recursive calls to track the current path
      */
-    private void mergeConfigWithOrder(ConfigurationSection target, ConfigurationSection source, String parentKey) {
-        for (String key : source.getKeys(false)) {
-            // Get the current path
+    private void mergeConfigWithOrder(ConfigurationSection existingConfig, ConfigurationSection defaultConfig, String parentKey) {
+        // Iterate through all keys in the new default config
+        for (String key : defaultConfig.getKeys(false)) {
             String fullKey = parentKey.isEmpty() ? key : parentKey + "." + key;
 
-            // If both target and source contain the key, and they are sections, recurse
-            if (source.isConfigurationSection(key) && target.isConfigurationSection(key)) {
-                ConfigurationSection targetSection = target.getConfigurationSection(key);
-                ConfigurationSection sourceSection = source.getConfigurationSection(key);
-                if (targetSection != null && sourceSection != null) {
-                    mergeConfigWithOrder(targetSection, sourceSection, fullKey);
+            // Case 1: Both configs have this key as a configuration section - recurse into it
+            if (defaultConfig.isConfigurationSection(key) && existingConfig.isConfigurationSection(key)) {
+                ConfigurationSection existingSection = existingConfig.getConfigurationSection(key);
+                ConfigurationSection defaultSection = defaultConfig.getConfigurationSection(key);
+
+                if (existingSection != null && defaultSection != null) {
+                    mergeConfigWithOrder(existingSection, defaultSection, fullKey);
                 } else {
-                    Bukkit.getLogger().warning("Failed to handle section: " + fullKey);
+                    Bukkit.getLogger().warning("Failed to handle configuration section: " + fullKey);
                 }
             }
-            // If it is simply a value and target contains it, copy it to the source
-            else if (target.contains(key)) {
-                Object value = target.get(key);
-                source.set(key, value);
+            // Case 2: Default has a section but existing doesn't - create the section in existing config
+            else if (defaultConfig.isConfigurationSection(key) && !existingConfig.contains(key)) {
+                ConfigurationSection defaultSection = defaultConfig.getConfigurationSection(key);
+                if (defaultSection != null) {
+                    ConfigurationSection newSection = existingConfig.createSection(key);
+                    // Recursively copy all values from the default section
+                    mergeConfigWithOrder(newSection, defaultSection, fullKey);
+                    Bukkit.getLogger().info("Added new configuration section: " + fullKey);
+                }
             }
-            else if (target.get(key) != null) {
-                Object value = target.get(key);
-                source.set(key, value);
+            // Case 3: Existing config already has this key (not a section) - keep user's value
+            else if (existingConfig.contains(key)) {
+                // User's customization takes precedence - no action needed
+                Bukkit.getLogger().finest("Preserving user value for: " + fullKey);
+            }
+            // Case 4: Key only exists in default config - add it to existing config
+            else {
+                Object defaultValue = defaultConfig.get(key);
+                if (defaultValue != null) {
+                    existingConfig.set(key, defaultValue);
+                    Bukkit.getLogger().info("Added new config key: " + fullKey + " = " + defaultValue);
+                }
             }
         }
     }

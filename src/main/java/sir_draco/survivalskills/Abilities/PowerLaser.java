@@ -57,7 +57,7 @@ public class PowerLaser extends BukkitRunnable {
                 for (Entity ent : loc.getWorld().getNearbyEntities(loc, 1, 1, 1)) {
                     if (!(ent instanceof LivingEntity livingEnt)) continue;
                     if (livingEnt == p) continue;
-                    livingEnt.damage(25, p);
+                    livingEnt.damage(30, p);
                 }
             }
         }

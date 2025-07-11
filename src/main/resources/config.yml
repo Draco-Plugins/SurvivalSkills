@@ -209,6 +209,10 @@ Farming:
     Enabled: true
     Level: 20
     Type: 'Attribute'
+  Timberman:
+    Enabled: true
+    Level: 22
+    Type: 'Attribute'
   DoubleCropsII:
     Enabled: true
     Level: 25

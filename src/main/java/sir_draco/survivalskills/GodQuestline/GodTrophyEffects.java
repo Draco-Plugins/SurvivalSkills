@@ -81,6 +81,7 @@ public class GodTrophyEffects {
     }
 
     public void teleport(double xChange, double yChange, double zChange) {
+        if (display == null) return;
         display.teleport(display.getLocation().clone().add(xChange, yChange, zChange));
     }
 

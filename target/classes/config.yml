@@ -1,4 +1,4 @@
-Version: 2.21
+Version: 2.22
 BuildingXP: 10.0
 CraftingXP: 15.0
 MiningXP: 1.0
@@ -208,6 +208,10 @@ Farming:
   HealthII:
     Enabled: true
     Level: 20
+    Type: 'Attribute'
+  Timberman:
+    Enabled: true
+    Level: 22
     Type: 'Attribute'
   DoubleCropsII:
     Enabled: true

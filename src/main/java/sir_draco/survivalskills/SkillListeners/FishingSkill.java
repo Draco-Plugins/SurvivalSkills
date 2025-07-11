@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+@SuppressWarnings("deprecation")
 public class FishingSkill implements Listener {
 
     private final SurvivalSkills plugin;

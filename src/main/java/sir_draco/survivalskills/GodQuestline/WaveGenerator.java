@@ -419,4 +419,15 @@ public class WaveGenerator {
     public GrimWither getGrimWither(double healthMultiplier, double damageMultiplier) {
         return grimWither.duplicate(healthMultiplier, damageMultiplier);
     }
+
+    public static String getDifficultyName(int difficulty) {
+        return switch (difficulty) {
+            case EASY -> "Easy";
+            case MEDIUM -> "Medium";
+            case HARD -> "Hard";
+            case GOD -> "God";
+            case DEATH -> "Death";
+            default -> "Unknown";
+        };
+    }
 }

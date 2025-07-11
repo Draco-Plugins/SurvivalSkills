@@ -6,6 +6,6 @@ import java.util.UUID;
 
 public record TrialBuildingData(UUID owner, long lastUsed, Location location) {
     public boolean isExpired() {
-        return System.currentTimeMillis() - lastUsed > 3 * 24 * 60 * 60 * 1000L; // 3 days in milliseconds
+        return System.currentTimeMillis() - lastUsed > 60 * 60 * 1000L; // 1 hour in milliseconds
     }
 }

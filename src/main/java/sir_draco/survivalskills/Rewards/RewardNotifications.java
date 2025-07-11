@@ -257,6 +257,8 @@ public class RewardNotifications {
                     case "HealthX":
                         p.sendRawMessage(ChatColor.GREEN + "You now have " + ChatColor.AQUA + "20" + ChatColor.GREEN + " hearts");
                         break;
+                    case "Timberman":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now crouch to cut down whole trees instantly");
                 }
                 break;
             case "Building":
@@ -910,6 +912,8 @@ public class RewardNotifications {
                         return ChatColor.GRAY + "You now have " + ChatColor.AQUA + "19" + ChatColor.GRAY + " hearts";
                     case "HealthX":
                         return ChatColor.GRAY + "You now have " + ChatColor.AQUA + "20" + ChatColor.GRAY + " hearts";
+                    case "Timberman":
+                        return ChatColor.GRAY + "You can now crouch to cut down whole trees instantly";
                 }
                 break;
             case "Building":

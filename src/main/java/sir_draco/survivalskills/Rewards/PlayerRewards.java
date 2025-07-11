@@ -189,6 +189,10 @@ public class PlayerRewards {
                         case "HealthX":
                             setPlayerMaxHealth(p, 40);
                             break;
+                        case "Timberman":
+                            if (p.hasPermission("timberman.use")) break;
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + p.getName() + " permission set timberman.use true");
+                            break;
                     }
                     break;
                 case "Building":
@@ -554,6 +558,10 @@ public class PlayerRewards {
                         break;
                     case "HealthX":
                         setPlayerMaxHealth(p, 40);
+                        break;
+                    case "Timberman":
+                        if (p.hasPermission("timberman.use")) break;
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + p.getName() + " permission set timberman.use true");
                         break;
                 }
                 break;

@@ -7,7 +7,6 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -36,6 +35,7 @@ public class Trial extends BukkitRunnable {
     private final int trueDifficulty;
     private final int difficulty;
     private final boolean existingStructure;
+    private final int maxWave;
 
     private boolean solo = true;
     private boolean buildingCreated = false;
@@ -47,7 +47,6 @@ public class Trial extends BukkitRunnable {
     private int timeCycle;
     private int timer = 15;
     private int timeSpent = 0;
-    private int maxWave = 5;
     private int waveNumber = 1;
     private int score = 0;
     private int playerCount = 1;
@@ -91,14 +90,18 @@ public class Trial extends BukkitRunnable {
                 timeSpent++;
 
             // Make sure all mobs are targeting players
-            for (WaveMob mob : wave.getWaveMobs()) {
-                if (mob.getEntity() == null || mob.getEntity().isDead()) continue;
-                if (!(mob.getEntity() instanceof Mob waveMob)) continue;
+            if (wave != null) {
+                if (!wave.getWaveMobs().isEmpty()) {
+                    for (WaveMob mob : wave.getWaveMobs()) {
+                        if (mob.getEntity() == null || mob.getEntity().isDead()) continue;
+                        if (!(mob.getEntity() instanceof Mob waveMob)) continue;
 
-                // Target a random player
-                if (waveMob.getTarget() == null) {
-                    Player target = getClosestPlayer(waveMob.getLocation());
-                    if (target != null) waveMob.setTarget(target);
+                        // Target a random player
+                        if (waveMob.getTarget() == null) {
+                            Player target = getClosestPlayer(waveMob.getLocation());
+                            if (target != null) waveMob.setTarget(target);
+                        }
+                    }
                 }
             }
         }

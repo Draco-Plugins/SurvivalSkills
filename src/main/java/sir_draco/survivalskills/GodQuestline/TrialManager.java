@@ -16,9 +16,11 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -56,7 +58,7 @@ public class TrialManager implements Listener {
     private static FileConfiguration trialBuildingConfig = null;
     private static FileConfiguration trialDataConfig = null;
 
-    private static final long CLEANUP_INTERVAL = 60 * 60 * 20L; // 1 hour in ticks
+    private static final long CLEANUP_INTERVAL = 60 * 20L; // 1 minute in ticks
 
     public TrialManager() {
         createRewards();
@@ -147,6 +149,28 @@ public class TrialManager implements Listener {
         // Check if the first letters of the message are "/godtrial"
         if (e.getMessage().toLowerCase().startsWith("/godtrial")) return;
         e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onSpectatorSneak(PlayerToggleSneakEvent e) {
+        // Prevent spectators from crouching which would exit first person view
+        if (spectatingPlayers.containsKey(e.getPlayer()) && e.getPlayer().getGameMode() == GameMode.SPECTATOR) {
+            e.setCancelled(true);
+
+            // Ensure they remain locked to their spectator target
+            Player target = spectatorTargets.get(e.getPlayer());
+            if (target != null) {
+                e.getPlayer().setSpectatorTarget(target);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onSpectatorGameModeChange(PlayerGameModeChangeEvent e) {
+        // Prevent spectators from changing game modes while spectating
+        if (spectatingPlayers.containsKey(e.getPlayer()) && e.getNewGameMode() != GameMode.SPECTATOR) {
+            e.setCancelled(true);
+        }
     }
 
     @EventHandler
@@ -442,7 +466,7 @@ public class TrialManager implements Listener {
                     pendingTrials.remove(p);
                 }
             }
-        }.runTaskLater(SurvivalSkills.getInstance(), 2);
+        }.runTaskLater(SurvivalSkills.getInstance(), 40);
     }
 
     @EventHandler
