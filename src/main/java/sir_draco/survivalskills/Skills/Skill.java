@@ -157,20 +157,15 @@ public class Skill {
      */
     public int getExpectedLevel(int exp) {
         if (exp < 1) return 1;
-        int level = 1;
-        double sum = 0;
-        while (level <= 100) {
-            if (SurvivalSkills.getInstance().isExponentialXP()) {
-                sum += Math.pow(level, SkillManager.exponentialScalar);
+
+        // Use binary search for efficiency, or simple iteration
+        for (int level = 1; level <= maxLevel; level++) {
+            int xpRequiredForLevel = SkillManager.totalExperienceForLevel(level, skillName);
+            if (exp < xpRequiredForLevel) {
+                return Math.max(1, level - 1);
             }
-            else {
-                sum += Math.log(level + 1) * SkillManager.scalar;
-            }
-            int sumCheck = (int) Math.floor(sum);
-            if (sumCheck > exp) break;
-            level++;
         }
-        return Math.min(level, maxLevel);
+        return maxLevel;
     }
 
     public void printStats(Player p, boolean isPlayer) {

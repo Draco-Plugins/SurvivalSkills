@@ -93,6 +93,7 @@ public final class SurvivalSkills extends JavaPlugin {
     private boolean citizensEnabled = false;
     private boolean exponentialXP = false;
     private RegionContainer container = null;
+    private ProtectedRegion region = null;
 
     @Override
     public void onEnable() {
@@ -173,6 +174,27 @@ public final class SurvivalSkills extends JavaPlugin {
         if (worldGuard != null && worldGuard.isEnabled()) {
             worldGuardEnabled = true;
             container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+            if (world == null) {
+                Bukkit.getLogger().warning("Could not find world for worldguard");
+                region = null;
+                return;
+            }
+            else {
+                RegionManager regions = container.get(BukkitAdapter.adapt(world));
+                if (regions == null) {
+                    Bukkit.getLogger().warning("Could not find region manager for worldguard");
+                    region = null;
+                }
+                else {
+                    ProtectedRegion possibleRegion = regions.getRegion("spawn");
+                    if (possibleRegion == null) {
+                        Bukkit.getLogger().warning("Could not find spawn region in worldguard");
+                        region = null;
+                        return;
+                    }
+                    region = possibleRegion;
+                }
+            }
         }
 
         Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
@@ -1018,5 +1040,9 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public static SurvivalSkills getInstance() {
         return instance;
+    }
+
+    public ProtectedRegion getRegion() {
+        return region;
     }
 }

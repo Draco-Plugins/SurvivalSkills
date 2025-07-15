@@ -694,16 +694,39 @@ public class TrialManager implements Listener {
         for (Map.Entry<UUID, TrialBuildingData> entry : trialBuildingOwnership.entrySet()) {
             if (entry.getValue().isExpired()) {
                 UUID buildingId = entry.getKey();
+                TrialBuildingData buildingData = entry.getValue();
+                Location buildingLocation = buildingData.location();
 
-                // Remove the protected area
-                TrialUtils.removeProtectedArea(protectedAreas.get(buildingId));
-                protectedAreas.remove(buildingId);
+                // Ensure the world is still available before attempting cleanup
+                if (buildingLocation.getWorld() == null) {
+                    SurvivalSkills.getInstance().getLogger().warning(
+                            "World no longer exists for expired trial building owned by " +
+                            Bukkit.getOfflinePlayer(buildingData.owner()).getName() + ". Removing from records only.");
+                    toRemove.add(buildingId);
+                    continue;
+                }
+
+                // Load the chunk where the building is located to ensure safe removal
+                World world = buildingLocation.getWorld();
+                int chunkX = buildingLocation.getBlockX() >> 4;
+                int chunkZ = buildingLocation.getBlockZ() >> 4;
+
+                if (!world.isChunkLoaded(chunkX, chunkZ)) {
+                    world.loadChunk(chunkX, chunkZ);
+                }
+
+                // Remove the protected area (chunks will be loaded within removeProtectedArea method)
+                ProtectedArea protectedArea = protectedAreas.get(buildingId);
+                if (protectedArea != null) {
+                    TrialUtils.removeProtectedArea(protectedArea);
+                    protectedAreas.remove(buildingId);
+                }
 
                 // Remove building data
                 toRemove.add(buildingId);
 
                 SurvivalSkills.getInstance().getLogger().info("Removed expired trial building owned by " +
-                                                                      Bukkit.getOfflinePlayer(entry.getValue().owner()).getName());
+                                                                      Bukkit.getOfflinePlayer(buildingData.owner()).getName());
             }
         }
 

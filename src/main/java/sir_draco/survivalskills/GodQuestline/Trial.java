@@ -328,6 +328,10 @@ public class Trial extends BukkitRunnable {
             p.setFlying(false);
             p.setFoodLevel(20);
 
+            // heal all players with their max health
+            AttributeInstance maxHealthAttribute = p.getAttribute(Attribute.MAX_HEALTH);
+            if (maxHealthAttribute != null) p.setHealth(maxHealthAttribute.getValue());
+
             // Get player upgrades and apply starting items
             PlayerTrialUpgrades upgrades = PlayerTrialUpgrades.getPlayerUpgrades(p);
             List<ItemStack> startingItems = TrialTree.getStartingItems(upgrades);
@@ -370,9 +374,14 @@ public class Trial extends BukkitRunnable {
 
     public void endTrial() {
         // Remove spectators first while the trial is still in the list
-        for (Map.Entry<Player, ArrayList<Player>> specatorLists : spectators.entrySet())
-            for (Player spectator : specatorLists.getValue())
-                TrialUtils.removeTrialSpectator(spectator, specatorLists.getKey());
+        if (!spectators.isEmpty()) {
+            for (Map.Entry<Player, ArrayList<Player>> specatorLists : spectators.entrySet()) {
+                if (specatorLists.getValue() == null || specatorLists.getValue().isEmpty()) continue;
+                List<Player> spectatorsToRemove = new ArrayList<>(specatorLists.getValue());
+                for (Player spectator : spectatorsToRemove)
+                    TrialUtils.removeTrialSpectator(spectator, specatorLists.getKey());
+            }
+        }
 
         // Now remove the trial from the manager
         TrialManager.getTrials().remove(this);
@@ -427,9 +436,14 @@ public class Trial extends BukkitRunnable {
 
     public void completeTrial() {
         // Remove spectators first while the trial is still in the list
-        for (Map.Entry<Player, ArrayList<Player>> specatorLists : spectators.entrySet())
-            for (Player spectator : specatorLists.getValue())
-                TrialUtils.removeTrialSpectator(spectator, specatorLists.getKey());
+        if (!spectators.isEmpty()) {
+            for (Map.Entry<Player, ArrayList<Player>> specatorLists : spectators.entrySet()) {
+                if (specatorLists.getValue() == null || specatorLists.getValue().isEmpty()) continue;
+                List<Player> spectatorsToRemove = new ArrayList<>(specatorLists.getValue());
+                for (Player spectator : spectatorsToRemove)
+                    TrialUtils.removeTrialSpectator(spectator, specatorLists.getKey());
+            }
+        }
 
         // Now remove the trial from the manager
         TrialManager.getTrials().remove(this);
@@ -544,6 +558,7 @@ public class Trial extends BukkitRunnable {
         if (activeWave)
             for (Player p : players)
                 SkillScoreboard.updateTrialScoreboard(p, score, timeSpent);
+
         if (spectators.isEmpty()) return;
         for (Map.Entry<Player, ArrayList<Player>> spectatorList : spectators.entrySet())
             for (Player player : spectatorList.getValue())

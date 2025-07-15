@@ -127,10 +127,29 @@ public class TrialUtils {
     }
 
     public static void removeProtectedArea(ProtectedArea protectedArea) {
-        for (int i = (int) protectedArea.boundingBox().getMinX() - 1; i <= protectedArea.boundingBox().getMaxX(); i++) {
-            for (int j = (int) protectedArea.boundingBox().getMinY(); j <= protectedArea.boundingBox().getMaxY(); j++) {
-                for (int k = (int) protectedArea.boundingBox().getMinZ() - 1; k <= protectedArea.boundingBox().getMaxZ(); k++) {
-                    Block block = new Location(protectedArea.world(), i, j, k).getBlock();
+        World world = protectedArea.world();
+        BoundingBox box = protectedArea.boundingBox();
+
+        // Calculate the chunk coordinates that need to be loaded
+        int minChunkX = (int) Math.floor(box.getMinX()) >> 4;
+        int maxChunkX = (int) Math.floor(box.getMaxX()) >> 4;
+        int minChunkZ = (int) Math.floor(box.getMinZ()) >> 4;
+        int maxChunkZ = (int) Math.floor(box.getMaxZ()) >> 4;
+
+        // Load all chunks that contain blocks in the protected area
+        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
+            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
+                if (!world.isChunkLoaded(chunkX, chunkZ)) {
+                    world.loadChunk(chunkX, chunkZ);
+                }
+            }
+        }
+
+        // Now safely remove blocks
+        for (int i = (int) box.getMinX() - 1; i <= box.getMaxX(); i++) {
+            for (int j = (int) box.getMinY(); j <= box.getMaxY(); j++) {
+                for (int k = (int) box.getMinZ() - 1; k <= box.getMaxZ(); k++) {
+                    Block block = new Location(world, i, j, k).getBlock();
                     if (block.getType().isAir()) continue;
                     block.setType(Material.AIR);
                 }
