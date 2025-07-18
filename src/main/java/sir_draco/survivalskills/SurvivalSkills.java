@@ -547,6 +547,7 @@ public final class SurvivalSkills extends JavaPlugin {
         else data.set(uuid + ".NoBossMusic", false);
 
         abilityManager.saveFlightTimer(p, data);
+        abilityManager.saveSpelunkerTimer(p, data);
 
         skillManager.savePlayerSkillData(uuid, data);
         skillManager.savePlayerMultiplier(p, data);
@@ -603,6 +604,7 @@ public final class SurvivalSkills extends JavaPlugin {
             else data.set(uuid + ".NoBossMusic", false);
 
             abilityManager.saveFlightTimer(p, data);
+            abilityManager.saveSpelunkerTimer(p, data);
 
             skillManager.savePlayerMultiplier(p, data);
         }
@@ -820,6 +822,7 @@ public final class SurvivalSkills extends JavaPlugin {
         getMiningListener().hideGlowForPlayer(p);
         armorListener.playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
         abilityManager.loadFlight(p, data);
+        abilityManager.loadSpelunker(p, data);
 
         // Handle the scoreboard
         if (newPlayer) SkillScoreboard.initializeScoreboard(this, p);

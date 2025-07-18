@@ -148,4 +148,8 @@ public class SpelunkerAbilitySync extends BukkitRunnable {
         }
         else team.addEntry(uuid);
     }
+
+    public int getRadius() {
+        return radius;
+    }
 }

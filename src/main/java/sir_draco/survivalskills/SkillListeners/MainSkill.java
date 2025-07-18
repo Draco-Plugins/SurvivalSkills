@@ -28,14 +28,13 @@ import sir_draco.survivalskills.Abilities.DeathLocationTimer;
 import sir_draco.survivalskills.Abilities.Grave;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
+@SuppressWarnings("deprecation")
 public class MainSkill implements Listener {
 
     private final SurvivalSkills plugin;
@@ -142,12 +141,12 @@ public class MainSkill implements Listener {
     }
 
     @EventHandler
-    public void placeFireworkCannon(BlockPlaceEvent e) {
-        if (!e.getBlockPlaced().getType().equals(Material.CAMPFIRE)) return;
+    public void placeSkillsItem(BlockPlaceEvent e) {
+        if (!ItemStackGenerator.isCustomItem(e.getItemInHand())) return;
         ItemMeta meta = e.getItemInHand().getItemMeta();
         if (meta == null) return;
         if (!meta.hasCustomModelData()) return;
-        if (meta.getCustomModelData() != 15) return;
+        if (!List.of(15, 32).contains(meta.getCustomModelData())) return;
         e.setCancelled(true);
     }
 

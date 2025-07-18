@@ -75,6 +75,30 @@ public class AbilityManager {
                 ChatColor.GREEN + " minutes " + ChatColor.AQUA + seconds + ChatColor.GREEN + " seconds");
     }
 
+    public void loadSpelunker(Player p, FileConfiguration data) {
+        if (!data.contains(p.getUniqueId() + ".Spelunker")) return;
+
+        int activeTime = data.getInt(p.getUniqueId() + ".Spelunker.ActiveTime");
+        int cooldownTime = data.getInt(p.getUniqueId() + ".Spelunker.CooldownTime");
+        int radius = data.getInt(p.getUniqueId() + ".Spelunker.Radius");
+
+        AbilityTimer timer = new AbilityTimer(plugin, "Spelunker", p, activeTime, cooldownTime);
+        timer.runTaskTimerAsynchronously(plugin, 0, 20);
+        addAbility(p, timer);
+
+        if (activeTime <= 0) return;
+
+        // Restart the spelunker ability if it was active
+        SpelunkerAbilitySync spelunker = new SpelunkerAbilitySync(plugin, radius, p);
+        spelunker.runTaskTimer(plugin, 0, 10);
+        plugin.getMiningListener().getSpelunkerTracker().put(p, spelunker);
+
+        int minutes = activeTime / 60;
+        int seconds = activeTime % 60;
+        p.sendRawMessage(ChatColor.GREEN + "Your spelunker will end in " + ChatColor.AQUA + minutes +
+                ChatColor.GREEN + " minutes " + ChatColor.AQUA + seconds + ChatColor.GREEN + " seconds");
+    }
+
     public void saveToolBelt(Player p, Inventory inv) {
         if (!inv.getViewers().isEmpty()) return;
 
@@ -115,6 +139,32 @@ public class AbilityManager {
         data.set(p.getUniqueId() + ".Flight.ActiveTime", timer.getActiveTimeLeft());
         data.set(p.getUniqueId() + ".Flight.CooldownTime", timer.getTimeTillReset());
         data.set(p.getUniqueId() + ".Flight.Speed", timer.getFlightSpeed());
+    }
+
+    public void saveSpelunkerTimer(Player p, FileConfiguration data) {
+        AbilityTimer timer = getAbility(p, "Spelunker");
+        if (timer == null) {
+            if (data.contains(p.getUniqueId() + ".Spelunker")) data.set(p.getUniqueId() + ".Spelunker", null);
+            return;
+        }
+
+        data.set(p.getUniqueId() + ".Spelunker.ActiveTime", timer.getActiveTimeLeft());
+        data.set(p.getUniqueId() + ".Spelunker.CooldownTime", timer.getTimeTillReset());
+
+        // Save the radius from the active spelunker or use default based on player's rewards
+        int radius = 5; // Default radius
+        SpelunkerAbilitySync activeSpelunker = plugin.getMiningListener().getSpelunkerTracker().get(p);
+        if (activeSpelunker != null) {
+            radius = activeSpelunker.getRadius();
+        } else {
+            // Determine radius based on player's spelunker level if no active spelunker
+            if (plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "SpelunkerIII").isApplied()) {
+                radius = 15;
+            } else if (plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "SpelunkerII").isApplied()) {
+                radius = 10;
+            }
+        }
+        data.set(p.getUniqueId() + ".Spelunker.Radius", radius);
     }
 
     public void startBloodyDomain(Player p) {
