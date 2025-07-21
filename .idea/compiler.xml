@@ -9,5 +9,8 @@
         <module name="SurvivalSkills" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="SurvivalSkills (1)" target="21" />
+    </bytecodeTargetLevel>
   </component>
 </project>
