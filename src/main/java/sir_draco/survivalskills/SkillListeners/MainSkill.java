@@ -28,14 +28,13 @@ import sir_draco.survivalskills.Abilities.DeathLocationTimer;
 import sir_draco.survivalskills.Abilities.Grave;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
+@SuppressWarnings("deprecation")
 public class MainSkill implements Listener {
 
     private final SurvivalSkills plugin;
@@ -60,7 +59,7 @@ public class MainSkill implements Listener {
     @EventHandler (priority = EventPriority.LOWEST)
     public void onPlayerDeath(PlayerDeathEvent e) {
         Player p = e.getEntity();
-        PlayerRewards rewards = plugin.getPlayerRewards(p);
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
 
         if (deathLocations.containsKey(p)) deathLocations.get(p).add(p.getLocation());
         else {
@@ -82,6 +81,7 @@ public class MainSkill implements Listener {
             e.getDrops().clear();
             return;
         }
+        if (e.getKeepInventory()) return;
 
         if (e.getDrops().isEmpty()) return;
         if (!rewards.getReward("Main", "Gravestone").isApplied()) return;
@@ -141,12 +141,12 @@ public class MainSkill implements Listener {
     }
 
     @EventHandler
-    public void placeFireworkCannon(BlockPlaceEvent e) {
-        if (!e.getBlockPlaced().getType().equals(Material.CAMPFIRE)) return;
+    public void placeSkillsItem(BlockPlaceEvent e) {
+        if (!ItemStackGenerator.isCustomItem(e.getItemInHand())) return;
         ItemMeta meta = e.getItemInHand().getItemMeta();
         if (meta == null) return;
         if (!meta.hasCustomModelData()) return;
-        if (meta.getCustomModelData() != 15) return;
+        if (!List.of(15, 32).contains(meta.getCustomModelData())) return;
         e.setCancelled(true);
     }
 
@@ -194,9 +194,10 @@ public class MainSkill implements Listener {
             UUID player = UUID.fromString(uuidString);
             Location location = getLocationFromConfig(Integer.parseInt(id));
             ArrayList<ItemStack> items = new ArrayList<>();
-            grave.getConfigurationSection("Graves." + id + ".Inventory").getKeys(false).forEach(slot -> {
-                items.add(grave.getItemStack("Graves." + id + ".Inventory." + slot));
-            });
+            ConfigurationSection section = grave.getConfigurationSection("Graves." + id + ".Inventory");
+            if (section == null) return;
+            section.getKeys(false).forEach(slot ->
+                    items.add(grave.getItemStack("Graves." + id + ".Inventory." + slot)));
 
             removeIDs.add(intID);
             if (location != null) {

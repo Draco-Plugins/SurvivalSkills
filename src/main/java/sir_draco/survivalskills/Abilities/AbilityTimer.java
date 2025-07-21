@@ -1,5 +1,7 @@
 package sir_draco.survivalskills.Abilities;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -9,9 +11,11 @@ public class AbilityTimer extends BukkitRunnable {
     private final SurvivalSkills plugin;
     private final String name;
     private final Player p;
-    private int activeTimeLeft;
+
     private boolean active = true;
+    private int activeTimeLeft;
     private int timeTillReset;
+    private float flightSpeed;
 
     public AbilityTimer(SurvivalSkills plugin, String name, Player p, int activeTimeLeft, int timeTillReset) {
         this.plugin = plugin;
@@ -23,7 +27,7 @@ public class AbilityTimer extends BukkitRunnable {
 
     @Override
     public void run() {
-        if (plugin.getAbility(p, name) == null) {
+        if (plugin.getAbilityManager().getAbility(p, name) == null) {
             this.cancel();
             return;
         }
@@ -35,8 +39,18 @@ public class AbilityTimer extends BukkitRunnable {
             active = false;
             activeTimeLeft--;
         }
-        if (timeTillReset == 0) {
-            plugin.removeAbility(p, name);
+        if (!active && timeTillReset == 0) {
+            if (p.isOnline()) {
+                if (name.equals("XPVoucher")) {
+                    p.sendRawMessage(ChatColor.RED + "Your XP Voucher has expired!");
+                    p.playSound(p, Sound.ENTITY_SHEEP_SHEAR, 1, 1);
+                }
+                else {
+                    p.sendRawMessage(ChatColor.RED + "Your " + name + " ability has reset!");
+                    p.playSound(p, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                }
+            }
+            plugin.getAbilityManager().removeAbility(p, name);
             this.cancel();
         }
     }
@@ -65,5 +79,14 @@ public class AbilityTimer extends BukkitRunnable {
     public void endCooldown() {
         timeTillReset = 0;
         this.cancel();
+        plugin.getAbilityManager().removeAbility(p, name);
+    }
+
+    public void setFlightSpeed(float flightSpeed) {
+        this.flightSpeed = flightSpeed;
+    }
+
+    public float getFlightSpeed() {
+        return flightSpeed;
     }
 }

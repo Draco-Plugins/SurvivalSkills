@@ -71,10 +71,10 @@ public class Boss extends BukkitRunnable {
         if (!appliedAttributes) return;
         int properStage = (int) Math.ceil((1 - getHealthPercentage()) / (1d / maxStage));
         if (stage >= properStage) return;
+        stage = properStage;
         if (crySound != null) {
             boss.getWorld().playSound(boss.getLocation(), crySound, 1, 1);
             if (crySound.equals(Sound.ENTITY_ENDER_DRAGON_GROWL)) {
-                stage = properStage;
                 if (stage == 2) {
                     Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
                             + ChatColor.RESET + "Time to step it up a notch!");
@@ -83,7 +83,6 @@ public class Boss extends BukkitRunnable {
         }
         if (invincibilityFrames) {
             boss.setInvulnerable(true);
-            stage = properStage;
             // Give 5 seconds of invincibility if changing stages for the first time
             new BukkitRunnable() {
                 private int count = 0;
@@ -131,7 +130,7 @@ public class Boss extends BukkitRunnable {
     }
 
     public void applyAttributes() {
-        boss.setMetadata("boss", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
+        boss.setMetadata("boss", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
         boss.setCustomName(name);
         boss.setCustomNameVisible(true);
         boss.setRemoveWhenFarAway(false);
@@ -142,15 +141,15 @@ public class Boss extends BukkitRunnable {
         boss.setGlowing(true);
         boss.setPersistent(true);
 
-        AttributeInstance attack = boss.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+        AttributeInstance attack = boss.getAttribute(Attribute.ATTACK_DAMAGE);
         if (attack != null) attack.setBaseValue(damage);
-        AttributeInstance armor = boss.getAttribute(Attribute.GENERIC_ARMOR);
+        AttributeInstance armor = boss.getAttribute(Attribute.ARMOR);
         if (armor != null) armor.setBaseValue(defense);
-        AttributeInstance speedAttribute = boss.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+        AttributeInstance speedAttribute = boss.getAttribute(Attribute.MOVEMENT_SPEED);
         if (speedAttribute != null) speedAttribute.setBaseValue(this.speed);
-        AttributeInstance knockbackResistance = boss.getAttribute(Attribute.GENERIC_KNOCKBACK_RESISTANCE);
+        AttributeInstance knockbackResistance = boss.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
         if (knockbackResistance != null) knockbackResistance.setBaseValue(1);
-        AttributeInstance health = boss.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance health = boss.getAttribute(Attribute.MAX_HEALTH);
         if (health != null) health.setBaseValue(maxHealth);
         boss.setHealth(maxHealth);
         appliedAttributes = true;
@@ -208,8 +207,7 @@ public class Boss extends BukkitRunnable {
     public void addNearbyPlayersToBossBar() {
         if (bossBar == null) return;
         for (Entity e : boss.getNearbyEntities(50, 50, 50)) {
-            if (!(e instanceof Player)) continue;
-            Player p = (Player) e;
+            if (!(e instanceof Player p)) continue;
             if (p.getLocation().distance(boss.getLocation()) > 50) continue;
             if (bossBar.getPlayers().contains(p)) continue;
             bossBar.addPlayer(p);
@@ -237,7 +235,6 @@ public class Boss extends BukkitRunnable {
     }
 
     public void attack() {
-        Bukkit.getLogger().info("Default Attack");
         Entity target = null;
         for (Entity e : boss.getNearbyEntities(10, 10, 10)) {
             if (e instanceof Player) {

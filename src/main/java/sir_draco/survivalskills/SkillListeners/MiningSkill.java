@@ -14,17 +14,24 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import sir_draco.survivalskills.Abilities.SpelunkerAbilitySync;
-import sir_draco.survivalskills.ItemStackGenerator;
-import sir_draco.survivalskills.Skill;
+import sir_draco.survivalskills.Abilities.VeinMinerAsync;
+import sir_draco.survivalskills.Rewards.PlayerRewards;
+import sir_draco.survivalskills.Skills.SkillManager;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -38,24 +45,24 @@ public class MiningSkill implements Listener {
     private final ArrayList<Material> commonOres = new ArrayList<>();
     private final ArrayList<Material> uncommonOres = new ArrayList<>();
     private final ArrayList<Material> rareOres = new ArrayList<>();
+    private final ArrayList<Player> peacefulMiners = new ArrayList<>();
+    private final ArrayList<EntityType> peacefulMobList = new ArrayList<>();
+    private final ArrayList<Material> acceptableTools = new ArrayList<>();
     private final HashMap<Player, SpelunkerAbilitySync> spelunkerTracker = new HashMap<>();
     private final HashMap<Player, Integer> veinminerTracker = new HashMap<>(); // Integer is 0 (takes hunger) or 1 (doesn't)
     private final HashMap<Player, ArrayList<Block>> veinTracker = new HashMap<>();
-    private final ArrayList<Player> peacefulMiners = new ArrayList<>();
-    private final ArrayList<EntityType> peacefulMobList = new ArrayList<>();
+    private final HashMap<Player, Inventory> toolBelts = new HashMap<>();
     private final int blocksPerHunger;
 
-    private double xp; // XP per block mined
-
-    public MiningSkill(SurvivalSkills plugin, double xp, int blocksPerHunger) {
+    public MiningSkill(SurvivalSkills plugin, int blocksPerHunger) {
         this.plugin = plugin;
-        this.xp = xp;
         this.blocksPerHunger = blocksPerHunger;
         setOres();
         setCommonOres();
         setUncommonOres();
         setRareOres();
         setPeacefulMobList();
+        setAcceptableTools();
     }
 
     @EventHandler (ignoreCancelled = true)
@@ -70,7 +77,7 @@ public class MiningSkill implements Listener {
 
         // Handle XP
         double multiplier = getMultiplier(e.getBlock().getType());
-        Skill.experienceEvent(plugin, p, xp * multiplier, "Mining");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getMiningXP() * multiplier, "Mining");
 
         // Handle double ore chance
         doubleOre(p, e);
@@ -82,10 +89,19 @@ public class MiningSkill implements Listener {
     @EventHandler
     public void placeTorch(PlayerInteractEvent e) {
         Player p = e.getPlayer();
-        if (!plugin.getPlayerRewards(p).getReward("Mining", "UnlimitedTorch").isApplied() && !p.hasPermission("survivalskills.op")) {
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+
+        if (rewards == null && plugin.isCitizensEnabled()) return;
+        else if (rewards == null) {
+            Bukkit.getLogger().warning("Player " + p.getName() + " does not have a PlayerRewards object");
+            return;
+        }
+
+        if (!rewards.getReward("Mining", "UnlimitedTorch").isApplied()) {
             if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 1) || ItemStackGenerator.isCustomItem(p.getInventory().getItemInOffHand(), 1)) {
                 e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You are not a high enough level to use this item");
+                p.sendRawMessage(ChatColor.RED + "Unlimited Torch unlocks at mining level "
+                        + ChatColor.AQUA + rewards.getReward("Mining", "UnlimitedTorch").getLevel());
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             }
             return;
@@ -102,6 +118,11 @@ public class MiningSkill implements Listener {
 
         // Check if it is in a claim
         if (plugin.isGriefPreventionEnabled() && plugin.checkForClaim(p, e.getClickedBlock().getLocation())) return;
+        // Check if they are in spawn
+        if (plugin.isWorldGuardEnabled()) {
+            boolean canPlace = plugin.canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
+            if (!canPlace) return;
+        }
 
         // Place torch if possible
         Block desiredBlock = e.getClickedBlock().getRelative(e.getBlockFace());
@@ -119,17 +140,39 @@ public class MiningSkill implements Listener {
     }
 
     @EventHandler
+    public void useZapWand(PlayerInteractEvent e) {
+        if (e.getHand() == null) return;
+        if (e.getHand().equals(EquipmentSlot.OFF_HAND)) return;
+        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+        if (e.getClickedBlock() == null) return;
+        Player p = e.getPlayer();
+        ItemStack hand = p.getInventory().getItemInMainHand();
+        if (!ItemStackGenerator.isCustomItem(hand, 27)) return;
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "ZapWand").isApplied()) {
+             e.setCancelled(true);
+             p.sendRawMessage(ChatColor.RED + "Zap Wand unlocks at mining level " + ChatColor.AQUA +
+                     plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "ZapWand").getLevel());
+             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return;
+        }
+
+        World world = e.getClickedBlock().getWorld();
+        Location loc = e.getClickedBlock().getLocation();
+        world.strikeLightning(loc);
+        e.setCancelled(true);
+    }
+
+    @EventHandler
     public void toolDamage(PlayerItemDamageEvent e) {
         Player p = e.getPlayer();
-        if (!plugin.getPlayerRewards(p).isUnbreakableTools()) return;
+        if (!plugin.getSkillManager().getPlayerRewards(p).isUnbreakableTools()) return;
         e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void playerHurt(EntityDamageEvent e) {
-        if (!(e.getEntity() instanceof Player)) return;
-        Player p = (Player) e.getEntity();
-        double reductionPercentage = plugin.getPlayerRewards(p).getProtectionPercentage();
+        if (!(e.getEntity() instanceof Player p)) return;
+        double reductionPercentage = plugin.getSkillManager().getPlayerRewards(p).getProtectionPercentage();
         if (reductionPercentage == 0) return;
         double newDamage = e.getDamage() * (1 - reductionPercentage);
         e.setDamage(newDamage);
@@ -162,40 +205,141 @@ public class MiningSkill implements Listener {
         }
     }
 
-    public double getMultiplier(Material mat) {
-        switch (mat) {
-            case DEEPSLATE:
-                return 2.0;
-            case COAL_ORE:
-            case DEEPSLATE_COAL_ORE:
-            case COPPER_ORE:
-            case DEEPSLATE_COPPER_ORE:
-                return 3.0;
-            case IRON_ORE:
-            case DEEPSLATE_IRON_ORE:
-            case NETHER_QUARTZ_ORE:
-            case NETHER_GOLD_ORE:
-                return 4.0;
-            case REDSTONE_ORE:
-            case DEEPSLATE_REDSTONE_ORE:
-            case LAPIS_ORE:
-            case DEEPSLATE_LAPIS_ORE:
-                return 5.0;
-            case GOLD_ORE:
-            case DEEPSLATE_GOLD_ORE:
-                return 7.0;
-            case DIAMOND_ORE:
-            case DEEPSLATE_DIAMOND_ORE:
-                return 10.0;
-            case EMERALD_ORE:
-            case DEEPSLATE_EMERALD_ORE:
-            case ANCIENT_DEBRIS:
-                return 20.0;
-            case OBSIDIAN:
-                return 30.0;
-            default:
-                return 1.0;
+    @EventHandler
+    public void onToolBeltClick(InventoryClickEvent e) {
+        if (e.getClickedInventory() == null) return;
+        Player p = (Player) e.getWhoClicked();
+        Inventory inv = e.getClickedInventory();
+        Inventory top = e.getView().getTopInventory();
+        if (!toolBelts.containsKey(p)) return;
+        Inventory toolBelt = toolBelts.get(p);
+        if (!toolBelt.equals(inv) && !toolBelt.equals(top)) return;
+        // Prevent hotbar swaps
+        if (e.getAction().equals(InventoryAction.HOTBAR_SWAP) || e.getAction().equals(InventoryAction.HOTBAR_MOVE_AND_READD)) {
+            e.setCancelled(true);
+            return;
         }
+        if (e.getCurrentItem() == null) return;
+
+        // Check if the clicked item is a tool
+        if (!inv.equals(top)) {
+            if (!acceptableTools.contains(e.getCurrentItem().getType())) {
+                p.sendRawMessage(ChatColor.RED + "You can only put tools in the tool belt");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                e.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onToolBeltDrag(InventoryDragEvent e) {
+        Inventory inv = e.getInventory();
+        if (!toolBelts.containsValue(inv)) return;
+        Player p = (Player) e.getWhoClicked();
+
+        // Check if the clicked item is a tool
+        if (!acceptableTools.contains(e.getOldCursor().getType())) {
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            e.setCancelled(true);
+            return;
+        }
+
+        for (ItemStack item : e.getNewItems().values()) {
+            if (!acceptableTools.contains(item.getType())) {
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                e.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    @EventHandler
+    public void onToolBeltClose(InventoryCloseEvent e) {
+        Player p = (Player) e.getPlayer();
+        if (!toolBelts.containsKey(p)) return;
+
+        // Save the changes to the tool belt
+        plugin.getAbilityManager().saveToolBelt(p, toolBelts.get(p));
+    }
+
+    public double getMultiplier(Material mat) {
+        return switch (mat) {
+            case DEEPSLATE -> 2.0;
+            case COAL_ORE, DEEPSLATE_COAL_ORE, COPPER_ORE, DEEPSLATE_COPPER_ORE -> 3.0;
+            case IRON_ORE, DEEPSLATE_IRON_ORE, NETHER_QUARTZ_ORE, NETHER_GOLD_ORE -> 4.0;
+            case REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE, LAPIS_ORE, DEEPSLATE_LAPIS_ORE -> 5.0;
+            case GOLD_ORE, DEEPSLATE_GOLD_ORE -> 7.0;
+            case DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE -> 10.0;
+            case EMERALD_ORE, DEEPSLATE_EMERALD_ORE, ANCIENT_DEBRIS -> 20.0;
+            case OBSIDIAN -> 30.0;
+            default -> 1.0;
+        };
+    }
+
+    public String getOreTeam(Material mat) {
+        if (commonOres.contains(mat)) return "common";
+        else if (uncommonOres.contains(mat)) return ChatColor.GREEN + "uncommon";
+        else if (rareOres.contains(mat)) return ChatColor.BLUE + "rare";
+        else return "none";
+    }
+
+    public void endSpelunkerAll() {
+        if (spelunkerTracker.isEmpty()) return;
+        for (Map.Entry<Player, SpelunkerAbilitySync> spelunker : spelunkerTracker.entrySet()) spelunker.getValue().endThread();
+    }
+
+    public void removeGlow(Block block) {
+        if (spelunkerTracker.isEmpty()) return;
+        for (Map.Entry<Player, SpelunkerAbilitySync> tracker : spelunkerTracker.entrySet()) {
+            if (!tracker.getValue().containsBlock(block)) continue;
+            tracker.getValue().removeGlow(block);
+        }
+    }
+
+    public void hideGlowForPlayer(Player p) {
+        if (spelunkerTracker.isEmpty()) return;
+        for (Map.Entry<Player, SpelunkerAbilitySync> hide : spelunkerTracker.entrySet()) hide.getValue().hideAllGlowForPlayer(p);
+    }
+
+    public void doubleOre(Player p, BlockBreakEvent e) {
+        if (plugin.getSkillManager().getPlayerRewards(p).getFortuneChance() == 0) return;
+        if (!ores.contains(e.getBlock().getType())) return;
+        if (p.getInventory().getItemInMainHand().containsEnchantment(Enchantment.SILK_TOUCH)) return;
+        if (e.getBlock().getType().equals(Material.ANCIENT_DEBRIS)) return;
+        double chance = Math.random();
+        if (chance >= plugin.getSkillManager().getPlayerRewards(p).getFortuneChance()) return;
+        e.setDropItems(false);
+        ItemStack[] drops = e.getBlock().getDrops(p.getInventory().getItemInMainHand()).toArray(new ItemStack[0]);
+        for (ItemStack drop : drops) {
+            int amount = drop.getAmount() * 2;
+            if (amount > 64) amount = 64;
+            drop.setAmount(amount);
+            e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
+        }
+    }
+
+    public void veinminerChecker(Player p, BlockBreakEvent e) {
+        // Make sure the player has the ability to vein mine
+        if (!veinminerTracker.containsKey(p)) return;
+        if (!p.isSneaking()) return;
+        if (!ores.contains(e.getBlock().getType())) return;
+
+        // Make sure this block isn't part of a previous vein mine
+        if (!veinTracker.containsKey(p)) veinTracker.put(p, new ArrayList<>());
+        if (veinTracker.get(p).contains(e.getBlock())) {
+            veinTracker.get(p).remove(e.getBlock());
+            return;
+        }
+
+        VeinMinerAsync veinMiner = new VeinMinerAsync(plugin, p, this, e.getBlock(), e.getBlock().getType(), blocksPerHunger);
+        veinMiner.runTaskAsynchronously(plugin);
+    }
+
+    public boolean isMiningArmor(PlayerInventory inv) {
+        if (!ItemStackGenerator.isCustomItem(inv.getBoots(), 3)) return false;
+        if (!ItemStackGenerator.isCustomItem(inv.getLeggings(), 3)) return false;
+        if (!ItemStackGenerator.isCustomItem(inv.getChestplate(), 3)) return false;
+        return ItemStackGenerator.isCustomItem(inv.getHelmet(), 3);
     }
 
     public void setOres() {
@@ -247,143 +391,6 @@ public class MiningSkill implements Listener {
         rareOres.add(Material.ANCIENT_DEBRIS);
     }
 
-    public HashMap<Player, SpelunkerAbilitySync> getSpelunkerTracker() {
-        return spelunkerTracker;
-    }
-
-    public ArrayList<Material> getOres() {
-        return ores;
-    }
-
-    public String getOreTeam(Material mat) {
-        if (commonOres.contains(mat)) return "common";
-        else if (uncommonOres.contains(mat)) return ChatColor.GREEN + "uncommon";
-        else if (rareOres.contains(mat)) return ChatColor.BLUE + "rare";
-        else return "none";
-    }
-
-    public void endSpelunkerAll() {
-        if (spelunkerTracker.isEmpty()) return;
-        for (Map.Entry<Player, SpelunkerAbilitySync> spelunker : spelunkerTracker.entrySet()) spelunker.getValue().endThread();
-    }
-
-    public void removeGlow(Block block) {
-        if (spelunkerTracker.isEmpty()) return;
-        for (Map.Entry<Player, SpelunkerAbilitySync> tracker : spelunkerTracker.entrySet()) {
-            if (!tracker.getValue().containsBlock(block)) continue;
-            tracker.getValue().removeGlow(block);
-        }
-    }
-
-    public void hideGlowForPlayer(Player p) {
-        if (spelunkerTracker.isEmpty()) return;
-        for (Map.Entry<Player, SpelunkerAbilitySync> hide : spelunkerTracker.entrySet()) hide.getValue().hideAllGlowForPlayer(p);
-    }
-
-    public HashMap<Player, Integer> getVeinminerTracker() {
-        return veinminerTracker;
-    }
-
-    public void doubleOre(Player p, BlockBreakEvent e) {
-        if (plugin.getPlayerRewards(p).getFortuneChance() == 0) return;
-        if (!ores.contains(e.getBlock().getType())) return;
-        if (p.getInventory().getItemInMainHand().containsEnchantment(Enchantment.SILK_TOUCH)) return;
-        if (e.getBlock().getType().equals(Material.ANCIENT_DEBRIS)) return;
-        double chance = Math.random();
-        if (chance >= plugin.getPlayerRewards(p).getFortuneChance()) return;
-        e.setDropItems(false);
-        ItemStack[] drops = e.getBlock().getDrops(p.getInventory().getItemInMainHand()).toArray(new ItemStack[0]);
-        for (ItemStack drop : drops) {
-            int amount = drop.getAmount() * 2;
-            if (amount > 64) amount = 64;
-            drop.setAmount(amount);
-            e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
-        }
-    }
-
-    public void veinminerChecker(Player p, BlockBreakEvent e) {
-        // Make sure the player has the ability to vein mine
-        if (!veinminerTracker.containsKey(p)) return;
-        if (!p.isSneaking()) return;
-        if (!ores.contains(e.getBlock().getType())) return;
-
-        // Make sure this block isn't part of a previous vein mine
-        if (!veinTracker.containsKey(p)) veinTracker.put(p, new ArrayList<>());
-        if (veinTracker.get(p).contains(e.getBlock())) {
-            veinTracker.get(p).remove(e.getBlock());
-            return;
-        }
-
-        // Get the blocks in the vein and remove hunger appropriately
-        ArrayList<Block> blocks = getVeinBlocks(e.getBlock());
-        ArrayList<Block> eventBlockTrackingList = new ArrayList<>(blocks);
-        veinTracker.put(p, eventBlockTrackingList);
-        if (veinminerTracker.get(p) == 0) {
-            int food = p.getFoodLevel();
-            int newFood = food - (blocks.size() / blocksPerHunger);
-            if (newFood < 0) {
-                p.sendRawMessage(ChatColor.RED + "You don't have enough hunger to mine the whole ore vein with");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return;
-            }
-            p.setFoodLevel(newFood);
-        }
-
-        // Break all the blocks in the vein
-        ItemStack pickaxe = p.getInventory().getItemInMainHand();
-        for (Block block : blocks) {
-            BlockBreakEvent event = new BlockBreakEvent(block, p);
-            Bukkit.getServer().getPluginManager().callEvent(event);
-            if (!event.isCancelled()) block.breakNaturally(pickaxe);
-        }
-    }
-
-    public ArrayList<Block> getVeinBlocks(Block startBlock) {
-        ArrayList<Block> blocks = new ArrayList<>();
-        blocks.add(startBlock);
-        int iterations = 0;
-        getVeinBlockHelper(startBlock.getType(), startBlock, new ArrayList<>(), blocks, iterations);
-        blocks.remove(startBlock);
-        return blocks;
-    }
-
-    public ArrayList<Block> getVeinBlockHelper(Material type, Block startBlock, ArrayList<Block> checkedBlocks, ArrayList<Block> blocks, int iterations) {
-        iterations++;
-        if (iterations > 10000 || blocks.size() >= 100) return blocks;
-        Block left = startBlock.getRelative(-1, 0, 0);
-        Block right = startBlock.getRelative(1, 0, 0);
-        Block front = startBlock.getRelative(0, 0, 1);
-        Block back = startBlock.getRelative(0, 0, -1);
-        Block up = startBlock.getRelative(0, 1, 0);
-        Block down = startBlock.getRelative(0, -1, 0);
-
-        if (type.equals(left.getType()) && !blocks.contains(left)) blocks.add(left);
-        if (type.equals(right.getType()) && !blocks.contains(right)) blocks.add(right);
-        if (type.equals(front.getType()) && !blocks.contains(front)) blocks.add(front);
-        if (type.equals(back.getType()) && !blocks.contains(back)) blocks.add(back);
-        if (type.equals(up.getType()) && !blocks.contains(up)) blocks.add(up);
-        if (type.equals(down.getType()) && !blocks.contains(down)) blocks.add(down);
-
-        checkedBlocks.add(startBlock);
-        if (checkedBlocks.size() == blocks.size()) return blocks;
-        for (Block block : blocks) {
-            if (checkedBlocks.contains(block)) continue;
-            return getVeinBlockHelper(type, block, checkedBlocks, blocks, iterations);
-        }
-        return blocks;
-    }
-
-    public boolean isMiningArmor(PlayerInventory inv) {
-        if (!ItemStackGenerator.isCustomItem(inv.getBoots(), 3)) return false;
-        if (!ItemStackGenerator.isCustomItem(inv.getLeggings(), 3)) return false;
-        if (!ItemStackGenerator.isCustomItem(inv.getChestplate(), 3)) return false;
-        return ItemStackGenerator.isCustomItem(inv.getHelmet(), 3);
-    }
-
-    public ArrayList<Player> getPeacefulMiners() {
-        return peacefulMiners;
-    }
-
     public void setPeacefulMobList() {
         peacefulMobList.add(EntityType.ZOMBIE);
         peacefulMobList.add(EntityType.SKELETON);
@@ -394,7 +401,87 @@ public class MiningSkill implements Listener {
         peacefulMobList.add(EntityType.SILVERFISH);
     }
 
-    public void setXp(double xp) {
-        this.xp = xp;
+    public void setAcceptableTools() {
+        acceptableTools.add(Material.WOODEN_PICKAXE);
+        acceptableTools.add(Material.STONE_PICKAXE);
+        acceptableTools.add(Material.IRON_PICKAXE);
+        acceptableTools.add(Material.GOLDEN_PICKAXE);
+        acceptableTools.add(Material.DIAMOND_PICKAXE);
+        acceptableTools.add(Material.NETHERITE_PICKAXE);
+        acceptableTools.add(Material.WOODEN_SHOVEL);
+        acceptableTools.add(Material.STONE_SHOVEL);
+        acceptableTools.add(Material.IRON_SHOVEL);
+        acceptableTools.add(Material.GOLDEN_SHOVEL);
+        acceptableTools.add(Material.DIAMOND_SHOVEL);
+        acceptableTools.add(Material.NETHERITE_SHOVEL);
+        acceptableTools.add(Material.WOODEN_AXE);
+        acceptableTools.add(Material.STONE_AXE);
+        acceptableTools.add(Material.IRON_AXE);
+        acceptableTools.add(Material.GOLDEN_AXE);
+        acceptableTools.add(Material.DIAMOND_AXE);
+        acceptableTools.add(Material.NETHERITE_AXE);
+        acceptableTools.add(Material.WOODEN_HOE);
+        acceptableTools.add(Material.STONE_HOE);
+        acceptableTools.add(Material.IRON_HOE);
+        acceptableTools.add(Material.GOLDEN_HOE);
+        acceptableTools.add(Material.DIAMOND_HOE);
+        acceptableTools.add(Material.NETHERITE_HOE);
+        acceptableTools.add(Material.SHEARS);
+        acceptableTools.add(Material.BUCKET);
+        acceptableTools.add(Material.WATER_BUCKET);
+        acceptableTools.add(Material.LAVA_BUCKET);
+        acceptableTools.add(Material.FLINT_AND_STEEL);
+        acceptableTools.add(Material.CLOCK);
+        acceptableTools.add(Material.COMPASS);
+        acceptableTools.add(Material.FISHING_ROD);
+        acceptableTools.add(Material.CARROT_ON_A_STICK);
+        acceptableTools.add(Material.WARPED_FUNGUS_ON_A_STICK);
+        acceptableTools.add(Material.SPYGLASS);
+        acceptableTools.add(Material.TROPICAL_FISH_BUCKET);
+        acceptableTools.add(Material.PUFFERFISH_BUCKET);
+        acceptableTools.add(Material.SALMON_BUCKET);
+        acceptableTools.add(Material.COD_BUCKET);
+        acceptableTools.add(Material.AXOLOTL_BUCKET);
+        acceptableTools.add(Material.ELYTRA);
+        acceptableTools.add(Material.RECOVERY_COMPASS);
+        acceptableTools.add(Material.BRUSH);
+        acceptableTools.add(Material.TADPOLE_BUCKET);
+        acceptableTools.add(Material.MILK_BUCKET);
+        acceptableTools.add(Material.POWDER_SNOW_BUCKET);
+        acceptableTools.add(Material.WIND_CHARGE);
+        acceptableTools.add(Material.FIREWORK_ROCKET);
+        acceptableTools.add(Material.TOTEM_OF_UNDYING);
+        acceptableTools.add(Material.BONE_MEAL);
+        acceptableTools.add(Material.LEAD);
+        acceptableTools.add(Material.FIRE_CHARGE);
+        acceptableTools.add(Material.SPYGLASS);
+        acceptableTools.add(Material.WRITABLE_BOOK);
+        acceptableTools.add(Material.MAP);
+        acceptableTools.add(Material.ENDER_PEARL);
+        acceptableTools.add(Material.ENDER_EYE);
+    }
+
+    public HashMap<Player, SpelunkerAbilitySync> getSpelunkerTracker() {
+        return spelunkerTracker;
+    }
+
+    public ArrayList<Material> getOres() {
+        return ores;
+    }
+
+    public HashMap<Player, Integer> getVeinminerTracker() {
+        return veinminerTracker;
+    }
+
+    public HashMap<Player, ArrayList<Block>> getVeinTracker() {
+        return veinTracker;
+    }
+
+    public ArrayList<Player> getPeacefulMiners() {
+        return peacefulMiners;
+    }
+
+    public HashMap<Player, Inventory> getToolBelts() {
+        return toolBelts;
     }
 }

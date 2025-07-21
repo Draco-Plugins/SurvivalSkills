@@ -21,7 +21,8 @@ public class Grave {
     private final UUID uuid;
     private final SurvivalSkills plugin;
     private final ArrayList<ItemStack> items;
-    private Inventory inventory;
+    private final Inventory inventory;
+
     private GraveTimer timer;
 
     public Grave(int id, UUID uuid, Location location, ArrayList<ItemStack> items, int graveLifespan, SurvivalSkills plugin) {
@@ -80,6 +81,8 @@ public class Grave {
     }
 
     public void saveGrave(FileConfiguration grave, File graveFile) throws IOException {
+        if (location.getWorld() == null) return;
+
         grave.set("Graves." + id + ".UUID", uuid.toString());
         grave.set("Graves." + id + ".Lifespan", lifespan);
         grave.set("Graves." + id + ".Location", location.getBlockX() + ":" + location.getBlockY() + ":" + location.getBlockZ());

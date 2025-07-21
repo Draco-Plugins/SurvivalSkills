@@ -1,5 +1,6 @@
 package sir_draco.survivalskills.Trophy;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
@@ -10,8 +11,9 @@ public class CircularRotationObject {
 
     private final ArrayList<Location> locationList = new ArrayList<>();
     private final int orbitals;
+    private final Location center;
+
     private double radius;
-    private Location center;
 
     public CircularRotationObject(Location center, double radius, int orbitals) {
         this.center = center.clone().add(0.5, 1.0, 0.5);
@@ -32,14 +34,8 @@ public class CircularRotationObject {
         double z = center.getZ(); // assume z = 0 relatively
         for (double degrees = degreeOffset; degrees < 360.0 + degreeOffset; degrees += degreeIncrement) {
             double radians = degrees * Math.PI / 180;
-            if (radians > 2 * Math.PI) radians = radians % (2 * Math.PI);
             locationList.add(new Location(world, x + (Math.cos(radians) * radius), y, z + (Math.sin(radians) * radius)));
         }
-    }
-
-    public void setCenter(Location loc) {
-        center = loc.clone();
-        createLocations(0); // Reset locations
     }
 
     public void setRadius(double newRadius) {
@@ -59,30 +55,19 @@ public class CircularRotationObject {
     }
 
     public double getAngle(double x, double z, double cx, double cz) {
-        double angle = 0;
+        // Use Math.atan2 for correct angle calculation
         double xDist = x - cx;
         double zDist = z - cz;
-        // 90, 270 degrees
-        if (xDist == 0) {
-            if (zDist > 0) angle = Math.PI / 2;
-            else angle = 3 * (Math.PI) / 2;
-        }
-        // 0, 180 degrees
-        else if (zDist == 0) {
-            if (xDist > 0) angle = 0;
-            else angle = Math.PI;
-        }
-        else if (xDist < 0) {
-            angle = Math.tan(zDist / xDist) + Math.PI;
-        }
-        else {
-            if (zDist > 0) angle = Math.tan(zDist / xDist);
-            else angle = (2 * Math.PI) + Math.tan(zDist / xDist);
-        }
-        return angle % (2 * Math.PI);
+        double angle = Math.atan2(zDist, xDist);
+        if (angle < 0) angle += 2 * Math.PI;
+        return angle;
     }
 
     public Location getLocation(int slot) {
+        if (slot >= locationList.size()) {
+            slot = 0;
+            Bukkit.getLogger().warning("CircularRotationObject: Slot " + slot + " is out of bounds. Resetting to 0.");
+        }
         return locationList.get(slot);
     }
 

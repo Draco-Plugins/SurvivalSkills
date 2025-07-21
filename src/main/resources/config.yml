@@ -11,8 +11,12 @@ VeinMinerHungerAmount: 2
 # Number of seconds before a grave is removed
 GraveLifespan: 3600
 SkillXPMultiplier: 1.0
+# Whether the God Trophy Quest should be available to players or not
+GodQuestEnabled: true
+ExponentialXP: true
 
 # Reward Settings
+# Mining Rewards Tree
 Mining:
   UnlimitedTorch:
     Enabled: true
@@ -22,6 +26,10 @@ Mining:
     Enabled: true
     Level: 10
     Type: 'State'
+  ToolBelt:
+    Enabled: true
+    Level: 12
+    Type: 'Command'
   SpelunkerI:
     Enabled: true
     Level: 15
@@ -34,10 +42,18 @@ Mining:
     Enabled: true
     Level: 25
     Type: 'Command'
+  ZapWand:
+    Enabled: true
+    Level: 28
+    Type: 'Crafting'
   FortuneIII:
     Enabled: true
     Level: 30
     Type: 'State'
+  UpCommand:
+    Enabled: true
+    Level: 32
+    Type: 'Command'
   NightVisionI:
     Enabled: true
     Level: 35
@@ -69,6 +85,10 @@ Mining:
     Enabled: true
     Level: 70
     Type: 'State'
+  BeaconArmor:
+    Enabled: true
+    Level: 72
+    Type: 'Crafting'
   NightVisionII:
     Enabled: true
     Level: 75
@@ -81,10 +101,15 @@ Mining:
     Enabled: true
     Level: 90
     Type: 'State'
+  PowerOre:
+    Enabled: true
+    Level: 95
+    Type: 'State'
   ArmorIV:
     Enabled: true
     Level: 100
     Type: 'State'
+# Exploring Rewards Tree
 Exploring:
   SpeedI:
     Enabled: true
@@ -97,6 +122,10 @@ Exploring:
   JumpingBoots:
     Enabled: true
     Level: 15
+    Type: 'Crafting'
+  Magnet:
+    Enabled: true
+    Level: 18
     Type: 'Crafting'
   SpeedII:
     Enabled: true
@@ -138,7 +167,7 @@ Exploring:
     Enabled: true
     Level: 65
     Type: 'State'
-  TravellerArmor:
+  TravelerArmor:
     Enabled: true
     Level: 70
     Type: 'Crafting'
@@ -150,6 +179,10 @@ Exploring:
     Enabled: true
     Level: 80
     Type: 'Attribute'
+  GillArmor:
+    Enabled: true
+    Level: 85
+    Type: 'Crafting'
   SwimV:
     Enabled: true
     Level: 90
@@ -158,6 +191,7 @@ Exploring:
     Enabled: true
     Level: 100
     Type: 'Crafting'
+#Farming Rewards Tree
 Farming:
   DoubleCropsI:
     Enabled: true
@@ -174,6 +208,10 @@ Farming:
   HealthII:
     Enabled: true
     Level: 20
+    Type: 'Attribute'
+  Timberman:
+    Enabled: true
+    Level: 22
     Type: 'Attribute'
   DoubleCropsII:
     Enabled: true
@@ -239,6 +277,7 @@ Farming:
     Enabled: true
     Level: 100
     Type: 'State'
+# Building Rewards Tree
 Building:
   BlockReturnI:
     Enabled: true
@@ -304,6 +343,7 @@ Building:
     Enabled: true
     Level: 100
     Type: 'Command'
+# Fighting Rewards Tree
 Fighting:
   BerserkerI:
     Enabled: true
@@ -383,8 +423,13 @@ Fighting:
     Type: 'State'
   BerserkerVII:
     Enabled: true
+    Level: 97
+    Type: 'State'
+  BloodyDomain:
+    Enabled: true
     Level: 100
     Type: 'State'
+# Fishing Rewards Tree
 Fishing:
   CommonLootI:
     Enabled: true
@@ -474,7 +519,7 @@ Fishing:
     Enabled: true
     Level: 46
     Type: 'State'
-  PermaTrash:
+  PermaTrashI:
     Enabled: true
     Level: 48
     Type: 'Command'
@@ -498,6 +543,10 @@ Fishing:
     Enabled: true
     Level: 62
     Type: 'State'
+  PermaTrashII:
+    Enabled: true
+    Level: 64
+    Type: 'Command'
   FishingLineIII:
     Enabled: true
     Level: 65
@@ -562,6 +611,7 @@ Fishing:
     Enabled: true
     Level: 100
     Type: 'State'
+# Crafting Rewards Tree
 Crafting:
   ExtraOutputI:
     Enabled: true
@@ -627,6 +677,7 @@ Crafting:
     Enabled: true
     Level: 100
     Type: 'State'
+# Main Rewards Tree
 Main:
   DustTrail:
     Enabled: true

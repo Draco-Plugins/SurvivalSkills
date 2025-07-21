@@ -87,6 +87,20 @@ public class RewardNotifications {
                         p.sendRawMessage(ChatColor.GREEN + "You now take " + ChatColor.AQUA + "20%" + ChatColor.GREEN
                                 + " less damage from all sources");
                         break;
+                    case "ZapWand":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now craft a Zap Wand");
+                        p.sendRawMessage(ChatColor.GRAY + "See the crafting recipe by using the command" + ChatColor.AQUA + " /skills recipes");
+                        break;
+                    case "BeaconArmor":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now craft Beacon Armor");
+                        p.sendRawMessage(ChatColor.GREEN + "Beacon Armor gives you and those nearby beacon effects!");
+                        p.sendRawMessage(ChatColor.GRAY + "See the crafting recipe by using the command" + ChatColor.AQUA + " /skills recipes");
+                        break;
+                    case "PowerOre":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now forge " + ChatColor.LIGHT_PURPLE + "Power Ore");
+                        p.sendRawMessage(ChatColor.GREEN + "Place obsidian down, stand on it, and strike lightning on the block" +
+                                " sacrificing 50 levels of experience");
+                        break;
                 }
                 break;
             case "Exploring":
@@ -153,14 +167,19 @@ public class RewardNotifications {
                     case "FallII":
                         p.sendRawMessage(ChatColor.GREEN + "You now take 50% less fall damage");
                         break;
-                    case "TravellerArmor":
-                        p.sendRawMessage(ChatColor.GREEN + "You can now craft Traveller Armor");
-                        p.sendRawMessage(ChatColor.GREEN + "Traveller Armor lets you travel even faster!");
+                    case "TravelerArmor":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now craft Traveler Armor");
+                        p.sendRawMessage(ChatColor.GREEN + "Traveler Armor lets you travel even faster!");
                         p.sendRawMessage(ChatColor.GRAY + "See the crafting recipe by using the command" + ChatColor.AQUA + " /skills recipes");
                         break;
                     case "AdventurerArmor":
                         p.sendRawMessage(ChatColor.GREEN + "You can now craft Adventurer Armor");
                         p.sendRawMessage(ChatColor.GREEN + "Adventurer Armor lets you travel even faster and you won't take fall damage!");
+                        p.sendRawMessage(ChatColor.GRAY + "See the crafting recipe by using the command" + ChatColor.AQUA + " /skills recipes");
+                        break;
+                    case "GillArmor":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now craft Gill Armor");
+                        p.sendRawMessage(ChatColor.GREEN + "Gill Armor lets you breathe underwater and swim at hyper speed!");
                         p.sendRawMessage(ChatColor.GRAY + "See the crafting recipe by using the command" + ChatColor.AQUA + " /skills recipes");
                         break;
                 }
@@ -238,6 +257,8 @@ public class RewardNotifications {
                     case "HealthX":
                         p.sendRawMessage(ChatColor.GREEN + "You now have " + ChatColor.AQUA + "20" + ChatColor.GREEN + " hearts");
                         break;
+                    case "Timberman":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now crouch to cut down whole trees instantly");
                 }
                 break;
             case "Building":
@@ -396,6 +417,10 @@ public class RewardNotifications {
                     case "MobScanner":
                         p.sendRawMessage(ChatColor.GREEN + "You can now use Mob Scanner by using" + ChatColor.AQUA + " /mobscanner");
                         p.sendRawMessage(ChatColor.GREEN + "Mob Scanner will show you where nearby mobs are");
+                        break;
+                    case "BloodyDomain":
+                        p.sendRawMessage(ChatColor.GREEN + "You can now use Bloody Domain by using" + ChatColor.AQUA + " /togglebloodydomain");
+                        p.sendRawMessage(ChatColor.GREEN + "Bloody Domain will kill all weak mobs within a 10 block radius");
                         break;
                 }
                 break;
@@ -742,6 +767,8 @@ public class RewardNotifications {
                 switch (reward) {
                     case "UnlimitedTorch":
                     case "MiningArmor":
+                    case "ZapWand":
+                    case "BeaconArmor":
                         return ChatColor.GRAY + "Craftable Item";
                     case "FortuneI":
                         return ChatColor.GRAY + "You now have a " + ChatColor.AQUA + "20%" + ChatColor.GRAY
@@ -792,6 +819,9 @@ public class RewardNotifications {
                     case "ArmorIV":
                         return ChatColor.GRAY + "You now take " + ChatColor.AQUA + "20%" + ChatColor.GRAY
                                 + " less damage from all sources";
+                    case "PowerOre":
+                        return ChatColor.GREEN + "You can now forge " + ChatColor.LIGHT_PURPLE + "Power Ore\n" + ChatColor.GREEN
+                                + "Place obsidian down, stand on it, and strike lightning on the block and yourself sacrificing 50 levels of experience";
                 }
                 break;
             case "Exploring":
@@ -809,8 +839,9 @@ public class RewardNotifications {
                     case "JumpingBoots":
                     case "CaveFinder":
                     case "WandererArmor":
-                    case "TravellerArmor":
+                    case "TravelerArmor":
                     case "AdventurerArmor":
+                    case "GillArmor":
                         return ChatColor.GRAY + "Craftable Item";
                     case "SwimI":
                         return ChatColor.GRAY + "You now have a " + ChatColor.AQUA + "40%" + ChatColor.GRAY + " swim speed boost";
@@ -881,6 +912,8 @@ public class RewardNotifications {
                         return ChatColor.GRAY + "You now have " + ChatColor.AQUA + "19" + ChatColor.GRAY + " hearts";
                     case "HealthX":
                         return ChatColor.GRAY + "You now have " + ChatColor.AQUA + "20" + ChatColor.GRAY + " hearts";
+                    case "Timberman":
+                        return ChatColor.GRAY + "You can now crouch to cut down whole trees instantly";
                 }
                 break;
             case "Building":
@@ -949,6 +982,8 @@ public class RewardNotifications {
                 switch (reward) {
                     case "BerserkerI":
                         return ChatColor.GRAY + "You can now enter berserker mode by\n" + ChatColor.GRAY + "sneaking and right clicking while holding a weapon\n" +
+                                ChatColor.GRAY + "Berserker mode takes " + ChatColor.AQUA + "25%" + ChatColor.GRAY + " of your" +
+                                "health in exchange for " + ChatColor.AQUA + "50%" + ChatColor.GRAY + " more damage\n" +
                                 ChatColor.GRAY + "Berserker mode lasts for " + ChatColor.AQUA + "3 "
                                 + ChatColor.GRAY + "seconds\n" + ChatColor.GRAY + "with a cooldown of " + ChatColor.AQUA + "120 " + ChatColor.GRAY + "seconds";
                     case "BerserkerII":
@@ -999,6 +1034,9 @@ public class RewardNotifications {
                     case "MobScanner":
                         return ChatColor.GRAY + "You can now use Mob Scanner by using" + ChatColor.AQUA + " /mobscanner\n" +
                                 ChatColor.GRAY + "Mob Scanner will show you where nearby mobs are";
+                    case "BloodyDomain":
+                        return ChatColor.GRAY + "You can now use Bloody Domain by using" + ChatColor.AQUA + " /togglebloodydomain\n" +
+                                ChatColor.GRAY + "Bloody Domain will kill all weak mobs in a 10 block radius";
                 }
                 break;
             case "Fishing":
@@ -1227,6 +1265,9 @@ public class RewardNotifications {
                     case "EnchantmentTrail":
                         return ChatColor.GREEN + "Enchantment particles follow you when you walk\n" + ChatColor.GREEN
                                 + "Use " + ChatColor.AQUA + "/toggletrail enchantment" + ChatColor.GREEN + " to toggle it";
+                    case "OminousTrail":
+                        return ChatColor.GREEN + "Ominous particles follow you when you walk\n" + ChatColor.GREEN
+                                + "Use " + ChatColor.AQUA + "/toggletrail ominous" + ChatColor.GREEN + " to toggle it";
                     case "LoveTrail":
                         return ChatColor.GREEN + "Love particles follow you when you walk\n" + ChatColor.GREEN
                                 + "Use " + ChatColor.AQUA + "/toggletrail love" + ChatColor.GREEN + " to toggle it";

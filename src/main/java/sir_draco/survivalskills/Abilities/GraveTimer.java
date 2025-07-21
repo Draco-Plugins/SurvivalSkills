@@ -1,7 +1,9 @@
 package sir_draco.survivalskills.Abilities;
 
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.scheduler.BukkitRunnable;
 
 public class GraveTimer extends BukkitRunnable {
@@ -16,6 +18,12 @@ public class GraveTimer extends BukkitRunnable {
 
     @Override
     public void run() {
+        Block block = grave.getLocation().getBlock();
+        if (!block.getType().equals(Material.CHEST)) {
+            block.setType(Material.CHEST);
+            block.getState().setType(Material.CHEST);
+            block.getState().update();
+        }
         if (timeLeft > 0) {
             timeLeft--;
             if (timeLeft % 2 == 0) spawnParticles();

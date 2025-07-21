@@ -4,13 +4,17 @@ import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import sir_draco.survivalskills.ColorParser;
+import sir_draco.survivalskills.GodQuestline.GodTrophyEffects;
+import sir_draco.survivalskills.Utils.ColorParser;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.Utils.ItemStackGenerator;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -30,16 +34,24 @@ public class TrophyEffects extends BukkitRunnable {
     private Entity mob;
     private CircularRotationObject mobTrophyOrbital = null;
     private boolean run = true;
+    private boolean citizensEnabled = false;
     private GodTrophyEffects godTrophy;
     private String playerName;
+    private UUID playerUUID;
 
-    public TrophyEffects(SurvivalSkills plugin, Location loc, int type, Trophy trophy, String playerName) {
+    public TrophyEffects(SurvivalSkills plugin, Location loc, int type, Trophy trophy, String playerName, UUID playerUUID) {
         this.plugin = plugin;
         this.loc = loc;
         this.type = type;
         this.trophy = trophy;
         if (type == 10) {
             this.playerName = playerName;
+            this.playerUUID = playerUUID;
+            if (plugin.getServer().getPluginManager().getPlugin("Citizens") == null) {
+                plugin.getLogger().warning("Citizens not found, disabling God Trophy");
+                return;
+            }
+            if (plugin.getServer().getPluginManager().isPluginEnabled("Citizens")) citizensEnabled = true;
             return;
         }
         spawnItem(0.5, 1.0, 0.5);
@@ -86,7 +98,12 @@ public class TrophyEffects extends BukkitRunnable {
                 championParticles();
                 break;
             case 10:
-                godParticles();
+                try {
+                    godParticles();
+                }
+                catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
                 break;
             default:
                 return;
@@ -96,34 +113,45 @@ public class TrophyEffects extends BukkitRunnable {
     }
 
     public void spawnItem(double x, double y, double z) {
+        if (entity != null) {
+            entity.remove();
+            entity = null;
+        }
+
         // Create the item
         Material mat = getMaterial();
         checkForDuplicate(mat);
         ItemStack trophy = new ItemStack(mat);
         trophy.addUnsafeEnchantment(Enchantment.KNOCKBACK, 5);
+        trophy = addPersistentDataContainer(trophy);
         // Spawn the item - ensure no one can pick it up, it won't de-spawn, and it floats in the air
         World world = loc.getWorld();
         if (world == null) return;
         Location newLoc = loc.clone().add(x, y, z);
         entity = (Item) world.spawnEntity(newLoc, EntityType.ITEM);
+        entity.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
         entity.setItemStack(trophy);
         setFloatingItemProperties(entity);
     }
 
+    public ItemStack addPersistentDataContainer(ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+        meta.getPersistentDataContainer().set(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING, "Trophy");
+        item.setItemMeta(meta);
+        return item;
+    }
+
     public void checkForDuplicate(Material mat) {
-        World world = Bukkit.getWorld("world");
-        if (world != null) {
-            for (Entity ent : world.getEntities()) {
-                if (!ent.getType().equals(EntityType.ITEM)) continue;
-                Item item = (Item) ent;
-                if (item.getOwner() == null) continue;
-                if (!item.getItemStack().getType().equals(mat)) continue;
-                if (item.getLocation().getWorld() == null) continue;
-                if (loc.getWorld() == null) continue;
-                if (!item.getLocation().getWorld().equals(loc.getWorld())) continue;
-                if (item.getLocation().distance(loc) > 5) continue;
-                if (item.getOwner().equals(UUID.fromString("00000000-0000-0000-0000-000000000000"))) item.remove();
-            }
+        World world = loc.getWorld();
+        if (world == null) return;
+        for (Entity ent : world.getEntities()) {
+            if (!ent.getType().equals(EntityType.ITEM)) continue;
+            if (!ent.hasMetadata("TrophyItem")) continue;
+            Item item = (Item) ent;
+            if (!item.getItemStack().getType().equals(mat)) continue;
+            if (item.getLocation().distance(loc) > 5) continue;
+            ent.remove();
         }
     }
 
@@ -132,59 +160,43 @@ public class TrophyEffects extends BukkitRunnable {
     }
 
     public void checkForPlayers() {
+        // If no players are online, stop the trophy effects
         if (plugin.getServer().getOnlinePlayers().isEmpty() && run) trophy.restartTrophy(false);
+        // If no players are online and the trophy is already stopped, return
         if (plugin.getServer().getOnlinePlayers().isEmpty() && !run) return;
         for (Player p : plugin.getServer().getOnlinePlayers()) {
+            // If a player is within 50 blocks of the trophy, and the trophy is stopped, restart it
             if (!p.getWorld().equals(loc.getWorld())) continue;
             if (p.getLocation().distance(loc) > 50) continue;
             if (!run) trophy.restartTrophy(true);
+            // If the player is withing 50 blocks and the trophy is running, do nothing
             return;
         }
+        // If no players are within 50 blocks of the trophy, and the trophy is running, stop it
         if (run) trophy.restartTrophy(false);
     }
 
     private Material getMaterial() {
-        Material mat;
-        switch (type) {
-            case 1:
-                mat = Material.DIAMOND_PICKAXE;
-                break;
-            case 2:
-                mat = Material.OAK_SAPLING;
-                break;
-            case 3:
-                mat = Material.GOLDEN_CARROT;
-                break;
-            case 4:
-                mat = Material.TRIDENT;
-                break;
-            case 5:
-                mat = Material.FISHING_ROD;
-                break;
-            case 6:
-                mat = Material.SHEARS;
-                break;
-            case 7:
-                mat = Material.NETHERRACK;
-                break;
-            case 8:
-                mat = Material.END_STONE;
-                break;
-            case 9:
-                mat = Material.DIAMOND_SWORD;
-                break;
-            case 10:
-                mat = Material.GRASS_BLOCK;
-                break;
-            default:
-                mat = Material.AIR;
-                break;
-        }
-        return mat;
+        return switch (type) {
+            case 1 -> Material.DIAMOND_PICKAXE;
+            case 2 -> Material.OAK_SAPLING;
+            case 3 -> Material.GOLDEN_CARROT;
+            case 4 -> Material.TRIDENT;
+            case 5 -> Material.FISHING_ROD;
+            case 6 -> Material.SHEARS;
+            case 7 -> Material.NETHERRACK;
+            case 8 -> Material.END_STONE;
+            case 9 -> Material.DIAMOND_SWORD;
+            case 10 -> Material.GRASS_BLOCK;
+            default -> Material.AIR;
+        };
     }
 
     public void removeItem() {
-        if (entity != null) entity.remove();
+        if (entity != null) {
+            entity.remove();
+            entity = null;
+        }
         if (mob != null) {
             mob.remove();
             mob = null;
@@ -192,14 +204,18 @@ public class TrophyEffects extends BukkitRunnable {
         if (godTrophy != null) godTrophy.remove();
         if (itemList.isEmpty()) return;
         for (Item item : itemList) item.remove();
+        itemList.clear();
     }
 
     public void typeSpecificStart() {
         if (type == 6) createColorList();
-        if (type == 9) {
+        else if (type == 9) {
             mobTrophyOrbital = new CircularRotationObject(loc, 1, 7);
             populateItemList();
             resetLocation();
+        }
+        else if (type == 10 && godTrophy == null && citizensEnabled) {
+            godTrophy = new GodTrophyEffects(loc);
         }
     }
 
@@ -253,35 +269,17 @@ public class TrophyEffects extends BukkitRunnable {
     public Color randomCaveColor() {
         Color color;
         int type = (int) Math.ceil(Math.random() * 9);
-        switch (type) {
-            case 1:
-                color = Color.GRAY;
-                break;
-            case 2:
-                color = Color.RED;
-                break;
-            case 3:
-                color = Color.BLACK;
-                break;
-            case 4:
-                color = Color.GREEN;
-                break;
-            case 5:
-                color = Color.BLUE;
-                break;
-            case 6:
-                color = Color.WHITE;
-                break;
-            case 7:
-                color = Color.fromRGB(156, 120, 2);
-                break;
-            case 8:
-                color = Color.fromRGB(255, 255, 0);
-                break;
-            default:
-                color = Color.fromRGB(0, 255,255);
-                break;
-        }
+        color = switch (type) {
+            case 1 -> Color.GRAY;
+            case 2 -> Color.RED;
+            case 3 -> Color.BLACK;
+            case 4 -> Color.GREEN;
+            case 5 -> Color.BLUE;
+            case 6 -> Color.WHITE;
+            case 7 -> Color.fromRGB(156, 120, 2);
+            case 8 -> Color.fromRGB(255, 255, 0);
+            default -> Color.fromRGB(0, 255, 255);
+        };
         return color;
     }
 
@@ -337,41 +335,23 @@ public class TrophyEffects extends BukkitRunnable {
         World world = loc.getWorld();
         if (world == null) return;
         if (cycle % 3 == 0) floorParticles(Particle.WITCH);
-        ItemStack sapling;
-        switch (cycle) {
-            case 5:
-                sapling = new ItemStack(Material.OAK_SAPLING);
-                break;
-            case 10:
-                sapling = new ItemStack(Material.SPRUCE_SAPLING);
-                break;
-            case 15:
-                sapling = new ItemStack(Material.ACACIA_SAPLING);
-                break;
-            case 20:
-                sapling = new ItemStack(Material.BIRCH_SAPLING);
-                break;
-            case 25:
-                sapling = new ItemStack(Material.CHERRY_SAPLING);
-                break;
-            case 30:
-                sapling = new ItemStack(Material.JUNGLE_SAPLING);
-                break;
-            case 35:
-                sapling = new ItemStack(Material.MANGROVE_PROPAGULE);
-                break;
-            case 40:
-                sapling = new ItemStack(Material.DARK_OAK_SAPLING);
-                break;
-            default:
-                sapling = new ItemStack(Material.AIR);
-        }
+        ItemStack sapling = switch (cycle) {
+            case 5 -> addPersistentDataContainer(new ItemStack(Material.OAK_SAPLING));
+            case 10 -> addPersistentDataContainer(new ItemStack(Material.SPRUCE_SAPLING));
+            case 15 -> addPersistentDataContainer(new ItemStack(Material.ACACIA_SAPLING));
+            case 20 -> addPersistentDataContainer(new ItemStack(Material.BIRCH_SAPLING));
+            case 25 -> addPersistentDataContainer(new ItemStack(Material.CHERRY_SAPLING));
+            case 30 -> addPersistentDataContainer(new ItemStack(Material.JUNGLE_SAPLING));
+            case 35 -> addPersistentDataContainer(new ItemStack(Material.MANGROVE_PROPAGULE));
+            case 40 -> addPersistentDataContainer(new ItemStack(Material.DARK_OAK_SAPLING));
+            default -> new ItemStack(Material.AIR);
+        };
 
         if (cycle % 5 != 0) return;
         if (cycle == 40) cycle = 1;
         if (itemList.size() > 4) {
-            itemList.get(0).remove();
-            itemList.remove(0);
+            itemList.getFirst().remove();
+            itemList.removeFirst();
         }
         Location newLoc = loc.clone().add(0.5, 1.0, 0.5);
         Item saplingEnt = (Item) world.spawnEntity(newLoc, EntityType.ITEM);
@@ -443,23 +423,13 @@ public class TrophyEffects extends BukkitRunnable {
         World world = loc.getWorld();
         if (world == null) return;
         if (cycle % 3 == 0) floorParticles(Particle.WITCH);
-        ItemStack sapling;
-        switch (cycle) {
-            case 5:
-                sapling = new ItemStack(Material.COD);
-                break;
-            case 10:
-                sapling = new ItemStack(Material.SALMON);
-                break;
-            case 15:
-                sapling = new ItemStack(Material.PUFFERFISH);
-                break;
-            case 20:
-                sapling = new ItemStack(Material.TROPICAL_FISH);
-                break;
-            default:
-                sapling = new ItemStack(Material.AIR);
-        }
+        ItemStack sapling = switch (cycle) {
+            case 5 -> addPersistentDataContainer(new ItemStack(Material.COD));
+            case 10 -> addPersistentDataContainer(new ItemStack(Material.SALMON));
+            case 15 -> addPersistentDataContainer(new ItemStack(Material.PUFFERFISH));
+            case 20 -> addPersistentDataContainer(new ItemStack(Material.TROPICAL_FISH));
+            default -> addPersistentDataContainer(new ItemStack(Material.AIR));
+        };
 
         if (cycle % 5 != 0) return;
         if (cycle == 20) {
@@ -469,7 +439,7 @@ public class TrophyEffects extends BukkitRunnable {
                 mob.remove();
                 mob = null;
             }
-            else if (chance < 0.2) {
+            else if (mob == null && chance < 0.2) {
                 mob = world.spawnEntity(loc.clone().add(0.5, 1.0, 0.5), EntityType.SQUID);
                 Squid squid = (Squid) mob;
                 squid.setPersistent(true);
@@ -480,8 +450,8 @@ public class TrophyEffects extends BukkitRunnable {
             }
         }
         if (itemList.size() > 8) {
-            itemList.get(0).remove();
-            itemList.remove(0);
+            itemList.getFirst().remove();
+            itemList.removeFirst();
         }
         Location newLoc = loc.clone().add(0.5, 1.0, 0.5);
         Item saplingEnt = (Item) world.spawnEntity(newLoc, EntityType.ITEM);
@@ -503,7 +473,7 @@ public class TrophyEffects extends BukkitRunnable {
             if (chance < 0.5) {
                 Location newLoc = loc.clone().add(0.5 + (Math.random() - 0.5), 2.0 + (Math.random()), 0.5 + (Math.random() - 0.5));
                 Color color = colorList.get((int) Math.floor(Math.random() * colorList.size()));
-                spawnFirework(newLoc, 1, FireworkEffect.Type.BALL, color, false, false, colorList);
+                spawnFireworkEffect(newLoc, color, 1.5, 0.3);
             }
             if (cycle == 16) cycle = 0;
         }
@@ -544,24 +514,21 @@ public class TrophyEffects extends BukkitRunnable {
         for (String hex : hexColors) colorList.add(ColorParser.hexToColor(hex));
     }
 
-    public void spawnFirework(Location loc, int power, FireworkEffect.Type type, Color color, boolean trail, boolean flicker, ArrayList<Color> fadeColors) {
+    public void spawnFireworkEffect(Location loc, Color color, double radius, double step) {
+        // Spawn a sphere of dust particles of the color of the firework
         World world = loc.getWorld();
         if (world == null) return;
-        Firework fw = (Firework) world.spawnEntity(loc, EntityType.FIREWORK_ROCKET);
-        FireworkMeta fwm = fw.getFireworkMeta();
-
-        FireworkEffect.Builder build = FireworkEffect.builder();
-        build.with(type);
-        build.withColor(color);
-        if (trail) build.withTrail();
-        if (flicker) build.withFlicker();
-        if (fadeColors != null) build.withFade(fadeColors);
-
-        fwm.addEffect(build.build());
-        fwm.setPower(power);
-        fw.setMetadata("nodamage", new FixedMetadataValue(plugin, true));
-        fw.setFireworkMeta(fwm);
-        fw.detonate();
+        Particle.DustOptions dust = new Particle.DustOptions(color, 1f);
+        for (double x = -radius; x <= radius; x += step) {
+            for (double y = -radius; y <= radius; y += step) {
+                for (double z = -radius; z <= radius; z += step) {
+                    double distance = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+                    if (distance > radius || distance < radius - step) continue;
+                    Location newLoc = loc.clone().add(x, y, z);
+                    world.spawnParticle(Particle.DUST, newLoc, 1, 1, 1, 1, dust);
+                }
+            }
+        }
     }
 
     public void netherParticles() {
@@ -593,7 +560,7 @@ public class TrophyEffects extends BukkitRunnable {
                 mob.remove();
                 mob = null;
             }
-            else if (chance < 0.1) {
+            else if (mob == null && chance < 0.1) {
                 mob = world.spawnEntity(loc.clone().add(0.5, 1.0, 0.5), EntityType.ENDERMAN);
                 Enderman eman = (Enderman) mob;
                 eman.setPersistent(true);
@@ -607,16 +574,12 @@ public class TrophyEffects extends BukkitRunnable {
     }
 
     public void championParticles() {
-        //if (cycle % 5 != 0) return;
         if (cycle == 360) cycle = 1;
-        if (mobTrophyOrbital.tooFar(itemList.get(0).getLocation())) {
-            mobTrophyOrbital.createLocations(mobTrophyOrbital.getAngle(itemList.get(0).getLocation()) + 0.01);
-            resetLocation();
-        }
         moveChampionItems();
     }
 
     public void resetLocation() {
+        mobTrophyOrbital.createLocations(mobTrophyOrbital.getAngle(itemList.getFirst().getLocation()) + 0.01);
         for (int i = 0; i < itemList.size(); i++) {
             Item item = itemList.get(i);
             item.teleport(mobTrophyOrbital.getLocation(i));
@@ -624,44 +587,57 @@ public class TrophyEffects extends BukkitRunnable {
     }
 
     public void moveChampionItems() {
-        for (Item item : itemList) item.setVelocity(mobTrophyOrbital.getVelocityVector(item.getLocation(), 0.04));
+        for (Item item : itemList) {
+            item.setVelocity(mobTrophyOrbital.getVelocityVector(item.getLocation(), 0.04));
+            if (mobTrophyOrbital.tooFar(item.getLocation())) {
+                resetLocation();
+                break;
+            }
+        }
     }
 
     public void populateItemList() {
         World world = loc.getWorld();
         if (world == null) return;
         Item giant = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        giant.setItemStack(new ItemStack(Material.ZOMBIE_HEAD));
+        giant.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
+        giant.setItemStack(addPersistentDataContainer(new ItemStack(Material.ZOMBIE_HEAD)));
         setFloatingItemProperties(giant);
         itemList.add(giant);
 
         Item guardian = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        guardian.setItemStack(new ItemStack(Material.PRISMARINE_CRYSTALS));
+        guardian.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
+        guardian.setItemStack(addPersistentDataContainer(new ItemStack(Material.ENDER_EYE)));
         setFloatingItemProperties(guardian);
         itemList.add(guardian);
 
         Item wither = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        wither.setItemStack(new ItemStack(Material.NETHER_STAR));
+        wither.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
+        wither.setItemStack(addPersistentDataContainer(new ItemStack(Material.NETHER_STAR)));
         setFloatingItemProperties(wither);
         itemList.add(wither);
 
         Item warden = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        warden.setItemStack(new ItemStack(Material.MUSIC_DISC_WARD));
+        warden.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
+        warden.setItemStack(addPersistentDataContainer(new ItemStack(Material.ECHO_SHARD)));
         setFloatingItemProperties(warden);
         itemList.add(warden);
 
         Item dragon = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        dragon.setItemStack(new ItemStack(Material.DRAGON_EGG));
+        dragon.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
+        dragon.setItemStack(addPersistentDataContainer(new ItemStack(Material.DRAGON_HEAD)));
         setFloatingItemProperties(dragon);
         itemList.add(dragon);
 
         Item brood = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        brood.setItemStack(new ItemStack(Material.COBWEB));
+        brood.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
+        brood.setItemStack(addPersistentDataContainer(new ItemStack(Material.COBWEB)));
         setFloatingItemProperties(brood);
         itemList.add(brood);
 
         Item villager = (Item) world.spawnEntity(loc, EntityType.ITEM);
-        villager.setItemStack(new ItemStack(Material.PLAYER_HEAD));
+        villager.setMetadata("TrophyItem", new FixedMetadataValue(plugin, true));
+        villager.setItemStack(addPersistentDataContainer(new ItemStack(Material.PLAYER_HEAD)));
         setFloatingItemProperties(villager);
         itemList.add(villager);
     }
@@ -673,8 +649,9 @@ public class TrophyEffects extends BukkitRunnable {
         item.setOwner(UUID.fromString("00000000-0000-0000-0000-000000000000"));
     }
 
-    public void godParticles() {
-        if (cycle == 1) godTrophy = new GodTrophyEffects(loc);
+    public void godParticles() throws IOException, InterruptedException {
+        if (!citizensEnabled) return;
+        if (cycle == 1 && godTrophy == null) godTrophy = new GodTrophyEffects(loc);
 
         if (cycle < 122) {
             // Spawn grass block item and send it to the sky
@@ -726,19 +703,20 @@ public class TrophyEffects extends BukkitRunnable {
                 loc.getWorld().strikeLightningEffect(loc.clone().add(0.5, 0, 0.5));
                 godTrophy.playSound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER);
             }
-            else if (cycle == 121) godTrophy.spawnPlayer(playerName);
+            else if (cycle == 121) {
+                godTrophy.spawnPlayer(playerName, playerUUID);
+                godTrophy.spawnCrystal(0.5, 1.5, 0.5);
+            }
         }
 
-        // Have enchantment particle effects around the base. Fireworks exploding nearby
-        if (cycle >= 121) {
-            if (cycle >= 125 && godTrophy.getNPCPlayer() == null) godTrophy.spawnPlayer(playerName);
-            if (cycle == 121) godTrophy.spawnCrystal(0.5, 1.5, 0.5);
+        if (cycle > 121) {
             if (cycle % 2 == 0) {
                 World world = loc.getWorld();
                 if (world == null) return;
                 world.spawnParticle(Particle.ENCHANT, loc.clone().add(0.5, 0, 0.5), 40);
             }
-            if (cycle % 4 == 0) godTrophy.moveCrystal();
+            if (cycle % 4 == 0 && godTrophy != null) godTrophy.moveCrystal();
+            if (godTrophy != null) godTrophy.questParticleEffect();
         }
     }
 
@@ -749,4 +727,9 @@ public class TrophyEffects extends BukkitRunnable {
     public int getType() {
         return type;
     }
+
+    public int getCycle() {
+        return cycle;
+    }
 }
+

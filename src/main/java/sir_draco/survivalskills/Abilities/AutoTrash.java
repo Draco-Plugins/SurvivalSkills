@@ -16,9 +16,12 @@ public class AutoTrash {
     private final ArrayList<Enchantment> enchants = new ArrayList<>();
     private final ArrayList<Material> trashMaterials = new ArrayList<>();
 
+    private Boolean big;
+
     private Inventory trashInventory;
 
     public AutoTrash(boolean big) {
+        this.big = big;
         if (big) trashInventory = Bukkit.createInventory(null, 54, "Auto Trash");
         else trashInventory = Bukkit.createInventory(null, 27, "Auto Trash");
     }
@@ -30,8 +33,7 @@ public class AutoTrash {
         if (clone.getType().equals(Material.ENCHANTED_BOOK)) {
             ItemMeta meta = item.getItemMeta();
             if (meta == null) return;
-            if (!(meta instanceof EnchantmentStorageMeta)) return;
-            EnchantmentStorageMeta enchantMeta = (EnchantmentStorageMeta) meta;
+            if (!(meta instanceof EnchantmentStorageMeta enchantMeta)) return;
             if (enchantMeta.getStoredEnchants().isEmpty()) return;
             Enchantment enchant = enchantMeta.getStoredEnchants().keySet().iterator().next();
             if (enchants.contains(enchant)) return;
@@ -50,8 +52,7 @@ public class AutoTrash {
         if (clone.getType().equals(Material.ENCHANTED_BOOK)) {
             ItemMeta meta = item.getItemMeta();
             if (meta == null) return;
-            if (!(meta instanceof EnchantmentStorageMeta)) return;
-            EnchantmentStorageMeta enchantMeta = (EnchantmentStorageMeta) meta;
+            if (!(meta instanceof EnchantmentStorageMeta enchantMeta)) return;
             if (enchantMeta.getStoredEnchants().isEmpty()) return;
             Enchantment enchant = enchantMeta.getStoredEnchants().keySet().iterator().next();
             if (enchants.contains(enchant)) return;
@@ -68,8 +69,7 @@ public class AutoTrash {
         if (item.getType().equals(Material.ENCHANTED_BOOK)) {
             ItemMeta meta = item.getItemMeta();
             if (meta == null) return;
-            if (!(meta instanceof EnchantmentStorageMeta)) return;
-            EnchantmentStorageMeta enchantMeta = (EnchantmentStorageMeta) meta;
+            if (!(meta instanceof EnchantmentStorageMeta enchantMeta)) return;
             if (enchantMeta.getStoredEnchants().isEmpty()) return;
             Enchantment enchant = enchantMeta.getStoredEnchants().keySet().iterator().next();
             enchants.remove(enchant);
@@ -88,6 +88,7 @@ public class AutoTrash {
     public void upgradeTrashSize() {
         Inventory newTrashInventory = Bukkit.createInventory(null, 54, "Auto Trash");
         trashInventory.clear();
+        trashInventory = newTrashInventory;
         if (!trashMaterials.isEmpty()) {
             for (Material mat : trashMaterials) {
                 ItemStack item = new ItemStack(mat);
@@ -109,8 +110,7 @@ public class AutoTrash {
                 }
             }
         }
-
-        trashInventory = newTrashInventory;
+        big = true;
     }
 
     public void openTrashInventory(Player p) {
@@ -127,5 +127,9 @@ public class AutoTrash {
 
     public Inventory getTrashInventory() {
         return trashInventory;
+    }
+
+    public Boolean isBig() {
+        return big;
     }
 }
