@@ -5,10 +5,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.TabCompleteEvent;
-import sir_draco.survivalskills.GodQuestline.Trial;
-import sir_draco.survivalskills.GodQuestline.TrialManager;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
 import sir_draco.survivalskills.Rewards.Reward;
+import sir_draco.survivalskills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -40,16 +39,6 @@ public class TabCompleter implements Listener {
         else if (buffer.contains("/skills ")) handleSkills(buffer, e);
         else if (buffer.contains("/toggletrail ")) handleTrails(p, buffer, e);
         else if (buffer.contains("/bossmusic ")) handleBossMusic(buffer, p, e);
-        else if (buffer.contains("/flight ")) handleFlight(buffer, e);
-        else if (buffer.contains("/godtrial end ")) handleActiveTrials(buffer, p, e, true);
-        else if (buffer.contains("/godtrial delete ")) handleActiveTrials(buffer, p, e, true);
-        else if (buffer.contains("/godtrial restart ")) handleActiveTrials(buffer, p, e, true);
-        else if (buffer.contains("/godtrial spectate ")) handleActiveTrials(buffer, p, e, false);
-        else if (buffer.contains("/godtrial nextwave ")) handleActiveTrials(buffer, p, e, true);
-        else if (buffer.contains("/godtrial setwave ")) handleActiveTrials(buffer, p, e, true);
-        else if (buffer.contains("/godtrial delink ")) handleActiveTrials(buffer, p, e, true);
-        else if (buffer.contains("/godtrial ")) handleGodTrial(buffer, p, e);
-        else if (buffer.contains("/cancelabilitycooldowns ")) handlePlayers(buffer, e);
     }
 
     public void handleSpelunker(String buffer, Player p, TabCompleteEvent e) {
@@ -69,92 +58,35 @@ public class TabCompleter implements Listener {
     public void handleGetItem(String buffer, Player p, TabCompleteEvent e) {
         if (!p.hasPermission("survivalskills.op")) return;
         ArrayList<String> words = new ArrayList<>();
-        words.add("adventurerarmor");
-        words.add("adventurerboots");
-        words.add("adventurerchestplate");
-        words.add("adventurerhelmet");
-        words.add("adventurerleggings");
-        words.add("beaconarmor");
-        words.add("beaconboots");
-        words.add("beaconchestplate");
-        words.add("beaconhelmet");
-        words.add("beaconleggings");
-        words.add("broodmothersummoner");
-        words.add("cavefinder");
-        words.add("creeperessence");
-        words.add("dragonbreathcannon");
-        words.add("dragonhead");
-        words.add("enderessence");
-        words.add("exiledsummoner");
-        words.add("fireworkcannon");
-        words.add("firstalbum");
-        words.add("giantsummoner");
-        words.add("gillboots");
-        words.add("gillchestplate");
-        words.add("gillhelmet");
-        words.add("gillleggings");
-        words.add("goathorn");
-        words.add("harvester");
+        words.add("unlimitedtorch");
         words.add("jumpingboots");
-        words.add("magicbagowind");
-        words.add("magnet");
-        words.add("miningarmor");
         words.add("miningboots");
+        words.add("miningleggings");
         words.add("miningchestplate");
         words.add("mininghelmet");
-        words.add("miningleggings");
-        words.add("potionbag");
-        words.add("sortofstonepick");
-        words.add("sortwand");
-        words.add("timeartifact");
-        words.add("travelerarmor");
-        words.add("travelerboots");
-        words.add("travelerchestplate");
-        words.add("travelerhelmet");
-        words.add("travelerleggings");
-        words.add("turtlehelmet");
-        words.add("unlimitedbonemeal");
-        words.add("unlimitedlavabucket");
-        words.add("unlimitedtippedarrow");
-        words.add("unlimitedtorch");
-        words.add("unlimitedtropicalfishbucket");
-        words.add("unlimitedwaterbucket");
-        words.add("unlimitedwitherrose");
-        words.add("villagerrevivalartifact");
-        words.add("wandererarmor");
         words.add("wandererboots");
+        words.add("wandererleggings");
         words.add("wandererchestplate");
         words.add("wandererhelmet");
-        words.add("wandererleggings");
+        words.add("cavefinder");
+        words.add("travellerboots");
+        words.add("travellerleggings");
+        words.add("travellerchestplate");
+        words.add("travellerhelmet");
+        words.add("adventurerboots");
+        words.add("adventurerleggings");
+        words.add("adventurerchestplate");
+        words.add("adventurerhelmet");
         words.add("wateringcan");
-        words.add("weatherartifact");
-        words.add("webshooter");
-        words.add("xpvoucher");
-        words.add("zapwand");
-        words.add("secondalbum");
-        words.add("musicknowledgedisc");
-        words.add("firstsherd");
-        words.add("secondsherd");
-        words.add("sherdrelic");
-        words.add("firsttrim");
-        words.add("secondtrim");
-        words.add("trimrelic");
-        words.add("warrioremblem");
-        words.add("tridentlauncher");
-        words.add("powerore");
-        words.add("godtrophybase");
-        words.add("unlimitedsponge");
-        words.add("giantbossitem");
-        words.add("broodmotherbossitem");
-        words.add("villagerbossitem");
-        words.add("powersword");
-        words.add("powerdrill");
-        words.add("powerlaser");
-        words.add("powerarmor");
-        words.add("powerboots");
-        words.add("powerchestplate");
-        words.add("powerhelmet");
-        words.add("powerleggings");
+        words.add("unlimitedbonemeal");
+        words.add("harvester");
+        words.add("giantsummoner");
+        words.add("broodmothersummoner");
+        words.add("exiledsummoner");
+        words.add("sortofstonepick");
+        words.add("fireworkcannon");
+        words.add("sortwand");
+        words.add("unlimitedtropicalfishbucket");
         e.setCompletions(getCompletions(buffer, words));
     }
 
@@ -202,10 +134,7 @@ public class TabCompleter implements Listener {
         words.add("crafting");
         words.add("main");
         words.add("deaths");
-        if (buffer.contains("leaderboard")) {
-            words.add("all");
-            words.add("trials");
-        }
+        if (buffer.contains("leaderboard")) words.add("all");
         e.setCompletions(getCompletions(buffer, words));
     }
 
@@ -232,7 +161,6 @@ public class TabCompleter implements Listener {
         words.add("fishing");
         words.add("crafting");
         words.add("main");
-        words.add("all");
         e.setCompletions(getCompletions(buffer, words));
     }
 
@@ -292,7 +220,7 @@ public class TabCompleter implements Listener {
 
     public void handleTrails(Player p, String buffer, TabCompleteEvent e) {
         ArrayList<String> words = new ArrayList<>();
-        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+        PlayerRewards rewards = plugin.getPlayerRewards(p);
 
         if (rewards.getReward("Main", "DustTrail").isApplied()) words.add("dust");
         if (rewards.getReward("Main", "WaterTrail").isApplied()) words.add("water");
@@ -319,42 +247,6 @@ public class TabCompleter implements Listener {
         if (!p.hasPermission("survivalskills.op")) return;
         ArrayList<String> words = new ArrayList<>();
         words.add("villager");
-        e.setCompletions(getCompletions(buffer, words));
-    }
-
-    public void handleFlight(String buffer, TabCompleteEvent e) {
-        ArrayList<String> words = new ArrayList<>();
-        words.add("left");
-        e.setCompletions(getCompletions(buffer, words));
-    }
-
-    public void handleGodTrial(String buffer, Player p, TabCompleteEvent e) {
-        ArrayList<String> words = new ArrayList<>();
-        words.add("end");
-        words.add("delete");
-        words.add("restart");
-        words.add("spectate");
-        if (p.hasPermission("survivalskills.op")) {
-            words.add("nextwave");
-            words.add("setwave");
-            words.add("delink");
-        }
-        e.setCompletions(getCompletions(buffer, words));
-    }
-
-    public void handleActiveTrials(String buffer, Player p, TabCompleteEvent e, boolean op) {
-        if (op && !p.hasPermission("survivalskills.op")) return;
-        ArrayList<String> words = new ArrayList<>();
-
-        if (op) {
-            for (Trial trial : TrialManager.getTrials())
-                words.add(trial.getTrialMaster().getName());
-        }
-        else {
-            for (Trial trial : TrialManager.getTrials())
-                for (Player player : trial.getPlayers())
-                    words.add(player.getName());
-        }
         e.setCompletions(getCompletions(buffer, words));
     }
 
@@ -393,7 +285,7 @@ public class TabCompleter implements Listener {
     }
 
     public void createSkillNames(SurvivalSkills plugin) {
-        for (Map.Entry<String, ArrayList<Reward>> rewards : plugin.getSkillManager().getDefaultPlayerRewards().getRewardList().entrySet()) {
+        for (Map.Entry<String, ArrayList<Reward>> rewards : plugin.getDefaultPlayerRewards().getRewardList().entrySet()) {
             for (Reward reward : rewards.getValue()) skillNames.add(reward.getName());
         }
     }

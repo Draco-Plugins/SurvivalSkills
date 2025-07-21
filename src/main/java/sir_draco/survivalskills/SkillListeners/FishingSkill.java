@@ -10,13 +10,13 @@ import org.bukkit.entity.FishHook;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.*;
-import org.bukkit.event.player.*;
+import org.bukkit.event.player.PlayerExpChangeEvent;
+import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
@@ -26,24 +26,21 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.Abilities.AutoTrash;
-import sir_draco.survivalskills.Skills.SkillManager;
-import sir_draco.survivalskills.Utils.ProjectileCalculator;
-import sir_draco.survivalskills.Utils.ItemStackGenerator;
+import sir_draco.survivalskills.Bosses.ProjectileCalculator;
+import sir_draco.survivalskills.ItemStackGenerator;
 import sir_draco.survivalskills.Rewards.PlayerRewards;
+import sir_draco.survivalskills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 
-@SuppressWarnings("deprecation")
 public class FishingSkill implements Listener {
 
     private final SurvivalSkills plugin;
     private final ArrayList<Player> waterBreathers = new ArrayList<>();
     private final ArrayList<Player> openTrashInventories = new ArrayList<>();
-    private final ArrayList<Player> disabledAutoTrash = new ArrayList<>();
     private final HashMap<Player, Integer> rainFishers = new HashMap<>();
     private final HashMap<Player, Integer> nonStackableItems = new HashMap<>();
     private final HashMap<Player, AutoTrash> trashInventories = new HashMap<>();
@@ -56,17 +53,17 @@ public class FishingSkill implements Listener {
     private final HashMap<Enchantment, Integer> epicEnchantments = new HashMap<>();
     private final ArrayList<Material> legendaryLootTable = new ArrayList<>();
     private final HashMap<Enchantment, Integer> legendaryEnchantments = new HashMap<>();
-    private final ArrayList<ItemStack> exoticLootTable = new ArrayList<>();
 
     private int id = 1;
+    private double xp; // XP per fishing action
 
-    public FishingSkill(SurvivalSkills plugin) {
+    public FishingSkill(SurvivalSkills plugin, double xp) {
         this.plugin = plugin;
+        this.xp = xp;
         createCommonLootTable();
         createRareLootTable();
         createEpicLootTable();
         createLegendaryLootTable();
-        createExoticLootTable();
     }
 
     @EventHandler
@@ -83,8 +80,8 @@ public class FishingSkill implements Listener {
             if (rod.containsEnchantment(Enchantment.LURE)) lureLevel = Math.min(3, rod.getEnchantmentLevel(Enchantment.LURE));
 
             // Get fishing skill speed level
-            int minSpeed = plugin.getSkillManager().getPlayerRewards(p).getFishingMinTickSpeed();
-            int maxSpeed = plugin.getSkillManager().getPlayerRewards(p).getFishingMaxTickSpeed();
+            int minSpeed = plugin.getPlayerRewards(p).getFishingMinTickSpeed();
+            int maxSpeed = plugin.getPlayerRewards(p).getFishingMaxTickSpeed();
             minSpeed = Math.min(Math.max(1, minSpeed - (lureLevel * 10)), 79);
             maxSpeed = Math.max(minSpeed + 5, maxSpeed - (lureLevel * 20));
 
@@ -120,7 +117,7 @@ public class FishingSkill implements Listener {
 
                         handleFishingExperience(p);
                         handleDurability(rod);
-                        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), "Fishing");
+                        Skill.experienceEvent(plugin, p, xp, "Fishing");
                         hook.remove();
                         rainFishers.remove(p);
                     }
@@ -139,11 +136,11 @@ public class FishingSkill implements Listener {
         Player p = e.getPlayer();
 
         // Check if the player is above fighting level 50 and try to spawn fishing boss
-        if (plugin.getSkillManager().getPlayerRewards(p).getReward("Fighting", "FishingKing").isApplied()) {
+        if (plugin.getPlayerRewards(p).getReward("Fighting", "FishingKing").isApplied()) {
             double chance = Math.random();
 
-            if (!plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId()).get("FishingTrophy")) {
-                if (chance <= 0.01) {
+            if (!plugin.getTrophyTracker().get(p.getUniqueId()).get("FishingTrophy")) {
+                if (chance <= 0.004) {
                     Location loc = e.getHook().getLocation();
                     World world = e.getHook().getWorld();
                     Vector velocity = ProjectileCalculator.getVector(loc, p.getLocation(), 1);
@@ -155,7 +152,7 @@ public class FishingSkill implements Listener {
                 }
             }
             else {
-                if (chance <= 0.004) {
+                if (chance <= 0.01) {
                     Location loc = e.getHook().getLocation();
                     World world = e.getHook().getWorld();
                     Vector velocity = ProjectileCalculator.getVector(loc, p.getLocation(), 1);
@@ -183,13 +180,13 @@ public class FishingSkill implements Listener {
         // Set the velocity of all the items in the list to the velocity of the entity that was caught
         if (!items.isEmpty()) for (ItemStack item : items) world.dropItem(loc, item).setVelocity(velocity);
 
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), "Fishing");
+        Skill.experienceEvent(plugin, p, xp, "Fishing");
     }
 
     @EventHandler
     public void experienceEvent(PlayerExpChangeEvent e) {
         Player p = e.getPlayer();
-        double xpMultiplier = plugin.getSkillManager().getPlayerRewards(p).getExperienceMultiplier();
+        double xpMultiplier = plugin.getPlayerRewards(p).getExperienceMultiplier();
         e.setAmount((int) (e.getAmount() * xpMultiplier));
     }
 
@@ -197,7 +194,7 @@ public class FishingSkill implements Listener {
     public void playerMoveInWater(PlayerMoveEvent e) {
         Player p = e.getPlayer();
         if (!p.isSwimming() && !p.isInWater()) return;
-        if (plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "WaterBreathingIII").isApplied()) {
+        if (plugin.getPlayerRewards(p).getReward("Fishing", "WaterBreathingIII").isApplied()) {
             p.setRemainingAir(300);
             return;
         }
@@ -327,20 +324,19 @@ public class FishingSkill implements Listener {
 
     @EventHandler
     public void onItemPickup(EntityPickupItemEvent e) {
-        if (!(e.getEntity() instanceof Player p)) return;
-        if (disabledAutoTrash.contains(p)) return;
+        if (!(e.getEntity() instanceof Player)) return;
+        Player p = (Player) e.getEntity();
         if (!trashInventories.containsKey(p) && !permaTrash.containsKey(p)) return;
 
         ItemStack item = e.getItem().getItemStack();
-        if (item.getItemMeta() != null && item.getItemMeta().hasCustomModelData()) return;
-        if (item.getItemMeta() != null && item.getItemMeta().getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey)) return;
         if (trashInventories.containsKey(p)) {
             AutoTrash trash = trashInventories.get(p);
             if (trash == null) return;
             if (item.getType().equals(Material.ENCHANTED_BOOK)) {
                 ItemMeta meta = item.getItemMeta();
                 if (meta == null) return;
-                if (!(meta instanceof EnchantmentStorageMeta enchantMeta)) return;
+                if (!(meta instanceof EnchantmentStorageMeta)) return;
+                EnchantmentStorageMeta enchantMeta = (EnchantmentStorageMeta) meta;
                 if (enchantMeta.getStoredEnchants().isEmpty()) return;
                 Enchantment enchant = enchantMeta.getStoredEnchants().keySet().iterator().next();
 
@@ -361,7 +357,8 @@ public class FishingSkill implements Listener {
             if (item.getType().equals(Material.ENCHANTED_BOOK)) {
                 ItemMeta meta = item.getItemMeta();
                 if (meta == null) return;
-                if (!(meta instanceof EnchantmentStorageMeta enchantMeta)) return;
+                if (!(meta instanceof EnchantmentStorageMeta)) return;
+                EnchantmentStorageMeta enchantMeta = (EnchantmentStorageMeta) meta;
                 if (enchantMeta.getStoredEnchants().isEmpty()) return;
                 Enchantment enchant = enchantMeta.getStoredEnchants().keySet().iterator().next();
 
@@ -375,380 +372,6 @@ public class FishingSkill implements Listener {
             e.setCancelled(true);
             e.getItem().remove();
         }
-    }
-
-    @EventHandler
-    public void onBucketPickup(PlayerBucketFillEvent e) {
-        ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(hand, 30)) return;
-        Material type = e.getBlockClicked().getType();
-        if (!type.equals(Material.WATER) && !type.equals(Material.LAVA)) return;
-
-        e.setCancelled(true);
-        e.getBlockClicked().setType(Material.AIR);
-    }
-
-    @EventHandler
-    public void onBucketUse(PlayerBucketEmptyEvent e) {
-        ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(hand)) return;
-
-        if (hand.getType().equals(Material.WATER_BUCKET)) {
-            e.setCancelled(true);
-            e.getBlockClicked().getRelative(e.getBlockFace()).setType(Material.WATER);
-        }
-        else if (hand.getType().equals(Material.LAVA_BUCKET)) {
-            e.setCancelled(true);
-            e.getBlockClicked().getRelative(e.getBlockFace()).setType(Material.LAVA);
-        }
-    }
-
-    @EventHandler
-    public void onArtifactUse(PlayerInteractEvent e) {
-        if (e.getHand() == null || e.getHand().equals(EquipmentSlot.OFF_HAND)) return;
-        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && !e.getAction().equals(Action.RIGHT_CLICK_AIR)) return;
-        ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(hand)) return;
-
-        Player p = e.getPlayer();
-        if (hand.getType().equals(Material.BREEZE_ROD)) {
-            if (itemIsOnCooldown(hand)) {
-                int time = getSecondsTillCooldown(hand);
-                int minutes = time / 60;
-                int seconds = time % 60;
-                String formattedTime = String.format("%02d:%02d", minutes, seconds);
-                p.sendRawMessage(ChatColor.RED + "This item is on cooldown for " + formattedTime + "!");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return;
-            }
-            World world = p.getWorld();
-            if (world.hasStorm()) {
-                p.sendRawMessage(ChatColor.RED + "It is already raining!");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return;
-            }
-
-            world.setStorm(true);
-            Bukkit.broadcastMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "[Server] " + ChatColor.RESET +
-                    ChatColor.GOLD + p.getName() + ChatColor.YELLOW + " has summoned a storm!");
-            p.sendRawMessage(ChatColor.GREEN + "You have summoned a storm!");
-            p.playSound(p, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1, 1);
-
-            // Update the time in the lore of the item
-            ItemMeta meta = hand.getItemMeta();
-            if (meta == null) return;
-            List<String> lore = meta.getLore();
-            if (lore == null) return;
-            long time = System.currentTimeMillis();
-            lore.set(lore.size() - 1, ChatColor.GRAY + "Last Used: " + time);
-            meta.setLore(lore);
-            hand.setItemMeta(meta);
-        }
-        else if (hand.getType().equals(Material.CLOCK)) {
-            if (itemIsOnCooldown(hand)) {
-                int time = getSecondsTillCooldown(hand);
-                int minutes = time / 60;
-                int seconds = time % 60;
-                String formattedTime = String.format("%02d:%02d", minutes, seconds);
-                p.sendRawMessage(ChatColor.RED + "This item is on cooldown for " + formattedTime + "!");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return;
-            }
-            World world = p.getWorld();
-            // Set the time to day if it is night, and night if it is day
-            if (world.getTime() >= 13000) {
-                world.setTime(0);
-                Bukkit.broadcastMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "[Server] " + ChatColor.RESET +
-                        ChatColor.GOLD + p.getName() + ChatColor.YELLOW + " has set the time to day!");
-            }
-            else {
-                world.setTime(13000);
-                Bukkit.broadcastMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "[Server] " + ChatColor.RESET +
-                        ChatColor.GOLD + p.getName() + ChatColor.YELLOW + " has set the time to night!");
-            }
-
-            // Update the time in the lore of the item
-            ItemMeta meta = hand.getItemMeta();
-            if (meta == null) return;
-            List<String> lore = meta.getLore();
-            if (lore == null) return;
-            long time = System.currentTimeMillis();
-            lore.set(lore.size() - 1, ChatColor.GRAY + "Last Used: " + time);
-            meta.setLore(lore);
-            hand.setItemMeta(meta);
-        }
-    }
-
-    public ItemStack getEnchantedBook(HashMap<Enchantment, Integer> enchantments, boolean isEpic, boolean isLegendary) {
-        int random = getRandomPositiveInteger(enchantments.size());
-        int i = 1;
-        for (Enchantment enchantment : enchantments.keySet()) {
-            if (i != random) {
-                i++;
-                continue;
-            }
-
-            int level = enchantments.get(enchantment);
-            ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
-            EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
-            if (meta == null || enchantment == null) return new ItemStack(Material.AIR);
-            if (isLegendary) meta.addStoredEnchant(enchantment, level, false);
-            else if (isEpic && level >= 4) meta.addStoredEnchant(enchantment, Math.max(3, getRandomPositiveInteger(level)), false);
-            else if (level == 1) meta.addStoredEnchant(enchantment, 1, false);
-            else meta.addStoredEnchant(enchantment, Math.max(1, getRandomPositiveInteger(level)), false);
-            book.setItemMeta(meta);
-            return book;
-        }
-        return new ItemStack(Material.AIR);
-    }
-
-    public int getRandomPositiveInteger(int size) {
-        return (int) Math.ceil((Math.random() * size));
-    }
-
-    public int getFishingLineNumber(Player p) {
-        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
-        if (rewards.getReward("Fishing", "FishingLineV").isApplied()) return 10;
-        if (rewards.getReward("Fishing", "FishingLineIV").isApplied()) return 7;
-        if (rewards.getReward("Fishing", "FishingLineIII").isApplied()) return 5;
-        if (rewards.getReward("Fishing", "FishingLineII").isApplied()) return 3;
-        if (rewards.getReward("Fishing", "FishingLineI").isApplied()) return 2;
-        return 1;
-    }
-
-    public ArrayList<ItemStack> getItemsToDrop(Player p, int luckLevel) {
-        ArrayList<ItemStack> items = new ArrayList<>();
-        int lineNumber = getFishingLineNumber(p);
-        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
-        double commonPercentage = rewards.getCommonFishingLootChance() + (luckLevel * 0.15);
-        double rarePercentage = rewards.getRareFishingLootChance() + (luckLevel * 0.05);
-        double epicPercentage = rewards.getEpicFishingLootChance() + (luckLevel * 0.025);
-        double legendaryPercentage = rewards.getLegendaryFishingLootChance() + (luckLevel * 0.005);
-        double exoticPercentage = rewards.getExoticFishingLootChance() + (luckLevel * 0.00005);
-
-        if (rewards.getCommonFishingLootChance() == 0) commonPercentage = 0;
-        if (rewards.getRareFishingLootChance() == 0) rarePercentage = 0;
-        if (rewards.getEpicFishingLootChance() == 0) epicPercentage = 0;
-        if (rewards.getLegendaryFishingLootChance() == 0) legendaryPercentage = 0;
-
-        for (int i = 1; i <= lineNumber; i++) {
-            double chance = Math.random();
-            if (chance < exoticPercentage) {
-                ItemStack item = exoticLootTable.get(getRandomPositiveInteger(exoticLootTable.size()) - 1);
-                items.add(item);
-                p.sendRawMessage(ChatColor.LIGHT_PURPLE + "You have caught an exotic item!");
-                p.playSound(p, Sound.ENTITY_DOLPHIN_ATTACK, 1, 1);
-                p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-            }
-            else if (legendaryPercentage != 0 && chance < legendaryPercentage) {
-                Material mat = getMaterial(p, 1);
-                if (mat.equals(Material.ENCHANTED_BOOK)) {
-                    items.add(getEnchantedBook(legendaryEnchantments, false, true));
-                }
-                else if (mat.equals(Material.EXPERIENCE_BOTTLE)) {
-                    items.add(new ItemStack(Material.EXPERIENCE_BOTTLE, Math.max(48, getRandomPositiveInteger(64))));
-                }
-                else items.add(new ItemStack(mat));
-            } else if (epicPercentage != 0 && chance < epicPercentage) {
-                Material mat = getMaterial(p, 2);
-                if (mat.equals(Material.ENCHANTED_BOOK)) {
-                    items.add(getEnchantedBook(epicEnchantments, true, false));
-                }
-                else if (mat.equals(Material.EXPERIENCE_BOTTLE)) {
-                    items.add(new ItemStack(Material.EXPERIENCE_BOTTLE, Math.max(12, getRandomPositiveInteger(24))));
-                }
-                else if (!mat.equals(Material.GOLDEN_HORSE_ARMOR) && !mat.equals(Material.IRON_HORSE_ARMOR)
-                        && !mat.equals(Material.HEART_OF_THE_SEA) && !mat.equals(Material.GHAST_TEAR)) {
-                    items.add(new ItemStack(mat, getRandomPositiveInteger(3)));
-                }
-                else items.add(new ItemStack(mat));
-            } else if (rarePercentage != 0 && chance < rarePercentage) {
-                Material mat = getMaterial(p, 3);
-                if (mat.equals(Material.ENCHANTED_BOOK)) {
-                    items.add(getEnchantedBook(rareEnchantments, false, false));
-                }
-                else if (!mat.equals(Material.LEATHER_HORSE_ARMOR) && !mat.equals(Material.NAME_TAG) && !mat.equals(Material.SADDLE)) {
-                    items.add(new ItemStack(mat, getRandomPositiveInteger(3)));
-                }
-                else items.add(new ItemStack(mat));
-            } else if (commonPercentage != 0 && chance < commonPercentage) {
-                Material mat = getMaterial(p, 4);
-                items.add(new ItemStack(mat, getRandomPositiveInteger(2)));
-            }
-        }
-
-        return items;
-    }
-
-    public Material getMaterial(Player p, int type) {
-        if (!nonStackableItems.containsKey(p)) nonStackableItems.put(p, 0);
-        if (type == 1) {
-            Material mat;
-            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type, p);
-
-            int random = getRandomPositiveInteger(legendaryLootTable.size()) - 1;
-            mat = legendaryLootTable.get(random);
-            checkStackable(p, mat);
-            if (mat.equals(Material.ELYTRA) && !p.getWorld().hasMetadata("killedfirstdragon")) return getMaterial(p, 1);
-            return mat;
-        }
-        else if (type == 2) {
-            Material mat;
-            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type, p);
-
-            int random = getRandomPositiveInteger(epicLootTable.size()) - 1;
-            mat = epicLootTable.get(random);
-            checkStackable(p, mat);
-            return mat;
-        }
-        else if (type == 3) {
-            Material mat;
-            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type, p);
-
-            int random = getRandomPositiveInteger(rareLootTable.size()) - 1;
-            mat = rareLootTable.get(random);
-            checkStackable(p, mat);
-            return mat;
-        }
-        else {
-            Material mat;
-            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type, p);
-
-            int random = getRandomPositiveInteger(commonLootTable.size()) - 1;
-            mat = commonLootTable.get(random);
-            checkStackable(p, mat);
-            return mat;
-        }
-    }
-
-    public void checkStackable(Player p, Material mat) {
-        if (mat.toString().contains("HORSE")) nonStackableItems.put(p, nonStackableItems.get(p) + 1);
-        if (mat.equals(Material.SADDLE)) nonStackableItems.put(p, nonStackableItems.get(p) + 1);
-    }
-
-    public Material getStackableMaterial(int type, Player p) {
-        if (type == 1) {
-            int random = getRandomPositiveInteger(legendaryLootTable.size()) - 1;
-            Material mat = legendaryLootTable.get(random);
-            if (mat.toString().contains("HORSE")) return getStackableMaterial(type, p);
-            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type, p);
-            if (mat.equals(Material.ELYTRA) && !p.getWorld().hasMetadata("killedfirstdragon")) return getStackableMaterial(type, p);
-            return mat;
-        }
-        else if (type == 2) {
-            int random = getRandomPositiveInteger(epicLootTable.size()) - 1;
-            Material mat = epicLootTable.get(random);
-            if (mat.toString().contains("HORSE")) return getStackableMaterial(type, p);
-            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type, p);
-            return mat;
-        }
-        else if (type == 3) {
-            int random = getRandomPositiveInteger(rareLootTable.size()) - 1;
-            Material mat = rareLootTable.get(random);
-            if (mat.toString().contains("HORSE")) return getStackableMaterial(type, p);
-            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type, p);
-            return mat;
-        }
-        else {
-            int random = getRandomPositiveInteger(commonLootTable.size()) - 1;
-            Material mat = commonLootTable.get(random);
-            if (mat.toString().contains("HORSE")) return getStackableMaterial(type, p);
-            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type, p);
-            return mat;
-        }
-    }
-
-    public void handleFishingExperience(Player p) {
-        int xp = (int) (Math.random() * 6);
-        int xpMultiplier = (int) plugin.getSkillManager().getPlayerRewards(p).getExperienceMultiplier();
-        if (xp != 0) p.getWorld().spawn(p.getLocation(), ExperienceOrb.class).setExperience(xp * xpMultiplier);
-    }
-
-    public void handleDurability(ItemStack fishingRod) {
-        if (fishingRod == null) return;
-        if (fishingRod.getType().equals(Material.FISHING_ROD)) {
-            Damageable meta = (Damageable) fishingRod.getItemMeta();
-            if (meta == null) return;
-
-            if (fishingRod.containsEnchantment(Enchantment.UNBREAKING)) {
-                double chance = Math.random() * 100;
-                int level = fishingRod.getEnchantmentLevel(Enchantment.UNBREAKING);
-                if (chance <= (100f / (level + 1))) meta.setDamage(meta.getDamage() + 1);
-            }
-            else meta.setDamage(meta.getDamage() + 1);
-            fishingRod.setItemMeta(meta);
-        }
-    }
-
-    public void spawnFishingBoss(World world, Location loc, Vector velocity) {
-        Drowned boss = (Drowned) world.spawnEntity(loc, org.bukkit.entity.EntityType.DROWNED);
-        boss.setVelocity(velocity);
-        boss.setMetadata("fishingboss", new FixedMetadataValue(plugin, true));
-
-        ItemStack helmet = new ItemStack(Material.DIAMOND_HELMET);
-        ItemStack chestplate = new ItemStack(Material.DIAMOND_CHESTPLATE);
-        ItemStack leggings = new ItemStack(Material.DIAMOND_LEGGINGS);
-        ItemStack boots = new ItemStack(Material.DIAMOND_BOOTS);
-        ItemStack trident = new ItemStack(Material.TRIDENT);
-
-        helmet.addUnsafeEnchantment(Enchantment.THORNS, 6);
-        chestplate.addUnsafeEnchantment(Enchantment.THORNS, 6);
-        leggings.addUnsafeEnchantment(Enchantment.THORNS, 6);
-        boots.addUnsafeEnchantment(Enchantment.THORNS, 6);
-        trident.addUnsafeEnchantment(Enchantment.IMPALING, 10);
-
-        if (boss.getEquipment() == null) return;
-        boss.getEquipment().setHelmet(helmet);
-        boss.getEquipment().setChestplate(chestplate);
-        boss.getEquipment().setLeggings(leggings);
-        boss.getEquipment().setBoots(boots);
-        boss.getEquipment().setItemInMainHand(trident);
-
-        AttributeInstance healthAttribute = boss.getAttribute(Attribute.MAX_HEALTH);
-        if (healthAttribute != null) healthAttribute.setBaseValue(100);
-        boss.setHealth(100);
-        AttributeInstance speedInstance = boss.getAttribute(Attribute.MOVEMENT_SPEED);
-        if (speedInstance != null) speedInstance.setBaseValue(0.35);
-    }
-
-    public boolean itemIsOnCooldown(ItemStack hand) {
-        if (hand == null) return true;
-        ItemMeta meta = hand.getItemMeta();
-        if (meta == null) return true;
-        if (!meta.hasLore()) return true;
-        List<String> lore = meta.getLore();
-        if (lore == null) return true;
-        for (String line : lore) {
-            if (!line.contains("Last Used:")) continue;
-            String[] split = line.split(":");
-            if (split.length < 2) return true;
-            String timeString = split[1].replace(" ", "");
-            if (timeString.equalsIgnoreCase("never")) return false;
-            long time = Long.parseLong(timeString);
-            if (time == 0) return false;
-            return (System.currentTimeMillis() - time) < 3600000;
-        }
-        return true;
-    }
-
-    public int getSecondsTillCooldown(ItemStack hand) {
-        if (hand == null) return 0;
-        ItemMeta meta = hand.getItemMeta();
-        if (meta == null) return 0;
-        if (!meta.hasLore()) return 0;
-        List<String> lore = meta.getLore();
-        if (lore == null) return 0;
-        for (String line : lore) {
-            if (!line.contains("Last Used:")) continue;
-            String[] split = line.split(":");
-            if (split.length < 2) return 0;
-            String timeString = split[1].replace(" ", "");
-            if (timeString.equalsIgnoreCase("never")) return 0;
-            long time = Long.parseLong(timeString);
-            if (time == 0) return 0;
-            return 3600 - (int) ((System.currentTimeMillis() - time) / 1000);
-        }
-        return 0;
     }
 
     public void createCommonLootTable() {
@@ -877,7 +500,6 @@ public class FishingSkill implements Listener {
         legendaryLootTable.add(Material.TOTEM_OF_UNDYING);
         legendaryLootTable.add(Material.TRIDENT);
         legendaryLootTable.add(Material.EXPERIENCE_BOTTLE);
-        legendaryLootTable.add(Material.ELYTRA);
 
         legendaryEnchantments.put(Enchantment.POWER, 5);
         legendaryEnchantments.put(Enchantment.INFINITY, 1);
@@ -885,18 +507,233 @@ public class FishingSkill implements Listener {
         legendaryEnchantments.put(Enchantment.MENDING, 1);
     }
 
-    public void createExoticLootTable() {
-        exoticLootTable.add(ItemStackGenerator.getWeatherArtifact());
-        exoticLootTable.add(ItemStackGenerator.getTimeArtifact());
-        exoticLootTable.add(ItemStackGenerator.getUnlimitedWaterBucket());
-        exoticLootTable.add(ItemStackGenerator.getUnlimitedLavaBucket());
-        exoticLootTable.add(ItemStackGenerator.getUnlimitedEmptyBucket());
-        exoticLootTable.add(ItemStackGenerator.getUnlimitedRocket());
-        // exoticLootTable.add(ItemStackGenerator.getExperienceMultiplierVoucher());
+    public ItemStack getEnchantedBook(HashMap<Enchantment, Integer> enchantments, boolean isEpic, boolean isLegendary) {
+        int random = getRandomPositiveInteger(enchantments.size());
+        int i = 1;
+        for (Enchantment enchantment : enchantments.keySet()) {
+            if (i != random) {
+                i++;
+                continue;
+            }
+
+            int level = enchantments.get(enchantment);
+            ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
+            EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
+            if (meta == null || enchantment == null) return new ItemStack(Material.AIR);
+            if (isLegendary) meta.addStoredEnchant(enchantment, level, false);
+            else if (isEpic && level >= 4) meta.addStoredEnchant(enchantment, Math.max(3, getRandomPositiveInteger(level)), false);
+            else if (level == 1) meta.addStoredEnchant(enchantment, 1, false);
+            else meta.addStoredEnchant(enchantment, Math.max(1, getRandomPositiveInteger(level)), false);
+            book.setItemMeta(meta);
+            return book;
+        }
+        return new ItemStack(Material.AIR);
+    }
+
+    public int getRandomPositiveInteger(int size) {
+        return (int) Math.ceil((Math.random() * size));
+    }
+
+    public int getFishingLineNumber(Player p) {
+        PlayerRewards rewards = plugin.getPlayerRewards(p);
+        if (rewards.getReward("Fishing", "FishingLineV").isApplied()) return 10;
+        if (rewards.getReward("Fishing", "FishingLineIV").isApplied()) return 7;
+        if (rewards.getReward("Fishing", "FishingLineIII").isApplied()) return 5;
+        if (rewards.getReward("Fishing", "FishingLineII").isApplied()) return 3;
+        if (rewards.getReward("Fishing", "FishingLineI").isApplied()) return 2;
+        return 1;
+    }
+
+    public ArrayList<ItemStack> getItemsToDrop(Player p, int luckLevel) {
+        ArrayList<ItemStack> items = new ArrayList<>();
+        int lineNumber = getFishingLineNumber(p);
+        PlayerRewards rewards = plugin.getPlayerRewards(p);
+        double commonPercentage = rewards.getCommonFishingLootChance() + (luckLevel * 0.15);
+        double rarePercentage = rewards.getRareFishingLootChance() + (luckLevel * 0.1);
+        double epicPercentage = rewards.getEpicFishingLootChance() + (luckLevel * 0.05);
+        double legendaryPercentage = rewards.getLegendaryFishingLootChance() + (luckLevel * 0.01);
+
+        if (rewards.getCommonFishingLootChance() == 0) commonPercentage = 0;
+        if (rewards.getRareFishingLootChance() == 0) rarePercentage = 0;
+        if (rewards.getEpicFishingLootChance() == 0) epicPercentage = 0;
+        if (rewards.getLegendaryFishingLootChance() == 0) legendaryPercentage = 0;
+
+        for (int i = 1; i <= lineNumber; i++) {
+            double chance = Math.random();
+            if (legendaryPercentage != 0 && chance < legendaryPercentage) {
+                Material mat = getMaterial(p, 1);
+                if (mat.equals(Material.ENCHANTED_BOOK)) {
+                    items.add(getEnchantedBook(legendaryEnchantments, false, true));
+                }
+                else if (mat.equals(Material.EXPERIENCE_BOTTLE)) {
+                    items.add(new ItemStack(Material.EXPERIENCE_BOTTLE, Math.max(48, getRandomPositiveInteger(64))));
+                }
+                else items.add(new ItemStack(mat));
+            } else if (epicPercentage != 0 && chance < epicPercentage) {
+                Material mat = getMaterial(p, 2);
+                if (mat.equals(Material.ENCHANTED_BOOK)) {
+                    items.add(getEnchantedBook(epicEnchantments, true, false));
+                }
+                else if (mat.equals(Material.EXPERIENCE_BOTTLE)) {
+                    items.add(new ItemStack(Material.EXPERIENCE_BOTTLE, Math.max(12, getRandomPositiveInteger(24))));
+                }
+                else if (!mat.equals(Material.GOLDEN_HORSE_ARMOR) && !mat.equals(Material.IRON_HORSE_ARMOR)
+                        && !mat.equals(Material.HEART_OF_THE_SEA) && !mat.equals(Material.GHAST_TEAR)) {
+                    items.add(new ItemStack(mat, getRandomPositiveInteger(3)));
+                }
+                else items.add(new ItemStack(mat));
+            } else if (rarePercentage != 0 && chance < rarePercentage) {
+                Material mat = getMaterial(p, 3);
+                if (mat.equals(Material.ENCHANTED_BOOK)) {
+                    items.add(getEnchantedBook(rareEnchantments, false, false));
+                }
+                else if (!mat.equals(Material.LEATHER_HORSE_ARMOR) && !mat.equals(Material.NAME_TAG) && !mat.equals(Material.SADDLE)) {
+                    items.add(new ItemStack(mat, getRandomPositiveInteger(3)));
+                }
+                else items.add(new ItemStack(mat));
+            } else if (commonPercentage != 0 && chance < commonPercentage) {
+                Material mat = getMaterial(p, 4);
+                items.add(new ItemStack(mat, getRandomPositiveInteger(2)));
+            }
+        }
+
+        return items;
+    }
+
+    public Material getMaterial(Player p, int type) {
+        if (!nonStackableItems.containsKey(p)) nonStackableItems.put(p, 0);
+        if (type == 1) {
+            Material mat;
+            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type);
+
+            int random = getRandomPositiveInteger(legendaryLootTable.size()) - 1;
+            mat = legendaryLootTable.get(random);
+            checkStackable(p, mat);
+            return mat;
+        }
+        else if (type == 2) {
+            Material mat;
+            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type);
+
+            int random = getRandomPositiveInteger(epicLootTable.size()) - 1;
+            mat = epicLootTable.get(random);
+            checkStackable(p, mat);
+            return mat;
+        }
+        else if (type == 3) {
+            Material mat;
+            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type);
+
+            int random = getRandomPositiveInteger(rareLootTable.size()) - 1;
+            mat = rareLootTable.get(random);
+            checkStackable(p, mat);
+            return mat;
+        }
+        else {
+            Material mat;
+            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type);
+
+            int random = getRandomPositiveInteger(commonLootTable.size()) - 1;
+            mat = commonLootTable.get(random);
+            checkStackable(p, mat);
+            return mat;
+        }
+    }
+
+    public void checkStackable(Player p, Material mat) {
+        if (mat.toString().contains("HORSE")) nonStackableItems.put(p, nonStackableItems.get(p) + 1);
+        if (mat.equals(Material.SADDLE)) nonStackableItems.put(p, nonStackableItems.get(p) + 1);
+    }
+
+    public Material getStackableMaterial(int type) {
+        if (type == 1) {
+            int random = getRandomPositiveInteger(legendaryLootTable.size()) - 1;
+            Material mat = legendaryLootTable.get(random);
+            if (mat.toString().contains("HORSE")) return getStackableMaterial(type);
+            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type);
+            return mat;
+        }
+        else if (type == 2) {
+            int random = getRandomPositiveInteger(epicLootTable.size()) - 1;
+            Material mat = epicLootTable.get(random);
+            if (mat.toString().contains("HORSE")) return getStackableMaterial(type);
+            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type);
+            return mat;
+        }
+        else if (type == 3) {
+            int random = getRandomPositiveInteger(rareLootTable.size()) - 1;
+            Material mat = rareLootTable.get(random);
+            if (mat.toString().contains("HORSE")) return getStackableMaterial(type);
+            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type);
+            return mat;
+        }
+        else {
+            int random = getRandomPositiveInteger(commonLootTable.size()) - 1;
+            Material mat = commonLootTable.get(random);
+            if (mat.toString().contains("HORSE")) return getStackableMaterial(type);
+            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type);
+            return mat;
+        }
+    }
+
+    public void handleFishingExperience(Player p) {
+        int xp = (int) (Math.random() * 6);
+        int xpMultiplier = (int) plugin.getPlayerRewards(p).getExperienceMultiplier();
+        if (xp != 0) p.getWorld().spawn(p.getLocation(), ExperienceOrb.class).setExperience(xp * xpMultiplier);
+    }
+
+    public void handleDurability(ItemStack fishingRod) {
+        if (fishingRod == null) return;
+        if (fishingRod.getType().equals(Material.FISHING_ROD)) {
+            Damageable meta = (Damageable) fishingRod.getItemMeta();
+            if (meta == null) return;
+
+            if (fishingRod.containsEnchantment(Enchantment.UNBREAKING)) {
+                double chance = Math.random() * 100;
+                int level = fishingRod.getEnchantmentLevel(Enchantment.UNBREAKING);
+                if (chance <= (100f / (level + 1))) meta.setDamage(meta.getDamage() + 1);
+            }
+            else meta.setDamage(meta.getDamage() + 1);
+        }
+    }
+
+    public void spawnFishingBoss(World world, Location loc, Vector velocity) {
+        Drowned boss = (Drowned) world.spawnEntity(loc, org.bukkit.entity.EntityType.DROWNED);
+        boss.setVelocity(velocity);
+        boss.setMetadata("fishingboss", new FixedMetadataValue(plugin, true));
+
+        ItemStack helmet = new ItemStack(Material.DIAMOND_HELMET);
+        ItemStack chestplate = new ItemStack(Material.DIAMOND_CHESTPLATE);
+        ItemStack leggings = new ItemStack(Material.DIAMOND_LEGGINGS);
+        ItemStack boots = new ItemStack(Material.DIAMOND_BOOTS);
+        ItemStack trident = new ItemStack(Material.TRIDENT);
+
+        helmet.addUnsafeEnchantment(Enchantment.THORNS, 6);
+        chestplate.addUnsafeEnchantment(Enchantment.THORNS, 6);
+        leggings.addUnsafeEnchantment(Enchantment.THORNS, 6);
+        boots.addUnsafeEnchantment(Enchantment.THORNS, 6);
+        trident.addUnsafeEnchantment(Enchantment.IMPALING, 10);
+
+        if (boss.getEquipment() == null) return;
+        boss.getEquipment().setHelmet(helmet);
+        boss.getEquipment().setChestplate(chestplate);
+        boss.getEquipment().setLeggings(leggings);
+        boss.getEquipment().setBoots(boots);
+        boss.getEquipment().setItemInMainHand(trident);
+
+        AttributeInstance healthAttribute = boss.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        if (healthAttribute != null) healthAttribute.setBaseValue(100);
+        boss.setHealth(100);
+        AttributeInstance speedInstance = boss.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+        if (speedInstance != null) speedInstance.setBaseValue(0.35);
     }
 
     public ArrayList<Player> getWaterBreathers() {
         return waterBreathers;
+    }
+
+    public void setXp(double xp) {
+        this.xp = xp;
     }
 
     public ArrayList<Player> getOpenTrashInventories() {
@@ -913,9 +750,5 @@ public class FishingSkill implements Listener {
 
     public void addTrashInventory(Player p, AutoTrash trash) {
         trashInventories.put(p, trash);
-    }
-
-    public ArrayList<Player> getDisabledAutoTrash() {
-        return disabledAutoTrash;
     }
 }

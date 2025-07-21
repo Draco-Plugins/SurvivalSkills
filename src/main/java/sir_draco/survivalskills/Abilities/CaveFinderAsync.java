@@ -46,8 +46,8 @@ public class CaveFinderAsync extends BukkitRunnable {
 
                 if (count == 0) {
                     p.sendRawMessage(ChatColor.GREEN + "Cave found at ("
-                            + locations.getFirst().getBlockX() + ", " + locations.get(0).getBlockY() + ", "
-                            + locations.getFirst().getBlockZ() + ")");
+                            + locations.get(0).getBlockX() + ", " + locations.get(0).getBlockY() + ", "
+                            + locations.get(0).getBlockZ() + ")");
                     if (trueCave) {
                         p.sendRawMessage(ChatColor.AQUA + "This is a true cave!");
                     } else {

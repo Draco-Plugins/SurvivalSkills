@@ -10,7 +10,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.Utils.ProjectileCalculator;
 
 import java.util.ArrayList;
 
@@ -30,7 +29,7 @@ public class GiantBoss extends Boss {
             giant.setGravity(true);
             EntityEquipment helmet = giant.getEquipment();
             if (helmet != null) helmet.setHelmet(new ItemStack(Material.LEATHER_HELMET));
-            AttributeInstance size = giant.getAttribute(Attribute.SCALE);
+            AttributeInstance size = giant.getAttribute(Attribute.GENERIC_SCALE);
             if (size != null) size.setBaseValue(4);
         }
     }
@@ -177,6 +176,7 @@ public class GiantBoss extends Boss {
             public void run() {
                 Location targetLoc = giant.getTarget().getLocation();
                 Vector velocity = ProjectileCalculator.getVector(giant.getLocation(), targetLoc, 1);
+                double distance = giant.getLocation().distance(targetLoc);
                 giant.setVelocity(velocity.multiply(1.5));
             }
         }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 1);
@@ -226,7 +226,8 @@ public class GiantBoss extends Boss {
 
                 // Cause damage to players in the area
                 for (Entity ent : centerPoint.getWorld().getNearbyEntities(centerPoint, layer * 1.5, 4, layer * 1.5)) {
-                    if (!(ent instanceof Player p)) continue;
+                    if (!(ent instanceof Player)) continue;
+                    Player p = (Player) ent;
                     double damage = maxDamage / layer;
                     p.damage(damage);
                 }
@@ -274,7 +275,8 @@ public class GiantBoss extends Boss {
                 }
 
                 for (Entity ent : stone.getWorld().getNearbyEntities(stone.getLocation(), 0.5, 0.5, 0.5)) {
-                    if (!(ent instanceof Player p)) continue;
+                    if (!(ent instanceof Player)) continue;
+                    Player p = (Player) ent;
                     double distance = giant.getLocation().distance(stone.getLocation());
                     p.damage(Math.max(5, distance));
                     stone.remove();
@@ -324,7 +326,8 @@ public class GiantBoss extends Boss {
 
                 // If a player is in radius damage them by 20 / layer and apply knock back
                 for (Entity ent : centerPoint.getWorld().getNearbyEntities(centerPoint, layer, 15, layer)) {
-                    if (!(ent instanceof Player p)) continue;
+                    if (!(ent instanceof Player)) continue;
+                    Player p = (Player) ent;
                     double damage = (double) 20 / layer;
                     p.damage(damage);
                     p.setVelocity(ProjectileCalculator.getDirectionVector(p.getLocation(), centerPoint).multiply((double) 2 / layer));

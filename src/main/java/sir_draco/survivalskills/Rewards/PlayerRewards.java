@@ -4,7 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
-import sir_draco.survivalskills.Skills.Skill;
+import sir_draco.survivalskills.Skill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -14,8 +14,6 @@ import java.util.Map;
 public class PlayerRewards {
 
     private final HashMap<String, ArrayList<Reward>> rewardList = new HashMap<>();
-    // private final double exoticFishingLootChance = 0.0001;
-
     private boolean unbreakableTools = false;
     private boolean addedDeathResistance = false;
     private double fortuneChance = 0;
@@ -189,10 +187,6 @@ public class PlayerRewards {
                         case "HealthX":
                             setPlayerMaxHealth(p, 40);
                             break;
-                        case "Timberman":
-                            if (p.hasPermission("timberman.use")) break;
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + p.getName() + " permission set timberman.use true");
-                            break;
                     }
                     break;
                 case "Building":
@@ -228,7 +222,7 @@ public class PlayerRewards {
                             setBlockBlackChance(0.5);
                             break;
                         case "ExtendedReach":
-                            AttributeInstance reach = p.getAttribute(Attribute.BLOCK_INTERACTION_RANGE);
+                            AttributeInstance reach = p.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE);
                             if (reach != null) reach.setBaseValue(6);
                             break;
                     }
@@ -474,8 +468,6 @@ public class PlayerRewards {
                     case "ArmorIV":
                         setProtectionPercentage(0.2);
                         break;
-                    case "VeinMinerII":
-                        plugin.getMiningListener().getVeinminerTracker().put(p, 1);
                     case "UnbreakableTools":
                         setUnbreakableTools(true);
                         break;
@@ -559,10 +551,6 @@ public class PlayerRewards {
                     case "HealthX":
                         setPlayerMaxHealth(p, 40);
                         break;
-                    case "Timberman":
-                        if (p.hasPermission("timberman.use")) break;
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp user " + p.getName() + " permission set timberman.use true");
-                        break;
                 }
                 break;
             case "Building":
@@ -598,7 +586,7 @@ public class PlayerRewards {
                         setBlockBlackChance(0.5);
                         break;
                     case "ExtendedReach":
-                        AttributeInstance reach = p.getAttribute(Attribute.BLOCK_INTERACTION_RANGE);
+                        AttributeInstance reach = p.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE);
                         if (reach != null) reach.setBaseValue(6);
                         break;
                 }
@@ -625,9 +613,6 @@ public class PlayerRewards {
                         break;
                     case "CriticalII":
                         setCriticalChance(0.2);
-                        break;
-                    case "BloodyDomain":
-                        plugin.getAbilityManager().startBloodyDomain(p);
                         break;
                 }
                 break;
@@ -855,7 +840,7 @@ public class PlayerRewards {
     }
 
     public void setPlayerMaxHealth(Player p, int health) {
-        AttributeInstance attribute = p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
+        AttributeInstance attribute = p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
         if (attribute == null) return;
         attribute.setBaseValue(health);
     }
@@ -918,10 +903,6 @@ public class PlayerRewards {
 
     public void setLegendaryFishingLootChance(double legendaryFishingLootChance) {
         this.legendaryFishingLootChance = legendaryFishingLootChance;
-    }
-
-    public double getExoticFishingLootChance() {
-        return 0.0001;
     }
 
     public double getExperienceMultiplier() {

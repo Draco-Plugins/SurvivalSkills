@@ -1,10 +1,10 @@
 name: SurvivalSkills
 version: '${project.version}'
 main: sir_draco.survivalskills.SurvivalSkills
-api-version: '1.21'
+api-version: '1.20'
 authors: [ Sir Draco ]
 load: POSTWORLD
-softdepend: [ Citizens, GriefPrevention, WorldGuard ]
+softdepend: [ Citizens, GriefPrevention ]
 description: Allows for leveling and customization for vanilla survival
 
 commands:
@@ -20,18 +20,9 @@ commands:
   toggletrail:
     description: Allows the player to choose a trail
     permission: survivalskills.default
-  togglemaxskillmessage:
-    description: Allows the player to enable or disable max skill messages
-    permission: survivalskills.default
-  togglebossmusic:
-    description: Allows the player to enable or disable boss music
-    permission: survivalskills.default
 
   spelunker:
     description: Notifies the player where nearby ores are
-    permission: survivalskills.default
-  toolbelt:
-    description: Allows a player to use a toolbelt
     permission: survivalskills.default
   veinminer:
     description: Allows player to mine a vein of ores all at once
@@ -72,26 +63,6 @@ commands:
   deathreturn:
     description: Allows a player to return to their death location
     permission: survivalskills.default
-  togglebloodydomain:
-    description: Allows a player to enable or disable Bloody Domain
-    permission: survivalskills.default
-  toggletrash:
-    description: Allows a player to enable or disable trash
-    permission: survivalskills.default
-  godquest:
-    description: Displays the crafting recipes for the god quest
-    permission: survivalskills.default
-  ssup:
-    description: Teleports a player to the surface
-    permission: survivalskills.default
-  godtrial:
-    description: Allows a player to start the god trial
-    permission: survivalskills.default
-
-  sscreative:
-    description: Allows for creative mode
-    permission: survivalskills.creative
-    aliases: [ ssc ]
 
   gettrophy:
     description: Gives a specified trophy
@@ -119,24 +90,6 @@ commands:
   bossmusic:
     description: Allows for changing the boss music
     permission: survivalskills.op
-  toggleoverworldfirstdragon:
-    description: Allows for toggling the first dragon in the overworld
-    permission: survivalskills.op
-  dragonstatus:
-    description: Allows for checking the status of the dragon
-    permission: survivalskills.op
-  togglegodquest:
-    description: Allows for toggling the god quest
-    permission: survivalskills.op
-  ssresetall:
-    description: Resets all SurvivalSkills data
-    permission: survivalskills.op
-  storetrialbuilding:
-    description: Stores the trial building
-    permission: survivalskills.op
-  cancelabilitycooldowns:
-    description: Cancels all ability cooldowns
-    permission: survivalskills.op
 
 permissions:
   survivalskills.default:
@@ -144,9 +97,6 @@ permissions:
     default: not op
   survivalskills.op:
     description: Op permissions
-    default: op
-  survivalskills.creative:
-    description: Allows the player to use creative mode
     default: op
   survivalskills.fishinglineI:
     description: Allows the player to use the fishing line I skill

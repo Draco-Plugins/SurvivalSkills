@@ -42,6 +42,10 @@ public class Reward {
         return name;
     }
 
+    public String getRewardType() {
+        return rewardType;
+    }
+
     public String getSkillType() {
         return skillType;
     }
