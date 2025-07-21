@@ -1,0 +1,51 @@
+package sir_draco.survivalskills.commands.SkillCommands;
+
+import org.bukkit.ChatColor;
+import org.bukkit.Sound;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.entity.Player;
+import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.utils.LocationUtils;
+
+@SuppressWarnings("NullableProblems")
+public class UpCommand implements CommandExecutor {
+
+    private final SurvivalSkills plugin;
+
+    public UpCommand(SurvivalSkills plugin) {
+        this.plugin = plugin;
+        PluginCommand command = plugin.getCommand("ssup");
+        if (command != null) command.setExecutor(this);
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
+        if (!(sender instanceof Player p)) return false;
+        // Check for level requirements
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "UpCommand").isEnabled()) {
+            p.sendRawMessage(ChatColor.RED + "/ssup is not enabled on this server");
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return false;
+        }
+
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "UpCommand").isApplied() && !plugin.isForced(p, strings)) {
+            if (p.hasPermission("survivalskills.op")) {
+                p.sendRawMessage(ChatColor.RED + "To force /ssup use: " + ChatColor.AQUA + "/ssup force");
+            }
+            p.sendRawMessage(ChatColor.GREEN + "You need to be mining level " + ChatColor.AQUA +
+                    plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "UpCommand").getLevel()
+                    + ChatColor.GREEN + " to use /ssup");
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return true;
+        }
+
+        // Teleport the player to the surface
+        p.teleport(LocationUtils.getSurfaceBlock(p.getLocation()));
+        p.playSound(p, Sound.ENTITY_PLAYER_TELEPORT, 1, 1);
+        p.sendRawMessage(ChatColor.YELLOW + "Teleported to the surface");
+        return true;
+    }
+}
