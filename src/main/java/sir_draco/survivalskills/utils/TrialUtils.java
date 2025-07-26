@@ -388,7 +388,7 @@ public class TrialUtils {
     }
 
     public static void createTrial(PendingTrial pendingTrial, ArrayList<RelativeBlock> blocks, ProtectedArea area, Location centerLocation) {
-        if (pendingTrial.getTrialDifficulty() == 4 && !completedGodQuest(pendingTrial.getTrialMaster())) return;
+        if (pendingTrial.getTrialDifficulty() == 7 && !completedGodQuest(pendingTrial.getTrialMaster())) return;
 
         Trial trial;
         if (blocks == null) trial = new Trial(pendingTrial.getTrialMaster(), area, centerLocation, pendingTrial.getTrialDifficulty());
