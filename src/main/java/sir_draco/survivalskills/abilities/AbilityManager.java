@@ -16,11 +16,16 @@ import sir_draco.survivalskills.SurvivalSkills;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
 public class AbilityManager {
 
     private static final ArrayList<EntityType> domainMobs = new ArrayList<>();
+    public static final String FLIGHT = ".Flight";
+    public static final String SPELUNKER = ".Spelunker";
+    public static final String LAST_USED_SUFFIX = ".LastUsedTimestamp";
 
     private final SurvivalSkills plugin;
     private final HashMap<Player, ArrayList<AbilityTimer>> timerTracker = new HashMap<>();
@@ -51,11 +56,29 @@ public class AbilityManager {
     }
 
     public void loadFlight(Player p, FileConfiguration data) {
-        if (!data.contains(p.getUniqueId() + ".Flight")) return;
+        if (!data.contains(p.getUniqueId() + FLIGHT)) return;
 
         int activeTime = data.getInt(p.getUniqueId() + ".Flight.ActiveTime");
         int cooldownTime = data.getInt(p.getUniqueId() + ".Flight.CooldownTime");
         float speed = (float) data.getDouble(p.getUniqueId() + ".Flight.Speed");
+
+        // Apply offline cooldown if ability was in cooldown mode
+        if (activeTime <= 0 && cooldownTime > 0 && data.contains(p.getUniqueId() + FLIGHT + LAST_USED_SUFFIX)) {
+            long lastUsedTimestamp = data.getLong(p.getUniqueId() + FLIGHT + LAST_USED_SUFFIX);
+            long currentTime = System.currentTimeMillis();
+            long elapsedTimeMs = currentTime - lastUsedTimestamp;
+            int elapsedSeconds = (int) (elapsedTimeMs / 1000);
+
+            // Reduce cooldown time by elapsed time
+            cooldownTime = Math.max(0, cooldownTime - elapsedSeconds);
+
+            // If cooldown is complete, notify player and skip creating the timer
+            if (cooldownTime == 0) {
+                p.sendRawMessage(ChatColor.GREEN + "Your Flight ability has reset while you were offline!");
+                data.set(p.getUniqueId() + FLIGHT, null);
+                return;
+            }
+        }
 
         AbilityTimer timer = new AbilityTimer(plugin, "Flight", p, activeTime, cooldownTime);
         timer.runTaskTimerAsynchronously(plugin, 0, 20);
@@ -76,11 +99,29 @@ public class AbilityManager {
     }
 
     public void loadSpelunker(Player p, FileConfiguration data) {
-        if (!data.contains(p.getUniqueId() + ".Spelunker")) return;
+        if (!data.contains(p.getUniqueId() + SPELUNKER)) return;
 
         int activeTime = data.getInt(p.getUniqueId() + ".Spelunker.ActiveTime");
         int cooldownTime = data.getInt(p.getUniqueId() + ".Spelunker.CooldownTime");
         int radius = data.getInt(p.getUniqueId() + ".Spelunker.Radius");
+
+        // Apply offline cooldown if ability was in cooldown mode
+        if (activeTime <= 0 && cooldownTime > 0 && data.contains(p.getUniqueId() + SPELUNKER + LAST_USED_SUFFIX)) {
+            long lastUsedTimestamp = data.getLong(p.getUniqueId() + SPELUNKER + LAST_USED_SUFFIX);
+            long currentTime = System.currentTimeMillis();
+            long elapsedTimeMs = currentTime - lastUsedTimestamp;
+            int elapsedSeconds = (int) (elapsedTimeMs / 1000);
+
+            // Reduce cooldown time by elapsed time
+            cooldownTime = Math.max(0, cooldownTime - elapsedSeconds);
+
+            // If cooldown is complete, notify player and skip creating the timer
+            if (cooldownTime == 0) {
+                p.sendRawMessage(ChatColor.GREEN + "Your Spelunker ability has reset while you were offline!");
+                data.set(p.getUniqueId() + SPELUNKER, null);
+                return;
+            }
+        }
 
         AbilityTimer timer = new AbilityTimer(plugin, "Spelunker", p, activeTime, cooldownTime);
         timer.runTaskTimerAsynchronously(plugin, 0, 20);
@@ -116,7 +157,7 @@ public class AbilityManager {
         try {
             data.save(file);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to save Tool Belts", e);
+            Bukkit.getLogger().log(Level.WARNING, String.format("Failed to save Tool Belts for Survival Skills plugin: %s", e.getMessage()));
         }
     }
 
@@ -132,24 +173,34 @@ public class AbilityManager {
     public void saveFlightTimer(Player p, FileConfiguration data) {
         AbilityTimer timer = getAbility(p, "Flight");
         if (timer == null) {
-            if (data.contains(p.getUniqueId() + ".Flight")) data.set(p.getUniqueId() + ".Flight", null);
+            if (data.contains(p.getUniqueId() + FLIGHT)) data.set(p.getUniqueId() + FLIGHT, null);
             return;
         }
 
         data.set(p.getUniqueId() + ".Flight.ActiveTime", timer.getActiveTimeLeft());
         data.set(p.getUniqueId() + ".Flight.CooldownTime", timer.getTimeTillReset());
         data.set(p.getUniqueId() + ".Flight.Speed", timer.getFlightSpeed());
+
+        // Save the current timestamp for offline cooldown calculation
+        if (!timer.isActive() && timer.getTimeTillReset() > 0) {
+            data.set(p.getUniqueId() + FLIGHT + LAST_USED_SUFFIX, System.currentTimeMillis());
+        }
     }
 
     public void saveSpelunkerTimer(Player p, FileConfiguration data) {
         AbilityTimer timer = getAbility(p, "Spelunker");
         if (timer == null) {
-            if (data.contains(p.getUniqueId() + ".Spelunker")) data.set(p.getUniqueId() + ".Spelunker", null);
+            if (data.contains(p.getUniqueId() + SPELUNKER)) data.set(p.getUniqueId() + SPELUNKER, null);
             return;
         }
 
         data.set(p.getUniqueId() + ".Spelunker.ActiveTime", timer.getActiveTimeLeft());
         data.set(p.getUniqueId() + ".Spelunker.CooldownTime", timer.getTimeTillReset());
+
+        // Save the current timestamp for offline cooldown calculation
+        if (!timer.isActive() && timer.getTimeTillReset() > 0) {
+            data.set(p.getUniqueId() + SPELUNKER + LAST_USED_SUFFIX, System.currentTimeMillis());
+        }
 
         // Save the radius from the active spelunker or use default based on player's rewards
         int radius = 5; // Default radius
@@ -197,11 +248,11 @@ public class AbilityManager {
         return null;
     }
 
-    public void addScannedMobs(ArrayList<Entity> entities) {
+    public void addScannedMobs(List<Entity> entities) {
         mobsScanned.addAll(entities);
     }
 
-    public void removeScannedMobs(ArrayList<Entity> entities) {
+    public void removeScannedMobs(List<Entity> entities) {
         mobsScanned.removeAll(entities);
     }
 
@@ -260,23 +311,23 @@ public class AbilityManager {
         domainMobs.add(EntityType.ZOMBIE_VILLAGER);
     }
 
-    public HashMap<String, Particle> getTrails() {
+    public Map<String, Particle> getTrails() {
         return trails;
     }
 
-    public HashMap<Player, TrailEffect> getTrailTracker() {
+    public Map<Player, TrailEffect> getTrailTracker() {
         return trailTracker;
     }
 
-    public HashMap<Player, ArrayList<AbilityTimer>> getTimerTracker() {
+    public Map<Player, ArrayList<AbilityTimer>> getTimerTracker() {
         return timerTracker;
     }
 
-    public static ArrayList<EntityType> getDomainMobs() {
+    public static List<EntityType> getDomainMobs() {
         return domainMobs;
     }
 
-    public HashMap<Player, BloodyDomain> getBloodyDomainTracker() {
+    public Map<Player, BloodyDomain> getBloodyDomainTracker() {
         return bloodyDomainTracker;
     }
 }

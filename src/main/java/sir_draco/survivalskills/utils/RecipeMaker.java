@@ -5,7 +5,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.MusicInstrumentMeta;
 import org.bukkit.scheduler.BukkitRunnable;
-import sir_draco.survivalskills.commands.DefaultCommands.SkillStatsCommand;
+import sir_draco.survivalskills.commands.default_commands.SkillStatsCommand;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.*;

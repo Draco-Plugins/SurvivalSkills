@@ -30,15 +30,15 @@ import sir_draco.survivalskills.commands.*;
 import sir_draco.survivalskills.boards.Leaderboard;
 import sir_draco.survivalskills.boards.LeaderboardPlayer;
 import sir_draco.survivalskills.boards.SkillScoreboard;
-import sir_draco.survivalskills.commands.AdminCommands.*;
-import sir_draco.survivalskills.commands.DefaultCommands.*;
-import sir_draco.survivalskills.commands.SkillCommands.*;
+import sir_draco.survivalskills.commands.admin_commands.*;
+import sir_draco.survivalskills.commands.default_commands.*;
+import sir_draco.survivalskills.commands.skill_commands.*;
 import sir_draco.survivalskills.god_questline.*;
 import sir_draco.survivalskills.skill_listeners.*;
 import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.skills.SkillsHolder;
-import sir_draco.survivalskills.commands.AdminCommands.GodQuestCommand;
+import sir_draco.survivalskills.commands.admin_commands.GodQuestCommand;
 import sir_draco.survivalskills.trophy.Trophy;
 import sir_draco.survivalskills.trophy.TrophyListener;
 import sir_draco.survivalskills.trophy.TrophyManager;
@@ -780,7 +780,7 @@ public final class SurvivalSkills extends JavaPlugin {
         }
         toggledScoreboard.remove(p.getUniqueId());
         scoreboardTracker.remove(p);
-        HashMap<Player, TrailEffect> trailTracker = abilityManager.getTrailTracker();
+        Map<Player, TrailEffect> trailTracker = abilityManager.getTrailTracker();
         if (trailTracker.containsKey(p)) {
             trailTracker.get(p).cancel();
             trailTracker.remove(p);
