@@ -11,7 +11,7 @@ import org.bukkit.util.Vector;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.utils.ProjectileCalculator;
 
-import static sir_draco.survivalskills.skillListeners.ExploringSkill.activeMagnets;
+import static sir_draco.survivalskills.skill_listeners.ExploringSkill.activeMagnets;
 
 public class Magnet extends BukkitRunnable {
 

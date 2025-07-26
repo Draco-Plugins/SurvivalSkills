@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
-import sir_draco.survivalskills.skillListeners.MiningSkill;
+import sir_draco.survivalskills.skill_listeners.MiningSkill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;

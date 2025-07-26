@@ -9,7 +9,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import sir_draco.survivalskills.godQuestline.GodTrophyEffects;
+import sir_draco.survivalskills.god_questline.GodTrophyEffects;
 import sir_draco.survivalskills.utils.ColorParser;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.ItemStackGenerator;

@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.godQuestline.GodTrophyQuest;
+import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.utils.ColorParser;
 
 import java.io.IOException;

@@ -2,9 +2,9 @@ package sir_draco.survivalskills.abilities.armor;
 
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import sir_draco.survivalskills.skillListeners.ArmorListener;
+import sir_draco.survivalskills.skill_listeners.ArmorListener;
 
-import static sir_draco.survivalskills.skillListeners.ArmorListener.playersWearingWandererArmor;
+import static sir_draco.survivalskills.skill_listeners.ArmorListener.playersWearingWandererArmor;
 
 public class WandererArmor extends BukkitRunnable {
 

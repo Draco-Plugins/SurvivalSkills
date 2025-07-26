@@ -9,7 +9,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import sir_draco.survivalskills.skillListeners.GodListener;
+import sir_draco.survivalskills.skill_listeners.GodListener;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;

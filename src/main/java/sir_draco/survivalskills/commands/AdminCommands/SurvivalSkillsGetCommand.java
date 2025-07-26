@@ -13,7 +13,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.SurvivalSkills;
 
-import static sir_draco.survivalskills.skillListeners.GodListener.previousPotionBagID;
+import static sir_draco.survivalskills.skill_listeners.GodListener.previousPotionBagID;
 
 @SuppressWarnings("NullableProblems")
 public class SurvivalSkillsGetCommand implements CommandExecutor {

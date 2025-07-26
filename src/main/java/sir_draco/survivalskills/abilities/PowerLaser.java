@@ -6,7 +6,7 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.*;
 import org.bukkit.scheduler.BukkitRunnable;
-import sir_draco.survivalskills.skillListeners.GodListener;
+import sir_draco.survivalskills.skill_listeners.GodListener;
 
 public class PowerLaser extends BukkitRunnable {
 

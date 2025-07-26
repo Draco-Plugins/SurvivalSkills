@@ -14,7 +14,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
-import sir_draco.survivalskills.godQuestline.*;
+import sir_draco.survivalskills.god_questline.*;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;

@@ -8,8 +8,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
-import sir_draco.survivalskills.godQuestline.GodRecipeUI;
-import sir_draco.survivalskills.godQuestline.GodTrophyQuest;
+import sir_draco.survivalskills.god_questline.GodRecipeUI;
+import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;

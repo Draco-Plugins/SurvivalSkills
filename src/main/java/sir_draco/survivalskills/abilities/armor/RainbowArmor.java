@@ -9,8 +9,8 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import static sir_draco.survivalskills.skillListeners.ArmorListener.beaconEffects;
-import static sir_draco.survivalskills.skillListeners.ArmorListener.playersWearingBeaconArmor;
+import static sir_draco.survivalskills.skill_listeners.ArmorListener.beaconEffects;
+import static sir_draco.survivalskills.skill_listeners.ArmorListener.playersWearingBeaconArmor;
 
 public class RainbowArmor extends BukkitRunnable {
 

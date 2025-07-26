@@ -10,7 +10,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import sir_draco.survivalskills.abilities.BloodyDomain;
-import sir_draco.survivalskills.godQuestline.*;
+import sir_draco.survivalskills.god_questline.*;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.TrialUtils;
 

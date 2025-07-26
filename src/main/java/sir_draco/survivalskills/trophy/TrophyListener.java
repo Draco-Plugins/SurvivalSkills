@@ -20,7 +20,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.*;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.godQuestline.GodTrophyQuest;
+import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 
 import java.util.Map;
 
