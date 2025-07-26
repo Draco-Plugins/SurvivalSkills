@@ -105,9 +105,11 @@ public class CraftingSkill implements Listener {
         disallowedCraftingSkillMaterials.add(Material.GOLD_INGOT);
         disallowedCraftingSkillMaterials.add(Material.GOLD_BLOCK);
         disallowedCraftingSkillMaterials.add(Material.GOLD_NUGGET);
+        disallowedCraftingSkillMaterials.add(Material.RAW_GOLD_BLOCK);
         disallowedCraftingSkillMaterials.add(Material.IRON_INGOT);
         disallowedCraftingSkillMaterials.add(Material.IRON_BLOCK);
         disallowedCraftingSkillMaterials.add(Material.IRON_NUGGET);
+        disallowedCraftingSkillMaterials.add(Material.RAW_IRON_BLOCK);
         disallowedCraftingSkillMaterials.add(Material.NETHERITE_INGOT);
         disallowedCraftingSkillMaterials.add(Material.NETHERITE_BLOCK);
         disallowedCraftingSkillMaterials.add(Material.LAPIS_LAZULI);
@@ -118,6 +120,7 @@ public class CraftingSkill implements Listener {
         disallowedCraftingSkillMaterials.add(Material.COAL_BLOCK);
         disallowedCraftingSkillMaterials.add(Material.COPPER_INGOT);
         disallowedCraftingSkillMaterials.add(Material.COPPER_BLOCK);
+        disallowedCraftingSkillMaterials.add(Material.RAW_COPPER_BLOCK);
         disallowedCraftingSkillMaterials.add(Material.BONE_MEAL);
         disallowedCraftingSkillMaterials.add(Material.BONE_BLOCK);
         disallowedCraftingSkillMaterials.add(Material.GLOWSTONE);
