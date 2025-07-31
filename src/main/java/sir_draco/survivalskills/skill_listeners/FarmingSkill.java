@@ -25,9 +25,12 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class FarmingSkill implements Listener {
 
+    public static final String FARMING = "Farming";
     private final SurvivalSkills plugin;
     private final HashMap<Player, ArrayList<Block>> harvestedBlocks = new HashMap<>();
     private final HashMap<Player, HarvesterTimer> harvesterCooldowns = new HashMap<>();
@@ -52,11 +55,11 @@ public class FarmingSkill implements Listener {
         }
         if (!plugin.getFarmingList().contains(block.getType()) && !block.getType().toString().contains("LOG")) return;
 
-        if (!block.getType().equals(Material.SUGAR_CANE) && !block.getType().equals(Material.CACTUS)) {
-            if (block.getState().getBlockData() instanceof Ageable age) {
-                if (age.getAge() != age.getMaximumAge()) return;
-            }
-        }
+        if (!block.getType().equals(Material.SUGAR_CANE)
+                && !block.getType().equals(Material.CACTUS)
+                && block.getState().getBlockData() instanceof Ageable age
+                && age.getAge() != age.getMaximumAge()) return;
+
 
         int doubleXP = 1;
         if (e.getBlock().getType().equals(Material.SUGAR_CANE) || e.getBlock().getType().equals(Material.CACTUS)) {
@@ -64,7 +67,7 @@ public class FarmingSkill implements Listener {
             if (above.equals(Material.SUGAR_CANE) || above.equals(Material.CACTUS)) doubleXP = 2;
         }
 
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP() * doubleXP, "Farming");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP() * doubleXP, FARMING);
         if (block.getType().toString().contains("LOG")) return;
 
         boolean isHarvested = isHarvestedBlock(p, block);
@@ -90,7 +93,7 @@ public class FarmingSkill implements Listener {
         if (!(block.getState().getBlockData() instanceof Ageable age)) return;
         if (!block.getType().equals(Material.SWEET_BERRY_BUSH)) return;
         if (age.getAge() != age.getMaximumAge()) return;
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP(), "Farming");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP(), FARMING);
     }
 
     @EventHandler (ignoreCancelled = true)
@@ -99,7 +102,7 @@ public class FarmingSkill implements Listener {
 
         if (!plugin.getFarmingList().contains(e.getBlock().getType())) return;
 
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP() * 0.5, "Farming");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP() * 0.5, FARMING);
     }
 
     @EventHandler
@@ -110,17 +113,20 @@ public class FarmingSkill implements Listener {
         // If a player is in a trial, don't apply the no hunger effect
         if (TrialManager.isInTrial(p)) return;
 
-        if (plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "NoHunger").isApplied()) {
+        if (plugin.getSkillManager().getPlayerRewards(p).getReward(FARMING, "NoHunger").isApplied()) {
             e.setCancelled(true);
             p.setFoodLevel(20);
             return;
         }
 
+        handleAutoEat(e, p);
+    }
+
+    private void handleAutoEat(FoodLevelChangeEvent e, Player p) {
         if (autoEat.contains(p)) {
             // Get the first food item in the player's inventory
             for (ItemStack item : p.getInventory().getContents()) {
-                if (item == null) continue;
-                if (item.getType().equals(Material.ROTTEN_FLESH)) continue;
+                if (item == null || item.getType().equals(Material.ROTTEN_FLESH)) continue;
                 if (item.getType().isEdible()) {
                     e.setCancelled(true);
                     // Get the amount of food the item will restore
@@ -142,9 +148,9 @@ public class FarmingSkill implements Listener {
 
     public void handleWateringCan(Player p, Block block) {
         if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 9)) return;
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "WateringCan").isApplied()) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(FARMING, "WateringCan").isApplied()) {
             p.sendRawMessage(ChatColor.RED + "Watering Can unlocks at Farming Level: " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Farming", "WateringCan").getLevel());
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(FARMING, "WateringCan").getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
@@ -170,19 +176,23 @@ public class FarmingSkill implements Listener {
                 spawnWateringCanParticle(particleStart, b.getLocation().clone().add(0.5, 0, 0.5));
                 if (plugin.getFarmingList().contains(b.getType())) {
                     if (!(b.getState().getBlockData() instanceof Ageable age)) continue;
-                    if (age.getAge() != age.getMaximumAge()) {
-                        double chance = Math.random();
-                        if (chance < 0.1) continue;
-                        age.setAge(age.getAge() + 1);
-                        b.setBlockData(age);
-                        b.getState().update();
-                    }
+                    increaseCropAge(age, b);
                 }
                 else if (b.getType().equals(Material.DIRT)) {
                     b.setType(Material.GRASS_BLOCK);
                     b.getState().update();
                 }
             }
+        }
+    }
+
+    private static void increaseCropAge(Ageable age, Block b) {
+        if (age.getAge() != age.getMaximumAge()) {
+            double chance = Math.random();
+            if (chance < 0.1) return;
+            age.setAge(age.getAge() + 1);
+            b.setBlockData(age);
+            b.getState().update();
         }
     }
 
@@ -202,9 +212,9 @@ public class FarmingSkill implements Listener {
     public void handleUnlimitedBoneMeal(Player p, Block block, PlayerInteractEvent e) {
         if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 10)) return;
         e.setCancelled(true);
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "UnlimitedBoneMeal").isApplied()) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(FARMING, "UnlimitedBoneMeal").isApplied()) {
             p.sendRawMessage(ChatColor.RED + "Unlimited Bonemeal unlocks at Farming Level: " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Farming", "UnlimitedBoneMeal").getLevel());
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(FARMING, "UnlimitedBoneMeal").getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
@@ -224,19 +234,7 @@ public class FarmingSkill implements Listener {
     }
 
     public void doubleCrops(Player p, BlockBreakEvent e, boolean harvester) {
-        if (harvester) {
-            e.setDropItems(false);
-            boolean doubleCrops = false;
-            double chance = Math.random();
-            if (chance < plugin.getSkillManager().getPlayerRewards(p).getCropDoubleChance()) doubleCrops = true;
-            ItemStack[] drops = e.getBlock().getDrops(p.getInventory().getItemInMainHand()).toArray(new ItemStack[0]);
-            for (ItemStack drop : drops) {
-                if (isSeed(drop.getType())) continue;
-                if (doubleCrops) drop.setAmount(drop.getAmount() * 2);
-                e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
-            }
-            return;
-        }
+        if (handleHarvester(p, e, harvester)) return;
 
         if (plugin.getSkillManager().getPlayerRewards(p).getCropDoubleChance() == 0) return;
         double chance = Math.random();
@@ -250,6 +248,23 @@ public class FarmingSkill implements Listener {
         }
     }
 
+    private boolean handleHarvester(Player p, BlockBreakEvent e, boolean harvester) {
+        if (harvester) {
+            e.setDropItems(false);
+            boolean doubleCrops = false;
+            double chance = Math.random();
+            if (chance < plugin.getSkillManager().getPlayerRewards(p).getCropDoubleChance()) doubleCrops = true;
+            ItemStack[] drops = e.getBlock().getDrops(p.getInventory().getItemInMainHand()).toArray(new ItemStack[0]);
+            for (ItemStack drop : drops) {
+                if (isSeed(drop.getType())) continue;
+                if (doubleCrops) drop.setAmount(drop.getAmount() * 2);
+                e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
+            }
+            return true;
+        }
+        return false;
+    }
+
     public boolean isSeed(Material type) {
         return switch (type) {
             case WHEAT_SEEDS, BEETROOT_SEEDS, PUMPKIN_SEEDS, MELON_SEEDS -> true;
@@ -260,10 +275,10 @@ public class FarmingSkill implements Listener {
     public void handleHarvester(Player p, Block block, boolean isHarvested, Material type, BlockBreakEvent e) {
         if (isHarvested) return;
         if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 11)) return;
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "Harvester").isApplied()
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(FARMING, "Harvester").isApplied()
                 && !p.hasPermission("survivalskills.op")) {
             p.sendRawMessage(ChatColor.RED + "Harvester unlocks at Farming Level: " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Farming", "Harvester").getLevel());
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(FARMING, "Harvester").getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
@@ -306,15 +321,15 @@ public class FarmingSkill implements Listener {
         };
     }
 
-    public HashMap<Player, HarvesterTimer> getHarvesterCooldowns() {
+    public Map<Player, HarvesterTimer> getHarvesterCooldowns() {
         return harvesterCooldowns;
     }
 
-    public HashMap<Player, ArrayList<Block>> getHarvestedBlocks() {
+    public Map<Player, ArrayList<Block>> getHarvestedBlocks() {
         return harvestedBlocks;
     }
 
-    public ArrayList<Player> getAutoEat() {
+    public List<Player> getAutoEat() {
         return autoEat;
     }
 }
