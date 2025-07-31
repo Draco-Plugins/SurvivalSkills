@@ -122,28 +122,36 @@ public class FarmingSkill implements Listener {
         handleAutoEat(e, p);
     }
 
+    @SuppressWarnings ("deprecation")
     private void handleAutoEat(FoodLevelChangeEvent e, Player p) {
         if (autoEat.contains(p)) {
             // Get the first food item in the player's inventory
             for (ItemStack item : p.getInventory().getContents()) {
-                if (item == null || item.getType().equals(Material.ROTTEN_FLESH)) continue;
-                if (item.getType().isEdible()) {
-                    e.setCancelled(true);
-                    // Get the amount of food the item will restore
-                    int foodRestore = getFoodLevelRestorationAmount(item.getType());
-                    p.setFoodLevel(Math.min(p.getFoodLevel() + foodRestore, 20));
-                    p.setSaturation(Math.min(p.getSaturation() + foodRestore * 0.6f, 20));
-
-                    if (item.getAmount() > 1) item.setAmount(item.getAmount() - 1);
-                    else p.getInventory().remove(item);
-                    return;
-                }
+                if (item == null
+                        || item.getType().equals(Material.ROTTEN_FLESH)
+                        || (item.getItemMeta() != null && item.getItemMeta().hasCustomModelData())) continue;
+                if (handleEdibleItem(e, p, item)) return;
             }
             p.sendRawMessage(ChatColor.RED + "You have no food to eat!");
             autoEat.remove(p);
             p.sendRawMessage(ChatColor.YELLOW + "Auto Eat has been disabled.");
             p.playSound(p, Sound.ENTITY_PANDA_EAT, 1, 1);
         }
+    }
+
+    private boolean handleEdibleItem(FoodLevelChangeEvent e, Player p, ItemStack item) {
+        if (item.getType().isEdible()) {
+            e.setCancelled(true);
+            // Get the amount of food the item will restore
+            int foodRestore = getFoodLevelRestorationAmount(item.getType());
+            p.setFoodLevel(Math.min(p.getFoodLevel() + foodRestore, 20));
+            p.setSaturation(Math.min(p.getSaturation() + foodRestore * 0.6f, 20));
+
+            if (item.getAmount() > 1) item.setAmount(item.getAmount() - 1);
+            else p.getInventory().remove(item);
+            return true;
+        }
+        return false;
     }
 
     public void handleWateringCan(Player p, Block block) {
