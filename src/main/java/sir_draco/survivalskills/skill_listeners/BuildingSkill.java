@@ -71,36 +71,14 @@ public class BuildingSkill implements Listener {
     public void useSortWand(PlayerInteractEvent e) {
         // Make sure they have all necessary requirements to use the sort wand
         Player p = e.getPlayer();
-        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 16)) return;
-        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Building", "AutoSortWand");
-        if (!reward.isEnabled()) return;
-        if (!reward.isApplied() && !p.isOp()) {
-            p.sendRawMessage(ChatColor.RED + "You have to be building level: " + ChatColor.AQUA + reward.getLevel()
-                    + ChatColor.RED + " to use this ability.");
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            return;
-        }
-        if (e.getHand() == null) return;
-        if (!e.getHand().equals(EquipmentSlot.HAND)) return;
-        if (e.getAction().equals(Action.RIGHT_CLICK_AIR) && p.isSneaking()) {
-            // Sort the player's inventory
-            ItemStack[] items = new ItemStack[36];
-            for (int i = 0; i <= 35; i++) {
-                ItemStack item = p.getInventory().getItem(i);
-                if (item == null) continue;
-                items[i] = item;
-            }
-            sortPlayerInventory(items.clone(), p.getInventory());
-            p.sendRawMessage(ChatColor.GREEN + "Inventory sorted!");
-            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
-        }
+        if (isValidSortAttempt(e, p)) return;
+        trySortingPlayerInventory(e, p);
 
         if (!e.getAction().equals(Action.LEFT_CLICK_BLOCK)) return;
         Block block = e.getClickedBlock();
         if (block == null) return;
         if (!block.getType().equals(Material.CHEST) && !block.getType().equals(Material.TRAPPED_CHEST)) return;
 
-        // Sort the chest
         // Get the inventory of the chest
         BlockState state = block.getState();
         if (!(state instanceof Chest chest)) return;
@@ -113,8 +91,7 @@ public class BuildingSkill implements Listener {
 
         // Make sure no one is viewing the inventory
         for (HumanEntity human : chestInventory.getViewers()) {
-            if (!(human instanceof Player player)) continue;
-            if (player.equals(p)) continue;
+            if (!(human instanceof Player player) || player.equals(p)) continue;
             p.closeInventory();
             return;
         }
@@ -123,6 +100,35 @@ public class BuildingSkill implements Listener {
         sortChestInventory(chestInventory.getContents().clone(), chestInventory);
         p.sendRawMessage(ChatColor.GREEN + "Chest sorted!");
         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+    }
+
+    private void trySortingPlayerInventory(PlayerInteractEvent e, Player p) {
+        if (e.getAction().equals(Action.RIGHT_CLICK_AIR) && p.isSneaking()) {
+            // Sort the player's inventory (excluding hotbar)
+            ItemStack[] items = new ItemStack[27]; // Only main inventory slots (9-35)
+            for (int i = 9; i <= 35; i++) {
+                ItemStack item = p.getInventory().getItem(i);
+                if (item == null) continue;
+                items[i - 9] = item; // Adjust index for the array
+            }
+            sortPlayerInventory(items.clone(), p.getInventory());
+            p.sendRawMessage(ChatColor.GREEN + "Inventory sorted!");
+            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+        }
+    }
+
+    private boolean isValidSortAttempt(PlayerInteractEvent e, Player p) {
+        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 16)) return true;
+        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Building", "AutoSortWand");
+        if (!reward.isEnabled()) return true;
+        if (!reward.isApplied() && !p.isOp()) {
+            p.sendRawMessage(ChatColor.RED + "You have to be building level: " + ChatColor.AQUA + reward.getLevel()
+                    + ChatColor.RED + " to use this ability.");
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return true;
+        }
+        if (e.getHand() == null) return true;
+        return !e.getHand().equals(EquipmentSlot.HAND);
     }
 
     @EventHandler
@@ -136,8 +142,8 @@ public class BuildingSkill implements Listener {
     }
 
     public void sortChestInventory(ItemStack[] inventoryItems, Inventory chest) {
-        ArrayList<ItemStack> items = getSortedItems(inventoryItems);
-        ArrayList<ItemStack> enchantedBooks = getSortedEnchantedBooks(inventoryItems);
+        List<ItemStack> items = getSortedItems(inventoryItems);
+        List<ItemStack> enchantedBooks = getSortedEnchantedBooks(inventoryItems);
 
         chest.clear();
         if (!items.isEmpty())
@@ -147,19 +153,35 @@ public class BuildingSkill implements Listener {
     }
 
     public void sortPlayerInventory(ItemStack[] inventoryItems, Inventory playerInventory) {
-        ArrayList<ItemStack> items = getSortedItems(inventoryItems);
-        ArrayList<ItemStack> enchantedBooks = getSortedEnchantedBooks(inventoryItems);
+        List<ItemStack> items = getSortedItems(inventoryItems);
+        List<ItemStack> enchantedBooks = getSortedEnchantedBooks(inventoryItems);
 
-        for (int i = 0; i <= 35; i++) playerInventory.setItem(i, null);
-        if (!items.isEmpty())
-            for (ItemStack item : items) if (item != null) playerInventory.addItem(item);
-        if (!enchantedBooks.isEmpty())
-            for (ItemStack item : enchantedBooks) if (item != null) playerInventory.addItem(item);
+        // Only clear the main inventory slots (9-35), preserve hotbar (0-8)
+        for (int i = 9; i <= 35; i++) playerInventory.setItem(i, null);
+
+        // Add items back starting from slot 9
+        int currentSlot = 9;
+        if (!items.isEmpty()) {
+            for (ItemStack item : items) {
+                if (item != null && currentSlot <= 35) {
+                    playerInventory.setItem(currentSlot, item);
+                    currentSlot++;
+                }
+            }
+        }
+        if (!enchantedBooks.isEmpty()) {
+            for (ItemStack item : enchantedBooks) {
+                if (item != null && currentSlot <= 35) {
+                    playerInventory.setItem(currentSlot, item);
+                    currentSlot++;
+                }
+            }
+        }
     }
 
-    public ArrayList<ItemStack> getSortedItems(ItemStack[] itemsRaw) {
+    public List<ItemStack> getSortedItems(ItemStack[] itemsRaw) {
         ArrayList<ItemStack> items = new ArrayList<>(Arrays.asList(itemsRaw));
-        ArrayList<ItemStack> sortedItems = new ArrayList<>();
+        List<ItemStack> sortedItems = new ArrayList<>();
         int itemsSize = items.size();
 
         int addedItemsCounter = 0;
@@ -167,11 +189,11 @@ public class BuildingSkill implements Listener {
             ItemStack itemToAdd = null;
             String itemType = null;
             for (ItemStack item : items) {
-                if (item == null) continue;
-                if (item.getType().equals(Material.ENCHANTED_BOOK)) continue;
-                if (itemToAdd == null) {
-                    itemToAdd = item;
-                    itemType = item.getType().toString();
+                if (item == null || item.getType().equals(Material.ENCHANTED_BOOK) || itemToAdd == null) {
+                    if (itemToAdd == null && item != null) {
+                        itemToAdd = item;
+                        itemType = item.getType().toString();
+                    }
                     continue;
                 }
 
@@ -183,14 +205,14 @@ public class BuildingSkill implements Listener {
             }
 
             items.remove(itemToAdd);
-            sortedItems = condenseList(sortedItems, itemToAdd);
+            sortedItems = condenseList((ArrayList<ItemStack>) sortedItems, itemToAdd);
             addedItemsCounter++;
         }
 
         return sortedItems;
     }
 
-    public ArrayList<ItemStack> condenseList(ArrayList<ItemStack> items, ItemStack itemToAdd) {
+    public List<ItemStack> condenseList(ArrayList<ItemStack> items, ItemStack itemToAdd) {
         if (itemToAdd == null) return items;
         if (items.isEmpty()) {
             items.add(itemToAdd);
@@ -234,11 +256,10 @@ public class BuildingSkill implements Listener {
         return items;
     }
 
-    public ArrayList<ItemStack> getSortedEnchantedBooks(ItemStack[] itemsRaw) {
+    public List<ItemStack> getSortedEnchantedBooks(ItemStack[] itemsRaw) {
         ArrayList<ItemStack> enchantedBooks = new ArrayList<>();
         for (ItemStack item : itemsRaw) {
-            if (item == null) continue;
-            if (!item.getType().equals(Material.ENCHANTED_BOOK)) continue;
+            if (item == null || !item.getType().equals(Material.ENCHANTED_BOOK)) continue;
             enchantedBooks.add(item);
         }
 
@@ -398,5 +419,6 @@ public class BuildingSkill implements Listener {
         brokenBlocks.add("GREEN_WALL_BANNER");
         brokenBlocks.add("RED_WALL_BANNER");
         brokenBlocks.add("BLACK_WALL_BANNER");
+        brokenBlocks.add("MELON_STEM");
     }
 }
