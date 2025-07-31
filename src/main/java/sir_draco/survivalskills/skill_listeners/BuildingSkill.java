@@ -3,10 +3,7 @@ package sir_draco.survivalskills.skill_listeners;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.Chest;
-import org.bukkit.block.DoubleChest;
+import org.bukkit.block.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -77,29 +74,53 @@ public class BuildingSkill implements Listener {
         if (!e.getAction().equals(Action.LEFT_CLICK_BLOCK)) return;
         Block block = e.getClickedBlock();
         if (block == null) return;
-        if (!block.getType().equals(Material.CHEST) && !block.getType().equals(Material.TRAPPED_CHEST)) return;
+        if (!block.getType().equals(Material.CHEST) &&
+                !block.getType().equals(Material.TRAPPED_CHEST) &&
+                !isShulkerBox(block.getType())) return;
 
-        // Get the inventory of the chest
+        // Get the inventory of the chest or shulker box
         BlockState state = block.getState();
-        if (!(state instanceof Chest chest)) return;
-        Inventory chestInventory;
-        if (chest.getInventory().getHolder() instanceof DoubleChest doubleChest) {
-            chestInventory = doubleChest.getInventory();
-        } else {
-            chestInventory = chest.getInventory();
-        }
+        Inventory containerInventory;
 
-        // Make sure no one is viewing the inventory
-        for (HumanEntity human : chestInventory.getViewers()) {
-            if (!(human instanceof Player player) || player.equals(p)) continue;
-            p.closeInventory();
+        if (state instanceof Chest chest) {
+            if (chest.getInventory().getHolder() instanceof DoubleChest doubleChest) {
+                containerInventory = doubleChest.getInventory();
+            } else {
+                containerInventory = chest.getInventory();
+            }
+        } else if (state.getBlock().getState() instanceof ShulkerBox shulkerBox) {
+            containerInventory = shulkerBox.getInventory();
+        } else {
             return;
         }
 
-        // Sort the chest and add the sorted items to the chest
-        sortChestInventory(chestInventory.getContents().clone(), chestInventory);
-        p.sendRawMessage(ChatColor.GREEN + "Chest sorted!");
+        // Make sure no one is viewing the inventory
+        if (preventViewingSortedInventory(containerInventory, p)) return;
+
+        // Sort the container and add the sorted items to it
+        sortChestInventory(containerInventory.getContents().clone(), containerInventory);
+        String containerType = isShulkerBox(block.getType()) ? "Shulker box" : "Chest";
+        p.sendRawMessage(ChatColor.GREEN + containerType + " sorted!");
         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+    }
+
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent e) {
+        AbilityTimer timer = plugin.getAbilityManager().getAbility(e.getPlayer(), "Flight");
+        if (timer == null || !timer.isActive()) return;
+        Player p = e.getPlayer();
+        p.setAllowFlight(true);
+        p.setFlying(true);
+        p.setFlySpeed(timer.getFlightSpeed());
+    }
+
+    private boolean preventViewingSortedInventory(Inventory containerInventory, Player p) {
+        for (HumanEntity human : containerInventory.getViewers()) {
+            if (!(human instanceof Player player) || player.equals(p)) continue;
+            p.closeInventory();
+            return true;
+        }
+        return false;
     }
 
     private void trySortingPlayerInventory(PlayerInteractEvent e, Player p) {
@@ -131,14 +152,8 @@ public class BuildingSkill implements Listener {
         return !e.getHand().equals(EquipmentSlot.HAND);
     }
 
-    @EventHandler
-    public void onPlayerRespawn(PlayerRespawnEvent e) {
-        AbilityTimer timer = plugin.getAbilityManager().getAbility(e.getPlayer(), "Flight");
-        if (timer == null || !timer.isActive()) return;
-        Player p = e.getPlayer();
-        p.setAllowFlight(true);
-        p.setFlying(true);
-        p.setFlySpeed(timer.getFlightSpeed());
+    private boolean isShulkerBox(Material material) {
+        return material.toString().contains("SHULKER_BOX");
     }
 
     public void sortChestInventory(ItemStack[] inventoryItems, Inventory chest) {
