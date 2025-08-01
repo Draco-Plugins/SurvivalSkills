@@ -22,6 +22,7 @@ import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.ProjectileCalculator;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -84,7 +85,7 @@ public class FarmingSkill implements Listener {
         if (block == null) return;
 
         // Check if it is in a claim
-        if (plugin.isGriefPreventionEnabled() && plugin.checkForClaim(p, block.getLocation())) return;
+        if (plugin.isGriefPreventionEnabled() && Utils.checkForClaim(p, block.getLocation())) return;
 
         handleWateringCan(p, block);
         if (block.getType().equals(Material.DIRT)) return;

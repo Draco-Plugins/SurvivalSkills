@@ -1,54 +1,35 @@
 package sir_draco.survivalskills;
 
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldedit.math.BlockVector3;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.flags.Flags;
-import com.sk89q.worldguard.protection.flags.StateFlag;
-import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import org.bukkit.*;
 import org.bukkit.boss.KeyedBossBar;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
-import org.bukkit.inventory.*;
-import org.bukkit.inventory.meta.EnchantmentStorageMeta;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 import sir_draco.survivalskills.abilities.AbilityManager;
-import sir_draco.survivalskills.abilities.AutoTrash;
 import sir_draco.survivalskills.abilities.TrailEffect;
 import sir_draco.survivalskills.commands.*;
 import sir_draco.survivalskills.boards.Leaderboard;
 import sir_draco.survivalskills.boards.LeaderboardPlayer;
 import sir_draco.survivalskills.boards.SkillScoreboard;
-import sir_draco.survivalskills.commands.admin_commands.*;
-import sir_draco.survivalskills.commands.default_commands.*;
 import sir_draco.survivalskills.commands.skill_commands.*;
 import sir_draco.survivalskills.god_questline.*;
 import sir_draco.survivalskills.skill_listeners.*;
-import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillManager;
-import sir_draco.survivalskills.skills.SkillsHolder;
-import sir_draco.survivalskills.commands.admin_commands.GodQuestCommand;
 import sir_draco.survivalskills.trophy.Trophy;
 import sir_draco.survivalskills.trophy.TrophyListener;
 import sir_draco.survivalskills.trophy.TrophyManager;
+import sir_draco.survivalskills.utils.FileUtils;
 import sir_draco.survivalskills.utils.RecipeMaker;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.logging.Level;
 
-@SuppressWarnings("deprecation")
 public final class SurvivalSkills extends JavaPlugin {
 
     private static SurvivalSkills instance;
@@ -108,31 +89,7 @@ public final class SurvivalSkills extends JavaPlugin {
             }
         }
 
-        // See if the config has ever been saved before
-        saveDefaultConfig();
-        File configFile = new File(getDataFolder(), "config.yml");
-        config = YamlConfiguration.loadConfiguration(configFile);
-
-        // See if an update needs to be made to the config
-        if (config.get("Version") == null || config.getDouble("Version") != 2.22) updateConfig();
-        skillManager = new SkillManager(this);
-
-        trophyFile = new File(getDataFolder(), "trophydata.yml");
-        if (!trophyFile.exists()) saveResource("trophydata.yml", true);
-        trophyData = YamlConfiguration.loadConfiguration(trophyFile);
-
-        leaderboardFile = new File(getDataFolder(), "leaderboard.yml");
-        if (!leaderboardFile.exists()) saveResource("leaderboard.yml", true);
-        leaderboardData = YamlConfiguration.loadConfiguration(leaderboardFile);
-        loadLeaderboard();
-
-        permaTrashFile = new File(getDataFolder(), "permatrash.yml");
-        if (!permaTrashFile.exists()) saveResource("permatrash.yml", true);
-        permaTrashData = YamlConfiguration.loadConfiguration(permaTrashFile);
-
-        toolBeltFile = new File(getDataFolder(), "toolbelt.yml");
-        if (!toolBeltFile.exists()) saveResource("toolbelt.yml", true);
-        toolBeltData = YamlConfiguration.loadConfiguration(toolBeltFile);
+        FileUtils.loadFiles();
 
         // Load plugin features
         loadListeners();
@@ -149,7 +106,7 @@ public final class SurvivalSkills extends JavaPlugin {
         }.runTaskAsynchronously(this);
 
         abilityManager = new AbilityManager(this);
-        loadCommands();
+        FileUtils.loadCommands();
 
         TrialManager.loadProtectedAreas();
 
@@ -167,203 +124,49 @@ public final class SurvivalSkills extends JavaPlugin {
         }
 
         // Check for plugin dependencies
-        Plugin griefPrevention = getServer().getPluginManager().getPlugin("GriefPrevention");
-        if (griefPrevention != null && griefPrevention.isEnabled()) griefPreventionEnabled = true;
-
-        Plugin worldGuard = getServer().getPluginManager().getPlugin("WorldGuard");
-        if (worldGuard != null && worldGuard.isEnabled()) {
-            worldGuardEnabled = true;
-            container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-            if (world == null) {
-                Bukkit.getLogger().warning("Could not find world for worldguard");
-                region = null;
-                return;
-            }
-            else {
-                RegionManager regions = container.get(BukkitAdapter.adapt(world));
-                if (regions == null) {
-                    Bukkit.getLogger().warning("Could not find region manager for worldguard");
-                    region = null;
-                }
-                else {
-                    ProtectedRegion possibleRegion = regions.getRegion("spawn");
-                    if (possibleRegion == null) {
-                        Bukkit.getLogger().warning("Could not find spawn region in worldguard");
-                        region = null;
-                        return;
-                    }
-                    region = possibleRegion;
-                }
-            }
-        }
-
-        Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
-        if (citizens != null && citizens.isEnabled()) citizensEnabled = true;
+        FileUtils.checkPluginDependencies(world);
     }
 
     @Override
     public void onDisable() {
         for (Player p : Bukkit.getOnlinePlayers()) {
             p.closeInventory();
-            savePermaTrash(p);
+            FileUtils.savePermaTrash(p, permaTrashData, permaTrashFile);
         }
 
         try {
-            savePlayerData();
+            FileUtils.savePlayerData();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Bukkit.getLogger().log(Level.SEVERE, "Failed to save player data", e);
         }
 
         try {
             trophyManager.saveTrophies();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Bukkit.getLogger().log(Level.SEVERE, "Failed to save trophy data", e);
         }
         trophyManager.disableTrophies();
 
         try {
             mainListener.saveGraves();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Bukkit.getLogger().log(Level.SEVERE, "Failed to save grave data", e);
         }
 
         try {
-            saveLeaderboard();
+            FileUtils.saveLeaderboard(leaderboardTracker, leaderboardData, leaderboardFile);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Bukkit.getLogger().log(Level.SEVERE, "Failed to save leaderboard data", e);
         }
 
-        savePowerOreConversions();
-        savePotionBags();
+        FileUtils.savePowerOreConversions();
+        FileUtils.savePotionBags();
         abilityManager.saveToolBelts();
         abilityManager.removeGlowFromScannedMobs();
 
         TrialManager.handleTrials();
 
         getMiningListener().endSpelunkerAll();
-    }
-
-    public void loadCommands() {
-        // Default Player Commands
-        flightCommand = new FlightCommand(this);
-        new AutoEatCommand(this);
-        new AutoTrashCommand(this);
-        new DeathLocationCommand(this);
-        new DeathReturnCommand(this);
-        new EatCommand(this);
-        new MobScannerCommand(this);
-        new NightVisionCommand(this);
-        new PeacefulMinerCommand(this);
-        new PermaTrashCommand(this);
-        new SpelunkerCommand(this);
-        new ToggleMaxSkillMessageCommand(this);
-        new TogglePhantomsCommand(this);
-        new ToggleScoreboardCommand(this);
-        new ToggleSpeedCommand(this);
-        new ToggleTrailCommand(this);
-        new ToolBeltCommand(this);
-        new VeinminerCommand(this);
-        new WaterBreathingCommand(this);
-        new ToggleBloodyDomainCommand();
-        new ToggleTrashCommand(this);
-        new GodQuestCommand(this);
-        new ToggleBossMusic();
-        new UpCommand(this);
-        new GodTrialCommand(this);
-        new CreativeCommand(this);
-
-        // Admin Commands
-        new BossCommand(this);
-        new BossMusicCommand(this);
-        new CaveFinderCommand(this);
-        new GetTrophyCommand(this);
-        new ResetFirstDragon(this);
-        new SkillsMultiplierCommand(this);
-        new SurvivalSkillsCommand(this);
-        new SurvivalSkillsGetCommand(this);
-        new ToggleOverworldFirstDragon(this);
-        new DragonStatusCommand();
-        new ToggleGodQuestCommand(this);
-        new ResetAllCommand(this);
-        new StoreTrialBuildingCommand(this);
-        new CancelAbilityCooldownsCommand(this);
-    }
-
-    public void loadLeaderboard() {
-        ConfigurationSection section = leaderboardData.getConfigurationSection("");
-        if (section == null) return;
-        section.getKeys(false).forEach(key -> {
-            String name = leaderboardData.getString(key + ".Name");
-            int level = leaderboardData.getInt(key + ".Level");
-            int building = leaderboardData.getInt(key + ".Building");
-            int mining = leaderboardData.getInt(key + ".Mining");
-            int fishing = leaderboardData.getInt(key + ".Fishing");
-            int exploring = leaderboardData.getInt(key + ".Exploring");
-            int farming = leaderboardData.getInt(key + ".Farming");
-            int fighting = leaderboardData.getInt(key + ".Fighting");
-            int crafting = leaderboardData.getInt(key + ".Crafting");
-            int main = leaderboardData.getInt(key + ".Main");
-            int deaths = leaderboardData.getInt(key + ".Deaths");
-            int trialScore = leaderboardData.getInt(key + ".Trials");
-            int coopTrialScore = leaderboardData.getInt(key + ".CoopTrials");
-            LeaderboardPlayer leaderboard = new LeaderboardPlayer(name, level, building, mining, fishing, exploring,
-                    farming, fighting, crafting, main, deaths, trialScore, coopTrialScore);
-            leaderboardTracker.put(UUID.fromString(key), leaderboard);
-        });
-    }
-
-    public void loadPermaTrash(Player p) {
-        UUID uuid = p.getUniqueId();
-        ConfigurationSection perma = permaTrashData.getConfigurationSection(uuid.toString());
-        if (perma == null) return;
-
-        ConfigurationSection materials = permaTrashData.getConfigurationSection(uuid + ".Materials");
-        boolean big = false;
-        if (permaTrashData.contains(uuid + ".BigTrash")) big = permaTrashData.getBoolean(uuid + ".BigTrash");
-        AutoTrash trash = new AutoTrash(big);
-        if (materials != null) {
-            // get the list of materials from the config
-            materials.getKeys(false).forEach(key -> {
-                String type = permaTrashData.getString(uuid + ".Materials." + key);
-                if (type != null) {
-                    Material material = Material.getMaterial(type);
-                    if (material == null) {
-                        Bukkit.getLogger().warning("Material " + key + " for " + uuid + " is not valid");
-                        return;
-                    }
-                    if (trash.getTrashMaterials().contains(material)) return;
-                    trash.addTrashItem(new ItemStack(material));
-                }
-                else Bukkit.getLogger().warning("Material " + key + " for " + uuid + " is not valid");
-            });
-        }
-
-        ConfigurationSection enchants = permaTrashData.getConfigurationSection(uuid + ".Enchants");
-        if (enchants != null) {
-            ArrayList<String> keyNames = new ArrayList<>();
-            // get the list of items from the config
-            enchants.getKeys(false).forEach(key -> {
-                String keyName = permaTrashData.getString(uuid + ".Enchants." + key);
-                keyNames.add(keyName);
-            });
-
-            for (String key : keyNames) {
-                Enchantment enchant = getEnchantFromKey(key);
-                if (enchant == null) {
-                    Bukkit.getLogger().warning("Enchantment " + key + " is not valid");
-                    return;
-                }
-
-                ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
-                EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
-                if (meta == null) return;
-                meta.addStoredEnchant(enchant, 1, false);
-                item.setItemMeta(meta);
-                trash.addTrashItem(item);
-            }
-        }
-
-        getFishingListener().getPermaTrash().put(p, trash);
     }
 
     public void loadListeners() {
@@ -402,371 +205,6 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new TrialUpgradeManager(), this);
     }
 
-    public void loadData(Player p, FileConfiguration data) {
-        HashMap<String, Boolean> trophyList = new HashMap<>();
-        if (!data.contains(p.getUniqueId().toString())) {
-            ArrayList<Skill> skills = new ArrayList<>();
-            trophyList.put("CaveTrophy", false);
-            trophyList.put("ForestTrophy", false);
-            trophyList.put("FarmingTrophy", false);
-            trophyList.put("OceanTrophy", false);
-            trophyList.put("FishingTrophy", false);
-            trophyList.put("ColorTrophy", false);
-            trophyList.put("NetherTrophy", false);
-            trophyList.put("EndTrophy", false);
-            trophyList.put("ChampionTrophy", false);
-            trophyList.put("GodTrophy", false);
-
-            skills.add(new Skill(0, 1, "Main"));
-            skills.add(new Skill(0, 1, "Building"));
-            skills.add(new Skill(0, 1, "Mining"));
-            skills.add(new Skill(0, 1, "Fishing"));
-            skills.add(new Skill(0, 1, "Exploring"));
-            skills.add(new Skill(0, 1, "Farming"));
-            skills.add(new Skill(0, 1, "Fighting"));
-            skills.add(new Skill(0, 1, "Crafting"));
-
-            trophyManager.getTrophyTracker().put(p.getUniqueId(), trophyList);
-            SkillsHolder holder = new SkillsHolder(skills, skillManager.getNewPlayerRewards());
-            holder.setMaxSkillMessageEnabled(true);
-            if (!skillManager.getPlayerSkills().containsKey(p.getUniqueId()))
-                skillManager.getPlayerSkills().put(p.getUniqueId(), holder);
-            else Bukkit.getLogger().warning("Player " + p.getName() + " already has skills loaded");
-            toggledScoreboard.put(p.getUniqueId(), true);
-
-            savePlayerData(p);
-            return;
-        }
-
-        UUID uuid = p.getUniqueId();
-        if (!skillManager.getPlayerSkills().containsKey(uuid)) skillManager.loadPlayerSkills(uuid, data);
-        if (!toggledScoreboard.containsKey(uuid)) loadScoreboardSetting(uuid, data);
-        if (!trophyManager.getTrophyTracker().containsKey(uuid)) trophyManager.loadPlayerTrophies(uuid, data);
-
-        if (data.contains(uuid + ".NoPhantoms")) {
-            boolean phantoms = data.getBoolean(uuid + ".NoPhantoms");
-            if (phantoms && !getFightingListener().getNoPhantomSpawns().contains(p)) {
-                getFightingListener().getNoPhantomSpawns().add(p);
-            }
-        }
-
-        if (data.contains(uuid + ".Trail")) {
-            String trailName = data.getString(uuid + ".Trail");
-            if (trailName != null && !trailName.equals("None")) {
-                if (abilityManager.getTrails().containsKey(trailName)) {
-                    int dustType = 1;
-                    if (trailName.equalsIgnoreCase("Dust")) dustType = 2;
-                    else if (trailName.equalsIgnoreCase("Rainbow")) dustType = 3;
-                    TrailEffect effect = new TrailEffect(p, abilityManager.getTrails().get(trailName), dustType, trailName);
-                    effect.runTaskTimer(this, 60, 1);
-                    abilityManager.getTrailTracker().put(p, effect);
-                }
-            }
-        }
-
-        if (data.contains(uuid + ".AutoEat")) {
-            boolean autoEat = data.getBoolean(uuid + ".AutoEat");
-            if (autoEat && !farmingListener.getAutoEat().contains(p)) farmingListener.getAutoEat().add(p);
-        }
-
-        if (data.contains(uuid + ".Veinminer")) {
-            int veinminer = data.getInt(uuid + ".Veinminer");
-            if (veinminer == 0 || veinminer == 1) miningListener.getVeinminerTracker().put(p, veinminer);
-        }
-
-        if (data.contains(uuid + ".PeacefulMiner")) {
-            boolean peacefulMiner = data.getBoolean(uuid + ".PeacefulMiner");
-            if (peacefulMiner && !miningListener.getPeacefulMiners().contains(p)) miningListener.getPeacefulMiners().add(p);
-        }
-
-        if (data.contains(uuid + ".MaxSkillMessage")) {
-            boolean maxSkillMessage = data.getBoolean(uuid + ".MaxSkillMessage");
-            if (skillManager.getPlayerSkills().containsKey(uuid))
-                skillManager.getPlayerSkills().get(uuid).setMaxSkillMessageEnabled(maxSkillMessage);
-        }
-
-        if (data.contains(uuid + ".BloodyDomain")) {
-            boolean bloodyDomain = data.getBoolean(uuid + ".BloodyDomain");
-            if (bloodyDomain) abilityManager.startBloodyDomain(p);
-        }
-
-        if (data.contains(uuid + ".NoBossMusic")) {
-            boolean bossMusic = data.getBoolean(uuid + ".NoBossMusic");
-            if (bossMusic) fightingListener.getNoBossMusic().add(p);
-        }
-    }
-
-    public void loadScoreboardSetting(UUID uuid, FileConfiguration data) {
-        if (toggledScoreboard.containsKey(uuid)) return;
-        if (!data.contains(uuid + ".Scoreboard")) {
-            // default to having the scoreboard enabled when no setting exists
-            toggledScoreboard.put(uuid, true);
-        } else {
-            toggledScoreboard.put(uuid, data.getBoolean(uuid + ".Scoreboard"));
-        }
-    }
-
-    public void savePlayerData(Player p) {
-        if (skillManager.getPlayerSkills().isEmpty()) return;
-
-        File dataFile = new File(getDataFolder(), "playerdata.yml");
-        if (!dataFile.exists()) saveResource("playerdata.yml", true);
-        FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
-
-        File godQuestFile = new File(getDataFolder(), "godquests.yml");
-        if (!godQuestFile.exists()) saveResource("godquests.yml", true);
-        FileConfiguration godQuestData = YamlConfiguration.loadConfiguration(godQuestFile);
-
-        UUID uuid = p.getUniqueId();
-        trophyManager.savePlayerTrophyData(uuid, data);
-        if (SkillManager.getSkill(uuid, "Main").getLevel() == 100)
-            trophyManager.savePlayerGodQuestData(uuid, godQuestData);
-
-        if (toggledScoreboard.containsKey(uuid)) data.set(uuid + ".Scoreboard", toggledScoreboard.get(uuid));
-        else Bukkit.getLogger().warning("Player " + p.getName() + " does not have a scoreboard status");
-
-        if (getFightingListener().getNoPhantomSpawns().contains(p)) data.set(uuid + ".NoPhantoms", true);
-        else data.set(uuid + ".NoPhantoms", false);
-
-        if (abilityManager.getTrailTracker().containsKey(p))
-            data.set(uuid + ".Trail", abilityManager.getTrailTracker().get(p).getTrailName());
-        else data.set(uuid + ".Trail", "None");
-
-        if (farmingListener.getAutoEat().contains(p)) data.set(uuid + ".AutoEat", true);
-        else data.set(uuid + ".AutoEat", false);
-
-        data.set(uuid + ".Veinminer", miningListener.getVeinminerTracker().getOrDefault(p, -1));
-
-        if (miningListener.getPeacefulMiners().contains(p)) data.set(uuid + ".PeacefulMiner", true);
-        else data.set(uuid + ".PeacefulMiner", false);
-
-        if (abilityManager.getBloodyDomainTracker().containsKey(p)) data.set(uuid + ".BloodyDomain", true);
-        else data.set(uuid + ".BloodyDomain", false);
-
-        if (fightingListener.getNoBossMusic().contains(p)) data.set(uuid + ".NoBossMusic", true);
-        else data.set(uuid + ".NoBossMusic", false);
-
-        abilityManager.saveFlightTimer(p, data);
-        abilityManager.saveSpelunkerTimer(p, data);
-
-        skillManager.savePlayerSkillData(uuid, data);
-        skillManager.savePlayerMultiplier(p, data);
-        savePermaTrash(p);
-
-        try {
-            data.save(dataFile);
-            godQuestData.save(godQuestFile);
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void savePlayerData() throws IOException {
-        if (skillManager.getPlayerSkills().isEmpty()) return;
-
-        File dataFile = new File(getDataFolder(), "playerdata.yml");
-        if (!dataFile.exists()) saveResource("playerdata.yml", true);
-        FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
-
-        File godQuestFile = new File(getDataFolder(), "godquests.yml");
-        if (!godQuestFile.exists()) saveResource("godquests.yml", true);
-        FileConfiguration godQuestData = YamlConfiguration.loadConfiguration(godQuestFile);
-
-        trophyManager.saveTrophyData(data);
-        trophyManager.saveGodQuestData(godQuestData);
-        skillManager.saveSkillData(data);
-
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            UUID uuid = p.getUniqueId();
-            if (toggledScoreboard.containsKey(uuid)) data.set(uuid + ".Scoreboard", toggledScoreboard.get(uuid));
-            else Bukkit.getLogger().warning("Player " + p.getName() + " does not have a scoreboard status");
-
-            if (fightingListener.getNoPhantomSpawns().contains(p)) data.set(uuid + ".NoPhantoms", true);
-            else data.set(uuid + ".NoPhantoms", false);
-
-            if (abilityManager.getTrailTracker().containsKey(p))
-                data.set(uuid + ".Trail", abilityManager.getTrailTracker().get(p).getTrailName());
-            else data.set(uuid + ".Trail", "None");
-
-            if (farmingListener.getAutoEat().contains(p)) data.set(uuid + ".AutoEat", true);
-            else data.set(uuid + ".AutoEat", false);
-
-            data.set(uuid + ".Veinminer", miningListener.getVeinminerTracker().getOrDefault(p, -1));
-
-            if (miningListener.getPeacefulMiners().contains(p)) data.set(uuid + ".PeacefulMiner", true);
-            else data.set(uuid + ".PeacefulMiner", false);
-
-            if (abilityManager.getBloodyDomainTracker().containsKey(p)) data.set(uuid + ".BloodyDomain", true);
-            else data.set(uuid + ".BloodyDomain", false);
-
-            if (fightingListener.getNoBossMusic().contains(p)) data.set(uuid + ".NoBossMusic", true);
-            else data.set(uuid + ".NoBossMusic", false);
-
-            abilityManager.saveFlightTimer(p, data);
-            abilityManager.saveSpelunkerTimer(p, data);
-
-            skillManager.savePlayerMultiplier(p, data);
-        }
-
-        data.save(dataFile);
-        godQuestData.save(godQuestFile);
-    }
-
-    public void saveLeaderboard() throws IOException {
-        if (leaderboardTracker.isEmpty()) return;
-        if (leaderboardData == null) return;
-
-        for (Map.Entry<UUID, LeaderboardPlayer> player : leaderboardTracker.entrySet()) {
-            leaderboardData.set(player.getKey() + ".Name", player.getValue().getName());
-            leaderboardData.set(player.getKey() + ".Level", player.getValue().getScore());
-            leaderboardData.set(player.getKey() + ".Building", player.getValue().getBuildingScore());
-            leaderboardData.set(player.getKey() + ".Mining", player.getValue().getMiningScore());
-            leaderboardData.set(player.getKey() + ".Fishing", player.getValue().getFishingScore());
-            leaderboardData.set(player.getKey() + ".Exploring", player.getValue().getExploringScore());
-            leaderboardData.set(player.getKey() + ".Farming", player.getValue().getFarmingScore());
-            leaderboardData.set(player.getKey() + ".Fighting", player.getValue().getFightingScore());
-            leaderboardData.set(player.getKey() + ".Crafting", player.getValue().getCraftingScore());
-            leaderboardData.set(player.getKey() + ".Main", player.getValue().getMainScore());
-            leaderboardData.set(player.getKey() + ".Deaths", player.getValue().getDeathScore());
-            leaderboardData.set(player.getKey() + ".SoloTrials", player.getValue().getTrialScore());
-            leaderboardData.set(player.getKey() + ".CoopTrials", player.getValue().getCoopTrialScore());
-        }
-
-        try {
-            leaderboardData.save(leaderboardFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void savePermaTrash(Player p) {
-        if (permaTrashData == null) return;
-        UUID uuid = p.getUniqueId();
-        if (!getFishingListener().getPermaTrash().containsKey(p)) return;
-        AutoTrash trash = getFishingListener().getPermaTrash().get(p);
-        if (trash == null) return;
-
-        permaTrashData.set(uuid.toString(), null);
-        permaTrashData.set(uuid + ".BigTrash", trash.isBig());
-
-        int i = 0;
-        if (trash.getTrashMaterials().isEmpty()) permaTrashData.set(uuid + ".Materials", null);
-        for (Material mat : trash.getTrashMaterials()) {
-            permaTrashData.set(uuid + ".Materials." + i, mat.toString());
-            i++;
-        }
-
-        i = 0;
-        if (trash.getEnchants().isEmpty()) permaTrashData.set(uuid + ".Enchants", null);
-        for (Enchantment enchant : trash.getEnchants()) {
-            permaTrashData.set(uuid + ".Enchants." + i, enchant.getKey().toString());
-            i++;
-        }
-
-        try {
-            permaTrashData.save(permaTrashFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void savePotionBags() {
-        File potionBagFile = new File(getDataFolder(), "potionbags.yml");
-        if (!potionBagFile.exists()) saveResource("potionbags.yml", true);
-        FileConfiguration potionBagData = YamlConfiguration.loadConfiguration(potionBagFile);
-        godListener.savePotionBags(potionBagData);
-
-        try {
-            potionBagData.save(potionBagFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void savePowerOreConversions() {
-        File powerOreFile = new File(getDataFolder(), "poweroreconversions.yml");
-        if (!powerOreFile.exists()) saveResource("poweroreconversions.yml", true);
-        FileConfiguration powerOreData = YamlConfiguration.loadConfiguration(powerOreFile);
-        godListener.savePowerOreConversions(powerOreData);
-
-        try {
-            powerOreData.save(powerOreFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void updateConfig() {
-        // Load the default configuration from the JAR
-        InputStream defConfigStream = getClass().getClassLoader().getResourceAsStream("config.yml");
-        if (defConfigStream == null) {
-            throw new RuntimeException("Failed to load default config");
-        }
-        YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defConfigStream, StandardCharsets.UTF_8));
-
-        // Merge new defaults into the existing config (existing config is modified)
-        mergeConfigWithOrder(config, defConfig, "");
-
-        // Save the updated existing configuration
-        File file = new File(getDataFolder(), "config.yml");
-        try {
-            config.save(file);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to save config file", e);
-        }
-    }
-
-    /**
-     * Merges an existing config with a new default config, preserving user values while adding new defaults.
-     * The existing config is modified to include any new keys from the default config.
-     *
-     * @param existingConfig The current config file with user customizations (will be modified)
-     * @param defaultConfig The new default config with potentially new keys and structure
-     * @param parentKey Used for recursive calls to track the current path
-     */
-    private void mergeConfigWithOrder(ConfigurationSection existingConfig, ConfigurationSection defaultConfig, String parentKey) {
-        // Iterate through all keys in the new default config
-        for (String key : defaultConfig.getKeys(false)) {
-            String fullKey = parentKey.isEmpty() ? key : parentKey + "." + key;
-
-            // Case 1: Both configs have this key as a configuration section - recurse into it
-            if (defaultConfig.isConfigurationSection(key) && existingConfig.isConfigurationSection(key)) {
-                ConfigurationSection existingSection = existingConfig.getConfigurationSection(key);
-                ConfigurationSection defaultSection = defaultConfig.getConfigurationSection(key);
-
-                if (existingSection != null && defaultSection != null) {
-                    mergeConfigWithOrder(existingSection, defaultSection, fullKey);
-                } else {
-                    Bukkit.getLogger().warning("Failed to handle configuration section: " + fullKey);
-                }
-            }
-            // Case 2: Default has a section but existing doesn't - create the section in existing config
-            else if (defaultConfig.isConfigurationSection(key) && !existingConfig.contains(key)) {
-                ConfigurationSection defaultSection = defaultConfig.getConfigurationSection(key);
-                if (defaultSection != null) {
-                    ConfigurationSection newSection = existingConfig.createSection(key);
-                    // Recursively copy all values from the default section
-                    mergeConfigWithOrder(newSection, defaultSection, fullKey);
-                    Bukkit.getLogger().info("Added new configuration section: " + fullKey);
-                }
-            }
-            // Case 3: Existing config already has this key (not a section) - keep user's value
-            else if (existingConfig.contains(key)) {
-                // User's customization takes precedence - no action needed
-                Bukkit.getLogger().finest("Preserving user value for: " + fullKey);
-            }
-            // Case 4: Key only exists in default config - add it to existing config
-            else {
-                Object defaultValue = defaultConfig.get(key);
-                if (defaultValue != null) {
-                    existingConfig.set(key, defaultValue);
-                    Bukkit.getLogger().info("Added new config key: " + fullKey + " = " + defaultValue);
-                }
-            }
-        }
-    }
-
     /**
      * Removes the player from the skills list and from the
      * scoreboard hashtable
@@ -796,19 +234,18 @@ public final class SurvivalSkills extends JavaPlugin {
     public void playerJoin(Player p, boolean overrideNewPlayer) {
         abilityManager.getTimerTracker().put(p, new ArrayList<>());
 
-        File dataFile = new File(getDataFolder(), "playerdata.yml");
-        if (!dataFile.exists()) saveResource("playerdata.yml", true);
+        File dataFile = new File(getDataFolder(), FileUtils.PLAYERDATA_YML);
+        if (!dataFile.exists()) saveResource(FileUtils.PLAYERDATA_YML, true);
         FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
 
         boolean newPlayer = data.get(p.getUniqueId().toString()) == null;
         if (overrideNewPlayer) newPlayer = false;
-        loadData(p, data);
+        FileUtils.loadData(p, data);
 
         // Check if the player should activate any nearby trophies
         for (Map.Entry<Location, Trophy> trophy : trophyManager.getTrophies().entrySet()) {
             Location loc = trophy.getKey();
-            if (!p.getWorld().equals(loc.getWorld())) continue;
-            if (p.getLocation().distance(loc) > 50) continue;
+            if (!p.getWorld().equals(loc.getWorld()) || p.getLocation().distance(loc) > 50) continue;
             trophy.getValue().getEffects().checkForPlayers();
         }
 
@@ -818,7 +255,7 @@ public final class SurvivalSkills extends JavaPlugin {
         skillManager.loadPlayerRewards(p);
         skillManager.loadPlayerMultiplier(p, data);
         Leaderboard.leaderboardJoin(this, p);
-        loadPermaTrash(p);
+        FileUtils.loadPermaTrash(p, permaTrashData);
         getMiningListener().hideGlowForPlayer(p);
         armorListener.playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
         abilityManager.loadFlight(p, data);
@@ -826,7 +263,7 @@ public final class SurvivalSkills extends JavaPlugin {
 
         // Handle the scoreboard
         if (newPlayer) SkillScoreboard.initializeScoreboard(this, p);
-        else if (toggledScoreboard.containsKey(p.getUniqueId()) && toggledScoreboard.get(p.getUniqueId())){
+        else if (toggledScoreboard.containsKey(p.getUniqueId()) && Boolean.TRUE.equals(toggledScoreboard.get(p.getUniqueId()))){
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -869,49 +306,12 @@ public final class SurvivalSkills extends JavaPlugin {
         farmingList.add(Material.NETHER_WART);
     }
 
-    public ArrayList<Material> getFarmingList() {
+    public List<Material> getFarmingList() {
         return farmingList;
     }
 
-    public HashMap<UUID, Boolean> getToggledScoreboard() {
+    public Map<UUID, Boolean> getToggledScoreboard() {
         return toggledScoreboard;
-    }
-
-    /**
-     * Returns true if there is a claim there
-     */
-    public boolean checkForClaim(Player p, Location loc) {
-        String noBuildReason = GriefPrevention.instance.allowBuild(p, loc);
-        return (noBuildReason != null);
-    }
-
-    public boolean canPlaceBlockInRegion(Player p, Location loc) {
-        World world = loc.getWorld();
-        if (world == null) return true;
-        RegionManager regions = container.get(BukkitAdapter.adapt(world));
-        if (regions == null) return true;
-
-        double x = loc.getX();
-        double y = loc.getY();
-        double z = loc.getZ();
-        ApplicableRegionSet applicableRegions = regions.getApplicableRegions(BlockVector3.at(loc.getX(), loc.getY(), loc.getZ()));
-        for (ProtectedRegion region : applicableRegions) {
-            if (region == null) continue;
-            if (!region.contains(BlockVector3.at(x, y, z))) continue;
-            StateFlag.State state = region.getFlag(Flags.BLOCK_PLACE);
-            boolean allowed = StateFlag.test(state);
-            if (p.hasPermission("worldguard.region.bypass." + region.getId()) || p.isOp()) allowed = true;
-            if (!allowed) return false;
-        }
-
-        return true;
-    }
-
-    public Enchantment getEnchantFromKey(String key) {
-        for (Enchantment enchant : Registry.ENCHANTMENT) {
-            if (enchant.getKey().toString().equalsIgnoreCase(key)) return enchant;
-        }
-        return Enchantment.EFFICIENCY;
     }
 
     public MiningSkill getMiningListener() {
@@ -961,6 +361,10 @@ public final class SurvivalSkills extends JavaPlugin {
         return trophyFile;
     }
 
+    public File getPermaTrashFile() {
+        return permaTrashFile;
+    }
+
     public FileConfiguration getLeaderboardData() {
         return leaderboardData;
     }
@@ -977,11 +381,11 @@ public final class SurvivalSkills extends JavaPlugin {
         return permaTrashData;
     }
 
-    public ArrayList<NamespacedKey> getRecipeKeys() {
+    public List<NamespacedKey> getRecipeKeys() {
         return recipeKeys;
     }
 
-    public HashMap<NamespacedKey, Integer> getGodRecipeKeys() {
+    public Map<NamespacedKey, Integer> getGodRecipeKeys() {
         return godRecipeKeys;
     }
 
@@ -989,11 +393,35 @@ public final class SurvivalSkills extends JavaPlugin {
         return griefPreventionEnabled;
     }
 
+    public void setGriefPreventionEnabled(boolean griefPreventionEnabled) {
+        this.griefPreventionEnabled = griefPreventionEnabled;
+    }
+
+    public void setCitizensEnabled(boolean citizensEnabled) {
+        this.citizensEnabled = citizensEnabled;
+    }
+
+    public void setWorldGuardEnabled(boolean worldGuardEnabled) {
+        this.worldGuardEnabled = worldGuardEnabled;
+    }
+
+    public void setContainer(RegionContainer container) {
+        this.container = container;
+    }
+
+    public void setRegion(ProtectedRegion region) {
+        this.region = region;
+    }
+
+    public void setFlightCommand(FlightCommand flightCommand) {
+        this.flightCommand = flightCommand;
+    }
+
     public boolean isWorldGuardEnabled() {
         return worldGuardEnabled;
     }
 
-    public HashMap<UUID, LeaderboardPlayer> getLeaderboardTracker() {
+    public Map<UUID, LeaderboardPlayer> getLeaderboardTracker() {
         return leaderboardTracker;
     }
 
@@ -1005,7 +433,7 @@ public final class SurvivalSkills extends JavaPlugin {
         this.woolRecipes = woolRecipes;
     }
 
-    public HashMap<Player, Scoreboard> getScoreboardTracker() {
+    public Map<Player, Scoreboard> getScoreboardTracker() {
         return scoreboardTracker;
     }
 
@@ -1025,6 +453,10 @@ public final class SurvivalSkills extends JavaPlugin {
         return godListener;
     }
 
+    public void setSkillManager(SkillManager skillManager) {
+        this.skillManager = skillManager;
+    }
+
     public FlightCommand getFlightCommand() {
         return flightCommand;
     }
@@ -1041,11 +473,51 @@ public final class SurvivalSkills extends JavaPlugin {
         this.exponentialXP = exponentialXP;
     }
 
-    public static SurvivalSkills getInstance() {
-        return instance;
-    }
-
     public ProtectedRegion getRegion() {
         return region;
+    }
+
+    public RegionContainer getContainer() {
+        return container;
+    }
+
+    public void setConfig(FileConfiguration config) {
+        this.config = config;
+    }
+
+    public void setTrophyData(FileConfiguration trophyData) {
+        this.trophyData = trophyData;
+    }
+
+    public void setLeaderboardData(FileConfiguration leaderboardData) {
+        this.leaderboardData = leaderboardData;
+    }
+
+    public void setPermaTrashData(FileConfiguration permaTrashData) {
+        this.permaTrashData = permaTrashData;
+    }
+
+    public void setToolBeltData(FileConfiguration toolBeltData) {
+        this.toolBeltData = toolBeltData;
+    }
+
+    public void setLeaderboardFile(File leaderboardFile) {
+        this.leaderboardFile = leaderboardFile;
+    }
+
+    public void setTrophyFile(File trophyFile) {
+        this.trophyFile = trophyFile;
+    }
+
+    public void setPermaTrashFile(File permaTrashFile) {
+        this.permaTrashFile = permaTrashFile;
+    }
+
+    public void setToolBeltFile(File toolBeltFile) {
+        this.toolBeltFile = toolBeltFile;
+    }
+
+    public static SurvivalSkills getInstance() {
+        return instance;
     }
 }

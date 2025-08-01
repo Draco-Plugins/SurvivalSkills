@@ -12,6 +12,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.boards.SkillScoreboard;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +39,7 @@ public class ToggleScoreboardCommand implements CommandExecutor {
         if (!plugin.getToggledScoreboard().containsKey(p.getUniqueId())) {
             Bukkit.getLogger().info("Player " + p.getName() + " does not have a scoreboard status");
 
-            plugin.loadScoreboardSetting(p.getUniqueId(), data);
+            FileUtils.loadScoreboardSetting(p.getUniqueId(), data);
             p.sendRawMessage(ChatColor.RED + "Try again!");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;

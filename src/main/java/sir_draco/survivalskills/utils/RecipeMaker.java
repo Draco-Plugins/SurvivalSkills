@@ -353,7 +353,7 @@ public class RecipeMaker {
         NamespacedKey tag2 = makeRecipeWithSingleIngredient(plugin, wool1, wool2, tag + "2");
         NamespacedKey tag3 = makeRecipeWithSingleIngredient(plugin, wool2, wool3, tag + "3");
 
-        ArrayList<NamespacedKey> recipeKeys = plugin.getRecipeKeys();
+        List<NamespacedKey> recipeKeys = plugin.getRecipeKeys();
         if (!plugin.isWoolRecipes()) {
             recipeKeys.add(tag1);
             recipeKeys.add(tag2);
@@ -633,7 +633,7 @@ public class RecipeMaker {
         return key;
     }
 
-    public static ArrayList<Integer> getRecipePositions(int slot) {
+    public static List<Integer> getRecipePositions(int slot) {
         ArrayList<Integer> positions = new ArrayList<>();
         if (slot % 2 == 1) {
             positions.add(0);
@@ -692,11 +692,11 @@ public class RecipeMaker {
                 }
 
                 // Process the entire batch
-                for (RecipeRecord record : batch) {
+                for (RecipeRecord recipeRecord : batch) {
                     // Remove existing recipe if it exists (no need to check first)
-                    plugin.getServer().removeRecipe(record.key());
+                    plugin.getServer().removeRecipe(recipeRecord.key());
                     // Add the new recipe
-                    plugin.getServer().addRecipe(record.recipe());
+                    plugin.getServer().addRecipe(recipeRecord.recipe());
                 }
             }
         }.runTaskTimer(plugin, 1, 1);

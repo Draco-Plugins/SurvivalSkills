@@ -22,6 +22,10 @@ public class TrialGUI {
 
     private static final List<Inventory> upgradeInventories = new ArrayList<>();
 
+    private TrialGUI() {
+        // Private constructor to prevent instantiation
+    }
+
     public static void openUpgradeGUI(Player player) {
         Inventory inv = Bukkit.createInventory(null, 54, ChatColor.DARK_PURPLE + "Trial Upgrades");
 

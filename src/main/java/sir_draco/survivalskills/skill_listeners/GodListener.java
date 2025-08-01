@@ -42,6 +42,7 @@ import sir_draco.survivalskills.god_questline.GodRecipeUI;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.god_questline.PowerOreConversion;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
+import sir_draco.survivalskills.utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -190,10 +191,10 @@ public class GodListener implements Listener {
             if (e.getClickedBlock() == null) return;
 
             // Check if it is in a claim
-            if (SurvivalSkills.getInstance().isGriefPreventionEnabled() && SurvivalSkills.getInstance().checkForClaim(p, e.getClickedBlock().getLocation())) return;
+            if (SurvivalSkills.getInstance().isGriefPreventionEnabled() && Utils.checkForClaim(p, e.getClickedBlock().getLocation())) return;
             // Check if they are in spawn
             if (SurvivalSkills.getInstance().isWorldGuardEnabled()) {
-                boolean canPlace = SurvivalSkills.getInstance().canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
+                boolean canPlace = Utils.canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
                 if (!canPlace) return;
             }
 
@@ -219,10 +220,10 @@ public class GodListener implements Listener {
             if (e.getClickedBlock() == null) return;
 
             // Check if it is in a claim
-            if (SurvivalSkills.getInstance().isGriefPreventionEnabled() && SurvivalSkills.getInstance().checkForClaim(p, e.getClickedBlock().getLocation())) return;
+            if (SurvivalSkills.getInstance().isGriefPreventionEnabled() && Utils.checkForClaim(p, e.getClickedBlock().getLocation())) return;
             // Check if they are in spawn
             if (SurvivalSkills.getInstance().isWorldGuardEnabled()) {
-                boolean canPlace = SurvivalSkills.getInstance().canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
+                boolean canPlace = Utils.canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
                 if (!canPlace) return;
             }
 

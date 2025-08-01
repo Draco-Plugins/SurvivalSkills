@@ -19,6 +19,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.abilities.AbilityTimer;
 import sir_draco.survivalskills.skills.SkillManager;
+import sir_draco.survivalskills.utils.FileUtils;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.boards.LeaderboardPlayer;
 import sir_draco.survivalskills.rewards.PlayerRewards;
@@ -49,8 +50,8 @@ public class PlayerListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent e) {
         Player p = e.getPlayer();
         plugin.getSkillManager().updateExploringStats(p.getUniqueId());
-        plugin.savePlayerData(p);
-        plugin.savePermaTrash(p);
+        FileUtils.savePlayerData(p);
+        FileUtils.savePermaTrash(p, plugin.getPermaTrashData(), plugin.getPermaTrashFile());
         plugin.playerQuit(p);
     }
 

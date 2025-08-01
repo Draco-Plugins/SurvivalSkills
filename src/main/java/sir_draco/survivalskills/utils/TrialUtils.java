@@ -357,7 +357,7 @@ public class TrialUtils {
 
                     // Check if there are any existing claims nearby
                     if (SurvivalSkills.getInstance().isGriefPreventionEnabled()
-                            && SurvivalSkills.getInstance().checkForClaim(p, pLocation.clone().add(i, j, k))) {
+                            && Utils.checkForClaim(p, pLocation.clone().add(i, j, k))) {
                         p.sendRawMessage(ChatColor.RED + "You are in a claim");
                         p.sendRawMessage(ChatColor.YELLOW + "Stand in an unclaimed area to start the trial");
                         p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

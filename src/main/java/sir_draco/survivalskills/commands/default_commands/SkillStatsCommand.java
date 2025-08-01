@@ -271,7 +271,7 @@ public class SkillStatsCommand implements CommandExecutor {
     public void addSSRecipe(int recipeCounter, Inventory inv) {
         NamespacedKey key = plugin.getRecipeKeys().get(recipeCounter - 1);
         if (key == null) return;
-        ArrayList<Integer> slots = RecipeMaker.getRecipePositions(recipeCounter);
+        List<Integer> slots = RecipeMaker.getRecipePositions(recipeCounter);
         Recipe recipe = Bukkit.getRecipe(key);
         switch (recipe) {
             case ShapedRecipe shapedRecipe -> {

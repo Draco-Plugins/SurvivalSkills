@@ -16,6 +16,7 @@ import sir_draco.survivalskills.boards.SkillScoreboard;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.utils.FileUtils;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 
 import java.io.IOException;
@@ -352,7 +353,7 @@ public class SkillManager {
 
         if (main.getExperience() < totalXP || main.getExperience() > totalXP + 10.0) {
             main.setExperience((int) totalXP);
-            plugin.savePlayerData(p);
+            FileUtils.savePlayerData(p);
         }
     }
 
@@ -364,7 +365,7 @@ public class SkillManager {
                     @Override
                     public void run() {
                         try {
-                            plugin.savePlayerData();
+                            FileUtils.savePlayerData();
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }

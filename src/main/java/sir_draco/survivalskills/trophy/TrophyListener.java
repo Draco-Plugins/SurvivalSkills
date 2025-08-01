@@ -21,6 +21,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.*;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
+import sir_draco.survivalskills.utils.Utils;
 
 import java.util.Map;
 
@@ -63,12 +64,7 @@ public class TrophyListener implements Listener {
 
         // Make sure the trophy can be placed
         Block clicked = e.getClickedBlock();
-        if (clicked == null) {
-            p.sendRawMessage(ChatColor.RED + "You can't place a trophy there");
-            p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-            return;
-        }
-        else if (!e.getBlockFace().equals(BlockFace.UP)) {
+        if (clicked == null || !e.getBlockFace().equals(BlockFace.UP)) {
             p.sendRawMessage(ChatColor.RED + "You can't place a trophy there");
             p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
             return;
@@ -88,19 +84,18 @@ public class TrophyListener implements Listener {
         }
 
         // Check if it is in a claim
-        if (plugin.isGriefPreventionEnabled() && plugin.checkForClaim(p, clicked.getLocation())) {
+        if (plugin.isGriefPreventionEnabled() && Utils.checkForClaim(p, clicked.getLocation())) {
             e.setCancelled(true);
             return;
         }
 
         // God Trophy Outside
-        if (hand.getType().equals(Material.GRASS_BLOCK)) {
-            if (!blockHasSkyAccess(above)) {
-                p.sendRawMessage(ChatColor.RED + "God trophies need sky access");
-                p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-                return;
-            }
+        if (hand.getType().equals(Material.GRASS_BLOCK) && !blockHasSkyAccess(above)) {
+            p.sendRawMessage(ChatColor.RED + "God trophies need sky access");
+            p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+            return;
         }
+
 
         p.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
 

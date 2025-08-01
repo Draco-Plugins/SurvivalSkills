@@ -33,6 +33,7 @@ import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -117,10 +118,10 @@ public class MiningSkill implements Listener {
         if (e.getClickedBlock() == null) return;
 
         // Check if it is in a claim
-        if (plugin.isGriefPreventionEnabled() && plugin.checkForClaim(p, e.getClickedBlock().getLocation())) return;
+        if (plugin.isGriefPreventionEnabled() && Utils.checkForClaim(p, e.getClickedBlock().getLocation())) return;
         // Check if they are in spawn
         if (plugin.isWorldGuardEnabled()) {
-            boolean canPlace = plugin.canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
+            boolean canPlace = Utils.canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
             if (!canPlace) return;
         }
 

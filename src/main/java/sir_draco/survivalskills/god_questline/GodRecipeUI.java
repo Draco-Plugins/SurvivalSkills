@@ -165,7 +165,7 @@ public class GodRecipeUI {
     public void addRecipe(ArrayList<NamespacedKey> recipeKeys, int recipeIndex, Inventory inv) {
         NamespacedKey key = recipeKeys.get(recipeIndex);
         if (key == null) return;
-        ArrayList<Integer> slots = RecipeMaker.getRecipePositions(recipeIndex + 1);
+        List<Integer> slots = RecipeMaker.getRecipePositions(recipeIndex + 1);
         Recipe recipe = Bukkit.getRecipe(key);
         switch (recipe) {
             case ShapedRecipe shapedRecipe -> {
