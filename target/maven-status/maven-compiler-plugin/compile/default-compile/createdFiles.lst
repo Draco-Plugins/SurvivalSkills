@@ -79,6 +79,7 @@ sir_draco\survivalskills\Rewards\Reward.class
 sir_draco\survivalskills\god_questline\TrialMobs\BlazingGhast.class
 sir_draco\survivalskills\god_questline\GodTrophyEffects.class
 sir_draco\survivalskills\skill_listeners\ArmorListener$12.class
+sir_draco\survivalskills\Utils\FileUtils.class
 sir_draco\survivalskills\Abilities\CaveFinderAsync.class
 sir_draco\survivalskills\Bosses\GiantBoss$7.class
 sir_draco\survivalskills\skill_listeners\FightingSkill$1.class
@@ -211,6 +212,7 @@ sir_draco\survivalskills\Utils\TrialUtils.class
 sir_draco\survivalskills\Bosses\VillagerBoss$10.class
 sir_draco\survivalskills\skill_listeners\ArmorListener$6.class
 sir_draco\survivalskills\skill_listeners\ArmorListener.class
+sir_draco\survivalskills\Utils\Utils.class
 sir_draco\survivalskills\Bosses\GiantBoss$1.class
 sir_draco\survivalskills\god_questline\TrialMobs\HellsGatekeeper.class
 sir_draco\survivalskills\Abilities\BloodyDomain.class

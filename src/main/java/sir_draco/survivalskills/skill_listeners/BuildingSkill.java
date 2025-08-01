@@ -339,6 +339,8 @@ public class BuildingSkill implements Listener {
         bannedReturns.add(Material.COAL_ORE);
         bannedReturns.add(Material.COMPOSTER);
         bannedReturns.add(Material.COPPER_ORE);
+        bannedReturns.add(Material.COPPER_INGOT);
+        bannedReturns.add(Material.COPPER_BLOCK);
         bannedReturns.add(Material.RAW_COPPER_BLOCK);
         bannedReturns.add(Material.CRAFTING_TABLE);
         bannedReturns.add(Material.CYAN_SHULKER_BOX);
