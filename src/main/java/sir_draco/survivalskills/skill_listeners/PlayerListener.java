@@ -29,6 +29,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+@SuppressWarnings ("deprecation")
 public class PlayerListener implements Listener {
 
     private final SurvivalSkills plugin;

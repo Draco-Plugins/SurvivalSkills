@@ -5,10 +5,7 @@ import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.Registry;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -345,7 +342,12 @@ public class FileUtils {
 
     public static Enchantment getEnchantFromKey(String key) {
         for (Enchantment enchant : Registry.ENCHANTMENT) {
-            if (Objects.requireNonNull(enchant.getKeyOrNull()).toString().equalsIgnoreCase(key)) return enchant;
+            try {
+                if (enchant.getKeyOrThrow().toString().equalsIgnoreCase(key)) return enchant;
+            }
+            catch (Exception e) {
+                Bukkit.getLogger().log(Level.WARNING, String.format("[SurvivalSkills] Enchantment key %s is not valid", key), e);
+            }
         }
         return Enchantment.EFFICIENCY;
     }
@@ -624,8 +626,13 @@ public class FileUtils {
         i = 0;
         if (trash.getEnchants().isEmpty()) permaTrashData.set(uuid + ".Enchants", null);
         for (Enchantment enchant : trash.getEnchants()) {
-            permaTrashData.set(uuid + ".Enchants." + i, Objects.requireNonNull(enchant.getKeyOrNull()).toString());
-            i++;
+            try {
+                permaTrashData.set(uuid + ".Enchants." + i, enchant.getKeyOrThrow().toString());
+                i++;
+            }
+            catch (Exception e) {
+                Bukkit.getLogger().log(Level.WARNING, String.format("[SurvivalSkills] Enchantment %s for %s is not valid", enchant.toString(), uuid), e);
+            }
         }
 
         try {
