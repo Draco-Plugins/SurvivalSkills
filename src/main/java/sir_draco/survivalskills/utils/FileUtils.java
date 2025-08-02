@@ -33,6 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.logging.Level;
 
+@SuppressWarnings ("deprecation")
 public class FileUtils {
     public static final String CONFIG_YML = "config.yml";
     public static final String CONFIG_UPDATE = "ConfigUpdate";
@@ -170,13 +171,9 @@ public class FileUtils {
             else if (defaultConfig.isConfigurationSection(key) && !existingConfig.contains(key)) {
                 handleKeyInDefaultButNotExisting(existingConfig, defaultConfig, key, fullKey);
             }
-            // Case 3: Existing config already has this key (not a section) - keep user's value
-            else if (existingConfig.contains(key)) {
-                // User's customization takes precedence - no action needed
-                Bukkit.getLogger().log(Level.INFO, String.format("[SurvivalSkills] Preserving user value for: %s", fullKey), CONFIG_UPDATE);
-            }
+            // Case 3: Existing config already has this key (not a section) - keep user's value so do nothing
             // Case 4: Key only exists in default config - add it to existing config
-            else {
+            else if (!existingConfig.contains(key)) {
                 Object defaultValue = defaultConfig.get(key);
                 if (defaultValue != null) {
                     existingConfig.set(key, defaultValue);
@@ -342,12 +339,7 @@ public class FileUtils {
 
     public static Enchantment getEnchantFromKey(String key) {
         for (Enchantment enchant : Registry.ENCHANTMENT) {
-            try {
-                if (enchant.getKeyOrThrow().toString().equalsIgnoreCase(key)) return enchant;
-            }
-            catch (Exception e) {
-                Bukkit.getLogger().log(Level.WARNING, String.format("[SurvivalSkills] Enchantment key %s is not valid", key), e);
-            }
+            if (enchant.getKey().toString().equalsIgnoreCase(key)) return enchant;
         }
         return Enchantment.EFFICIENCY;
     }
@@ -626,13 +618,8 @@ public class FileUtils {
         i = 0;
         if (trash.getEnchants().isEmpty()) permaTrashData.set(uuid + ".Enchants", null);
         for (Enchantment enchant : trash.getEnchants()) {
-            try {
-                permaTrashData.set(uuid + ".Enchants." + i, enchant.getKeyOrThrow().toString());
-                i++;
-            }
-            catch (Exception e) {
-                Bukkit.getLogger().log(Level.WARNING, String.format("[SurvivalSkills] Enchantment %s for %s is not valid", enchant.toString(), uuid), e);
-            }
+            permaTrashData.set(uuid + ".Enchants." + i, enchant.getKey().toString());
+            i++;
         }
 
         try {

@@ -106,6 +106,7 @@ public final class SurvivalSkills extends JavaPlugin {
         }.runTaskAsynchronously(this);
 
         abilityManager = new AbilityManager(this);
+        Bukkit.getLogger().log(Level.INFO, "[SurvivalSkills] Loading commands...");
         FileUtils.loadCommands();
 
         TrialManager.loadProtectedAreas();
