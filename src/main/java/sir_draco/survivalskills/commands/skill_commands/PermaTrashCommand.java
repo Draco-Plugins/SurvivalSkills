@@ -39,7 +39,7 @@ public class PermaTrashCommand implements CommandExecutor {
 
         AutoTrash trash;
         if (!plugin.getFishingListener().getPermaTrash().containsKey(p)) {
-            trash = new AutoTrash(big);
+            trash = new AutoTrash(big, true);
             plugin.getFishingListener().getPermaTrash().put(p, trash);
         }
         else {

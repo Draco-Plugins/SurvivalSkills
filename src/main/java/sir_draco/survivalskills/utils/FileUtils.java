@@ -289,7 +289,7 @@ public class FileUtils {
         ConfigurationSection materials = permaTrashData.getConfigurationSection(uuid + ".Materials");
         boolean big = false;
         if (permaTrashData.contains(uuid + BIG_TRASH)) big = permaTrashData.getBoolean(uuid + BIG_TRASH);
-        AutoTrash trash = new AutoTrash(big);
+        AutoTrash trash = new AutoTrash(big, true);
         if (materials != null) {
             // get the list of materials from the config
             materials.getKeys(false).forEach(key -> {

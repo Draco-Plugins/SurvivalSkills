@@ -10,6 +10,7 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class AutoTrash {
 
@@ -20,10 +21,11 @@ public class AutoTrash {
 
     private Inventory trashInventory;
 
-    public AutoTrash(boolean big) {
+    public AutoTrash(boolean big, boolean permaTrash) {
         this.big = big;
-        if (big) trashInventory = Bukkit.createInventory(null, 54, "Auto Trash");
-        else trashInventory = Bukkit.createInventory(null, 27, "Auto Trash");
+        String inventoryName = permaTrash ? "Perma Trash" : "Auto Trash";
+        if (big) trashInventory = Bukkit.createInventory(null, 54, inventoryName);
+        else trashInventory = Bukkit.createInventory(null, 27, inventoryName);
     }
 
     public void addTrashItem(ItemStack item, int slot) {
@@ -117,11 +119,11 @@ public class AutoTrash {
         p.openInventory(trashInventory);
     }
 
-    public ArrayList<Enchantment> getEnchants() {
+    public List<Enchantment> getEnchants() {
         return enchants;
     }
 
-    public ArrayList<Material> getTrashMaterials() {
+    public List<Material> getTrashMaterials() {
         return trashMaterials;
     }
 

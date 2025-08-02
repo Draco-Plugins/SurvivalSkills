@@ -49,7 +49,7 @@ public class AutoTrashCommand implements CommandExecutor {
         if (reward2.isEnabled() && reward2.isApplied()) big = true;
 
         if (!plugin.getFishingListener().getTrashInventories().containsKey(p)) {
-            AutoTrash trash = new AutoTrash(big);
+            AutoTrash trash = new AutoTrash(big, false);
             plugin.getFishingListener().addTrashInventory(p, trash);
         }
 
