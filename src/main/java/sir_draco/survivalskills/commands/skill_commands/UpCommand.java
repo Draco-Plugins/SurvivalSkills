@@ -2,6 +2,7 @@ package sir_draco.survivalskills.commands.skill_commands;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,6 +14,8 @@ import sir_draco.survivalskills.utils.LocationUtils;
 @SuppressWarnings("NullableProblems")
 public class UpCommand implements CommandExecutor {
 
+    public static final String MINING = "Mining";
+    public static final String UP_COMMAND = "UpCommand";
     private final SurvivalSkills plugin;
 
     public UpCommand(SurvivalSkills plugin) {
@@ -25,19 +28,26 @@ public class UpCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (!(sender instanceof Player p)) return false;
         // Check for level requirements
-        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "UpCommand").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(MINING, UP_COMMAND).isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "/ssup is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
         }
 
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "UpCommand").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(MINING, UP_COMMAND).isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force /ssup use: " + ChatColor.AQUA + "/ssup force");
             }
             p.sendRawMessage(ChatColor.GREEN + "You need to be mining level " + ChatColor.AQUA +
-                    plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "UpCommand").getLevel()
+                    plugin.getSkillManager().getDefaultPlayerRewards().getReward(MINING, UP_COMMAND).getLevel()
                     + ChatColor.GREEN + " to use /ssup");
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return true;
+        }
+
+        // The player can't be in the nether or the end
+        if (p.getWorld().getEnvironment().equals(World.Environment.NORMAL)) {
+            p.sendRawMessage(ChatColor.RED + "You can only use /ssup in the Overworld");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         }

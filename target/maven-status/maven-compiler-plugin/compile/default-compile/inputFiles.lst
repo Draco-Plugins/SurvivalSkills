@@ -1,135 +1,137 @@
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\WaveGenerator.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\Armor\GillArmor.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\WaterBreathingTimer.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\UpCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\ExploringSkill.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\BerserkerEffects.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\ArmorListener.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\DeathLocationTimer.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SurvivalSkills.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Utils\MusicPhrase.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\BossMusicCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\ToggleBloodyDomainCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Trophy\CircularRotationObject.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Bosses\DragonBoss.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Utils\RecipeMaker.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Bosses\VillagerBoss.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Skills\Skill.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\DragonStatusCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\DefaultCommands\SkillStatsCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\PermaTrashCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\AutoEatCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\PowerOreConversion.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Utils\RecipeRecord.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\GodQuestCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\TabCompleter.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Trophy\TrophyListener.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\PowerDrillAsync.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\SurvivalSkillsGetCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialBuildingData.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\GodRecipeUI.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Boards\Leaderboard.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\FishingSkill.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\DefaultCommands\ToggleScoreboardCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\ToggleGodQuestCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\AutoTrashCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialMobs\HellsGatekeeper.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialMobs\WaveMob.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Boards\SkillScoreboard.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\SurvivalSkillsCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Trophy\TrophyManager.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\GraveTimer.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\VeinminerCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Utils\ItemStackGenerator.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\EatCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Bosses\GiantBoss.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\PendingTrial.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\Armor\WandererArmor.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\TogglePhantomsCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Trophy\Trophy.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\MiningSkill.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\SpelunkerCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Rewards\PlayerRewards.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\TrailEffect.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\HarvesterTimer.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Trophy\TrophyEffects.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\Grave.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\SpelunkerAbilityAsync.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Utils\LocationUtils.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\MojangAPI.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\DeathLocationCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\GodListener.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\HarvesterAsync.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\ResetAllCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\ToggleOverworldFirstDragon.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\Armor\RainbowArmor.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\Armor\AdventurerArmor.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Skills\SkillsHolder.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\CancelAbilityCooldownsCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\GodItems\EnderEssence.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\ProtectedArea.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\AbilityTimer.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\PowerLaser.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Bosses\BroodMotherBoss.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialMobs\GrimWither.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\GetTrophyCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\PlayerListener.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\GodTrophyQuest.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\SpelunkerAbilitySync.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\BuildingSkill.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\ToolBeltCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\RelativeBlock.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Utils\ColorParser.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\DefaultCommands\ToggleBossMusic.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\DefaultCommands\ToggleSpeedCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialMobs\FrostRevenant.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\CaveFinderAsync.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Utils\ExiledBossMusic.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\AbilityManager.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialMobs\TrialBoss.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\MainSkill.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialMobs\BlazingGhast.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialLootTable.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\FarmingSkill.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Boards\LeaderboardPlayer.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\BossCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\ResetFirstDragon.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\NightVisionCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\ToggleTrashCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\Trial.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\SkillsMultiplierCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialTree.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Bosses\Boss.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\FlightCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Rewards\RewardNotifications.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\CreativeCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\WaterBreathingCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\GodTrophyEffects.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\DefaultCommands\ToggleMaxSkillMessageCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Utils\ProjectileCalculator.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\GodTrialCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\MobScannerCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\TrialGUI.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\VeinMinerAsync.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\DefaultCommands\ToggleTrailCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\FlyingTimer.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\Magnet.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Utils\TrialUtils.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\AutoTrash.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Rewards\Reward.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\PeacefulMinerCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\PlayerTrialUpgrades.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\Wave.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\FightingSkill.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Trophy\ParticleColumnThread.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\BloodyDomain.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Skills\SkillManager.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\StoreTrialBuildingCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\Armor\TravelerArmor.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\SkillListeners\CraftingSkill.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Abilities\Armor\JumpingBoots.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialManager.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\GodQuestline\TrialUpgradeManager.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Rewards\RewardItemInfo.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\AdminCommands\CaveFinderCommand.java
-C:\Users\dylan\Documents\IdeaProjects\Survival Skills\src\main\java\sir_draco\survivalskills\Commands\SkillCommands\DeathReturnCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\FlightCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\TrialLootTable.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\rewards\PlayerRewards.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\Magnet.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\GraveTimer.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\bosses\BroodMotherBoss.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\AutoEatCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\default_commands\ToggleSpeedCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\RecipeRecord.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\bosses\DragonBoss.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\trophy\CircularRotationObject.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\ToggleOverworldFirstDragon.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\WaterBreathingTimer.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\trophy\Trophy.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\ResetAllCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\bosses\VillagerBoss.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\MainSkill.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\FlyingTimer.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\RecipeMaker.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\MobScannerCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\PeacefulMinerCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\MusicPhrase.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\BloodyDomain.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\boards\Leaderboard.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\SurvivalSkills.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\CreativeCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\JumpingBoots.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\GodTrophyQuest.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\WaveGenerator.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\TabCompleter.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\PowerOreConversion.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\TrialUpgradeManager.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\GodRecipeUI.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skills\SkillManager.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\CancelAbilityCooldownsCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\rewards\Reward.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\BossMusicCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\SurvivalSkillsCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\PowerDrillAsync.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\default_commands\SkillStatsCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\VeinMinerAsync.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\boards\LeaderboardPlayer.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\CaveFinderAsync.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\CraftingSkill.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\trophy\TrophyManager.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\ToolBeltCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\trophy\TrophyListener.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skills\SkillsHolder.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\default_commands\ToggleBossMusic.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\FileUtils.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\PermaTrashCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\GetTrophyCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\ToggleGodQuestCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\MojangAPI.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\RainbowArmor.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\TrialMobs\BlazingGhast.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\ToggleTrashCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\DeathLocationTimer.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\ProtectedArea.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\TrialManager.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\trophy\ParticleColumnThread.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\boards\SkillScoreboard.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\ArmorListener.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\TrialTree.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\bosses\Boss.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\trophy\TrophyEffects.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\FightingSkill.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\ResetFirstDragon.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\BuildingSkill.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\bosses\GiantBoss.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\AutoTrash.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\HarvesterAsync.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\DeathReturnCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\TrialMobs\TrialBoss.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\PendingTrial.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\ColorParser.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\FarmingSkill.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\AdventurerArmor.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\WaterBreathingCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\SkillsMultiplierCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\RelativeBlock.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\TrialMobs\HellsGatekeeper.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\rewards\RewardItemInfo.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\BerserkerEffects.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\FishingSkill.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\TrialBuildingData.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\GodListener.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\StoreTrialBuildingCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\NightVisionCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\GodTrophyEffects.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\ToggleBloodyDomainCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\Wave.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\ProjectileCalculator.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\AutoTrashCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\PlayerListener.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\ExiledBossMusic.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\MiningSkill.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\default_commands\ToggleTrailCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\TravelerArmor.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\rewards\RewardNotifications.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skills\Skill.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\DeathLocationCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\AbilityManager.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\TrialUtils.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\GodQuestCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\SurvivalSkillsGetCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\default_commands\ToggleScoreboardCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\EatCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\WandererArmor.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\GillArmor.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\CaveFinderCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\TrialMobs\WaveMob.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\DragonStatusCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\default_commands\ToggleMaxSkillMessageCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\SpelunkerAbilitySync.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\SpelunkerAbilityAsync.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\TrailEffect.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\PowerLaser.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\PlayerTrialUpgrades.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\VeinminerCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\HarvesterTimer.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\ExploringSkill.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\UpCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\TrialGUI.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\Grave.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\TrialMobs\FrostRevenant.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\LocationUtils.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\TrialMobs\GrimWither.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\Trial.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\GodTrialCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\godItems\EnderEssence.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\TogglePhantomsCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\ItemStackGenerator.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\Utils.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\BossCommand.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\AbilityTimer.java
+C:\Users\dylan\IdeaProjects\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\SpelunkerCommand.java
