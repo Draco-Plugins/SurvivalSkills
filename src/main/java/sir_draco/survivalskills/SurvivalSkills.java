@@ -3,7 +3,6 @@ package sir_draco.survivalskills;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import org.bukkit.*;
-import org.bukkit.boss.KeyedBossBar;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
@@ -25,6 +24,7 @@ import sir_draco.survivalskills.trophy.TrophyListener;
 import sir_draco.survivalskills.trophy.TrophyManager;
 import sir_draco.survivalskills.utils.FileUtils;
 import sir_draco.survivalskills.utils.RecipeMaker;
+import sir_draco.survivalskills.utils.Utils;
 
 import java.io.*;
 import java.util.*;
@@ -46,6 +46,7 @@ public final class SurvivalSkills extends JavaPlugin {
     private SkillManager skillManager;
     private TrophyManager trophyManager;
 
+    // Listeners
     private MiningSkill miningListener;
     private FishingSkill fishingListener;
     private ExploringSkill exploringListener;
@@ -84,8 +85,7 @@ public final class SurvivalSkills extends JavaPlugin {
         World world = Bukkit.getWorld("world");
         if (world != null) {
             for (Entity ent : world.getEntities()) {
-                if (!ent.getType().equals(EntityType.ITEM)) continue;
-                if (ent.hasMetadata("TrophyItem")) ent.remove();
+                Utils.tryRemovingTrophyItem(ent);
             }
         }
 
@@ -111,17 +111,7 @@ public final class SurvivalSkills extends JavaPlugin {
         TrialManager.loadProtectedAreas();
 
         // If the plugin is reloaded without a restart
-        if (!getServer().getOnlinePlayers().isEmpty()){
-            for (Player p : getServer().getOnlinePlayers()) {
-                playerJoin(p, true);
-                TrialManager.loadCompletedTrials(p);
-            }
-            // Try to fix boss bars
-            for (Iterator<KeyedBossBar> it = Bukkit.getBossBars(); it.hasNext(); ) {
-                KeyedBossBar bar = it.next();
-                bar.removeAll();
-            }
-        }
+        Utils.loadOnlinePlayers(this);
 
         // Check for plugin dependencies
         FileUtils.checkPluginDependencies(world);

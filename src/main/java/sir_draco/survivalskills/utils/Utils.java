@@ -8,10 +8,22 @@ import com.sk89q.worldguard.protection.flags.StateFlag;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.boss.KeyedBossBar;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.god_questline.TrialManager;
+
+import java.util.Iterator;
+import java.util.logging.Level;
 
 public class Utils {
     private Utils() {
@@ -45,5 +57,35 @@ public class Utils {
         }
 
         return true;
+    }
+
+    public static void tryRemovingTrophyItem(Entity ent) {
+        if (!ent.getType().equals(EntityType.ITEM)) return;
+        Item item = (Item) ent;
+
+        ItemStack itemStack = item.getItemStack();
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) return;
+        if (meta.getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey)) {
+            String itemContainer = meta.getPersistentDataContainer().get(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING);
+            if (itemContainer != null && itemContainer.equals("Trophy")) {
+                ent.remove();
+                Bukkit.getLogger().log(Level.INFO, "Removed item with TrophyItem metadata");
+            }
+        }
+    }
+
+    public static void loadOnlinePlayers(SurvivalSkills plugin) {
+        if (!Bukkit.getServer().getOnlinePlayers().isEmpty()){
+            for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+                plugin.playerJoin(p, true);
+                TrialManager.loadCompletedTrials(p);
+            }
+            // Try to fix boss bars
+            for (Iterator<KeyedBossBar> it = Bukkit.getBossBars(); it.hasNext(); ) {
+                KeyedBossBar bar = it.next();
+                bar.removeAll();
+            }
+        }
     }
 }
