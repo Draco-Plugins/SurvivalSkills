@@ -6,13 +6,13 @@
   <component name="ChangeListManager">
     <list default="true" id="f98fc54c-90a8-439b-8b76-f1b1bc4cf67d" name="Changes" comment="Merge branch 'main' of https://github.com/Draco-Plugins/SurvivalSkills&#10;&#10;# Conflicts:&#10;#&#9;.gitignore&#10;#&#9;.idea/misc.xml">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SurvivalSkills.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SurvivalSkills.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/trophy/TrophyEffects.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/trophy/TrophyEffects.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/skill_listeners/CraftingSkill.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/skill_listeners/CraftingSkill.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/SurvivalSkills-2.22.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/SurvivalSkills-2.22.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$2.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Trophy/TrophyEffects.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Trophy/TrophyEffects.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Utils/Utils.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Utils/Utils.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/skill_listeners/CraftingSkill.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/skill_listeners/CraftingSkill.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

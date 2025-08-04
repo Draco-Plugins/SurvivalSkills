@@ -120,6 +120,10 @@ public class CraftingSkill implements Listener {
         disallowedCraftingSkillMaterials.add(Material.COPPER_INGOT);
         disallowedCraftingSkillMaterials.add(Material.COPPER_BLOCK);
         disallowedCraftingSkillMaterials.add(Material.RAW_COPPER_BLOCK);
+        disallowedCraftingSkillMaterials.add(Material.RAW_COPPER);
+        disallowedCraftingSkillMaterials.add(Material.QUARTZ);
+        disallowedCraftingSkillMaterials.add(Material.RAW_IRON);
+        disallowedCraftingSkillMaterials.add(Material.RAW_GOLD);
         disallowedCraftingSkillMaterials.add(Material.BONE_MEAL);
         disallowedCraftingSkillMaterials.add(Material.BONE_BLOCK);
         disallowedCraftingSkillMaterials.add(Material.GLOWSTONE);
