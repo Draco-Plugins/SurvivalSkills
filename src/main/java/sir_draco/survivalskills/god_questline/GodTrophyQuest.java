@@ -1,6 +1,7 @@
 package sir_draco.survivalskills.god_questline;
 
 import org.bukkit.*;
+import org.bukkit.advancement.Advancement;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -17,6 +18,7 @@ import sir_draco.survivalskills.utils.ItemStackGenerator;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -44,183 +46,77 @@ public class GodTrophyQuest {
         phase = data.getInt(uuid + ".Phase");
     }
 
+    /**
+     * Entry point for the NPC interaction. Routes to the appropriate phase handler.
+     * Phases overview (1-indexed tasks, 0 is the intro):
+     *  - 0: Intro dialogue
+     *  - 1..12: Farming collection (bulk materials)
+     *  - 13..21: Ore/wealth collection (bulk materials)
+     *  - 22..26: Creature trophies (crafted/held-in-hand items)
+     *  - 27..44: Knowledge/potions sequence
+     *  - 45..46: Relics (crafted items)
+     *  - 47: Villager trading progress check
+     *  - 48: Combat gear check
+     *  - 49..57: Mob rare item sequence
+     */
     public void handleNPCInteract(Player p) {
         if (phase >= maxPhase) return;
-        switch (phase) {
-            case 0:
-                dialogueOpener(p);
-                break;
-            case 1:
-                checkFarmingQuest(p, 1);
-                break;
-            case 2:
-                checkFarmingQuest(p, 2);
-                break;
-            case 3:
-                checkFarmingQuest(p, 3);
-                break;
-            case 4:
-                checkFarmingQuest(p, 4);
-                break;
-            case 5:
-                checkFarmingQuest(p, 5);
-                break;
-            case 6:
-                checkFarmingQuest(p, 6);
-                break;
-            case 7:
-                checkFarmingQuest(p, 7);
-                break;
-            case 8:
-                checkFarmingQuest(p, 8);
-                break;
-            case 9:
-                checkFarmingQuest(p, 9);
-                break;
-            case 10:
-                checkFarmingQuest(p, 10);
-                break;
-            case 11:
-                checkFarmingQuest(p, 11);
-                break;
-            case 12:
-                checkFarmingQuest(p, 12);
-                break;
-            case 13:
-                checkOreQuest(p, 1);
-                break;
-            case 14:
-                checkOreQuest(p, 2);
-                break;
-            case 15:
-                checkOreQuest(p, 3);
-                break;
-            case 16:
-                checkOreQuest(p, 4);
-                break;
-            case 17:
-                checkOreQuest(p, 5);
-                break;
-            case 18:
-                checkOreQuest(p, 6);
-                break;
-            case 19:
-                checkOreQuest(p, 7);
-                break;
-            case 20:
-                checkOreQuest(p, 8);
-                break;
-            case 21:
-                checkOreQuest(p, 9);
-                break;
-            case 22:
-                checkCreatureQuest(p, 1);
-                break;
-            case 23:
-                checkCreatureQuest(p, 2);
-                break;
-            case 24:
-                checkCreatureQuest(p, 3);
-                break;
-            case 25:
-                checkCreatureQuest(p, 4);
-                break;
-            case 26:
-                checkCreatureQuest(p, 5);
-                break;
-            case 27:
-                checkKnowledgeQuest(p, 1);
-                break;
-            case 28:
-                checkKnowledgeQuest(p, 2);
-                break;
-            case 29:
-                checkKnowledgeQuest(p, 3);
-                break;
-            case 30:
-                checkKnowledgeQuest(p, 4);
-                break;
-            case 31:
-                checkKnowledgeQuest(p, 5);
-                break;
-            case 32:
-                checkKnowledgeQuest(p, 6);
-                break;
-            case 33:
-                checkKnowledgeQuest(p, 7);
-                break;
-            case 34:
-                checkKnowledgeQuest(p, 8);
-                break;
-            case 35:
-                checkKnowledgeQuest(p, 9);
-                break;
-            case 36:
-                checkKnowledgeQuest(p, 10);
-                break;
-            case 37:
-                checkKnowledgeQuest(p, 11);
-                break;
-            case 38:
-                checkKnowledgeQuest(p, 12);
-                break;
-            case 39:
-                checkKnowledgeQuest(p, 13);
-                break;
-            case 40:
-                checkKnowledgeQuest(p, 14);
-                break;
-            case 41:
-                checkKnowledgeQuest(p, 15);
-                break;
-            case 42:
-                checkKnowledgeQuest(p, 16);
-                break;
-            case 43:
-                checkKnowledgeQuest(p, 17);
-                break;
-            case 44:
-                checkKnowledgeQuest(p, 18);
-                break;
-            case 45:
-                checkRelicQuest(p, 1);
-                break;
-            case 46:
-                checkRelicQuest(p, 2);
-                break;
-            case 47:
-                checkVillagerTradingQuest(p);
-                break;
-            case 48:
-                checkCombatQuest(p);
-                break;
-            case 49:
-                checkMobItemQuest(p, 1);
-                break;
-            case 50:
-                checkMobItemQuest(p, 2);
-                break;
-            case 51:
-                checkMobItemQuest(p, 3);
-                break;
-            case 52:
-                checkMobItemQuest(p, 4);
-                break;
-            case 53:
-                checkMobItemQuest(p, 5);
-                break;
-            case 54:
-                checkMobItemQuest(p, 6);
-                break;
-            case 55:
-                checkMobItemQuest(p, 7);
-                break;
-            case 56:
-                checkMobItemQuest(p, 8);
-                break;
-            case 57:
-                checkMobItemQuest(p, 9);
-                break;
+
+        if (phase == 0) {
+            dialogueOpener(p);
+            return;
+        }
+
+        // Farming 1..12
+        if (phase >= 1 && phase <= 12) {
+            checkFarmingQuest(p, phase);
+            return;
+        }
+
+        // Ores 13..21 (local index 1..9)
+        if (phase >= 13 && phase <= 21) {
+            checkOreQuest(p, phase - 12);
+            return;
+        }
+
+        // Creatures 22..26 (local index 1..5)
+        if (phase >= 22 && phase <= 26) {
+            checkCreatureQuest(p, phase - 21);
+            return;
+        }
+
+        // Knowledge 27..44 (local index 1..18)
+        if (phase >= 27 && phase <= 44) {
+            checkKnowledgeQuest(p, phase - 26);
+            return;
+        }
+
+        // Relics 45..46 (local index 1..2)
+        if (phase >= 45 && phase <= 46) {
+            checkRelicQuest(p, phase - 44);
+            return;
+        }
+
+        // Villager trading 47
+        if (phase == 47) {
+            checkVillagerTradingQuest(p);
+            return;
+        }
+
+        // Combat gear 48
+        if (phase == 48) {
+            checkCombatQuest(p);
+            return;
+        }
+
+        // Mob items 49..57 (local index 1..9)
+        if (phase >= 49 && phase <= 57) {
+            checkMobItemQuest(p, phase - 48);
+            return;
+        }
+
+        if (phase == 58) {
+            checkAdvancementsQuest(p);
         }
     }
 
@@ -287,7 +183,9 @@ public class GodTrophyQuest {
         return false;
     }
 
-    // Methods below are for dialogue
+    // -----------------------
+    // Dialogue helpers
+    // -----------------------
     public void dialogue(Player p, ArrayList<String> messages) {
         new BukkitRunnable() {
             private int counter = 0;
@@ -305,478 +203,165 @@ public class GodTrophyQuest {
     }
 
     public void dialogueOpener(Player p) {
-        ArrayList<String> messages = new ArrayList<>();
-        messages.add("I can grant you great powers");
-        messages.add("First you must bring me items that show your dedication to this world");
-        messages.add("Farming is the foundation of any society");
-        messages.add("Bring me crops to show me you can feed a civilization");
-        messages.add("Bring me " + ChatColor.AQUA + "2,000 " + ChatColor.WHITE + "bread to start!");
+        // Initial quest intro
+        ArrayList<String> messages = lines(
+            "I can grant you great powers",
+            "First you must bring me items that show your dedication to this world",
+            "Farming is the foundation of any society",
+            "Bring me crops to show me you can feed a civilization",
+            "Bring me " + ChatColor.AQUA + "2,000 " + ChatColor.WHITE + "bread to start!"
+        );
         dialogue(p, messages);
-        phase++;
+            phase++;
+        }
+
+        public void dialogueItemCount(Player p, String item, int count, int max) {
+        ArrayList<String> messages = lines(
+            "You have brought me " + ChatColor.AQUA + count + ChatColor.WHITE + " " + item,
+            "You need to bring me " + ChatColor.AQUA + (max - count) + ChatColor.WHITE + " more " + item
+        );
+        dialogue(p, messages);
     }
 
-    public void dialogueItemCount(Player p, String item, int count, int max) {
-        ArrayList<String> messages = new ArrayList<>();
-        messages.add("You have brought me " + ChatColor.AQUA + count + ChatColor.WHITE + " " + item);
-        messages.add("You need to bring me " + ChatColor.AQUA + (max - count) + ChatColor.WHITE + " more " + item);
-        dialogue(p, messages);
-    }
-
-    // Methods below are for checking the quest
+    // -----------------------
+    // Phase handlers (kept public API, reduced duplication with helpers)
+    // -----------------------
     public void checkFarmingQuest(Player p, int cropType) {
         switch (cropType) {
-            case 1:
-                if (handleItemCheck(2000, p, Material.BREAD, "bread")) return;
-                ArrayList<String> messages = new ArrayList<>();
-                messages.add("Excellent work!");
-                messages.add("Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "carrots");
-                dialogue(p, messages);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 2:
-                if (handleItemCheck(5000, p, Material.CARROT, "carrots")) return;
-                ArrayList<String> messages2 = new ArrayList<>();
-                messages2.add("Excellent work!");
-                messages2.add("Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "potatoes");
-                dialogue(p, messages2);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 3:
-                if (handleItemCheck(5000, p, Material.POTATO, "potatoes")) return;
-                ArrayList<String> messages3 = new ArrayList<>();
-                messages3.add("Excellent work!");
-                messages3.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "poisonous potatoes");
-                dialogue(p, messages3);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 4:
-                if (handleItemCheck(500, p, Material.POISONOUS_POTATO, "poisonous potatoes")) return;
-                ArrayList<String> messages4 = new ArrayList<>();
-                messages4.add("Excellent work!");
-                messages4.add("Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "beetroots");
-                dialogue(p, messages4);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 5:
-                if (handleItemCheck(5000, p, Material.BEETROOT, "beetroots")) return;
-                ArrayList<String> messages5 = new ArrayList<>();
-                messages5.add("Excellent work!");
-                messages5.add("Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "melon slices");
-                dialogue(p, messages5);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 6:
-                if (handleItemCheck(5000, p, Material.MELON_SLICE, "melon slices")) return;
-                ArrayList<String> messages6 = new ArrayList<>();
-                messages6.add("Excellent work!");
-                messages6.add("Now bring me " + ChatColor.AQUA + "2,500 " + ChatColor.WHITE + "pumpkins");
-                dialogue(p, messages6);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 7:
-                if (handleItemCheck(2500, p, Material.PUMPKIN, "pumpkins")) return;
-                ArrayList<String> messages7 = new ArrayList<>();
-                messages7.add("Excellent work!");
-                messages7.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "sweet berries");
-                dialogue(p, messages7);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 8:
-                if (handleItemCheck(500, p, Material.SWEET_BERRIES, "sweet berries")) return;
-                ArrayList<String> messages8 = new ArrayList<>();
-                messages8.add("Excellent work!");
-                messages8.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "glow berries");
-                dialogue(p, messages8);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 9:
-                if (handleItemCheck(500, p, Material.GLOW_BERRIES, "glow berries")) return;
-                ArrayList<String> messages9 = new ArrayList<>();
-                messages9.add("Excellent work!");
-                messages9.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "apples");
-                dialogue(p, messages9);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 10:
-                if (handleItemCheck(500, p, Material.APPLE, "apples")) return;
-                ArrayList<String> messages10 = new ArrayList<>();
-                messages10.add("Excellent work!");
-                messages10.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "chorus flowers");
-                dialogue(p, messages10);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 11:
-                if (handleItemCheck(64, p, Material.CHORUS_FLOWER, "chorus flowers")) return;
-                ArrayList<String> messages11 = new ArrayList<>();
-                messages11.add("Excellent work!");
-                messages11.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "cakes");
-                dialogue(p, messages11);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 12:
-                if (handleItemCheck(64, p, Material.CAKE, "cake")) return;
-                ArrayList<String> messages12 = new ArrayList<>();
-                messages12.add("You have proven your dedication to farming");
-                messages12.add("Now you must bring me your riches");
-                messages12.add("Bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "coal blocks");
-                dialogue(p, messages12);
-                phase++;
-                currentItemCount = 0;
-                updateGodTrophyParticles();
-                break;
+            case 1 -> bulkStep(p, 2000, Material.BREAD, "bread",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "carrots"), false);
+            case 2 -> bulkStep(p, 5000, Material.CARROT, "carrots",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "potatoes"), false);
+            case 3 -> bulkStep(p, 5000, Material.POTATO, "potatoes",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "poisonous potatoes"), false);
+            case 4 -> bulkStep(p, 500, Material.POISONOUS_POTATO, "poisonous potatoes",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "beetroots"), false);
+            case 5 -> bulkStep(p, 5000, Material.BEETROOT, "beetroots",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "melon slices"), false);
+            case 6 -> bulkStep(p, 5000, Material.MELON_SLICE, "melon slices",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "2,500 " + ChatColor.WHITE + "pumpkins"), false);
+            case 7 -> bulkStep(p, 2500, Material.PUMPKIN, "pumpkins",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "sweet berries"), false);
+            case 8 -> bulkStep(p, 500, Material.SWEET_BERRIES, "sweet berries",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "glow berries"), false);
+            case 9 -> bulkStep(p, 500, Material.GLOW_BERRIES, "glow berries",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "apples"), false);
+            case 10 -> bulkStep(p, 500, Material.APPLE, "apples",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "chorus flowers"), false);
+            case 11 -> bulkStep(p, 64, Material.CHORUS_FLOWER, "chorus flowers",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "cakes"), false);
+            case 12 -> bulkStep(p, 64, Material.CAKE, "cake",
+                lines(
+                    "You have proven your dedication to farming",
+                    "Now you must bring me your riches",
+                    "Bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "coal blocks"
+                ), true);
         }
     }
 
     public void checkOreQuest(Player p, int oreType) {
         switch (oreType) {
-            case 1:
-                if (handleItemCheck(500, p, Material.COAL_BLOCK, "coal blocks")) return;
-                ArrayList<String> messages = new ArrayList<>();
-                messages.add("Excellent work!");
-                messages.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "copper blocks");
-                dialogue(p, messages);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 2:
-                if (handleItemCheck(500, p, Material.COPPER_BLOCK, "copper blocks")) return;
-                ArrayList<String> messages2 = new ArrayList<>();
-                messages2.add("Excellent work!");
-                messages2.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "iron blocks");
-                dialogue(p, messages2);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 3:
-                if (handleItemCheck(500, p, Material.IRON_BLOCK, "iron blocks")) return;
-                ArrayList<String> messages3 = new ArrayList<>();
-                messages3.add("Excellent work!");
-                messages3.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "lapis blocks");
-                dialogue(p, messages3);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 4:
-                if (handleItemCheck(500, p, Material.LAPIS_BLOCK, "lapis blocks")) return;
-                ArrayList<String> messages4 = new ArrayList<>();
-                messages4.add("Excellent work!");
-                messages4.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "redstone blocks");
-                dialogue(p, messages4);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 5:
-                if (handleItemCheck(500, p, Material.REDSTONE_BLOCK, "redstone blocks")) return;
-                ArrayList<String> messages5 = new ArrayList<>();
-                messages5.add("Excellent work!");
-                messages5.add("Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "gold blocks");
-                dialogue(p, messages5);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 6:
-                if (handleItemCheck(500, p, Material.GOLD_BLOCK, "gold blocks")) return;
-                ArrayList<String> messages6 = new ArrayList<>();
-                messages6.add("Excellent work!");
-                messages6.add("Now bring me " + ChatColor.AQUA + "200 " + ChatColor.WHITE + "diamond blocks");
-                dialogue(p, messages6);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 7:
-                if (handleItemCheck(200, p, Material.DIAMOND_BLOCK, "diamond blocks")) return;
-                ArrayList<String> messages7 = new ArrayList<>();
-                messages7.add("Excellent work!");
-                messages7.add("Now bring me " + ChatColor.AQUA + "200 " + ChatColor.WHITE + "emerald blocks");
-                dialogue(p, messages7);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 8:
-                if (handleItemCheck(200, p, Material.EMERALD_BLOCK, "emerald blocks")) return;
-                ArrayList<String> messages8 = new ArrayList<>();
-                messages8.add("Excellent work!");
-                messages8.add("Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "netherite blocks");
-                dialogue(p, messages8);
-                phase++;
-                currentItemCount = 0;
-                break;
-            case 9:
-                if (handleItemCheck(64, p, Material.NETHERITE_BLOCK, "netherite blocks")) return;
-                ArrayList<String> messages9 = new ArrayList<>();
-                messages9.add("You truly do embody the concept of wealth");
-                messages9.add("Show me the exotic trophies of the creatures of this world");
-                messages9.add("You must detach yourself from the idea of life or death");
-                messages9.add("Bring me a modified turtle helmet");
-                messages9.add("You can see the recipe by using " + ChatColor.YELLOW + "/godquest");
-                dialogue(p, messages9);
-                phase++;
-                currentItemCount = 0;
-                updateGodTrophyParticles();
-                break;
+            case 1 -> bulkStep(p, 500, Material.COAL_BLOCK, "coal blocks",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "copper blocks"), false);
+            case 2 -> bulkStep(p, 500, Material.COPPER_BLOCK, "copper blocks",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "iron blocks"), false);
+            case 3 -> bulkStep(p, 500, Material.IRON_BLOCK, "iron blocks",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "lapis blocks"), false);
+            case 4 -> bulkStep(p, 500, Material.LAPIS_BLOCK, "lapis blocks",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "redstone blocks"), false);
+            case 5 -> bulkStep(p, 500, Material.REDSTONE_BLOCK, "redstone blocks",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "gold blocks"), false);
+            case 6 -> bulkStep(p, 500, Material.GOLD_BLOCK, "gold blocks",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "200 " + ChatColor.WHITE + "diamond blocks"), false);
+            case 7 -> bulkStep(p, 200, Material.DIAMOND_BLOCK, "diamond blocks",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "200 " + ChatColor.WHITE + "emerald blocks"), false);
+            case 8 -> bulkStep(p, 200, Material.EMERALD_BLOCK, "emerald blocks",
+                lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "netherite blocks"), false);
+            case 9 -> bulkStep(p, 64, Material.NETHERITE_BLOCK, "netherite blocks",
+                lines(
+                    "You truly do embody the concept of wealth",
+                    "Show me the exotic trophies of the creatures of this world",
+                    "You must detach yourself from the idea of life or death",
+                    "Bring me a modified turtle helmet",
+                    "You can see the recipe by using " + ChatColor.YELLOW + "/godquest"
+                ), true);
         }
     }
 
     public void checkCreatureQuest(Player p, int itemType) {
         switch (itemType) {
-            case 1:
-                if (handleItemCheck(p, ItemStackGenerator.getTurtleHelmet(), "Turtle Helmet")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages1 = new ArrayList<>();
-                messages1.add("Excellent Work!");
-                messages1.add("Now bring me the music of the goats");
-                messages1.add("You can see the recipe by using " + ChatColor.YELLOW + "/godquest");
-                dialogue(p, messages1);
-                phase++;
-                break;
-            case 2:
-                if (handleItemCheck(p, ItemStackGenerator.getGoatHorn(), "Goat Horn")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages2 = new ArrayList<>();
-                messages2.add("Excellent Work!");
-                messages2.add("Now bring me the ochre frog light");
-                dialogue(p, messages2);
-                phase++;
-                break;
-            case 3:
-                if (handleItemCheck(p, Material.OCHRE_FROGLIGHT, "Ochre Frog Light")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages3 = new ArrayList<>();
-                messages3.add("Excellent Work!");
-                messages3.add("Now bring me the verdant frog light");
-                dialogue(p, messages3);
-                phase++;
-                break;
-            case 4:
-                if (handleItemCheck(p, Material.VERDANT_FROGLIGHT, "Verdant Frog Light")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages4 = new ArrayList<>();
-                messages4.add("Excellent Work!");
-                messages4.add("Now bring me the pearlescent frog light");
-                dialogue(p, messages4);
-                phase++;
-                break;
-            case 5:
-                if (handleItemCheck(p, Material.PEARLESCENT_FROGLIGHT, "Pearlescent Frog Light")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages5 = new ArrayList<>();
-                messages5.add("These creatures are just part of this world and there will always be more of them");
-                messages5.add("Do not mourn their loss");
-                messages5.add("Now let me understand the depth of your knowledge");
-                messages5.add("Bring me an album of music like no other");
-                messages5.add("You can see the recipe by using " + ChatColor.YELLOW + "/godquest");
-                dialogue(p, messages5);
-                phase++;
-                updateGodTrophyParticles();
-                break;
+            case 1 -> handInItemStackStep(p, ItemStackGenerator.getTurtleHelmet(), "Turtle Helmet",
+                lines("Excellent Work!", "Now bring me the music of the goats", "You can see the recipe by using " + ChatColor.YELLOW + "/godquest"), false);
+            case 2 -> handInItemStackStep(p, ItemStackGenerator.getGoatHorn(), "Goat Horn",
+                lines("Excellent Work!", "Now bring me the ochre frog light"), false);
+            case 3 -> handInMaterialStep(p, Material.OCHRE_FROGLIGHT, "Ochre Frog Light",
+                lines("Excellent Work!", "Now bring me the verdant frog light"), false);
+            case 4 -> handInMaterialStep(p, Material.VERDANT_FROGLIGHT, "Verdant Frog Light",
+                lines("Excellent Work!", "Now bring me the pearlescent frog light"), false);
+            case 5 -> handInMaterialStep(p, Material.PEARLESCENT_FROGLIGHT, "Pearlescent Frog Light",
+                lines(
+                    "These creatures are just part of this world and there will always be more of them",
+                    "Gods do not mourn their loss but appreciate their existence",
+                    "Now let me understand the depth of your knowledge",
+                    "Bring me an album of music like no other",
+                    "You can see the recipe by using " + ChatColor.YELLOW + "/godquest"
+                ), true);
         }
     }
 
     public void checkKnowledgeQuest(Player p, int itemType) {
         switch (itemType) {
-            case 1:
-                if (handleItemCheck(p, ItemStackGenerator.getMusicKnowledgeDisc(), "Music Knowledge Disc")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages1 = new ArrayList<>();
-                messages1.add("Excellent Work!");
-                messages1.add("Demonstrate your brewing knowledge by bringing me every potion");
-                messages1.add("Start with a potion of swiftness");
-                dialogue(p, messages1);
-                phase++;
-                break;
-            case 2:
-                if (handleItemCheck(p, getPotion(PotionType.SWIFTNESS), "Potion of Swiftness")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages2 = new ArrayList<>();
-                messages2.add("Excellent Work!");
-                messages2.add("Now bring me a potion of fire resistance");
-                dialogue(p, messages2);
-                phase++;
-                break;
-            case 3:
-                if (handleItemCheck(p, getPotion(PotionType.FIRE_RESISTANCE), "Potion of Fire Resistance")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages3 = new ArrayList<>();
-                messages3.add("Excellent Work!");
-                messages3.add("Now bring me a potion of healing");
-                dialogue(p, messages3);
-                phase++;
-                break;
-            case 4:
-                if (handleItemCheck(p, getPotion(PotionType.HEALING), "Potion of Healing")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages4 = new ArrayList<>();
-                messages4.add("Excellent Work!");
-                messages4.add("Now bring me a potion of harming");
-                dialogue(p, messages4);
-                phase++;
-                break;
-            case 5:
-                if (handleItemCheck(p, getPotion(PotionType.HARMING), "Potion of Harming")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages5 = new ArrayList<>();
-                messages5.add("Excellent Work!");
-                messages5.add("Now bring me a potion of water breathing");
-                dialogue(p, messages5);
-                phase++;
-                break;
-            case 6:
-                if (handleItemCheck(p, getPotion(PotionType.WATER_BREATHING), "Potion of Water Breathing")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages6 = new ArrayList<>();
-                messages6.add("Excellent Work!");
-                messages6.add("Now bring me a potion of night vision");
-                dialogue(p, messages6);
-                phase++;
-                break;
-            case 7:
-                if (handleItemCheck(p, getPotion(PotionType.NIGHT_VISION), "Potion of Night Vision")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages7 = new ArrayList<>();
-                messages7.add("Excellent Work!");
-                messages7.add("Now bring me a potion of invisibility");
-                dialogue(p, messages7);
-                phase++;
-                break;
-            case 8:
-                if (handleItemCheck(p, getPotion(PotionType.INVISIBILITY), "Potion of Invisibility")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages8 = new ArrayList<>();
-                messages8.add("Excellent Work!");
-                messages8.add("Now bring me a potion of leaping");
-                dialogue(p, messages8);
-                phase++;
-                break;
-            case 9:
-                if (handleItemCheck(p, getPotion(PotionType.LEAPING), "Potion of Leaping")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages9 = new ArrayList<>();
-                messages9.add("Excellent Work!");
-                messages9.add("Now bring me a potion of slow falling");
-                dialogue(p, messages9);
-                phase++;
-                break;
-            case 10:
-                if (handleItemCheck(p, getPotion(PotionType.SLOW_FALLING), "Potion of Slow Falling")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages10 = new ArrayList<>();
-                messages10.add("Excellent Work!");
-                messages10.add("Now bring me a potion of strength");
-                dialogue(p, messages10);
-                phase++;
-                break;
-            case 11:
-                if (handleItemCheck(p, getPotion(PotionType.STRENGTH), "Potion of Strength")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages11 = new ArrayList<>();
-                messages11.add("Excellent Work!");
-                messages11.add("Now bring me a potion of weakness");
-                dialogue(p, messages11);
-                phase++;
-                break;
-            case 12:
-                if (handleItemCheck(p, getPotion(PotionType.WEAKNESS), "Potion of Weakness")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages14 = new ArrayList<>();
-                messages14.add("Excellent Work!");
-                messages14.add("Now bring me a potion of regeneration");
-                dialogue(p, messages14);
-                phase++;
-                break;
-            case 13:
-                if (handleItemCheck(p, getPotion(PotionType.REGENERATION), "Potion of Regeneration")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages15 = new ArrayList<>();
-                messages15.add("Excellent Work!");
-                messages15.add("Now bring me a potion of poison");
-                dialogue(p, messages15);
-                phase++;
-                break;
-            case 14:
-                if (handleItemCheck(p, getPotion(PotionType.POISON), "Potion of Poison")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages16 = new ArrayList<>();
-                messages16.add("Excellent Work!");
-                messages16.add("Now bring me a potion of infestation");
-                dialogue(p, messages16);
-                phase++;
-                break;
-            case 15:
-                if (handleItemCheck(p, getPotion(PotionType.INFESTED), "Potion of Infestation")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages17 = new ArrayList<>();
-                messages17.add("Excellent Work!");
-                messages17.add("Now bring me a potion of oozing");
-                dialogue(p, messages17);
-                phase++;
-                break;
-            case 16:
-                if (handleItemCheck(p, getPotion(PotionType.OOZING), "Potion of Oozing")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages18 = new ArrayList<>();
-                messages18.add("Excellent Work!");
-                messages18.add("Now bring me a potion of weaving");
-                dialogue(p, messages18);
-                phase++;
-                break;
-            case 17:
-                if (handleItemCheck(p, getPotion(PotionType.WEAVING), "Potion of Weaving")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages19 = new ArrayList<>();
-                messages19.add("Excellent Work!");
-                messages19.add("Now bring me a potion of wind charged");
-                dialogue(p, messages19);
-                phase++;
-                break;
-            case 18:
-                if (handleItemCheck(p, getPotion(PotionType.WIND_CHARGED), "Potion of Wind Charged")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages20 = new ArrayList<>();
-                messages20.add("Thank you for demonstrating your knowledge");
-                messages20.add("Now show me your refined taste in relics");
-                messages20.add("Bring me something that exhibits refined pottery skills");
-                messages20.add("You can see the recipe by using " + ChatColor.YELLOW + "/godquest");
-                dialogue(p, messages20);
-                phase++;
-                updateGodTrophyParticles();
-                break;
+            case 1 -> handInItemStackStep(p, ItemStackGenerator.getMusicKnowledgeDisc(), "Music Knowledge Disc",
+                lines("Excellent Work!", "Demonstrate your brewing knowledge by bringing me every potion", "Start with a potion of swiftness"), false);
+            case 2 -> potionStep(p, PotionType.SWIFTNESS, "Potion of Swiftness",
+                lines("Excellent Work!", "Now bring me a potion of fire resistance"));
+            case 3 -> potionStep(p, PotionType.FIRE_RESISTANCE, "Potion of Fire Resistance",
+                lines("Excellent Work!", "Now bring me a potion of healing"));
+            case 4 -> potionStep(p, PotionType.HEALING, "Potion of Healing",
+                lines("Excellent Work!", "Now bring me a potion of harming"));
+            case 5 -> potionStep(p, PotionType.HARMING, "Potion of Harming",
+                lines("Excellent Work!", "Now bring me a potion of water breathing"));
+            case 6 -> potionStep(p, PotionType.WATER_BREATHING, "Potion of Water Breathing",
+                lines("Excellent Work!", "Now bring me a potion of night vision"));
+            case 7 -> potionStep(p, PotionType.NIGHT_VISION, "Potion of Night Vision",
+                lines("Excellent Work!", "Now bring me a potion of invisibility"));
+            case 8 -> potionStep(p, PotionType.INVISIBILITY, "Potion of Invisibility",
+                lines("Excellent Work!", "Now bring me a potion of leaping"));
+            case 9 -> potionStep(p, PotionType.LEAPING, "Potion of Leaping",
+                lines("Excellent Work!", "Now bring me a potion of slow falling"));
+            case 10 -> potionStep(p, PotionType.SLOW_FALLING, "Potion of Slow Falling",
+                lines("Excellent Work!", "Now bring me a potion of strength"));
+            case 11 -> potionStep(p, PotionType.STRENGTH, "Potion of Strength",
+                lines("Excellent Work!", "Now bring me a potion of weakness"));
+            case 12 -> potionStep(p, PotionType.WEAKNESS, "Potion of Weakness",
+                lines("Excellent Work!", "Now bring me a potion of regeneration"));
+            case 13 -> potionStep(p, PotionType.REGENERATION, "Potion of Regeneration",
+                lines("Excellent Work!", "Now bring me a potion of poison"));
+            case 14 -> potionStep(p, PotionType.POISON, "Potion of Poison",
+                lines("Excellent Work!", "Now bring me a potion of infestation"));
+            case 15 -> potionStep(p, PotionType.INFESTED, "Potion of Infestation",
+                lines("Excellent Work!", "Now bring me a potion of oozing"));
+            case 16 -> potionStep(p, PotionType.OOZING, "Potion of Oozing",
+                lines("Excellent Work!", "Now bring me a potion of weaving"));
+            case 17 -> potionStep(p, PotionType.WEAVING, "Potion of Weaving",
+                lines("Excellent Work!", "Now bring me a potion of wind charged"));
+            // This potion has a different format due to being the last step
+            case 18 -> handInMaterialStep(p, getPotion(PotionType.WIND_CHARGED).getType(), "Potion of Wind Charged",
+                lines(
+                    "Thank you for demonstrating your knowledge",
+                    "Now show me your refined taste in relics",
+                    "Bring me something that exhibits refined pottery skills",
+                    "You can see the recipe by using " + ChatColor.YELLOW + "/godquest"
+                ), true);
         }
     }
 
     public void checkRelicQuest(Player p, int itemType) {
         switch (itemType) {
-            case 1:
-                if (handleItemCheck(p, ItemStackGenerator.getSherdRelic(), "Sherd Relic")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages1 = new ArrayList<>();
-                messages1.add("Excellent Work!");
-                messages1.add("Demonstrate your ancient fashion by bringing me the culmination of armor fashion");
-                messages1.add("You can see the recipe by using " + ChatColor.YELLOW + "/godquest");
-                dialogue(p, messages1);
-                phase++;
-                break;
-            case 2:
-                if (handleItemCheck(p, ItemStackGenerator.getTrimRelic(), "Trim Relic")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages2 = new ArrayList<>();
-                messages2.add("Your appreciation of times forgotten is noticed");
-                messages2.add("Show me that you have truly connected with the people of this land");
-                messages2.add("Trade with villagers 1,000 times");
-                dialogue(p, messages2);
-                phase++;
-                updateGodTrophyParticles();
-                break;
+            case 1 -> handInItemStackStep(p, ItemStackGenerator.getSherdRelic(), "Sherd Relic",
+                lines("Excellent Work!", "Demonstrate your ancient fashion by bringing me the culmination of armor fashion", "You can see the recipe by using " + ChatColor.YELLOW + "/godquest"), false);
+            case 2 -> handInItemStackStep(p, ItemStackGenerator.getTrimRelic(), "Trim Relic",
+                lines("Your appreciation of times forgotten is noticed", "Show me that you have truly connected with the people of this land", "Trade with villagers 1,000 times"), true);
         }
     }
 
@@ -802,99 +387,47 @@ public class GodTrophyQuest {
 
     public void checkCombatQuest(Player p) {
         if (handleItemCheck(p, ItemStackGenerator.getWarriorEmblem(), "Warrior Emblem")) return;
-        removeItemFromMainHand(p);
-        ArrayList<String> messages1 = new ArrayList<>();
-        messages1.add("Excellent Work!");
-        messages1.add("Now the final task");
-        messages1.add("You may have noticed the mobs of this world sometimes drop rare items");
-        messages1.add("Bring me the item from a " + ChatColor.AQUA + "spider");
-        dialogue(p, messages1);
-        phase++;
-        updateGodTrophyParticles();
+        successAndAdvance(p, true, true, true, lines(
+            "Excellent Work!",
+            "You may have noticed the mobs of this world sometimes drop rare items",
+            "Bring me the item from a " + ChatColor.AQUA + "spider"
+        ));
     }
 
     public void checkMobItemQuest(Player p, int itemType) {
         switch (itemType) {
-            case 1:
-                if (handleItemCheck(p, ItemStackGenerator.getWebShooter(), "Web Shooter")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages1 = new ArrayList<>();
-                messages1.add("Excellent Work!");
-                messages1.add("Bring me the item from a " + ChatColor.AQUA + "skeleton");
-                dialogue(p, messages1);
-                phase++;
-                break;
-            case 2:
-                if (handleItemCheck(p, ItemStackGenerator.getUnlimitedTippedArrow(), "Unlimited Tipped Arrow")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages2 = new ArrayList<>();
-                messages2.add("Excellent Work!");
-                messages2.add("Bring me the item from a " + ChatColor.AQUA + "zombie");
-                dialogue(p, messages2);
-                phase++;
-                break;
-            case 3:
-                if (handleItemCheck(p, ItemStackGenerator.getVillagerRevivalArtifact(), "Villager Revival Artifact")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages3 = new ArrayList<>();
-                messages3.add("Excellent Work!");
-                messages3.add("Bring me the item from a " + ChatColor.AQUA + "enderman");
-                dialogue(p, messages3);
-                phase++;
-                break;
-            case 4:
-                if (handleItemCheck(p, ItemStackGenerator.getEnderEssence(), "Ender Essence")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages4 = new ArrayList<>();
-                messages4.add("Excellent Work!");
-                messages4.add("Bring me the item from a " + ChatColor.AQUA + "creeper");
-                dialogue(p, messages4);
-                phase++;
-                break;
-            case 5:
-                if (handleItemCheck(p, ItemStackGenerator.getCreeperEssence(), "Creeper Essence")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages5 = new ArrayList<>();
-                messages5.add("Excellent Work!");
-                messages5.add("Bring me the item from a " + ChatColor.AQUA + "drowned");
-                dialogue(p, messages5);
-                phase++;
-                break;
-            case 6:
-                if (handleItemCheck(p, ItemStackGenerator.getTridentLauncher(), "Trident Launcher")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages6 = new ArrayList<>();
-                messages6.add("Excellent Work!");
-                messages6.add("Bring me the item from a " + ChatColor.AQUA + "breeze");
-                dialogue(p, messages6);
-                phase++;
-                break;
-            case 7:
-                if (handleItemCheck(p, ItemStackGenerator.getMagicBagOfWind(), "Magic Bag Of Wind")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages7 = new ArrayList<>();
-                messages7.add("Excellent Work!");
-                messages7.add("Bring me the item from a " + ChatColor.AQUA + "wither skeleton");
-                dialogue(p, messages7);
-                phase++;
-                break;
-            case 8:
-                if (handleItemCheck(p, ItemStackGenerator.getUnlimitedWitherRose(), "Unlimited Wither Rose")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages8 = new ArrayList<>();
-                messages8.add("Excellent Work!");
-                messages8.add("Bring me the item from a " + ChatColor.AQUA + "ender dragon");
-                dialogue(p, messages8);
-                phase++;
-                updateGodTrophyParticles();
-                break;
-            case 9:
-                if (handleItemCheck(p, ItemStackGenerator.getDragonBreathCannon(), "Dragon Breath Cannon")) return;
-                removeItemFromMainHand(p);
-                ArrayList<String> messages9 = getStrings();
-                dialogue(p, messages9);
-                phase++;
-                break;
+            case 1 -> handInItemStackStep(p, ItemStackGenerator.getWebShooter(), "Web Shooter",
+                lines("Excellent Work!", "Bring me the item from a " + ChatColor.AQUA + "skeleton"), false);
+            case 2 -> handInItemStackStep(p, ItemStackGenerator.getUnlimitedTippedArrow(), "Unlimited Tipped Arrow",
+                lines("Excellent Work!", "Bring me the item from a " + ChatColor.AQUA + "zombie"), false);
+            case 3 -> handInItemStackStep(p, ItemStackGenerator.getVillagerRevivalArtifact(), "Villager Revival Artifact",
+                lines("Excellent Work!", "Bring me the item from a " + ChatColor.AQUA + "enderman"), false);
+            case 4 -> handInItemStackStep(p, ItemStackGenerator.getEnderEssence(), "Ender Essence",
+                lines("Excellent Work!", "Bring me the item from a " + ChatColor.AQUA + "creeper"), false);
+            case 5 -> handInItemStackStep(p, ItemStackGenerator.getCreeperEssence(), "Creeper Essence",
+                lines("Excellent Work!", "Bring me the item from a " + ChatColor.AQUA + "drowned"), false);
+            case 6 -> handInItemStackStep(p, ItemStackGenerator.getTridentLauncher(), "Trident Launcher",
+                lines("Excellent Work!", "Bring me the item from a " + ChatColor.AQUA + "breeze"), false);
+            case 7 -> handInItemStackStep(p, ItemStackGenerator.getMagicBagOfWind(), "Magic Bag Of Wind",
+                lines("Excellent Work!", "Bring me the item from a " + ChatColor.AQUA + "wither skeleton"), false);
+            case 8 -> handInItemStackStep(p, ItemStackGenerator.getUnlimitedWitherRose(), "Unlimited Wither Rose",
+                lines("Excellent Work!", "Bring me the item from a " + ChatColor.AQUA + "ender dragon"), true);
+            case 9 -> handInItemStackStep(p, ItemStackGenerator.getDragonBreathCannon(), "Dragon Breath Cannon",
+                lines("I now have serveral interesting mob drops", "However you must not forget we are playing a game!", 
+                "The final task is to complete all Minecraft advancements"), false);
+        }
+    }
+
+    /**
+     * Check to see if a player has achieved all Minecraft advancements
+     * @param p
+     */
+    public void checkAdvancementsQuest(Player p) {
+        if (hasAllAdvancements(p)) {
+            successAndAdvance(p, true, false, true, getStrings());
+        } else {
+            dialogue(p, lines("You have not yet achieved all advancements.",
+                "Keep working hard and you will get there!"));
         }
     }
 
@@ -902,9 +435,9 @@ public class GodTrophyQuest {
         ArrayList<String> messages9 = new ArrayList<>();
         messages9.add("Excellent Work!");
         messages9.add("You have completed all of my tasks");
-        messages9.add("Finally you must prove yourself in the " + ChatColor.RED + "Trial of the Gods");
+        messages9.add("Finally you must prove yourself in the " + ChatColor.RED + "Trial of the Gods " + ChatColor.WHITE + "by defeating the god difficulty");
         messages9.add("Do this and you will be given " + ChatColor.AQUA + "creative mode " + ChatColor.WHITE +
-                "and the ability of " + ChatColor.AQUA + " teleportation");
+                "using the power of the gods!");
         messages9.add("You can start the trial at anytime, anywhere, by using " + ChatColor.YELLOW + "/godtrial");
         return messages9;
     }
@@ -947,6 +480,7 @@ public class GodTrophyQuest {
             if (!trophy.getValue().getUUID().equals(uuid)) continue;
             TrophyEffects effects = trophy.getValue().getEffects();
             if (effects.getGodTrophy() == null) continue;
+            // TODO: Implement particle effects for the god trophy
             return;
         }
     }
@@ -964,6 +498,19 @@ public class GodTrophyQuest {
         return potion;
     }
 
+    public boolean hasAllAdvancements(Player p) {
+        Iterator<Advancement> advancementIterator = Bukkit.advancementIterator();
+
+        while (advancementIterator.hasNext()) {
+            Advancement advancement = advancementIterator.next();
+            if (!p.getAdvancementProgress(advancement).isDone()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     public int getCurrentItemCount() {
         return currentItemCount;
     }
@@ -974,5 +521,53 @@ public class GodTrophyQuest {
 
     public int getMaxPhase() {
         return maxPhase;
+    }
+
+    // -----------------------
+    // Private helpers to reduce duplication
+    // -----------------------
+
+    /** Small utility for building dialogue lists inline. */
+    private static ArrayList<String> lines(String... text) {
+        ArrayList<String> list = new ArrayList<>();
+        for (String t : text) list.add(t);
+        return list;
+    }
+
+    /**
+     * Common success flow: send dialogue, optionally reset counts, remove one from hand, update particles, and advance phase.
+     */
+    private void successAndAdvance(Player p, boolean resetCount, boolean removeFromHand, boolean updateParticles, ArrayList<String> messages) {
+        if (removeFromHand) removeItemFromMainHand(p);
+        dialogue(p, messages);
+        phase++;
+        if (resetCount) currentItemCount = 0;
+        if (updateParticles) updateGodTrophyParticles();
+    }
+
+    /**
+     * Bulk material collection step handler (e.g., farming/ore). When completed, resets count and advances phase.
+     */
+    private void bulkStep(Player p, int required, Material mat, String itemName, ArrayList<String> successMessages, boolean updateParticlesAfter) {
+        if (handleItemCheck(required, p, mat, itemName)) return; // still collecting
+        successAndAdvance(p, true, false, updateParticlesAfter, successMessages);
+    }
+
+    /** Hand-in step for exact ItemStack in main hand. */
+    private void handInItemStackStep(Player p, ItemStack expected, String itemName, ArrayList<String> successMessages, boolean updateParticlesAfter) {
+        if (handleItemCheck(p, expected, itemName)) return; // wrong or missing item
+        successAndAdvance(p, true, true, updateParticlesAfter, successMessages);
+    }
+
+    /** Hand-in step for a specific Material in main hand. */
+    private void handInMaterialStep(Player p, Material mat, String itemName, ArrayList<String> successMessages, boolean updateParticlesAfter) {
+        if (handleItemCheck(p, mat, itemName)) return; // wrong or missing item
+        successAndAdvance(p, true, true, updateParticlesAfter, successMessages);
+    }
+
+    /** Potion hand-in convenience wrapper. */
+    private void potionStep(Player p, PotionType type, String friendlyName, ArrayList<String> successMessages) {
+        if (handleItemCheck(p, getPotion(type), friendlyName)) return;
+        successAndAdvance(p, true, true, false, successMessages);
     }
 }
