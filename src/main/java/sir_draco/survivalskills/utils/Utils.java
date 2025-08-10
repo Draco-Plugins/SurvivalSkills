@@ -20,7 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.god_questline.TrialManager;
+import sir_draco.survivalskills.god_questline.trial.TrialManager;
 
 import java.util.Iterator;
 import java.util.logging.Level;

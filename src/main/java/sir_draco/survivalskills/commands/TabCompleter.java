@@ -5,8 +5,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.server.TabCompleteEvent;
-import sir_draco.survivalskills.god_questline.Trial;
-import sir_draco.survivalskills.god_questline.TrialManager;
+
+import sir_draco.survivalskills.god_questline.trial.Trial;
+import sir_draco.survivalskills.god_questline.trial.TrialManager;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;

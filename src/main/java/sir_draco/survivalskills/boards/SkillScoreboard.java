@@ -4,10 +4,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.*;
-import sir_draco.survivalskills.god_questline.TrialManager;
+
 import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.god_questline.trial.TrialManager;
 
 public class SkillScoreboard {
 

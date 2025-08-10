@@ -10,9 +10,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
-import sir_draco.survivalskills.god_questline.PlayerTrialUpgrades;
-import sir_draco.survivalskills.god_questline.TrialTree;
-import sir_draco.survivalskills.god_questline.TrialUpgradeManager;
+
+import sir_draco.survivalskills.god_questline.trial.PlayerTrialUpgrades;
+import sir_draco.survivalskills.god_questline.trial.TrialTree;
+import sir_draco.survivalskills.god_questline.trial.TrialUpgradeManager;
 
 import java.util.ArrayList;
 import java.util.List;

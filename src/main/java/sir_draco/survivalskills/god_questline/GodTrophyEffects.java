@@ -17,6 +17,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.joml.Quaternionf;
 import sir_draco.survivalskills.trophy.TrophyManager;
+import sir_draco.survivalskills.utils.MojangAPI;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.IOException;

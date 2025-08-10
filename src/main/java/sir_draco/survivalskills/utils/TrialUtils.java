@@ -15,6 +15,12 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 import sir_draco.survivalskills.god_questline.*;
+import sir_draco.survivalskills.god_questline.trial.PendingTrial;
+import sir_draco.survivalskills.god_questline.trial.ProtectedArea;
+import sir_draco.survivalskills.god_questline.trial.RelativeBlock;
+import sir_draco.survivalskills.god_questline.trial.Trial;
+import sir_draco.survivalskills.god_questline.trial.TrialManager;
+import sir_draco.survivalskills.god_questline.trial.WaveGenerator;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
