@@ -268,6 +268,7 @@ public class SkillStatsCommand implements CommandExecutor {
         if (recipeCounter % 2 == 1) addBarriers(recipeInventories.getLast());
     }
 
+    @SuppressWarnings("deprecation")
     public void addSSRecipe(int recipeCounter, Inventory inv) {
         NamespacedKey key = plugin.getRecipeKeys().get(recipeCounter - 1);
         if (key == null) return;
@@ -399,6 +400,7 @@ public class SkillStatsCommand implements CommandExecutor {
         return i - 1;
     }
 
+    @SuppressWarnings("deprecation")
     private void addBarriers(Inventory inv) {
         ItemStack item = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
 

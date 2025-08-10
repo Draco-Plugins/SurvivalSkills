@@ -30,6 +30,7 @@ public class ItemStackGenerator {
      * @param enchants Can be NULL, A map of enchants and their level to add to the item
      * @return The Item Stack
      */
+    @SuppressWarnings("deprecation")
     public static ItemStack createCustomItem(Material material, int amount, String name, ChatColor nameColor, String lore, ArrayList<String> loreList, int modelData, boolean hideEnchants, Map<Enchantment, Integer> enchants) {
         ItemStack item = new ItemStack(material, amount);
         ItemMeta meta = item.getItemMeta();
@@ -50,6 +51,7 @@ public class ItemStackGenerator {
         return item;
     }
 
+    @SuppressWarnings("deprecation")
     public static boolean isCustomItem(ItemStack item, int modelData) {
         if (item == null) return false;
         if (item.getItemMeta() == null) return false;
@@ -59,6 +61,7 @@ public class ItemStackGenerator {
         return meta.getCustomModelData() == modelData;
     }
 
+    @SuppressWarnings("deprecation")
     public static boolean isCustomItem(ItemStack item) {
         if (item == null) return false;
         if (item.getItemMeta() == null) return false;

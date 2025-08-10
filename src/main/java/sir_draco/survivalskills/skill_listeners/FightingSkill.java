@@ -98,6 +98,8 @@ public class FightingSkill implements Listener {
                         removeBroodMother(e.getEntity());
                     case VILLAGER:
                         removeVillager(e.getEntity());
+                    default:
+                        break;
                 }
 
                 // Find the player that spawned this boss
@@ -159,6 +161,8 @@ public class FightingSkill implements Listener {
                             world.setMetadata("killedfirstdragon", new FixedMetadataValue(plugin, true));
                     }
                     else Bukkit.getLogger().warning("Error finding custom dragon");
+                    break;
+                default:
                     break;
             }
             for (ItemStack drop : drops)

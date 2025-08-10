@@ -33,6 +33,7 @@ public class GodRecipeUI {
         p.openInventory(inventories.get(currentInv));
     }
 
+    @SuppressWarnings("deprecation")
     public void handleClick(InventoryClickEvent e) {
         if (e.getClickedInventory() == null) return;
         if (e.getCurrentItem() == null) return;
@@ -60,6 +61,7 @@ public class GodRecipeUI {
         }
     }
 
+    @SuppressWarnings("deprecation")
     public void handleDrag(InventoryDragEvent e) {
         e.setCancelled(true);
         ItemStack arrow = e.getOldCursor();
@@ -84,6 +86,7 @@ public class GodRecipeUI {
         }
     }
 
+    @SuppressWarnings("deprecation")
     public void createInventories(ArrayList<NamespacedKey> list) {
         ItemStack bottom = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
 

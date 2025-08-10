@@ -15,17 +15,34 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
+/**
+ * Central manager for runtime player abilities and visual effects.
+ *
+ * Responsibilities:
+ * - Load/save per-player ability state (flight, spelunker, tool belt)
+ * - Start/stop timers and background tasks per ability
+ * - Track transient entities/effects (trails, glowing mobs, bloody domain)
+ *
+ * Note: Bukkit requires nearly all entity/world interactions to run on the main server thread.
+ * Timers marked as asynchronous must not directly mutate Bukkit API state; this class delegates
+ * such work to concrete timers that follow that rule. Public API is preserved to avoid breaking
+ * existing command/listener code.
+ */
 public class AbilityManager {
 
+    // Whitelist of entity types affected by Bloody Domain. Kept static for quick lookups.
     private static final ArrayList<EntityType> domainMobs = new ArrayList<>();
     public static final String FLIGHT = ".Flight";
     public static final String SPELUNKER = ".Spelunker";
     public static final String LAST_USED_SUFFIX = ".LastUsedTimestamp";
+    private static final String ACTIVE_TIME_KEY = ".ActiveTime";
+    private static final String COOLDOWN_TIME_KEY = ".CooldownTime";
 
     private final SurvivalSkills plugin;
     private final HashMap<Player, ArrayList<AbilityTimer>> timerTracker = new HashMap<>();
@@ -40,6 +57,10 @@ public class AbilityManager {
         createDomainMobs();
     }
 
+    /**
+     * Rebuild a player's Tool Belt inventory from saved data.
+     * Returns null if no data is found for the player.
+     */
     public Inventory loadToolBelt(Player p) {
         FileConfiguration data = plugin.getToolBeltData();
         if (!data.contains(p.getUniqueId().toString())) return null;
@@ -55,30 +76,20 @@ public class AbilityManager {
         return toolBelt;
     }
 
+    /**
+     * Restore the Flight ability for a player, including handling of offline cooldown.
+     */
     public void loadFlight(Player p, FileConfiguration data) {
         if (!data.contains(p.getUniqueId() + FLIGHT)) return;
+        final String base = p.getUniqueId() + FLIGHT;
 
-        int activeTime = data.getInt(p.getUniqueId() + ".Flight.ActiveTime");
-        int cooldownTime = data.getInt(p.getUniqueId() + ".Flight.CooldownTime");
-        float speed = (float) data.getDouble(p.getUniqueId() + ".Flight.Speed");
+        int activeTime = data.getInt(base + ACTIVE_TIME_KEY);
+        int cooldownTime = data.getInt(base + COOLDOWN_TIME_KEY);
+        float speed = (float) data.getDouble(base + ".Speed");
 
         // Apply offline cooldown if ability was in cooldown mode
-        if (activeTime <= 0 && cooldownTime > 0 && data.contains(p.getUniqueId() + FLIGHT + LAST_USED_SUFFIX)) {
-            long lastUsedTimestamp = data.getLong(p.getUniqueId() + FLIGHT + LAST_USED_SUFFIX);
-            long currentTime = System.currentTimeMillis();
-            long elapsedTimeMs = currentTime - lastUsedTimestamp;
-            int elapsedSeconds = (int) (elapsedTimeMs / 1000);
-
-            // Reduce cooldown time by elapsed time
-            cooldownTime = Math.max(0, cooldownTime - elapsedSeconds);
-
-            // If cooldown is complete, notify player and skip creating the timer
-            if (cooldownTime == 0) {
-                p.sendRawMessage(ChatColor.GREEN + "Your Flight ability has reset while you were offline!");
-                data.set(p.getUniqueId() + FLIGHT, null);
-                return;
-            }
-        }
+        cooldownTime = adjustCooldownFromOffline(data, base, activeTime, cooldownTime, p, "Flight");
+        if (cooldownTime == 0 && activeTime <= 0) return; // ability fully reset while offline
 
         AbilityTimer timer = new AbilityTimer(plugin, "Flight", p, activeTime, cooldownTime);
         timer.runTaskTimerAsynchronously(plugin, 0, 20);
@@ -98,30 +109,20 @@ public class AbilityManager {
                 ChatColor.GREEN + " minutes " + ChatColor.AQUA + seconds + ChatColor.GREEN + " seconds");
     }
 
+    /**
+     * Restore the Spelunker ability for a player, including handling of offline cooldown.
+     */
     public void loadSpelunker(Player p, FileConfiguration data) {
         if (!data.contains(p.getUniqueId() + SPELUNKER)) return;
+        final String base = p.getUniqueId() + SPELUNKER;
 
-        int activeTime = data.getInt(p.getUniqueId() + ".Spelunker.ActiveTime");
-        int cooldownTime = data.getInt(p.getUniqueId() + ".Spelunker.CooldownTime");
-        int radius = data.getInt(p.getUniqueId() + ".Spelunker.Radius");
+        int activeTime = data.getInt(base + ACTIVE_TIME_KEY);
+        int cooldownTime = data.getInt(base + COOLDOWN_TIME_KEY);
+        int radius = data.getInt(base + ".Radius");
 
         // Apply offline cooldown if ability was in cooldown mode
-        if (activeTime <= 0 && cooldownTime > 0 && data.contains(p.getUniqueId() + SPELUNKER + LAST_USED_SUFFIX)) {
-            long lastUsedTimestamp = data.getLong(p.getUniqueId() + SPELUNKER + LAST_USED_SUFFIX);
-            long currentTime = System.currentTimeMillis();
-            long elapsedTimeMs = currentTime - lastUsedTimestamp;
-            int elapsedSeconds = (int) (elapsedTimeMs / 1000);
-
-            // Reduce cooldown time by elapsed time
-            cooldownTime = Math.max(0, cooldownTime - elapsedSeconds);
-
-            // If cooldown is complete, notify player and skip creating the timer
-            if (cooldownTime == 0) {
-                p.sendRawMessage(ChatColor.GREEN + "Your Spelunker ability has reset while you were offline!");
-                data.set(p.getUniqueId() + SPELUNKER, null);
-                return;
-            }
-        }
+        cooldownTime = adjustCooldownFromOffline(data, base, activeTime, cooldownTime, p, "Spelunker");
+        if (cooldownTime == 0 && activeTime <= 0) return; // ability fully reset while offline
 
         AbilityTimer timer = new AbilityTimer(plugin, "Spelunker", p, activeTime, cooldownTime);
         timer.runTaskTimerAsynchronously(plugin, 0, 20);
@@ -140,6 +141,9 @@ public class AbilityManager {
                 ChatColor.GREEN + " minutes " + ChatColor.AQUA + seconds + ChatColor.GREEN + " seconds");
     }
 
+    /**
+     * Persist a player's Tool Belt inventory to disk. No-op while viewers are open.
+     */
     public void saveToolBelt(Player p, Inventory inv) {
         if (!inv.getViewers().isEmpty()) return;
 
@@ -153,23 +157,31 @@ public class AbilityManager {
         }
     }
 
+    /**
+     * Save the provided FileConfiguration to the given file with guarded logging.
+     */
     public void saveToolBeltFile(File file, FileConfiguration data) {
         try {
             data.save(file);
         } catch (Exception e) {
-            Bukkit.getLogger().log(Level.WARNING, String.format("Failed to save Tool Belts for Survival Skills plugin: %s", e.getMessage()));
+            plugin.getLogger().log(Level.WARNING, String.format("Failed to save Tool Belts: %s", e.getMessage()));
         }
     }
 
     public void saveToolBelts() {
         File file = plugin.getToolBeltFile();
         FileConfiguration data = plugin.getToolBeltData();
-        for (Map.Entry<Player, Inventory> toolBelt : plugin.getMiningListener().getToolBelts().entrySet())
+        for (Map.Entry<Player, Inventory> toolBelt : plugin.getMiningListener().getToolBelts().entrySet()) {
+            if (toolBelt.getKey() == null || toolBelt.getValue() == null) continue;
             saveToolBelt(toolBelt.getKey(), toolBelt.getValue());
+        }
 
         saveToolBeltFile(file, data);
     }
 
+    /**
+     * Persist the Flight timer state for a player. Removes the section if no timer exists.
+     */
     public void saveFlightTimer(Player p, FileConfiguration data) {
         AbilityTimer timer = getAbility(p, "Flight");
         if (timer == null) {
@@ -177,16 +189,20 @@ public class AbilityManager {
             return;
         }
 
-        data.set(p.getUniqueId() + ".Flight.ActiveTime", timer.getActiveTimeLeft());
-        data.set(p.getUniqueId() + ".Flight.CooldownTime", timer.getTimeTillReset());
-        data.set(p.getUniqueId() + ".Flight.Speed", timer.getFlightSpeed());
+        final String base = p.getUniqueId() + FLIGHT;
+        data.set(base + ACTIVE_TIME_KEY, timer.getActiveTimeLeft());
+        data.set(base + COOLDOWN_TIME_KEY, timer.getTimeTillReset());
+        data.set(base + ".Speed", timer.getFlightSpeed());
 
         // Save the current timestamp for offline cooldown calculation
         if (!timer.isActive() && timer.getTimeTillReset() > 0) {
-            data.set(p.getUniqueId() + FLIGHT + LAST_USED_SUFFIX, System.currentTimeMillis());
+            data.set(base + LAST_USED_SUFFIX, System.currentTimeMillis());
         }
     }
 
+    /**
+     * Persist the Spelunker timer state for a player. Removes the section if no timer exists.
+     */
     public void saveSpelunkerTimer(Player p, FileConfiguration data) {
         AbilityTimer timer = getAbility(p, "Spelunker");
         if (timer == null) {
@@ -194,12 +210,13 @@ public class AbilityManager {
             return;
         }
 
-        data.set(p.getUniqueId() + ".Spelunker.ActiveTime", timer.getActiveTimeLeft());
-        data.set(p.getUniqueId() + ".Spelunker.CooldownTime", timer.getTimeTillReset());
+        final String base = p.getUniqueId() + SPELUNKER;
+        data.set(base + ACTIVE_TIME_KEY, timer.getActiveTimeLeft());
+        data.set(base + COOLDOWN_TIME_KEY, timer.getTimeTillReset());
 
         // Save the current timestamp for offline cooldown calculation
         if (!timer.isActive() && timer.getTimeTillReset() > 0) {
-            data.set(p.getUniqueId() + SPELUNKER + LAST_USED_SUFFIX, System.currentTimeMillis());
+            data.set(base + LAST_USED_SUFFIX, System.currentTimeMillis());
         }
 
         // Save the radius from the active spelunker or use default based on player's rewards
@@ -215,9 +232,12 @@ public class AbilityManager {
                 radius = 10;
             }
         }
-        data.set(p.getUniqueId() + ".Spelunker.Radius", radius);
+        data.set(base + ".Radius", radius);
     }
 
+    /**
+     * Begin tracking Bloody Domain for a player if they own the reward.
+     */
     public void startBloodyDomain(Player p) {
         Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Fighting", "BloodyDomain");
         if (reward == null || !reward.isApplied()) return;
@@ -227,40 +247,58 @@ public class AbilityManager {
         bloodyDomainTracker.put(p, domain);
     }
 
+    /**
+     * End and clear all ability timers for the provided player.
+     */
     public void endPlayerTimers(Player p) {
         if (!timerTracker.containsKey(p)) return;
         for (AbilityTimer timer : timerTracker.get(p)) timer.endAbility();
+        timerTracker.remove(p);
     }
 
+    /** Add a new tracked ability timer for a player. */
     public void addAbility(Player p, AbilityTimer timer) {
         timerTracker.computeIfAbsent(p, k -> new ArrayList<>());
         timerTracker.get(p).add(timer);
     }
 
+    /** Remove a specific ability timer by name for a player, if present. */
     public void removeAbility(Player p, String ability) {
         if (!timerTracker.containsKey(p)) return;
         timerTracker.get(p).removeIf(timer -> timer.getName().equalsIgnoreCase(ability));
     }
 
+    /** Get a tracked ability timer by name for a player; returns null if not found. */
     public AbilityTimer getAbility(Player p, String ability) {
         if (!timerTracker.containsKey(p)) return null;
         for (AbilityTimer timer : timerTracker.get(p)) if (timer.getName().equalsIgnoreCase(ability)) return timer;
         return null;
     }
 
+    /** Add entities to the current scanned list (used for glow highlighting). */
     public void addScannedMobs(List<Entity> entities) {
+        if (entities == null || entities.isEmpty()) return;
         mobsScanned.addAll(entities);
     }
 
+    /** Remove entities from the current scanned list. */
     public void removeScannedMobs(List<Entity> entities) {
+        if (entities == null || entities.isEmpty()) return;
         mobsScanned.removeAll(entities);
     }
 
+    /** Remove the glow effect from all scanned mobs and clear the list. */
     public void removeGlowFromScannedMobs() {
-        for (Entity entity : mobsScanned) entity.setGlowing(false);
+        if (mobsScanned.isEmpty()) return;
+        for (Entity entity : mobsScanned) {
+            if (entity != null) entity.setGlowing(false);
+        }
+        mobsScanned.clear();
     }
 
+    /** Initialize available particle trails. Idempotent. */
     public void createTrails() {
+        trails.clear();
         trails.put("Dust", Particle.DUST);
         trails.put("Water", Particle.SPLASH);
         trails.put("Happy", Particle.HAPPY_VILLAGER);
@@ -275,7 +313,11 @@ public class AbilityManager {
         trails.put("Rainbow", Particle.DUST);
     }
 
+    /** Initialize the set of mobs affected by Bloody Domain. Idempotent. */
     public void createDomainMobs() {
+        if (!domainMobs.isEmpty()) {
+            domainMobs.clear();
+        }
         domainMobs.add(EntityType.BLAZE);
         domainMobs.add(EntityType.BOGGED);
         domainMobs.add(EntityType.BREEZE);
@@ -311,8 +353,9 @@ public class AbilityManager {
         domainMobs.add(EntityType.ZOMBIE_VILLAGER);
     }
 
+    /** Get the defined trail particle mapping (read-only). */
     public Map<String, Particle> getTrails() {
-        return trails;
+        return Collections.unmodifiableMap(trails);
     }
 
     public Map<Player, TrailEffect> getTrailTracker() {
@@ -323,11 +366,44 @@ public class AbilityManager {
         return timerTracker;
     }
 
+    /** Get the list of entity types affected by Bloody Domain (read-only). */
     public static List<EntityType> getDomainMobs() {
-        return domainMobs;
+        return Collections.unmodifiableList(domainMobs);
     }
 
     public Map<Player, BloodyDomain> getBloodyDomainTracker() {
         return bloodyDomainTracker;
+    }
+
+    // --------------------------
+    // Internal helpers
+    // --------------------------
+
+    /**
+     * Apply offline cooldown reduction if the ability was cooling down when the player logged off.
+     *
+     * @param data         backing config
+     * @param basePath     full path prefix (uuid + ".Ability")
+     * @param activeTime   seconds remaining on active state when saved
+     * @param cooldownTime seconds remaining on cooldown when saved
+     * @param p            player to notify on reset
+     * @param abilityName  for messaging
+     * @return updated cooldown time (0 if fully reset). If 0 is returned and activeTime <= 0, callers should stop.
+     */
+    private int adjustCooldownFromOffline(FileConfiguration data, String basePath, int activeTime, int cooldownTime,
+                                          Player p, String abilityName) {
+        if (activeTime > 0 || cooldownTime <= 0 || !data.contains(basePath + LAST_USED_SUFFIX)) return cooldownTime;
+
+        long lastUsedTimestamp = data.getLong(basePath + LAST_USED_SUFFIX);
+        long elapsedSeconds = Math.max(0, (System.currentTimeMillis() - lastUsedTimestamp) / 1000);
+        int updatedCooldown = Math.max(0, cooldownTime - (int) elapsedSeconds);
+
+        if (updatedCooldown == 0) {
+            // Cooldown finished while offline; clear ability section and notify.
+            p.sendRawMessage(ChatColor.GREEN + "Your " + abilityName + " ability has reset while you were offline!");
+            data.set(basePath, null);
+        }
+
+        return updatedCooldown;
     }
 }

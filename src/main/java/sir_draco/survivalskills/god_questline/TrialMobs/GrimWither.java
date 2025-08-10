@@ -328,7 +328,6 @@ public class GrimWither extends TrialBoss {
         // Use a more efficient data structure for the trail
         final int maxTrailPoints = 60;
         final Location[] poisonTrailLocations = new Location[maxTrailPoints];
-        int trailIndex = 0;
 
         new BukkitRunnable() {
             private int ticksLived = 0;

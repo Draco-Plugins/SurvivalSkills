@@ -910,6 +910,7 @@ public class GodTrophyQuest {
     }
 
 
+    @SuppressWarnings("deprecation")
     public int removeMaterialsFromInventory(int currentProgress, int max, Inventory inv, Material mat) {
         int total = 0;
         for (ItemStack item : inv.getContents()) {
@@ -946,7 +947,6 @@ public class GodTrophyQuest {
             if (!trophy.getValue().getUUID().equals(uuid)) continue;
             TrophyEffects effects = trophy.getValue().getEffects();
             if (effects.getGodTrophy() == null) continue;
-            effects.getGodTrophy().increaseQuestParticles();
             return;
         }
     }

@@ -263,6 +263,8 @@ public class PlayerListener implements Listener {
                             return;
                         }
                         Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "God Trophy");
+                    default:
+                        break;
                 }
                 plugin.getTrophyManager().getTrophyTracker().put(p.getUniqueId(), trophies);
                 p.sendRawMessage(ChatColor.GREEN + "Your level cap has been changed to: " + ChatColor.AQUA

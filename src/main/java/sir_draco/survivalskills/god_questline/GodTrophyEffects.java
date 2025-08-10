@@ -37,7 +37,6 @@ public class GodTrophyEffects {
     private NPC npcPlayer;
     private boolean movingUp = false;
     private double crystalRadians = 0;
-    private int questParticles = 0;
     private int npcID = -1;
 
     public GodTrophyEffects(Location trophyLoc) {
@@ -267,9 +266,5 @@ public class GodTrophyEffects {
 
     public void questParticleEffect() {
 
-    }
-
-    public void increaseQuestParticles() {
-        questParticles++;
     }
 }

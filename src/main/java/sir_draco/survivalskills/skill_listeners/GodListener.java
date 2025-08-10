@@ -120,6 +120,7 @@ public class GodListener implements Listener {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @EventHandler
     public void onUseGodItem(PlayerInteractEvent e) {
         if (e.getHand() == null || !e.getHand().equals(EquipmentSlot.HAND)) return;
