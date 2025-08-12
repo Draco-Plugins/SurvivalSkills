@@ -25,7 +25,7 @@ import java.util.UUID;
 public class GodTrophyQuest {
 
     private final UUID uuid;
-    private final int maxPhase = 58;
+    private final int maxPhase = 59;
 
     private int currentItemCount = 0;
 
@@ -411,10 +411,10 @@ public class GodTrophyQuest {
             case 7 -> handInItemStackStep(p, ItemStackGenerator.getMagicBagOfWind(), "Magic Bag Of Wind",
                 lines("Excellent Work!", "Bring me the item from a " + ChatColor.AQUA + "wither skeleton"), false);
             case 8 -> handInItemStackStep(p, ItemStackGenerator.getUnlimitedWitherRose(), "Unlimited Wither Rose",
-                lines("Excellent Work!", "Bring me the item from a " + ChatColor.AQUA + "ender dragon"), true);
+                lines("Excellent Work!", "Bring me the item from a " + ChatColor.AQUA + "ender dragon"), false);
             case 9 -> handInItemStackStep(p, ItemStackGenerator.getDragonBreathCannon(), "Dragon Breath Cannon",
                 lines("I now have serveral interesting mob drops", "However you must not forget we are playing a game!", 
-                "The final task is to complete all Minecraft advancements"), false);
+                "The final task is to complete all Minecraft advancements"), true);
         }
     }
 
