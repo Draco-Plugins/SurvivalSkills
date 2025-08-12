@@ -152,6 +152,7 @@ public final class SurvivalSkills extends JavaPlugin {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to save leaderboard data", e);
         }
 
+        FileUtils.saveTeleportAnchors(godListener.getTeleportAnchors());
         FileUtils.savePowerOreConversions();
         FileUtils.savePotionBags();
         abilityManager.saveToolBelts();

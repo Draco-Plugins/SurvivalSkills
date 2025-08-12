@@ -17,6 +17,7 @@ import org.bukkit.plugin.Plugin;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.abilities.AutoTrash;
 import sir_draco.survivalskills.abilities.TrailEffect;
+import sir_draco.survivalskills.abilities.godItems.TeleporterAnchor;
 import sir_draco.survivalskills.boards.LeaderboardPlayer;
 import sir_draco.survivalskills.commands.admin_commands.*;
 import sir_draco.survivalskills.commands.default_commands.*;
@@ -482,6 +483,76 @@ public class FileUtils {
         }
     }
 
+    /**
+     * Loads all teleport anchors from the teleportanchors.yml file.
+     * This method reconstructs anchor objects and validates their locations.
+     */
+    public static void loadTeleportAnchors(Map<Location, TeleporterAnchor> anchors) {
+        File file = new File(SurvivalSkills.getInstance().getDataFolder(), "teleportanchors.yml");
+        if (!file.exists()) {
+            Bukkit.getLogger().log(Level.INFO,
+                                   "[SurvivalSkills] No teleport anchors file found, starting fresh");
+            return;
+        }
+
+        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+
+        if (!config.contains("TeleportAnchors")) {
+            Bukkit.getLogger().log(Level.INFO,
+                                   "[SurvivalSkills] No teleport anchors data found in file");
+            return;
+        }
+
+        ConfigurationSection section = config.getConfigurationSection("TeleportAnchors");
+        if (section == null) {
+            Bukkit.getLogger().log(Level.WARNING,
+                                   "[SurvivalSkills] Invalid teleport anchors section in config");
+            return;
+        }
+
+        int loadedCount = 0;
+        int skippedCount = 0;
+
+        for (String key : section.getKeys(false)) {
+            try {
+                String name = config.getString("TeleportAnchors." + key + ".Name");
+                Location location = config.getLocation("TeleportAnchors." + key + ".Location");
+                String ownerString = config.getString("TeleportAnchors." + key + ".Owner");
+
+                if (name == null || location == null || ownerString == null) {
+                    Bukkit.getLogger().log(Level.WARNING,
+                                           String.format("[SurvivalSkills] Skipping invalid anchor data for key: %s", key));
+                    skippedCount++;
+                    continue;
+                }
+
+                UUID ownerId = UUID.fromString(ownerString);
+
+                // Validate that the location still has a respawn anchor
+                if (location.getWorld() == null ||
+                        location.getBlock().getType() != Material.RESPAWN_ANCHOR) {
+                    Bukkit.getLogger().log(Level.WARNING,
+                                           String.format("[SurvivalSkills] Skipping anchor '%s' - block no longer exists at location", name));
+                    skippedCount++;
+                    continue;
+                }
+
+                TeleporterAnchor anchor = new TeleporterAnchor(name, location, ownerId);
+                anchors.put(location, anchor);
+                loadedCount++;
+
+            } catch (Exception e) {
+                Bukkit.getLogger().log(Level.WARNING,
+                                       String.format("[SurvivalSkills] Error loading teleport anchor for key: %s", key), e);
+                skippedCount++;
+            }
+        }
+
+        Bukkit.getLogger().log(Level.INFO,
+                               String.format("[SurvivalSkills] Loaded %d teleport anchors (%d skipped)",
+                                             loadedCount, skippedCount));
+    }
+
     public static void savePlayerData(Player p) {
         SurvivalSkills plugin = SurvivalSkills.getInstance();
         if (plugin.getSkillManager().getPlayerSkills().isEmpty()) return;
@@ -654,6 +725,48 @@ public class FileUtils {
             powerOreData.save(powerOreFile);
         } catch (IOException e) {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to save power ore conversions file", e);
+        }
+    }
+
+    /**
+     * Saves all teleport anchors to the teleportanchors.yml file.
+     * This method preserves all anchor data including name, location, and owner.
+     */
+    public static void saveTeleportAnchors(Map<Location, TeleporterAnchor> teleportAnchors) {
+        File file = new File(SurvivalSkills.getInstance().getDataFolder(), "teleportanchors.yml");
+        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+
+        // Clear existing data
+        config.set("TeleportAnchors", null);
+
+        if (teleportAnchors.isEmpty()) {
+            try {
+                config.save(file);
+            } catch (IOException e) {
+                Bukkit.getLogger().log(Level.SEVERE,
+                                       "[SurvivalSkills] Failed to save teleport anchors file", e);
+            }
+            return;
+        }
+
+        for (Map.Entry<Location, TeleporterAnchor> entry : teleportAnchors.entrySet()) {
+            Location loc = entry.getKey();
+            TeleporterAnchor anchor = entry.getValue();
+
+            if (loc.getWorld() == null) continue;
+
+            String path = "TeleportAnchors." + anchor.name();
+            config.set(path + ".Location", loc);
+            config.set(path + ".Owner", anchor.ownerId().toString());
+        }
+
+        try {
+            config.save(file);
+            Bukkit.getLogger().log(Level.INFO,
+                                   String.format("[SurvivalSkills] Saved %d teleport anchors", teleportAnchors.size()));
+        } catch (IOException e) {
+            Bukkit.getLogger().log(Level.SEVERE,
+                                   "[SurvivalSkills] Failed to save teleport anchors file", e);
         }
     }
 }

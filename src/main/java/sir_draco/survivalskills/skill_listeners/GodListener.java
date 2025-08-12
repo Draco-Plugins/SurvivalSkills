@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -19,6 +20,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -34,6 +36,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.abilities.AbilityManager;
 import sir_draco.survivalskills.abilities.godItems.EnderEssence;
+import sir_draco.survivalskills.abilities.godItems.TeleporterAnchor;
 import sir_draco.survivalskills.abilities.PowerDrillAsync;
 import sir_draco.survivalskills.abilities.PowerLaser;
 import sir_draco.survivalskills.rewards.RewardNotifications;
@@ -41,6 +44,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.GodRecipeUI;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.god_questline.PowerOreConversion;
+import sir_draco.survivalskills.utils.FileUtils;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.utils.Utils;
 
@@ -63,10 +67,15 @@ public class GodListener implements Listener {
     private final ArrayList<PotionEffectType> potionEffects = new ArrayList<>();
     private final ArrayList<Inventory> openPotionBags = new ArrayList<>();
 
+    // Teleport Anchor tracking
+    private final HashMap<Location, TeleporterAnchor> teleportAnchors = new HashMap<>();
+    private final HashMap<Player, Integer> teleportGUIPage = new HashMap<>();
+
     public GodListener() {
         createGodWeaponMap();
         createPotionList();
         loadPowerOreConversions();
+        FileUtils.loadTeleportAnchors(teleportAnchors);
     }
 
     @EventHandler
@@ -177,7 +186,6 @@ public class GodListener implements Listener {
         }
         else if (modelData == 39) {
             e.setCancelled(true);
-            //noinspection UnstableApiUsage
             p.launchProjectile(WindCharge.class, p.getLocation().getDirection().multiply(2));
         }
         else if (modelData == 40) {
@@ -370,6 +378,26 @@ public class GodListener implements Listener {
         Player p = e.getPlayer();
         Block block = e.getBlock();
         Location loc = block.getLocation();
+
+        // Handle teleport anchor breaking
+        if (block.getType().equals(Material.RESPAWN_ANCHOR) && teleportAnchors.containsKey(loc)) {
+            TeleporterAnchor anchor = teleportAnchors.get(loc);
+            if (!anchor.ownerId().equals(p.getUniqueId())) {
+                e.setCancelled(true);
+                p.sendMessage(ChatColor.RED + "You can only break your own teleport anchors!");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return;
+            }
+
+            // Remove anchor and drop the item
+            teleportAnchors.remove(loc);
+            e.setDropItems(false);
+            if (loc.getWorld() == null) return;
+            loc.getWorld().dropItemNaturally(loc, ItemStackGenerator.getTeleportAnchor());
+            p.sendMessage(ChatColor.YELLOW + "Teleport anchor '" + anchor.name() + "' removed!");
+            return;
+        }
+
         if (block.getType().equals(Material.OBSIDIAN) && powerOreConversions.containsKey(loc)) {
             PowerOreConversion conversion = powerOreConversions.get(loc);
             if (!conversion.getUUID().equals(p.getUniqueId())) {
@@ -406,47 +434,148 @@ public class GodListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerClickPowerOreConversion(PlayerInteractEvent e) {
-        if (e.getHand() == null || !e.getHand().equals(EquipmentSlot.HAND)) return;
-        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+    public void onPlaceBlock(BlockPlaceEvent e) {
         Player p = e.getPlayer();
-        Block block = e.getClickedBlock();
-        if (block == null) return;
-        Location loc = block.getLocation();
-        if (!powerOreConversions.containsKey(loc)) return;
-        PowerOreConversion conversion = powerOreConversions.get(loc);
-        if (!conversion.getUUID().equals(p.getUniqueId())) return;
+        ItemStack item = e.getItemInHand();
 
-        // Tell the player how much time is left
-        p.sendRawMessage(ChatColor.YELLOW + "Time left: " + RewardNotifications.cooldown(conversion.getSecondsLeft()));
-        p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+        // Handle teleport anchor placement
+        if (ItemStackGenerator.isCustomItem(item, 55)) {
+            // Check if it is in a claim
+            if (SurvivalSkills.getInstance().isGriefPreventionEnabled() && Utils.checkForClaim(p, e.getBlock().getLocation())) {
+                p.sendMessage(ChatColor.RED + "You cannot place teleport anchors in someone else's claim!");
+                e.setCancelled(true);
+                return;
+            }
+
+            // Check if they are in spawn
+            if (SurvivalSkills.getInstance().isWorldGuardEnabled()) {
+                boolean canPlace = Utils.canPlaceBlockInRegion(p, e.getBlock().getLocation());
+                if (!canPlace && !p.hasPermission("survivalskills.op")) {
+                    p.sendMessage(ChatColor.RED + "You cannot place teleport anchors in this region!");
+                    e.setCancelled(true);
+                    return;
+                }
+            }
+
+            // Prompt player for anchor name using chat
+            p.sendMessage(ChatColor.GREEN + "Please type a name for this teleport anchor in chat:");
+            p.sendMessage(ChatColor.GRAY + "Type 'cancel' to cancel placement.");
+
+            // Store the intended location temporarily
+            Location placementLoc = e.getBlock().getLocation();
+            SurvivalSkills.getInstance().getServer()
+                          .getScheduler()
+                          .runTaskLater(SurvivalSkills.getInstance(), () -> promptForAnchorName(p, placementLoc), 1L);
+        }
     }
 
     @EventHandler
-    public void godRecipeClick(InventoryClickEvent e) {
-        Player p = (Player) e.getWhoClicked();
-        if (!openGodRecipeUI.containsKey(p)) return;
+    public void onRightClickAnchor(PlayerInteractEvent e) {
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (e.getHand() == null || !e.getHand().equals(EquipmentSlot.HAND)) return;
+        if (e.getClickedBlock() == null) return;
+
+        // Handle power ore conversion time left display
+        Player p = e.getPlayer();
+        Location location = e.getClickedBlock().getLocation();
+        if (powerOreConversions.containsKey(location)) {
+            PowerOreConversion conversion = powerOreConversions.get(location);
+            if (!conversion.getUUID().equals(p.getUniqueId())) return;
+
+            // Tell the player how much time is left
+            p.sendRawMessage(ChatColor.YELLOW + "Time left: " + RewardNotifications.cooldown(conversion.getSecondsLeft()));
+            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+        }
+
+        // Check for teleport anchor interaction
+        if (e.getClickedBlock().getType() != Material.RESPAWN_ANCHOR) return;
+        if (!teleportAnchors.containsKey(location)) return;
 
         e.setCancelled(true);
-        openGodRecipeUI.get(p).handleClick(e);
-    }
 
-    @EventHandler
-    public void godRecipeDrag(InventoryDragEvent e) {
-        Player p = (Player) e.getWhoClicked();
-        if (!openGodRecipeUI.containsKey(p)) return;
+        // Get all anchors this player can access
+        List<TeleporterAnchor> availableAnchors = new ArrayList<>();
+        for (TeleporterAnchor anchor : teleportAnchors.values()) {
+            // Players can access their own anchors and others in the same world
+            if (anchor.ownerId().equals(p.getUniqueId()) ||
+                (anchor.location().getWorld() != null && anchor.location().getWorld().equals(p.getWorld()))) {
+                availableAnchors.add(anchor);
+            }
+        }
 
-        e.setCancelled(true);
-        openGodRecipeUI.get(p).handleDrag(e);
-    }
-
-    @EventHandler
-    public void godRecipeClose(InventoryCloseEvent e) {
-        Player p = (Player) e.getPlayer();
-        if (!openGodRecipeUI.containsKey(p)) return;
-        if (!openGodRecipeUI.get(p).getInventories().get(openGodRecipeUI.get(p).getCurrentInv()).equals(e.getInventory()))
+        if (availableAnchors.isEmpty()) {
+            p.sendMessage(ChatColor.RED + "No teleport anchors available!");
             return;
-        openGodRecipeUI.remove(p);
+        }
+
+        // Open teleporter GUI starting at page 0
+        teleportGUIPage.put(p, 0);
+        Inventory gui = TeleporterAnchor.createTeleporterGUI(availableAnchors, p, 0);
+        p.openInventory(gui);
+    }
+
+    @EventHandler
+    public void onGUIDrag(InventoryDragEvent e) {
+        Player p = (Player) e.getWhoClicked();
+        if (openGodRecipeUI.containsKey(p)) {
+            e.setCancelled(true);
+            openGodRecipeUI.get(p).handleDrag(e);
+        }
+
+        String inventoryTitle = e.getView().getTitle();
+        if (!inventoryTitle.contains("Teleporter Network")) return;
+        e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onGUIClick(InventoryClickEvent e) {
+        Player p = (Player) e.getWhoClicked();
+        if (openGodRecipeUI.containsKey(p)) {
+            e.setCancelled(true);
+            openGodRecipeUI.get(p).handleClick(e);
+        }
+        String inventoryTitle = e.getView().getTitle();
+
+        // Check if this is a teleporter GUI
+        if (!inventoryTitle.contains("Teleporter Network")) return;
+
+        e.setCancelled(true);
+
+        ItemStack clickedItem = e.getCurrentItem();
+        if (clickedItem == null) return;
+
+        // Get current page and available anchors
+        int currentPage = teleportGUIPage.getOrDefault(p, 0);
+        List<TeleporterAnchor> availableAnchors = new ArrayList<>();
+        for (TeleporterAnchor anchor : teleportAnchors.values()) {
+            if (!clickedItem.getType().equals(Material.END_PORTAL_FRAME)
+                    || TeleporterAnchor.isCorrectAnchor(clickedItem, anchor)) continue;
+            if (anchor.teleportPlayer(p)) {
+                p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            } else {
+                p.sendMessage(ChatColor.RED + "Failed to teleport to anchor!");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            }
+            return;
+        }
+
+        // Handle navigation buttons
+        TeleporterAnchor.handleGUIClick(p, clickedItem, availableAnchors, currentPage);
+    }
+
+    @EventHandler
+    public void onGUIClose(InventoryCloseEvent e) {
+        Player p = (Player) e.getPlayer();
+        String inventoryTitle = e.getView().getTitle();
+
+        if (inventoryTitle.contains("Teleporter Network")) {
+            teleportGUIPage.remove(p);
+            return;
+        }
+
+        if (openGodRecipeUI.containsKey(p)
+                && openGodRecipeUI.get(p).getInventories().get(openGodRecipeUI.get(p).getCurrentInv()).equals(e.getInventory()))
+            openGodRecipeUI.remove(p);
     }
 
     @EventHandler
@@ -669,5 +798,88 @@ public class GodListener implements Listener {
 
     public ArrayList<Player> getPowerLaserCooldowns() {
         return powerLaserCooldowns;
+    }
+
+    // Teleport Anchor helper methods
+
+    /**
+     * Prompts a player to name their teleport anchor via chat input.
+     * This method sets up a temporary chat listener to capture the player's input.
+     *
+     * @param player The player who is naming the anchor
+     * @param location The location where the anchor will be placed
+     */
+    private void promptForAnchorName(Player player, Location location) {
+        // TODO: move this function
+        // Register a one-time chat listener
+        SurvivalSkills.getInstance().getServer().getPluginManager().registerEvents(
+            new org.bukkit.event.Listener() {
+                @EventHandler
+                public void onPlayerChat(AsyncPlayerChatEvent e) {
+                    if (!e.getPlayer().equals(player)) return;
+
+                    e.setCancelled(true);
+                    String input = e.getMessage().trim();
+
+                    // Unregister this listener
+                    AsyncPlayerChatEvent.getHandlerList().unregister(this);
+
+                    if (input.equalsIgnoreCase("cancel")) {
+                        player.sendMessage(ChatColor.YELLOW + "Teleport anchor placement cancelled.");
+                        return;
+                    }
+
+                    if (input.isEmpty() || input.length() > 32) {
+                        player.sendMessage(ChatColor.RED + "Anchor name must be between 1 and 32 characters!");
+                        return;
+                    }
+
+                    // Check if name is already taken by this player
+                    for (TeleporterAnchor existingAnchor : teleportAnchors.values()) {
+                        if (!existingAnchor.name().equalsIgnoreCase(input)) continue;
+                        player.sendMessage(ChatColor.RED + "Another anchor with that name already exists!");
+                        return;
+                    }
+
+                    // Place the anchor
+                    Bukkit.getScheduler().runTask(SurvivalSkills.getInstance(), () -> {
+                        placeAnchor(player, location, input);
+                    });
+                }
+            },
+            SurvivalSkills.getInstance()
+        );
+    }
+
+    /**
+     * Places a teleport anchor at the specified location with the given name.
+     * This method handles the actual block placement and anchor registration.
+     *
+     * @param player The player placing the anchor
+     * @param location The location to place the anchor
+     * @param name The name for the anchor
+     */
+    private void placeAnchor(Player player, Location location, String name) {
+        if (location.getWorld() == null) {
+            player.sendMessage(ChatColor.RED + "Invalid world for anchor placement!");
+            return;
+        }
+
+        // Create and register the teleporter anchor
+        TeleporterAnchor anchor = new TeleporterAnchor(name, location, player.getUniqueId());
+        teleportAnchors.put(location, anchor);
+
+        // Notify player
+        player.sendMessage(ChatColor.GREEN + "Teleport anchor '" + name + "' placed successfully!");
+        player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_SET_SPAWN, 1.0f, 1.0f);
+
+        // Add visual effects
+        location.getWorld().spawnParticle(Particle.PORTAL, location.clone().add(0.5, 1, 0.5),
+                                         20, 0.3, 0.3, 0.3, 0.1);
+    }
+
+    // Getters for teleport anchor data
+    public HashMap<Location, TeleporterAnchor> getTeleportAnchors() {
+        return teleportAnchors;
     }
 }

@@ -16,19 +16,16 @@ import java.util.*;
  * TeleporterAnchor handles the placement and management of teleportation anchors.
  * When placed, anchors allow players to teleport between different named locations.
  */
-public class TeleporterAnchor {
+public record TeleporterAnchor(String name, Location location, UUID ownerId) {
 
     public static final NamespacedKey GUI_ACTION_KEY = new NamespacedKey(SurvivalSkills.getInstance(), "gui_action");
 
-    private final String name;
-    private final Location location;
-    private final UUID ownerId;
-
     /**
      * Creates a new TeleporterAnchor instance
-     * @param name The display name for this anchor
+     *
+     * @param name     The display name for this anchor
      * @param location The world location of the anchor
-     * @param ownerId The UUID of the player who placed this anchor
+     * @param ownerId  The UUID of the player who placed this anchor
      */
     public TeleporterAnchor(String name, Location location, UUID ownerId) {
         this.name = name;
@@ -38,6 +35,7 @@ public class TeleporterAnchor {
 
     /**
      * Teleports a player to this anchor's location safely
+     *
      * @param player The player to teleport
      * @return true if teleportation was successful, false otherwise
      */
@@ -75,6 +73,7 @@ public class TeleporterAnchor {
 
     /**
      * Finds a safe location for teleportation near the anchor
+     *
      * @param startLocation The starting location to search from
      * @return A safe location or null if none found
      */
@@ -110,6 +109,7 @@ public class TeleporterAnchor {
 
     /**
      * Checks if a location is safe for teleportation
+     *
      * @param location The location to check
      * @return true if the location is safe, false otherwise
      */
@@ -132,9 +132,10 @@ public class TeleporterAnchor {
 
     /**
      * Creates a GUI inventory showing available anchors for teleportation with pagination support
+     *
      * @param availableAnchors List of anchors the player can teleport to
-     * @param player The player viewing the GUI
-     * @param page The current page number (0-based)
+     * @param player           The player viewing the GUI
+     * @param page             The current page number (0-based)
      * @return The created inventory
      */
     public static Inventory createTeleporterGUI(List<TeleporterAnchor> availableAnchors, Player player, int page) {
@@ -142,19 +143,27 @@ public class TeleporterAnchor {
         final int INVENTORY_SIZE = 54;
 
         // Calculate pagination
-        int totalPages = (int) Math.ceil((double) availableAnchors.size() / ITEMS_PER_PAGE);
+        int totalPages = Math.max(1, (int) Math.ceil((double) availableAnchors.size() / ITEMS_PER_PAGE));
         int startIndex = page * ITEMS_PER_PAGE;
         int endIndex = Math.min(startIndex + ITEMS_PER_PAGE, availableAnchors.size());
 
-        Inventory gui = Bukkit.createInventory(null, INVENTORY_SIZE,
-                ChatColor.DARK_PURPLE + "Teleporter Network " + ChatColor.GRAY + "(Page " + (page + 1) + "/" + totalPages +
-                        ") - " + availableAnchors.size() + " Total Anchors");
+        // Create title with proper page information
+        String title = ChatColor.DARK_PURPLE + "Teleporter Network " + ChatColor.GRAY + "(" + (page + 1) + "/" + totalPages + ")";
+
+        // Ensure title doesn't exceed Minecraft's 32 character limit for inventory titles
+        if (title.length() > 32) {
+            title = ChatColor.DARK_PURPLE + "Teleporters " + ChatColor.GRAY + "(" + (page + 1) + "/" + totalPages + ")";
+        }
+
+        Inventory gui = Bukkit.createInventory(null, INVENTORY_SIZE, title);
 
         // Add anchor items for current page
-        for (int i = startIndex; i < endIndex; i++) {
+        int slotIndex = 0;
+        for (int i = startIndex; i < endIndex && slotIndex < ITEMS_PER_PAGE; i++) {
             TeleporterAnchor anchor = availableAnchors.get(i);
             ItemStack anchorItem = createAnchorDisplayItem(anchor, player);
-            gui.setItem(i - startIndex, anchorItem);
+            gui.setItem(slotIndex, anchorItem);
+            slotIndex++;
         }
 
         // Add navigation items in bottom row (slots 45-53)
@@ -165,50 +174,40 @@ public class TeleporterAnchor {
 
     /**
      * Adds navigation items to the GUI for pagination
-     * @param gui The inventory to add navigation to
+     *
+     * @param gui         The inventory to add navigation to
      * @param currentPage Current page number (0-based)
-     * @param totalPages Total number of pages
+     * @param totalPages  Total number of pages
      */
     private static void addNavigationItems(Inventory gui, int currentPage, int totalPages) {
         // Previous page button
         if (currentPage > 0) {
-            ItemStack prevButton = createNavigationButton(Material.ARROW,
-                    ChatColor.YELLOW + "Previous Page",
-                    List.of(ChatColor.GRAY + "Go to page " + currentPage),
-                    "prev_page");
+            ItemStack prevButton = createNavigationButton(Material.ARROW, ChatColor.YELLOW + "Previous Page", List.of(ChatColor.GRAY + "Go to page " + currentPage), "prev_page");
             gui.setItem(48, prevButton);
         }
 
         // Next page button
         if (currentPage < totalPages - 1) {
-            ItemStack nextButton = createNavigationButton(Material.ARROW,
-                    ChatColor.YELLOW + "Next Page",
-                    List.of(ChatColor.GRAY + "Go to page " + (currentPage + 2)),
-                    "next_page");
+            ItemStack nextButton = createNavigationButton(Material.ARROW, ChatColor.YELLOW + "Next Page", List.of(ChatColor.GRAY + "Go to page " + (currentPage + 2)), "next_page");
             gui.setItem(50, nextButton);
         }
 
         // Close button
-        ItemStack closeButton = createNavigationButton(Material.BARRIER,
-                ChatColor.RED + "Close",
-                List.of(ChatColor.GRAY + "Close the teleporter menu"),
-                "close");
+        ItemStack closeButton = createNavigationButton(Material.BARRIER, ChatColor.RED + "Close", List.of(ChatColor.GRAY + "Close the teleporter menu"), "close");
         gui.setItem(49, closeButton);
     }
 
     /**
      * Creates a navigation button for the GUI
+     *
      * @param material The material for the button
-     * @param name The display name
-     * @param lore The button lore
-     * @param action The action identifier
+     * @param name     The display name
+     * @param lore     The button lore
+     * @param action   The action identifier
      * @return The created navigation button
      */
     private static ItemStack createNavigationButton(Material material, String name, List<String> lore, String action) {
-        ItemStack button = ItemStackGenerator.createCustomItem(
-                material, 1, name, null, null,
-                new ArrayList<>(lore), 0, false, null
-        );
+        ItemStack button = ItemStackGenerator.createCustomItem(material, 1, name, null, null, new ArrayList<>(lore), 0, false, null);
 
         // Store action in persistent data for identification
         ItemMeta meta = button.getItemMeta();
@@ -222,6 +221,7 @@ public class TeleporterAnchor {
 
     /**
      * Creates an ItemStack representing an anchor in the GUI
+     *
      * @param anchor The anchor to represent
      * @param viewer The player viewing the GUI
      * @return The created ItemStack
@@ -230,21 +230,19 @@ public class TeleporterAnchor {
         ArrayList<String> lore = new ArrayList<>();
         if (anchor.location.getWorld() != null)
             lore.add(ChatColor.GRAY + "World: " + ChatColor.WHITE + anchor.location.getWorld().getEnvironment().name());
-        lore.add(ChatColor.GRAY + "Location: " + ChatColor.WHITE +
-                         (int) anchor.location.getX() + ", " + (int) anchor.location.getY() + ", " + (int) anchor.location.getZ());
+        lore.add(ChatColor.GRAY + "Location: " + ChatColor.WHITE + (int) anchor.location.getX() + ", " + (int) anchor.location.getY() + ", " + (int) anchor.location.getZ());
 
         double distance = viewer.getLocation().distance(anchor.location);
         lore.add(ChatColor.GRAY + "Distance: " + ChatColor.WHITE + String.format("%.1f blocks", distance));
         lore.add("");
         lore.add(ChatColor.GREEN + "Click to teleport!");
 
-        return ItemStackGenerator.createCustomItem(
-                Material.END_PORTAL_FRAME, 1, anchor.name, ChatColor.GOLD,
-                null, lore, 0, false, null);
+        return ItemStackGenerator.createCustomItem(Material.END_PORTAL_FRAME, 1, anchor.name, ChatColor.GOLD, null, lore, 0, false, null);
     }
 
     /**
      * Gets the action from a navigation button
+     *
      * @param item The item to check
      * @return The action string, or null if not a navigation button
      */
@@ -259,11 +257,10 @@ public class TeleporterAnchor {
         ItemMeta meta = item.getItemMeta();
         if (meta == null || !meta.hasDisplayName()) return false;
         String displayName = ChatColor.stripColor(meta.getDisplayName());
-        return displayName.equals(anchor.getName());
+        return displayName.equals(anchor.name());
     }
 
-    public static void handleGUIClick(Player player, ItemStack clickedItem, List<TeleporterAnchor> anchors,
-                                      int currentPage) {
+    public static void handleGUIClick(Player player, ItemStack clickedItem, List<TeleporterAnchor> anchors, int currentPage) {
         String action = getNavigationAction(clickedItem);
         if (action == null) return;
 
@@ -285,8 +282,6 @@ public class TeleporterAnchor {
         }
     }
 
-    // Getters
-    public String getName() { return name; }
-    public Location getLocation() { return location.clone(); }
-    public UUID getOwnerId() { return ownerId; }
+    @Override
+    public Location location() {return location.clone();}
 }
