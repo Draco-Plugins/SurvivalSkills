@@ -265,14 +265,24 @@ public class GodListener implements Listener {
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
             }
-
-            // Throw lightning bolts down near the player
+            // Strike lightning only if there are nearby hostile mobs or other players
             e.setCancelled(true);
-            Location loc = p.getLocation();
-            if (loc.getWorld() == null)
+            List<LivingEntity> targets = getNearbyLightningTargets(p, 12.0);
+            if (targets.isEmpty()) {
+                p.sendRawMessage(ChatColor.YELLOW + "No valid targets nearby for lightning strike.");
+                p.playSound(p, Sound.BLOCK_NOTE_BLOCK_BASS, 0.7f, 0.8f);
                 return;
-            for (int i = 0; i < 8; i++)
-                loc.getWorld().strikeLightning(getSafeNearbyLocation(loc));
+            }
+            World world = p.getWorld();
+            int strikes = 0;
+            for (LivingEntity target : targets) {
+                if (strikes >= 8)
+                    break; // safety cap similar to original behavior
+                Location strikeLoc = getSafeNearbyLocation(target.getLocation());
+                if (strikeLoc.getWorld() != null)
+                    world.strikeLightning(strikeLoc);
+                strikes++;
+            }
         } else if (modelData == 50) {
             e.setCancelled(true);
             if (powerLaserCooldowns.contains(p))
@@ -856,18 +866,73 @@ public class GodListener implements Listener {
     }
 
     public Location getSafeNearbyLocation(Location loc) {
-        Location newLoc = loc.clone();
-        double xOff = (Math.random() - 0.5) * 20;
-        double zOff = (Math.random() - 0.5) * 20;
-        if (Math.abs(xOff) < 5)
-            xOff = 5 * Math.signum(xOff);
-        else if (Math.abs(zOff) < 5)
-            zOff = 5 * Math.signum(zOff);
-        newLoc.add(xOff, 0, zOff);
-        // Touch ground
-        while (newLoc.getBlock().getType().isAir())
-            newLoc.add(0, -1, 0);
-        return newLoc;
+        // Start from provided location; search downward first for first solid block
+        // with air above.
+        if (loc.getWorld() == null)
+            return loc;
+        World world = loc.getWorld();
+        int minY = world.getMinHeight();
+        int maxY = world.getMaxHeight();
+
+        Block base = loc.getBlock();
+        // If starting inside air, move downward until we find a non-air candidate or
+        // hit minY
+        Block search = base;
+        while (search.getY() > minY && search.getType().isAir()) {
+            search = search.getRelative(0, -1, 0);
+        }
+
+        // Now iterate downward to find a solid block with air above
+        Block candidate = search;
+        while (candidate.getY() > minY) {
+            if (candidate.getType().isSolid() && candidate.getRelative(0, 1, 0).getType().isAir()) {
+                return candidate.getLocation().add(0.5, 1, 0.5); // strike just above the block center
+            }
+            candidate = candidate.getRelative(0, -1, 0);
+        }
+
+        // Fallback: search upward from original position if downward search failed
+        // (e.g., void or liquids)
+        Block upSearch = base;
+        while (upSearch.getY() < maxY) {
+            if (upSearch.getType().isSolid() && upSearch.getRelative(0, 1, 0).getType().isAir()) {
+                return upSearch.getLocation().add(0.5, 1, 0.5);
+            }
+            upSearch = upSearch.getRelative(0, 1, 0);
+        }
+
+        // Last resort: original location
+        return loc;
+    }
+
+    /**
+     * Collect nearby hostile mobs or other players (excluding the source player)
+     * within radius.
+     */
+    private List<LivingEntity> getNearbyLightningTargets(Player source, double radius) {
+        List<LivingEntity> targets = new ArrayList<>();
+        for (Entity ent : source.getNearbyEntities(radius, radius, radius)) {
+            if (!(ent instanceof LivingEntity living))
+                continue;
+            if (ent.equals(source))
+                continue;
+            if (ent instanceof Player) {
+                targets.add(living);
+                continue;
+            }
+            if (isHostile(living))
+                targets.add(living);
+        }
+        // Sort by distance so closest get priority when capped
+        targets.sort(Comparator.comparingDouble(t -> t.getLocation().distanceSquared(source.getLocation())));
+        return targets;
+    }
+
+    /**
+     * Determine if a living entity is considered hostile for lightning targeting.
+     */
+    private boolean isHostile(LivingEntity ent) {
+        return ent instanceof Monster || ent instanceof Slime || ent instanceof Phantom;
     }
 
     public HashMap<Player, GodRecipeUI> getOpenGodRecipeUI() {
