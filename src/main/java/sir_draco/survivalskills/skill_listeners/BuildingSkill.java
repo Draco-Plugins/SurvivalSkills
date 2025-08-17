@@ -32,34 +32,45 @@ public class BuildingSkill implements Listener {
 
     private final SurvivalSkills plugin;
     private final HashSet<Material> bannedReturns = new HashSet<>();
-    private final HashSet<String> brokenBlocks = new HashSet<>();
 
     public BuildingSkill(SurvivalSkills plugin) {
         this.plugin = plugin;
         createBannedReturns();
-        createBrokenBlocks();
     }
 
-    @EventHandler (ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onBlockPlace(BlockPlaceEvent e) {
         Player p = e.getPlayer();
 
-        if (e.getBlock().getType().toString().contains("WALL_SIGN")) return;
-        if (brokenBlocks.contains(e.getBlock().getType().toString())) return;
-        if (plugin.getFarmingList().contains(e.getBlock().getType())) return;
-        if (e.getHand().equals(EquipmentSlot.OFF_HAND) && p.getInventory().getItemInMainHand().getType().toString().contains("SHOVEL")) return;
-        if (e.getHand().equals(EquipmentSlot.OFF_HAND) && p.getInventory().getItemInMainHand().getType().toString().contains("HOE")) return;
+        if (e.getBlock().getType().toString().contains("WALL_SIGN"))
+            return;
+        if (plugin.getFarmingList().contains(e.getBlock().getType()))
+            return;
+        if (e.getHand().equals(EquipmentSlot.OFF_HAND)
+                && p.getInventory().getItemInMainHand().getType().toString().contains("SHOVEL"))
+            return;
+        if (e.getHand().equals(EquipmentSlot.OFF_HAND)
+                && p.getInventory().getItemInMainHand().getType().toString().contains("HOE"))
+            return;
 
         SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getBuildingXP(), "Building");
 
         // Handle block return
-        if (isBannedReturn(e.getBlock().getType())) return;
-        if (plugin.getSkillManager().getPlayerRewards(p).getBlockBlackChance() == 0.0) return;
+        if (isBannedReturn(e.getBlock().getType()))
+            return;
+        if (plugin.getSkillManager().getPlayerRewards(p).getBlockBlackChance() == 0.0)
+            return;
         if (Math.random() < plugin.getSkillManager().getPlayerRewards(p).getBlockBlackChance()) {
             ItemStack item;
-            if (e.getBlock().getType().equals(Material.BUBBLE_CORAL_WALL_FAN))
+            Material material = e.getBlock().getType();
+            if (material.equals(Material.BUBBLE_CORAL_WALL_FAN))
                 item = new ItemStack(Material.BUBBLE_CORAL_FAN, 1);
-            else item = new ItemStack(e.getBlock().getType(), 1);
+            else if (material.isItem())
+                item = new ItemStack(material, 1);
+            else
+                return;
+
+            // Give the player the item
             p.getInventory().addItem(item);
         }
     }
@@ -68,15 +79,19 @@ public class BuildingSkill implements Listener {
     public void useSortWand(PlayerInteractEvent e) {
         // Make sure they have all necessary requirements to use the sort wand
         Player p = e.getPlayer();
-        if (isValidSortAttempt(e, p)) return;
+        if (isValidSortAttempt(e, p))
+            return;
         trySortingPlayerInventory(e, p);
 
-        if (!e.getAction().equals(Action.LEFT_CLICK_BLOCK)) return;
+        if (!e.getAction().equals(Action.LEFT_CLICK_BLOCK))
+            return;
         Block block = e.getClickedBlock();
-        if (block == null) return;
+        if (block == null)
+            return;
         if (!block.getType().equals(Material.CHEST) &&
                 !block.getType().equals(Material.TRAPPED_CHEST) &&
-                !isShulkerBox(block.getType())) return;
+                !isShulkerBox(block.getType()))
+            return;
 
         // Get the inventory of the chest or shulker box
         BlockState state = block.getState();
@@ -95,7 +110,8 @@ public class BuildingSkill implements Listener {
         }
 
         // Make sure no one is viewing the inventory
-        if (preventViewingSortedInventory(containerInventory, p)) return;
+        if (preventViewingSortedInventory(containerInventory, p))
+            return;
 
         // Sort the container and add the sorted items to it
         sortChestInventory(containerInventory.getContents().clone(), containerInventory);
@@ -107,7 +123,8 @@ public class BuildingSkill implements Listener {
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent e) {
         AbilityTimer timer = plugin.getAbilityManager().getAbility(e.getPlayer(), "Flight");
-        if (timer == null || !timer.isActive()) return;
+        if (timer == null || !timer.isActive())
+            return;
         Player p = e.getPlayer();
         p.setAllowFlight(true);
         p.setFlying(true);
@@ -116,7 +133,8 @@ public class BuildingSkill implements Listener {
 
     private boolean preventViewingSortedInventory(Inventory containerInventory, Player p) {
         for (HumanEntity human : containerInventory.getViewers()) {
-            if (!(human instanceof Player player) || player.equals(p)) continue;
+            if (!(human instanceof Player player) || player.equals(p))
+                continue;
             p.closeInventory();
             return true;
         }
@@ -129,7 +147,8 @@ public class BuildingSkill implements Listener {
             ItemStack[] items = new ItemStack[27]; // Only main inventory slots (9-35)
             for (int i = 9; i <= 35; i++) {
                 ItemStack item = p.getInventory().getItem(i);
-                if (item == null) continue;
+                if (item == null)
+                    continue;
                 items[i - 9] = item; // Adjust index for the array
             }
             sortPlayerInventory(items.clone(), p.getInventory());
@@ -139,16 +158,19 @@ public class BuildingSkill implements Listener {
     }
 
     private boolean isValidSortAttempt(PlayerInteractEvent e, Player p) {
-        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 16)) return true;
+        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 16))
+            return true;
         Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Building", "AutoSortWand");
-        if (!reward.isEnabled()) return true;
+        if (!reward.isEnabled())
+            return true;
         if (!reward.isApplied() && !p.isOp()) {
             p.sendRawMessage(ChatColor.RED + "You have to be building level: " + ChatColor.AQUA + reward.getLevel()
                     + ChatColor.RED + " to use this ability.");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         }
-        if (e.getHand() == null) return true;
+        if (e.getHand() == null)
+            return true;
         return !e.getHand().equals(EquipmentSlot.HAND);
     }
 
@@ -162,9 +184,13 @@ public class BuildingSkill implements Listener {
 
         chest.clear();
         if (!items.isEmpty())
-            for (ItemStack item : items) if (item != null) chest.addItem(item);
+            for (ItemStack item : items)
+                if (item != null)
+                    chest.addItem(item);
         if (!enchantedBooks.isEmpty())
-            for (ItemStack item : enchantedBooks) if (item != null) chest.addItem(item);
+            for (ItemStack item : enchantedBooks)
+                if (item != null)
+                    chest.addItem(item);
     }
 
     public void sortPlayerInventory(ItemStack[] inventoryItems, Inventory playerInventory) {
@@ -172,7 +198,8 @@ public class BuildingSkill implements Listener {
         List<ItemStack> enchantedBooks = getSortedEnchantedBooks(inventoryItems);
 
         // Only clear the main inventory slots (9-35), preserve hotbar (0-8)
-        for (int i = 9; i <= 35; i++) playerInventory.setItem(i, null);
+        for (int i = 9; i <= 35; i++)
+            playerInventory.setItem(i, null);
 
         // Add items back starting from slot 9
         int currentSlot = 9;
@@ -228,7 +255,8 @@ public class BuildingSkill implements Listener {
     }
 
     public List<ItemStack> condenseList(ArrayList<ItemStack> items, ItemStack itemToAdd) {
-        if (itemToAdd == null) return items;
+        if (itemToAdd == null)
+            return items;
         if (items.isEmpty()) {
             items.add(itemToAdd);
             return items;
@@ -260,8 +288,7 @@ public class BuildingSkill implements Listener {
         if (lastItem.getAmount() + itemToAdd.getAmount() <= 64) {
             lastItem.setAmount(lastItem.getAmount() + itemToAdd.getAmount());
             return items;
-        }
-        else {
+        } else {
             int amountToAdd = 64 - lastItem.getAmount();
             lastItem.setAmount(64);
             itemToAdd.setAmount(itemToAdd.getAmount() - amountToAdd);
@@ -274,11 +301,13 @@ public class BuildingSkill implements Listener {
     public List<ItemStack> getSortedEnchantedBooks(ItemStack[] itemsRaw) {
         ArrayList<ItemStack> enchantedBooks = new ArrayList<>();
         for (ItemStack item : itemsRaw) {
-            if (item == null || !item.getType().equals(Material.ENCHANTED_BOOK)) continue;
+            if (item == null || !item.getType().equals(Material.ENCHANTED_BOOK))
+                continue;
             enchantedBooks.add(item);
         }
 
-        if (enchantedBooks.isEmpty()) return enchantedBooks;
+        if (enchantedBooks.isEmpty())
+            return enchantedBooks;
 
         // Sort the enchanted books by enchantment name
         enchantedBooks.sort((book1, book2) -> {
@@ -293,26 +322,36 @@ public class BuildingSkill implements Listener {
     }
 
     private String getFirstEnchantmentName(ItemStack book) {
-        if (book == null) return "";
+        if (book == null)
+            return "";
         ItemMeta meta = book.getItemMeta();
-        if (meta == null) return "";
-        if (!(meta instanceof EnchantmentStorageMeta enchantmentMeta)) return "";
+        if (meta == null)
+            return "";
+        if (!(meta instanceof EnchantmentStorageMeta enchantmentMeta))
+            return "";
         Map<Enchantment, Integer> enchantments = enchantmentMeta.getStoredEnchants();
-        if (enchantments.isEmpty()) return "";
+        if (enchantments.isEmpty())
+            return "";
         Enchantment enchant = enchantments.keySet().iterator().next();
-        if (enchant == null) return "";
+        if (enchant == null)
+            return "";
         return enchant.getKey().toString();
     }
 
     private int getEnchantLevel(ItemStack book) {
-        if (book == null) return 0;
+        if (book == null)
+            return 0;
         ItemMeta meta = book.getItemMeta();
-        if (meta == null) return 0;
-        if (!(meta instanceof EnchantmentStorageMeta enchantmentMeta)) return 0;
+        if (meta == null)
+            return 0;
+        if (!(meta instanceof EnchantmentStorageMeta enchantmentMeta))
+            return 0;
         Map<Enchantment, Integer> enchantments = enchantmentMeta.getStoredEnchants();
-        if (enchantments.isEmpty()) return 0;
+        if (enchantments.isEmpty())
+            return 0;
         Enchantment enchant = enchantments.keySet().iterator().next();
-        if (enchant == null) return 0;
+        if (enchant == null)
+            return 0;
         return enchantments.get(enchant);
     }
 
@@ -401,41 +440,5 @@ public class BuildingSkill implements Listener {
         bannedReturns.add(Material.YELLOW_SHULKER_BOX);
         bannedReturns.add(Material.END_PORTAL_FRAME);
         bannedReturns.add(Material.FARMLAND);
-    }
-
-    public void createBrokenBlocks() {
-        brokenBlocks.add("CAVE_VINES");
-        brokenBlocks.add("BAMBOO_SAPLING");
-        brokenBlocks.add("REDSTONE_WIRE");
-        brokenBlocks.add("REDSTONE_WALL_TORCH");
-        brokenBlocks.add("SOUL_FIRE");
-        brokenBlocks.add("PITCHER_CROP");
-        brokenBlocks.add("SWEET_BERRY_BUSH");
-        brokenBlocks.add("WEEPING_VINES");
-        brokenBlocks.add("TORCHFLOWER_CROP");
-        brokenBlocks.add("GLOW_LICHEN");
-        brokenBlocks.add("CAVE_VINES_PLANT");
-        brokenBlocks.add("GLOW_LICHEN_PLANT");
-        brokenBlocks.add("GLOW_BERRIES");
-        brokenBlocks.add("DRAGON_WALL_HEAD");
-        brokenBlocks.add("TRIPWIRE");
-        brokenBlocks.add("FIRE");
-        brokenBlocks.add("WHITE_WALL_BANNER");
-        brokenBlocks.add("ORANGE_WALL_BANNER");
-        brokenBlocks.add("MAGENTA_WALL_BANNER");
-        brokenBlocks.add("LIGHT_BLUE_WALL_BANNER");
-        brokenBlocks.add("YELLOW_WALL_BANNER");
-        brokenBlocks.add("LIME_WALL_BANNER");
-        brokenBlocks.add("PINK_WALL_BANNER");
-        brokenBlocks.add("GRAY_WALL_BANNER");
-        brokenBlocks.add("LIGHT_GRAY_WALL_BANNER");
-        brokenBlocks.add("CYAN_WALL_BANNER");
-        brokenBlocks.add("PURPLE_WALL_BANNER");
-        brokenBlocks.add("BLUE_WALL_BANNER");
-        brokenBlocks.add("BROWN_WALL_BANNER");
-        brokenBlocks.add("GREEN_WALL_BANNER");
-        brokenBlocks.add("RED_WALL_BANNER");
-        brokenBlocks.add("BLACK_WALL_BANNER");
-        brokenBlocks.add("MELON_STEM");
     }
 }
