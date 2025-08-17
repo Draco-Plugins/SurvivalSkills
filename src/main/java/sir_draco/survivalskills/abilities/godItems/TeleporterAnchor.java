@@ -13,8 +13,10 @@ import sir_draco.survivalskills.utils.ItemStackGenerator;
 import java.util.*;
 
 /**
- * TeleporterAnchor handles the placement and management of teleportation anchors.
- * When placed, anchors allow players to teleport between different named locations.
+ * TeleporterAnchor handles the placement and management of teleportation
+ * anchors.
+ * When placed, anchors allow players to teleport between different named
+ * locations.
  */
 public record TeleporterAnchor(String name, Location location, UUID ownerId) {
 
@@ -114,7 +116,8 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
      * @return true if the location is safe, false otherwise
      */
     private boolean isSafeTeleportLocation(Location location) {
-        if (location.getWorld() == null) return false;
+        if (location.getWorld() == null)
+            return false;
 
         Block feetBlock = location.getBlock();
         Block headBlock = location.getBlock().getRelative(0, 1, 0);
@@ -131,7 +134,8 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
     }
 
     /**
-     * Creates a GUI inventory showing available anchors for teleportation with pagination support
+     * Creates a GUI inventory showing available anchors for teleportation with
+     * pagination support
      *
      * @param availableAnchors List of anchors the player can teleport to
      * @param player           The player viewing the GUI
@@ -148,9 +152,11 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
         int endIndex = Math.min(startIndex + ITEMS_PER_PAGE, availableAnchors.size());
 
         // Create title with proper page information
-        String title = ChatColor.DARK_PURPLE + "Teleporter Network " + ChatColor.GRAY + "(" + (page + 1) + "/" + totalPages + ")";
+        String title = ChatColor.DARK_PURPLE + "Teleporter Network " + ChatColor.GRAY + "(" + (page + 1) + "/"
+                + totalPages + ")";
 
-        // Ensure title doesn't exceed Minecraft's 32 character limit for inventory titles
+        // Ensure title doesn't exceed Minecraft's 32 character limit for inventory
+        // titles
         if (title.length() > 32) {
             title = ChatColor.DARK_PURPLE + "Teleporters " + ChatColor.GRAY + "(" + (page + 1) + "/" + totalPages + ")";
         }
@@ -182,18 +188,21 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
     private static void addNavigationItems(Inventory gui, int currentPage, int totalPages) {
         // Previous page button
         if (currentPage > 0) {
-            ItemStack prevButton = createNavigationButton(Material.ARROW, ChatColor.YELLOW + "Previous Page", List.of(ChatColor.GRAY + "Go to page " + currentPage), "prev_page");
+            ItemStack prevButton = createNavigationButton(Material.ARROW, ChatColor.YELLOW + "Previous Page",
+                    List.of(ChatColor.GRAY + "Go to page " + currentPage), "prev_page");
             gui.setItem(48, prevButton);
         }
 
         // Next page button
         if (currentPage < totalPages - 1) {
-            ItemStack nextButton = createNavigationButton(Material.ARROW, ChatColor.YELLOW + "Next Page", List.of(ChatColor.GRAY + "Go to page " + (currentPage + 2)), "next_page");
+            ItemStack nextButton = createNavigationButton(Material.ARROW, ChatColor.YELLOW + "Next Page",
+                    List.of(ChatColor.GRAY + "Go to page " + (currentPage + 2)), "next_page");
             gui.setItem(50, nextButton);
         }
 
         // Close button
-        ItemStack closeButton = createNavigationButton(Material.BARRIER, ChatColor.RED + "Close", List.of(ChatColor.GRAY + "Close the teleporter menu"), "close");
+        ItemStack closeButton = createNavigationButton(Material.BARRIER, ChatColor.RED + "Close",
+                List.of(ChatColor.GRAY + "Close the teleporter menu"), "close");
         gui.setItem(49, closeButton);
     }
 
@@ -207,7 +216,8 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
      * @return The created navigation button
      */
     private static ItemStack createNavigationButton(Material material, String name, List<String> lore, String action) {
-        ItemStack button = ItemStackGenerator.createCustomItem(material, 1, name, null, null, new ArrayList<>(lore), 0, false, null);
+        ItemStack button = ItemStackGenerator.createCustomItem(material, 1, name, null, null, new ArrayList<>(lore), 0,
+                false, null);
 
         // Store action in persistent data for identification
         ItemMeta meta = button.getItemMeta();
@@ -230,14 +240,16 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
         ArrayList<String> lore = new ArrayList<>();
         if (anchor.location.getWorld() != null)
             lore.add(ChatColor.GRAY + "World: " + ChatColor.WHITE + anchor.location.getWorld().getEnvironment().name());
-        lore.add(ChatColor.GRAY + "Location: " + ChatColor.WHITE + (int) anchor.location.getX() + ", " + (int) anchor.location.getY() + ", " + (int) anchor.location.getZ());
+        lore.add(ChatColor.GRAY + "Location: " + ChatColor.WHITE + (int) anchor.location.getX() + ", "
+                + (int) anchor.location.getY() + ", " + (int) anchor.location.getZ());
 
         double distance = viewer.getLocation().distance(anchor.location);
         lore.add(ChatColor.GRAY + "Distance: " + ChatColor.WHITE + String.format("%.1f blocks", distance));
         lore.add("");
         lore.add(ChatColor.GREEN + "Click to teleport!");
 
-        return ItemStackGenerator.createCustomItem(Material.END_PORTAL_FRAME, 1, anchor.name, ChatColor.GOLD, null, lore, 0, false, null);
+        return ItemStackGenerator.createCustomItem(Material.END_PORTAL_FRAME, 1, anchor.name, ChatColor.GOLD, null,
+                lore, 0, false, null);
     }
 
     /**
@@ -247,7 +259,8 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
      * @return The action string, or null if not a navigation button
      */
     public static String getNavigationAction(ItemStack item) {
-        if (item == null || item.getItemMeta() == null) return null;
+        if (item == null || item.getItemMeta() == null)
+            return null;
 
         return item.getItemMeta().getPersistentDataContainer().get(GUI_ACTION_KEY, PersistentDataType.STRING);
     }
@@ -255,19 +268,23 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
     public static boolean isCorrectAnchor(ItemStack item, TeleporterAnchor anchor) {
         // Extract the name from the anchor's ItemMeta
         ItemMeta meta = item.getItemMeta();
-        if (meta == null || !meta.hasDisplayName()) return false;
+        if (meta == null || !meta.hasDisplayName())
+            return false;
         String displayName = ChatColor.stripColor(meta.getDisplayName());
         return displayName.equals(anchor.name());
     }
 
-    public static void handleGUIClick(Player player, ItemStack clickedItem, List<TeleporterAnchor> anchors, int currentPage) {
+    public static void handleGUIClick(Player player, ItemStack clickedItem, List<TeleporterAnchor> anchors,
+            int currentPage) {
         String action = getNavigationAction(clickedItem);
-        if (action == null) return;
+        if (action == null)
+            return;
 
         switch (action) {
             case "prev_page":
                 // Handle previous page logic
-                if (currentPage > 0) player.openInventory(createTeleporterGUI(anchors, player, currentPage - 1));
+                if (currentPage > 0)
+                    player.openInventory(createTeleporterGUI(anchors, player, currentPage - 1));
                 break;
             case "next_page":
                 // Handle next page logic
@@ -281,6 +298,4 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
 
         }
     }
-
-    @Override
 }

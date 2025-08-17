@@ -24,6 +24,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -974,47 +975,6 @@ public class GodListener implements Listener {
      */
     private void promptForAnchorName(Player player, Location location) {
         // TODO: move this function
-        // Register a one-time chat listener
-        SurvivalSkills.getInstance().getServer().getPluginManager().registerEvents(
-                new org.bukkit.event.Listener() {
-                    @EventHandler
-                    public void onPlayerChat(AsyncPlayerChatEvent e) {
-                        if (!e.getPlayer().equals(player))
-                            return;
-
-                        e.setCancelled(true);
-                        String input = e.getMessage().trim();
-
-                        // Unregister this listener
-                        // Unregister this listener on the main thread
-                        Bukkit.getScheduler().runTask(SurvivalSkills.getInstance(), () -> {
-                            AsyncPlayerChatEvent.getHandlerList().unregister(this);
-                        });
-
-                        if (input.equalsIgnoreCase("cancel")) {
-                            player.sendMessage(ChatColor.YELLOW + "Teleport anchor placement cancelled.");
-                            return;
-                        }
-
-                        if (input.isEmpty() || input.length() > 32) {
-                            player.sendMessage(ChatColor.RED + "Anchor name must be between 1 and 32 characters!");
-                            return;
-                        }
-
-                        // Check if name is already taken by this player
-                        for (TeleporterAnchor existingAnchor : teleportAnchors.values()) {
-                            if (!existingAnchor.name().equalsIgnoreCase(input))
-                                continue;
-                            player.sendMessage(ChatColor.RED + "Another anchor with that name already exists!");
-                            return;
-                        }
-
-                        // Place the anchor
-                        Bukkit.getScheduler().runTask(SurvivalSkills.getInstance(), () -> {
-                            placeAnchor(player, location, input);
-                        });
-                    }
-                },
         // Register a one-time chat listener with timeout and disconnect cleanup
         final SurvivalSkills plugin = SurvivalSkills.getInstance();
         final long timeoutTicks = 20 * 30; // 30 seconds
