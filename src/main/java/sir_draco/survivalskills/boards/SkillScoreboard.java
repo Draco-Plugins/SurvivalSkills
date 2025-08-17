@@ -15,7 +15,8 @@ public class SkillScoreboard {
     public static void initializeScoreboard(SurvivalSkills plugin, Player p) {
         // Make a new scoreboard
         ScoreboardManager manager = Bukkit.getScoreboardManager();
-        if (manager == null) return;
+        if (manager == null)
+            return;
         Scoreboard board = manager.getNewScoreboard();
         p.setScoreboard(board);
         plugin.getScoreboardTracker().put(p, board);
@@ -27,8 +28,8 @@ public class SkillScoreboard {
             main.setDisplaySlot(DisplaySlot.SIDEBAR);
             deaths.setDisplaySlot(DisplaySlot.PLAYER_LIST);
             updateScoreboard(plugin, p, "Main");
-        }
-        else updateScoreboard(plugin, p, "Main");
+        } else
+            updateScoreboard(plugin, p, "Main");
 
         // Add the scoreboard to the tracker
         p.setScoreboard(board);
@@ -38,7 +39,8 @@ public class SkillScoreboard {
     public static void initializeTrialScoreboard(Player p) {
         // Make a new scoreboard
         ScoreboardManager manager = Bukkit.getScoreboardManager();
-        if (manager == null) return;
+        if (manager == null)
+            return;
         Scoreboard board = manager.getNewScoreboard();
 
         // Register the main and death objectives
@@ -56,7 +58,8 @@ public class SkillScoreboard {
     public static void initializeTrialSpectatorScoreboard(Player p, String targetName) {
         // Make a new scoreboard
         ScoreboardManager manager = Bukkit.getScoreboardManager();
-        if (manager == null) return;
+        if (manager == null)
+            return;
         Scoreboard board = manager.getNewScoreboard();
 
         // Register the main and death objectives
@@ -80,7 +83,8 @@ public class SkillScoreboard {
 
         // Try to put a new empty scoreboard in place
         ScoreboardManager manager = Bukkit.getScoreboardManager();
-        if (manager == null) return;
+        if (manager == null)
+            return;
         Scoreboard empty = manager.getNewScoreboard();
         p.setScoreboard(empty);
         plugin.getScoreboardTracker().remove(p);
@@ -90,7 +94,8 @@ public class SkillScoreboard {
      * Changes a player's scoreboard to represent a change in the XP of a skill
      */
     public static void updateScoreboard(SurvivalSkills plugin, Player p, String skillName) {
-        if (TrialManager.isTrialPlayer(p)) return;
+        if (TrialManager.isTrialPlayer(p))
+            return;
 
         // If the player has never toggled the scoreboard, initialize it
         if (plugin.getToggledScoreboard().get(p.getUniqueId()) == null) {
@@ -98,7 +103,8 @@ public class SkillScoreboard {
             initializeScoreboard(plugin, p);
             return;
         }
-        if (!plugin.getToggledScoreboard().get(p.getUniqueId())) return;
+        if (!plugin.getToggledScoreboard().get(p.getUniqueId()))
+            return;
         Scoreboard board = plugin.getScoreboardTracker().get(p);
         if (board == null) {
             initializeScoreboard(plugin, p);
@@ -109,22 +115,28 @@ public class SkillScoreboard {
         Skill mainSkill = SkillManager.getSkill(p.getUniqueId(), "Main");
         Objective main = board.getObjective("Main");
         Objective deaths = board.getObjective("Deaths");
-        if (main == null) return;
-        if (deaths == null) return;
+        if (main == null)
+            return;
+        if (deaths == null)
+            return;
         int playerLevel = mainSkill.getLevel();
 
         // Color the main level in the scoreboard display
         ChatColor mainColor = getChatColor(mainSkill);
         String mainString;
-        if (mainSkill.getLevel() == 100) mainString = ChatColor.BOLD.toString() + mainColor;
-        else mainString = mainColor.toString();
+        if (mainSkill.getLevel() == 100)
+            mainString = ChatColor.BOLD.toString() + mainColor;
+        else
+            mainString = mainColor.toString();
         main.setDisplayName(ChatColor.GOLD + "Player Main Level " + mainString + "(" + playerLevel + ")");
 
         // Deaths
         for (Player player : Bukkit.getOnlinePlayers()) {
             LeaderboardPlayer leaderboardPlayer = plugin.getLeaderboardTracker().get(player.getUniqueId());
-            if (leaderboardPlayer != null) deaths.getScore(player.getName()).setScore(leaderboardPlayer.getDeathScore());
-            else deaths.getScore(player.getName()).setScore(0);
+            if (leaderboardPlayer != null)
+                deaths.getScore(player.getName()).setScore(leaderboardPlayer.getDeathScore());
+            else
+                deaths.getScore(player.getName()).setScore(0);
         }
 
         // Player NameTags
@@ -132,15 +144,17 @@ public class SkillScoreboard {
             Skill playerMainSkill = SkillManager.getSkill(player.getUniqueId(), "Main");
             ChatColor color = getChatColor(playerMainSkill);
             String colorString;
-            if (playerMainSkill.getLevel() == 100) colorString = ChatColor.BOLD.toString() + color;
-            else colorString = color.toString();
+            if (playerMainSkill.getLevel() == 100)
+                colorString = ChatColor.BOLD.toString() + color;
+            else
+                colorString = color.toString();
             Team team = board.getTeam(player.getName());
             if (team == null) {
                 team = board.registerNewTeam(player.getName());
                 team.addEntry(player.getName());
                 team.setPrefix(colorString + "(" + playerMainSkill.getLevel() + ") ");
-            }
-            else team.setPrefix(colorString + "(" + playerMainSkill.getLevel() + ") ");
+            } else
+                team.setPrefix(colorString + "(" + playerMainSkill.getLevel() + ") ");
         }
 
         if (skillName.equals("Main")) {
@@ -156,12 +170,13 @@ public class SkillScoreboard {
             double ratio = (double) sideSkill.getExperienceSoFarInLevel() / sideSkill.getRawExperienceForNextLevel();
             int newRatio = (int) (ratio * 100);
             skillXPNext = "Progress: " + ChatColor.AQUA + "(" + newRatio + "％)";
-        }
-        else skillXPNext = "Progress: MAX";
+        } else
+            skillXPNext = "Progress: MAX";
 
         // Create a new scoreboard line for each string displayed
         newTeam(board, "SkillXPNext", ChatColor.BLUE.toString(), ChatColor.GRAY + skillXPNext, 1);
-        newTeam(board, "Skill", ChatColor.GRAY.toString(), ChatColor.GOLD + skillName + " Level " + ChatColor.AQUA + "(" + skillLevel + ")", 2);
+        newTeam(board, "Skill", ChatColor.GRAY.toString(),
+                ChatColor.GOLD + skillName + " Level " + ChatColor.AQUA + "(" + skillLevel + ")", 2);
         newTeam(board, "Empty", ChatColor.DARK_PURPLE.toString(), ChatColor.GRAY + "----------------", 3);
     }
 
@@ -169,7 +184,8 @@ public class SkillScoreboard {
      * Changes a player's scoreboard to represent a change in the XP of a skill
      */
     public static void updateScoreboard(SurvivalSkills plugin, Player p) {
-        if (TrialManager.isTrialPlayer(p)) return;
+        if (TrialManager.isTrialPlayer(p))
+            return;
 
         // If the player has never toggled the scoreboard, initialize it
         if (plugin.getToggledScoreboard().get(p.getUniqueId()) == null) {
@@ -177,7 +193,8 @@ public class SkillScoreboard {
             initializeScoreboard(plugin, p);
             return;
         }
-        if (!plugin.getToggledScoreboard().get(p.getUniqueId())) return;
+        if (!plugin.getToggledScoreboard().get(p.getUniqueId()))
+            return;
         Scoreboard board = plugin.getScoreboardTracker().get(p);
         if (board == null) {
             initializeScoreboard(plugin, p);
@@ -188,22 +205,32 @@ public class SkillScoreboard {
         Skill mainSkill = SkillManager.getSkill(p.getUniqueId(), "Main");
         Objective main = board.getObjective("Main");
         Objective deaths = board.getObjective("Deaths");
-        if (main == null) return;
-        if (deaths == null) return;
-        int playerLevel = mainSkill.getLevel();
+        if (main == null)
+            return;
+        if (deaths == null)
+            return;
+        if (mainSkill == null) {
+            Bukkit.getLogger().warning("Player " + p.getName() + " has no main skill set. This should not happen.");
+            return;
+        }
 
+        int playerLevel = mainSkill.getLevel();
         // Color the main level in the scoreboard display
         ChatColor mainColor = getChatColor(mainSkill);
         String mainString;
-        if (mainSkill.getLevel() == 100) mainString = ChatColor.BOLD.toString() + mainColor;
-        else mainString = mainColor.toString();
+        if (mainSkill.getLevel() == 100)
+            mainString = ChatColor.BOLD.toString() + mainColor;
+        else
+            mainString = mainColor.toString();
         main.setDisplayName(ChatColor.GOLD + "Player Main Level " + mainString + "(" + playerLevel + ")");
 
         // Deaths
         for (Player player : Bukkit.getOnlinePlayers()) {
             LeaderboardPlayer leaderboardPlayer = plugin.getLeaderboardTracker().get(player.getUniqueId());
-            if (leaderboardPlayer != null) deaths.getScore(player.getName()).setScore(leaderboardPlayer.getDeathScore());
-            else deaths.getScore(player.getName()).setScore(0);
+            if (leaderboardPlayer != null)
+                deaths.getScore(player.getName()).setScore(leaderboardPlayer.getDeathScore());
+            else
+                deaths.getScore(player.getName()).setScore(0);
         }
 
         // Player NameTags
@@ -211,15 +238,17 @@ public class SkillScoreboard {
             Skill playerMainSkill = SkillManager.getSkill(player.getUniqueId(), "Main");
             ChatColor color = getChatColor(playerMainSkill);
             String colorString;
-            if (playerMainSkill.getLevel() == 100) colorString = ChatColor.BOLD.toString() + color;
-            else colorString = color.toString();
+            if (playerMainSkill.getLevel() == 100)
+                colorString = ChatColor.BOLD.toString() + color;
+            else
+                colorString = color.toString();
             Team team = board.getTeam(player.getName());
             if (team == null) {
                 team = board.registerNewTeam(player.getName());
                 team.addEntry(player.getName());
                 team.setPrefix(colorString + "(" + playerMainSkill.getLevel() + ") ");
-            }
-            else team.setPrefix(colorString + "(" + playerMainSkill.getLevel() + ") ");
+            } else
+                team.setPrefix(colorString + "(" + playerMainSkill.getLevel() + ") ");
         }
 
         p.setScoreboard(board);
@@ -240,7 +269,8 @@ public class SkillScoreboard {
         p.setScoreboard(board);
     }
 
-    public static void updateTrialSpectatorScoreboard(Player p, String targetName, double health, int food, int scoreAmount, int timeAmount) {
+    public static void updateTrialSpectatorScoreboard(Player p, String targetName, double health, int food,
+            int scoreAmount, int timeAmount) {
         Scoreboard board = TrialManager.getTrialScoreboards().get(p);
         if (board == null) {
             initializeTrialSpectatorScoreboard(p, targetName);
@@ -269,9 +299,10 @@ public class SkillScoreboard {
             team.setPrefix(display);
             team.addEntry(holder);
             Objective obj = board.getObjective(DisplaySlot.SIDEBAR);
-            if (obj != null) obj.getScore(holder).setScore(score);
-        }
-        else team.setPrefix(display);
+            if (obj != null)
+                obj.getScore(holder).setScore(score);
+        } else
+            team.setPrefix(display);
     }
 
     /**
@@ -280,17 +311,28 @@ public class SkillScoreboard {
     private static ChatColor getChatColor(Skill playerMainSkill) {
         int playerMainLevel = playerMainSkill.getLevel();
         ChatColor color;
-        if (playerMainLevel < 10) color = ChatColor.GRAY;
-        else if (playerMainLevel < 20) color = ChatColor.DARK_GRAY;
-        else if (playerMainLevel < 30) color = ChatColor.GREEN;
-        else if (playerMainLevel < 40) color = ChatColor.DARK_GREEN;
-        else if (playerMainLevel < 50) color = ChatColor.AQUA;
-        else if (playerMainLevel < 60) color = ChatColor.DARK_AQUA;
-        else if (playerMainLevel < 70) color = ChatColor.LIGHT_PURPLE;
-        else if (playerMainLevel < 80) color = ChatColor.DARK_PURPLE;
-        else if (playerMainLevel < 90) color = ChatColor.RED;
-        else if (playerMainLevel < 100) color = ChatColor.DARK_RED;
-        else color = ChatColor.GOLD;
+        if (playerMainLevel < 10)
+            color = ChatColor.GRAY;
+        else if (playerMainLevel < 20)
+            color = ChatColor.DARK_GRAY;
+        else if (playerMainLevel < 30)
+            color = ChatColor.GREEN;
+        else if (playerMainLevel < 40)
+            color = ChatColor.DARK_GREEN;
+        else if (playerMainLevel < 50)
+            color = ChatColor.AQUA;
+        else if (playerMainLevel < 60)
+            color = ChatColor.DARK_AQUA;
+        else if (playerMainLevel < 70)
+            color = ChatColor.LIGHT_PURPLE;
+        else if (playerMainLevel < 80)
+            color = ChatColor.DARK_PURPLE;
+        else if (playerMainLevel < 90)
+            color = ChatColor.RED;
+        else if (playerMainLevel < 100)
+            color = ChatColor.DARK_RED;
+        else
+            color = ChatColor.GOLD;
         return color;
     }
 

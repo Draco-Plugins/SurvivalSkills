@@ -39,6 +39,7 @@ import sir_draco.survivalskills.abilities.godItems.EnderEssence;
 import sir_draco.survivalskills.abilities.godItems.TeleporterAnchor;
 import sir_draco.survivalskills.abilities.PowerDrillAsync;
 import sir_draco.survivalskills.abilities.PowerLaser;
+import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.GodRecipeUI;
@@ -51,6 +52,7 @@ import sir_draco.survivalskills.utils.Utils;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Level;
 
 public class GodListener implements Listener {
 
@@ -463,14 +465,20 @@ public class GodListener implements Listener {
 
         if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 48)) {
             // Make sure the player has the ability to drill
-            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre")
-                    .isApplied()) {
+            PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
+            if (rewards == null) {
+                Bukkit.getLogger().log(Level.WARNING, "Player rewards not found for " + p.getName());
+                return;
+            }
+
+            if (!rewards.getReward("Mining", "PowerOre").isApplied()) {
                 p.sendRawMessage(ChatColor.RED + "Unlock power ore to use the drill at level: " + ChatColor.AQUA +
                         SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards()
                                 .getReward("Mining", "PowerOre").getLevel());
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
             }
+
             // Make sure this block isn't part of a previous drill task
             if (!drillTracker.containsKey(p))
                 drillTracker.put(p, new ArrayList<>());
