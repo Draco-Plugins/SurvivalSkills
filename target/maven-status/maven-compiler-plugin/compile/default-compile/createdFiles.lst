@@ -1,12 +1,11 @@
 sir_draco\survivalskills\rewards\Reward.class
 sir_draco\survivalskills\SurvivalSkills$2.class
 sir_draco\survivalskills\abilities\TrailEffect.class
-sir_draco\survivalskills\abilities\GodItems\EnderEssence$1.class
 sir_draco\survivalskills\bosses\VillagerBoss$1.class
 sir_draco\survivalskills\skill_listeners\FarmingSkill$1.class
 sir_draco\survivalskills\rewards\RewardNotifications.class
 sir_draco\survivalskills\bosses\VillagerBoss$11.class
-sir_draco\survivalskills\abilities\GodItems\TeleporterAnchor.class
+sir_draco\survivalskills\abilities\godItems\EnderEssence$1.class
 sir_draco\survivalskills\bosses\VillagerBoss$17.class
 sir_draco\survivalskills\SurvivalSkills$1.class
 sir_draco\survivalskills\bosses\VillagerBoss$18.class
@@ -40,7 +39,7 @@ sir_draco\survivalskills\bosses\VillagerBoss$14.class
 sir_draco\survivalskills\god_questline\trial\Trial$3.class
 sir_draco\survivalskills\commands\default_commands\SkillStatsCommand$1$1.class
 sir_draco\survivalskills\trophy\ParticleColumnThread.class
-sir_draco\survivalskills\abilities\GodItems\EnderEssence.class
+sir_draco\survivalskills\abilities\godItems\TeleporterAnchor.class
 sir_draco\survivalskills\utils\ProjectileCalculator.class
 sir_draco\survivalskills\bosses\VillagerBoss$9.class
 sir_draco\survivalskills\commands\skill_commands\MobScannerCommand$1.class
@@ -49,7 +48,6 @@ sir_draco\survivalskills\bosses\VillagerBoss$19.class
 sir_draco\survivalskills\trophy\CircularRotationObject.class
 sir_draco\survivalskills\bosses\VillagerBoss$3.class
 sir_draco\survivalskills\utils\RecipeRecord.class
-sir_draco\survivalskills\skill_listeners\GodListener$2.class
 sir_draco\survivalskills\bosses\VillagerBoss$10.class
 sir_draco\survivalskills\skills\SkillManager$1.class
 sir_draco\survivalskills\skill_listeners\FishingSkill$1.class
@@ -63,3 +61,4 @@ sir_draco\survivalskills\abilities\BerserkerEffects.class
 sir_draco\survivalskills\TrialGUI$2.class
 sir_draco\survivalskills\skill_listeners\MiningSkill$1.class
 sir_draco\survivalskills\commands\default_commands\SkillStatsCommand$1.class
+sir_draco\survivalskills\abilities\godItems\EnderEssence.class

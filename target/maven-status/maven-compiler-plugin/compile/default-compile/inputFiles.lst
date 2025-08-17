@@ -119,7 +119,6 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\ResetAllCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\StoreTrialBuildingCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\BerserkerEffects.java
-c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\GodQuestCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\ToggleBloodyDomainCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial\PlayerTrialUpgrades.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\MiningSkill.java
@@ -129,6 +128,7 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial_mobs\GrimWither.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\TrialGUI.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial\TrialTree.java
+c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\default_commands\GodQuestCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\WaterBreathingTimer.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial\TrialManager.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\WandererArmor.java
