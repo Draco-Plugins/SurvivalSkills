@@ -812,8 +812,12 @@ public class GodListener implements Listener {
         }.runTaskLaterAsynchronously(SurvivalSkills.getInstance(), 20);
 
         // Check if player has unlocked power ore
-        if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre")
-                .isApplied())
+        PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
+        if (rewards == null) {
+            Bukkit.getLogger().log(Level.WARNING, "Player rewards not found for " + p.getName());
+            return;
+        }
+        if (!rewards.getReward("Mining", "PowerOre").isApplied())
             return;
 
         // Check if there is obsidian below the player
