@@ -986,7 +986,10 @@ public class GodListener implements Listener {
                         String input = e.getMessage().trim();
 
                         // Unregister this listener
-                        AsyncPlayerChatEvent.getHandlerList().unregister(this);
+                        // Unregister this listener on the main thread
+                        Bukkit.getScheduler().runTask(SurvivalSkills.getInstance(), () -> {
+                            AsyncPlayerChatEvent.getHandlerList().unregister(this);
+                        });
 
                         if (input.equalsIgnoreCase("cancel")) {
                             player.sendMessage(ChatColor.YELLOW + "Teleport anchor placement cancelled.");
