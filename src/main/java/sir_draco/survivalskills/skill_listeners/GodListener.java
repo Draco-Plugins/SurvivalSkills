@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -19,6 +20,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -34,19 +36,23 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.abilities.AbilityManager;
 import sir_draco.survivalskills.abilities.godItems.EnderEssence;
+import sir_draco.survivalskills.abilities.godItems.TeleporterAnchor;
 import sir_draco.survivalskills.abilities.PowerDrillAsync;
 import sir_draco.survivalskills.abilities.PowerLaser;
+import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.GodRecipeUI;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.god_questline.PowerOreConversion;
+import sir_draco.survivalskills.utils.FileUtils;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Level;
 
 public class GodListener implements Listener {
 
@@ -63,16 +69,22 @@ public class GodListener implements Listener {
     private final ArrayList<PotionEffectType> potionEffects = new ArrayList<>();
     private final ArrayList<Inventory> openPotionBags = new ArrayList<>();
 
+    // Teleport Anchor tracking
+    private final HashMap<Location, TeleporterAnchor> teleportAnchors = new HashMap<>();
+    private final HashMap<Player, Integer> teleportGUIPage = new HashMap<>();
+
     public GodListener() {
         createGodWeaponMap();
         createPotionList();
         loadPowerOreConversions();
+        FileUtils.loadTeleportAnchors(teleportAnchors);
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        if (p.hasPlayedBefore()) return;
+        if (p.hasPlayedBefore())
+            return;
 
         if (!SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId())) {
             GodTrophyQuest quest = new GodTrophyQuest(p.getUniqueId());
@@ -84,37 +96,35 @@ public class GodListener implements Listener {
     public void dropGodWeapon(EntityDeathEvent e) {
         EntityType type = e.getEntityType();
         double chance = Math.random();
-        if (!godItems.containsKey(type)) return;
+        if (!godItems.containsKey(type))
+            return;
 
         // Special cases
         if (type.equals(EntityType.ENDER_DRAGON) && chance <= 0.1) {
             e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), godItems.get(type));
             e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
-        }
-        else if (type.equals(EntityType.CREEPER)) {
+        } else if (type.equals(EntityType.CREEPER)) {
             Creeper creeper = (Creeper) e.getEntity();
             if (creeper.isPowered() && chance <= 0.01) {
                 e.getDrops().add(godItems.get(type));
                 e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
-            }
-            else if (chance <= 0.001) {
+            } else if (chance <= 0.001) {
                 e.getDrops().add(godItems.get(type));
                 e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
             }
-        }
-        else if (type.equals(EntityType.BREEZE) && chance <= 0.01) {
+        } else if (type.equals(EntityType.BREEZE) && chance <= 0.01) {
             e.getDrops().add(godItems.get(type));
             e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
         }
 
         // Rest of the mobs
-        if (chance > 0.001) return;
+        if (chance > 0.001)
+            return;
 
         if (type.equals(EntityType.WITCH)) {
             e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
             e.getDrops().add(ItemStackGenerator.getPotionBag(previousPotionBagID++));
-        }
-        else {
+        } else {
             e.getDrops().add(godItems.get(type));
             e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
         }
@@ -123,15 +133,20 @@ public class GodListener implements Listener {
     @SuppressWarnings("deprecation")
     @EventHandler
     public void onUseGodItem(PlayerInteractEvent e) {
-        if (e.getHand() == null || !e.getHand().equals(EquipmentSlot.HAND)) return;
-        if (!e.getAction().equals(Action.RIGHT_CLICK_AIR) && !e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+        if (e.getHand() == null || !e.getHand().equals(EquipmentSlot.HAND))
+            return;
+        if (!e.getAction().equals(Action.RIGHT_CLICK_AIR) && !e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
+            return;
         Player p = e.getPlayer();
         ItemStack mainHand = p.getInventory().getItemInMainHand();
 
-        if (!ItemStackGenerator.isCustomItem(mainHand)) return;
+        if (!ItemStackGenerator.isCustomItem(mainHand))
+            return;
         ItemMeta meta = mainHand.getItemMeta();
-        if (meta == null) return;
-        if (!meta.hasCustomModelData()) return;
+        if (meta == null)
+            return;
+        if (!meta.hasCustomModelData())
+            return;
         int modelData = meta.getCustomModelData();
 
         if (modelData == 33) {
@@ -141,16 +156,13 @@ public class GodListener implements Listener {
             cobweb.setHurtEntities(false);
             cobweb.setVelocity(velocity);
             p.getWorld().playSound(p.getLocation(), Sound.ENTITY_EGG_THROW, 1, 1);
-        }
-        else if (modelData == 36) {
+        } else if (modelData == 36) {
             e.setCancelled(true);
             Location loc = p.getLocation().clone().add(p.getLocation().getDirection().multiply(5));
             new EnderEssence(p, loc).runTaskAsynchronously(SurvivalSkills.getInstance());
-        }
-        else if (modelData == 37) {
+        } else if (modelData == 37) {
             p.getWorld().createExplosion(p.getLocation(), 5, false, true, p);
-        }
-        else if (modelData == 38) {
+        } else if (modelData == 38) {
             int id = getPotionBagID(mainHand);
 
             if (potionBags.containsKey(id)) {
@@ -161,7 +173,8 @@ public class GodListener implements Listener {
 
             // Try to get the bag data from config
             File file = new File(SurvivalSkills.getInstance().getDataFolder(), "potionbags.yml");
-            if (!file.exists()) SurvivalSkills.getInstance().saveResource("potionbags.yml", false);
+            if (!file.exists())
+                SurvivalSkills.getInstance().saveResource("potionbags.yml", false);
             FileConfiguration config = YamlConfiguration.loadConfiguration(file);
             if (potionBagExists(id, config)) {
                 Inventory bag = loadPotionBag(id, config);
@@ -174,89 +187,115 @@ public class GodListener implements Listener {
             potionBags.put(id, potionBag);
             openPotionBags.add(potionBag);
             p.openInventory(potionBag);
-        }
-        else if (modelData == 39) {
+        } else if (modelData == 39) {
             e.setCancelled(true);
-            //noinspection UnstableApiUsage
             p.launchProjectile(WindCharge.class, p.getLocation().getDirection().multiply(2));
-        }
-        else if (modelData == 40) {
+        } else if (modelData == 40) {
             e.setCancelled(true);
             p.launchProjectile(DragonFireball.class, p.getLocation().getDirection().multiply(2));
-        }
-        else if (modelData == 41) {
+        } else if (modelData == 41) {
             e.setCancelled(true);
-            if (e.getHand() == null) return;
-            if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+            if (e.getHand() == null)
+                return;
+            if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
+                return;
 
-            if (e.getClickedBlock() == null) return;
+            if (e.getClickedBlock() == null)
+                return;
 
             // Check if it is in a claim
-            if (SurvivalSkills.getInstance().isGriefPreventionEnabled() && Utils.checkForClaim(p, e.getClickedBlock().getLocation())) return;
+            if (SurvivalSkills.getInstance().isGriefPreventionEnabled()
+                    && Utils.checkForClaim(p, e.getClickedBlock().getLocation()))
+                return;
             // Check if they are in spawn
             if (SurvivalSkills.getInstance().isWorldGuardEnabled()) {
                 boolean canPlace = Utils.canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
-                if (!canPlace) return;
+                if (!canPlace)
+                    return;
             }
 
             // Place sponge if possible
             Block desiredBlock = e.getClickedBlock().getRelative(e.getBlockFace());
-            if (!desiredBlock.getType().isAir() && !desiredBlock.getType().equals(Material.WATER)) return;
+            if (!desiredBlock.getType().isAir() && !desiredBlock.getType().equals(Material.WATER))
+                return;
             BlockState state = desiredBlock.getState();
             state.setType(Material.WITHER_ROSE);
             desiredBlock.setType(Material.WITHER_ROSE);
             state.update(true);
-        }
-        else if (modelData == 43) {
+        } else if (modelData == 43) {
             // Handle trident launcher
             e.setCancelled(true);
             Trident trident = p.launchProjectile(Trident.class, p.getLocation().getDirection().multiply(2));
             trident.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
-        }
-        else if (modelData == 46) {
+        } else if (modelData == 46) {
             e.setCancelled(true);
-            if (e.getHand() == null) return;
-            if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+            if (e.getHand() == null)
+                return;
+            if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
+                return;
 
-            if (e.getClickedBlock() == null) return;
+            if (e.getClickedBlock() == null)
+                return;
 
             // Check if it is in a claim
-            if (SurvivalSkills.getInstance().isGriefPreventionEnabled() && Utils.checkForClaim(p, e.getClickedBlock().getLocation())) return;
+            if (SurvivalSkills.getInstance().isGriefPreventionEnabled()
+                    && Utils.checkForClaim(p, e.getClickedBlock().getLocation()))
+                return;
             // Check if they are in spawn
             if (SurvivalSkills.getInstance().isWorldGuardEnabled()) {
                 boolean canPlace = Utils.canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
-                if (!canPlace) return;
+                if (!canPlace)
+                    return;
             }
 
             // Place sponge if possible
             Block desiredBlock = e.getClickedBlock().getRelative(e.getBlockFace());
-            if (!desiredBlock.getType().isAir() && !desiredBlock.getType().equals(Material.WATER)) return;
+            if (!desiredBlock.getType().isAir() && !desiredBlock.getType().equals(Material.WATER))
+                return;
             BlockState state = desiredBlock.getState();
             state.setType(Material.SPONGE);
             desiredBlock.setType(Material.SPONGE);
             state.update(true);
-        }
-        else if (modelData == 47) {
-            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre").isApplied()) {
-                p.sendRawMessage(ChatColor.RED + "Unlock power ore to use the power swords special ability at mining level: " + ChatColor.AQUA +
-                        SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards().getReward("Mining", "PowerOre").getLevel());
+        } else if (modelData == 47) {
+            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre")
+                    .isApplied()) {
+                p.sendRawMessage(
+                        ChatColor.RED + "Unlock power ore to use the power swords special ability at mining level: "
+                                + ChatColor.AQUA +
+                                SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards()
+                                        .getReward("Mining", "PowerOre").getLevel());
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
             }
-
-            // Throw lightning bolts down near the player
+            // Strike lightning only if there are nearby hostile mobs or other players
             e.setCancelled(true);
-            Location loc = p.getLocation();
-            if (loc.getWorld() == null) return;
-            for (int i = 0; i < 8; i++) loc.getWorld().strikeLightning(getSafeNearbyLocation(loc));
-        }
-        else if (modelData == 50) {
+            List<LivingEntity> targets = getNearbyLightningTargets(p, 12.0);
+            if (targets.isEmpty()) {
+                p.sendRawMessage(ChatColor.YELLOW + "No valid targets nearby for lightning strike.");
+                p.playSound(p, Sound.BLOCK_NOTE_BLOCK_BASS, 0.7f, 0.8f);
+                return;
+            }
+            World world = p.getWorld();
+            int strikes = 0;
+            for (LivingEntity target : targets) {
+                if (strikes >= 8)
+                    break; // safety cap similar to original behavior
+                Location strikeLoc = getSafeNearbyLocation(target.getLocation());
+                if (strikeLoc.getWorld() != null)
+                    world.strikeLightning(strikeLoc);
+                strikes++;
+            }
+        } else if (modelData == 50) {
             e.setCancelled(true);
-            if (powerLaserCooldowns.contains(p)) return;
+            if (powerLaserCooldowns.contains(p))
+                return;
 
-            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre").isApplied()) {
-                p.sendRawMessage(ChatColor.RED + "Unlock power ore to use the power laser at mining level: " + ChatColor.AQUA +
-                        SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards().getReward("Mining", "PowerOre").getLevel());
+            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre")
+                    .isApplied()) {
+                p.sendRawMessage(
+                        ChatColor.RED + "Unlock power ore to use the power laser at mining level: " + ChatColor.AQUA +
+                                SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards()
+                                        .getReward("Mining", "PowerOre").getLevel());
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
             }
@@ -269,8 +308,10 @@ public class GodListener implements Listener {
 
     @EventHandler
     public void reviveZombie(PlayerInteractEntityEvent e) {
-        if (!e.getHand().equals(EquipmentSlot.HAND)) return;
-        if (!e.getRightClicked().getType().equals(EntityType.ZOMBIE_VILLAGER)) return;
+        if (!e.getHand().equals(EquipmentSlot.HAND))
+            return;
+        if (!e.getRightClicked().getType().equals(EntityType.ZOMBIE_VILLAGER))
+            return;
         Player p = e.getPlayer();
         ItemStack mainHand = p.getInventory().getItemInMainHand();
 
@@ -278,7 +319,8 @@ public class GodListener implements Listener {
             ZombieVillager zombie = (ZombieVillager) e.getRightClicked();
             zombie.setConversionTime(40);
             Location loc = e.getRightClicked().getLocation();
-            if (loc.getWorld() == null) return;
+            if (loc.getWorld() == null)
+                return;
             p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 1, 1);
             loc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, loc, 30, Math.random(), Math.random(), Math.random());
         }
@@ -286,31 +328,37 @@ public class GodListener implements Listener {
 
     @EventHandler
     public void onBowShoot(EntityShootBowEvent e) {
-        if (!(e.getEntity() instanceof Player p)) return;
+        if (!(e.getEntity() instanceof Player p))
+            return;
         ItemStack arrow = e.getConsumable();
-        if (!ItemStackGenerator.isCustomItem(arrow, 34)) return;
+        if (!ItemStackGenerator.isCustomItem(arrow, 34))
+            return;
 
         Arrow oldArrow = (Arrow) e.getProjectile();
         Arrow projectile = p.launchProjectile(Arrow.class, oldArrow.getVelocity());
         e.setCancelled(true);
         projectile.addCustomEffect(getRandomPotionEffect(), true);
         projectile.setPickupStatus(Arrow.PickupStatus.DISALLOWED);
-        projectile.setColor(Color.fromRGB(new Random().nextInt(256), new Random().nextInt(256), new Random().nextInt(256)));
+        projectile.setColor(
+                Color.fromRGB(new Random().nextInt(256), new Random().nextInt(256), new Random().nextInt(256)));
     }
 
     @EventHandler
     public void handleGodDamage(EntityDamageEvent e) {
-        if (!(e.getEntity() instanceof Player p)) return;
+        if (!(e.getEntity() instanceof Player p))
+            return;
 
         if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 47)) {
-            if (!e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING)) return;
+            if (!e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING))
+                return;
             e.setCancelled(true);
             return;
         }
 
         if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 37)) {
             if (!e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) &&
-                    !e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) return;
+                    !e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION))
+                return;
             e.setCancelled(true);
         }
     }
@@ -319,38 +367,45 @@ public class GodListener implements Listener {
     public void potionBagClick(InventoryClickEvent e) {
         Player p = (Player) e.getWhoClicked();
         if (e.getClick().equals(ClickType.DOUBLE_CLICK)) {
-            if (!openPotionBags.contains(p.getOpenInventory().getTopInventory())) return;
-            if (e.getCurrentItem() == null) return;
+            if (!openPotionBags.contains(p.getOpenInventory().getTopInventory()))
+                return;
+            if (e.getCurrentItem() == null)
+                return;
             if (isNotPotion(e.getCurrentItem().getType())) {
                 e.setCancelled(true);
                 return;
             }
         }
 
-        if (!openPotionBags.contains(e.getInventory())) return;
-        if (e.getCursor() == null) return;
+        if (!openPotionBags.contains(e.getInventory()))
+            return;
+        if (e.getCursor() == null)
+            return;
         if (isNotPotion(e.getCursor().getType())) {
             e.setCancelled(true);
             p.sendRawMessage(ChatColor.RED + "Only potions can go in this bag");
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT , 1, 1);
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
         }
     }
 
     @EventHandler
     public void potionDrag(InventoryDragEvent e) {
-        if (!openPotionBags.contains(e.getInventory())) return;
+        if (!openPotionBags.contains(e.getInventory()))
+            return;
         Player p = (Player) e.getWhoClicked();
         if (isNotPotion(e.getOldCursor().getType())) {
             e.setCancelled(true);
             p.sendRawMessage(ChatColor.RED + "Only potions can go in this bag");
-            p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT , 1, 1);
+            p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
         }
     }
 
     @EventHandler
     public void onPotionBagDestroy(EntityDamageEvent e) {
-        if (!(e.getEntity() instanceof Item item)) return;
-        if (!ItemStackGenerator.isCustomItem(item.getItemStack(), 38)) return;
+        if (!(e.getEntity() instanceof Item item))
+            return;
+        if (!ItemStackGenerator.isCustomItem(item.getItemStack(), 38))
+            return;
 
         int id = getPotionBagID(item.getItemStack());
         item.remove();
@@ -359,9 +414,12 @@ public class GodListener implements Listener {
 
     @EventHandler
     public void onPlayerDamageByLightning(EntityDamageEvent e) {
-        if (!(e.getEntity() instanceof Player p)) return;
-        if (!e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING)) return;
-        if (conversionCooldowns.contains(p)) return;
+        if (!(e.getEntity() instanceof Player p))
+            return;
+        if (!e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING))
+            return;
+        if (conversionCooldowns.contains(p))
+            return;
         tryPowerOreConversion(p);
     }
 
@@ -370,6 +428,27 @@ public class GodListener implements Listener {
         Player p = e.getPlayer();
         Block block = e.getBlock();
         Location loc = block.getLocation();
+
+        // Handle teleport anchor breaking
+        if (block.getType().equals(Material.RESPAWN_ANCHOR) && teleportAnchors.containsKey(loc)) {
+            TeleporterAnchor anchor = teleportAnchors.get(loc);
+            if (!anchor.ownerId().equals(p.getUniqueId())) {
+                e.setCancelled(true);
+                p.sendMessage(ChatColor.RED + "You can only break your own teleport anchors!");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return;
+            }
+
+            // Remove anchor and drop the item
+            teleportAnchors.remove(loc);
+            e.setDropItems(false);
+            if (loc.getWorld() == null)
+                return;
+            loc.getWorld().dropItemNaturally(loc, ItemStackGenerator.getTeleportAnchor());
+            p.sendMessage(ChatColor.YELLOW + "Teleport anchor '" + anchor.name() + "' removed!");
+            return;
+        }
+
         if (block.getType().equals(Material.OBSIDIAN) && powerOreConversions.containsKey(loc)) {
             PowerOreConversion conversion = powerOreConversions.get(loc);
             if (!conversion.getUUID().equals(p.getUniqueId())) {
@@ -386,78 +465,214 @@ public class GodListener implements Listener {
 
         if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 48)) {
             // Make sure the player has the ability to drill
-            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre").isApplied()) {
+            PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
+            if (rewards == null) {
+                Bukkit.getLogger().log(Level.WARNING, "Player rewards not found for " + p.getName());
+                return;
+            }
+
+            if (!rewards.getReward("Mining", "PowerOre").isApplied()) {
                 p.sendRawMessage(ChatColor.RED + "Unlock power ore to use the drill at level: " + ChatColor.AQUA +
-                        SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards().getReward("Mining", "PowerOre").getLevel());
+                        SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards()
+                                .getReward("Mining", "PowerOre").getLevel());
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
             }
+
             // Make sure this block isn't part of a previous drill task
-            if (!drillTracker.containsKey(p)) drillTracker.put(p, new ArrayList<>());
+            if (!drillTracker.containsKey(p))
+                drillTracker.put(p, new ArrayList<>());
             if (drillTracker.get(p).contains(e.getBlock())) {
                 drillTracker.get(p).remove(e.getBlock());
                 return;
             }
             // Prevent drill crossover by ignoring air blocks
-            if (block.getType().equals(Material.AIR)) return;
+            if (block.getType().equals(Material.AIR))
+                return;
             PowerDrillAsync drillTask = new PowerDrillAsync(SurvivalSkills.getInstance(), p, this, e.getBlock());
             drillTask.runTaskAsynchronously(SurvivalSkills.getInstance());
         }
     }
 
     @EventHandler
-    public void onPlayerClickPowerOreConversion(PlayerInteractEvent e) {
-        if (e.getHand() == null || !e.getHand().equals(EquipmentSlot.HAND)) return;
-        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+    public void onPlaceBlock(BlockPlaceEvent e) {
         Player p = e.getPlayer();
-        Block block = e.getClickedBlock();
-        if (block == null) return;
-        Location loc = block.getLocation();
-        if (!powerOreConversions.containsKey(loc)) return;
-        PowerOreConversion conversion = powerOreConversions.get(loc);
-        if (!conversion.getUUID().equals(p.getUniqueId())) return;
+        ItemStack item = e.getItemInHand();
 
-        // Tell the player how much time is left
-        p.sendRawMessage(ChatColor.YELLOW + "Time left: " + RewardNotifications.cooldown(conversion.getSecondsLeft()));
-        p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+        // Handle teleport anchor placement
+        if (ItemStackGenerator.isCustomItem(item, 55)) {
+            // Check if it is in a claim
+            if (SurvivalSkills.getInstance().isGriefPreventionEnabled()
+                    && Utils.checkForClaim(p, e.getBlock().getLocation())) {
+                p.sendMessage(ChatColor.RED + "You cannot place teleport anchors in someone else's claim!");
+                e.setCancelled(true);
+                return;
+            }
+
+            // Check if they are in spawn
+            if (SurvivalSkills.getInstance().isWorldGuardEnabled()) {
+                boolean canPlace = Utils.canPlaceBlockInRegion(p, e.getBlock().getLocation());
+                if (!canPlace && !p.hasPermission("survivalskills.op")) {
+                    p.sendMessage(ChatColor.RED + "You cannot place teleport anchors in this region!");
+                    e.setCancelled(true);
+                    return;
+                }
+            }
+
+            // Prompt player for anchor name using chat
+            p.sendMessage(ChatColor.GREEN + "Please type a name for this teleport anchor in chat:");
+            p.sendMessage(ChatColor.GRAY + "Type 'cancel' to cancel placement.");
+
+            // Store the intended location temporarily
+            Location placementLoc = e.getBlock().getLocation();
+            SurvivalSkills.getInstance().getServer()
+                    .getScheduler()
+                    .runTaskLater(SurvivalSkills.getInstance(), () -> promptForAnchorName(p, placementLoc), 1L);
+        }
+
+        else if (ItemStackGenerator.isCustomItem(item, 44)) {
+            // Prevent power ore from being placed
+            e.setCancelled(true);
+        }
     }
 
     @EventHandler
-    public void godRecipeClick(InventoryClickEvent e) {
-        Player p = (Player) e.getWhoClicked();
-        if (!openGodRecipeUI.containsKey(p)) return;
-
-        e.setCancelled(true);
-        openGodRecipeUI.get(p).handleClick(e);
-    }
-
-    @EventHandler
-    public void godRecipeDrag(InventoryDragEvent e) {
-        Player p = (Player) e.getWhoClicked();
-        if (!openGodRecipeUI.containsKey(p)) return;
-
-        e.setCancelled(true);
-        openGodRecipeUI.get(p).handleDrag(e);
-    }
-
-    @EventHandler
-    public void godRecipeClose(InventoryCloseEvent e) {
-        Player p = (Player) e.getPlayer();
-        if (!openGodRecipeUI.containsKey(p)) return;
-        if (!openGodRecipeUI.get(p).getInventories().get(openGodRecipeUI.get(p).getCurrentInv()).equals(e.getInventory()))
+    public void onRightClickAnchor(PlayerInteractEvent e) {
+        if (e.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
-        openGodRecipeUI.remove(p);
+        if (e.getHand() == null || !e.getHand().equals(EquipmentSlot.HAND))
+            return;
+        if (e.getClickedBlock() == null)
+            return;
+
+        // Handle power ore conversion time left display
+        Player p = e.getPlayer();
+        Location location = e.getClickedBlock().getLocation();
+        if (powerOreConversions.containsKey(location)) {
+            PowerOreConversion conversion = powerOreConversions.get(location);
+            if (!conversion.getUUID().equals(p.getUniqueId()))
+                return;
+
+            // Tell the player how much time is left
+            p.sendRawMessage(
+                    ChatColor.YELLOW + "Time left: " + RewardNotifications.cooldown(conversion.getSecondsLeft()));
+            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+        }
+
+        // Check for teleport anchor interaction
+        if (e.getClickedBlock().getType() != Material.RESPAWN_ANCHOR)
+            return;
+        if (!teleportAnchors.containsKey(location))
+            return;
+
+        e.setCancelled(true);
+
+        // Get all anchors this player can access
+        List<TeleporterAnchor> availableAnchors = new ArrayList<>();
+        for (TeleporterAnchor anchor : teleportAnchors.values()) {
+            // Players can access their own anchors and others in the same world
+            if (anchor.ownerId().equals(p.getUniqueId()) ||
+                    (anchor.location().getWorld() != null && anchor.location().getWorld().equals(p.getWorld()))) {
+                availableAnchors.add(anchor);
+            }
+        }
+
+        if (availableAnchors.isEmpty()) {
+            p.sendMessage(ChatColor.RED + "No teleport anchors available!");
+            return;
+        }
+
+        // Open teleporter GUI starting at page 0
+        teleportGUIPage.put(p, 0);
+        Inventory gui = TeleporterAnchor.createTeleporterGUI(availableAnchors, p, 0);
+        p.openInventory(gui);
+    }
+
+    @EventHandler
+    public void onGUIDrag(InventoryDragEvent e) {
+        Player p = (Player) e.getWhoClicked();
+        if (openGodRecipeUI.containsKey(p)) {
+            e.setCancelled(true);
+            openGodRecipeUI.get(p).handleDrag(e);
+        }
+
+        String inventoryTitle = e.getView().getTitle();
+        if (!inventoryTitle.contains("Teleporter Network"))
+            return;
+        e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onGUIClick(InventoryClickEvent e) {
+        Player p = (Player) e.getWhoClicked();
+        if (openGodRecipeUI.containsKey(p)) {
+            e.setCancelled(true);
+            openGodRecipeUI.get(p).handleClick(e);
+        }
+        String inventoryTitle = e.getView().getTitle();
+
+        // Check if this is a teleporter GUI
+        if (!inventoryTitle.contains("Teleporter Network"))
+            return;
+
+        e.setCancelled(true);
+
+        ItemStack clickedItem = e.getCurrentItem();
+        if (clickedItem == null)
+            return;
+
+        // Get current page and available anchors
+        int currentPage = teleportGUIPage.getOrDefault(p, 0);
+        List<TeleporterAnchor> availableAnchors = new ArrayList<>();
+        for (TeleporterAnchor anchor : teleportAnchors.values()) {
+            if (!clickedItem.getType().equals(Material.END_PORTAL_FRAME)
+                    || TeleporterAnchor.isCorrectAnchor(clickedItem, anchor))
+                continue;
+            if (anchor.teleportPlayer(p)) {
+                p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            } else {
+                p.sendMessage(ChatColor.RED + "Failed to teleport to anchor!");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            }
+            return;
+        }
+
+        // Handle navigation buttons
+        TeleporterAnchor.handleGUIClick(p, clickedItem, availableAnchors, currentPage);
+    }
+
+    @EventHandler
+    public void onGUIClose(InventoryCloseEvent e) {
+        Player p = (Player) e.getPlayer();
+        String inventoryTitle = e.getView().getTitle();
+
+        if (inventoryTitle.contains("Teleporter Network")) {
+            teleportGUIPage.remove(p);
+            return;
+        }
+
+        if (openGodRecipeUI.containsKey(p)
+                && openGodRecipeUI.get(p).getInventories().get(openGodRecipeUI.get(p).getCurrentInv())
+                        .equals(e.getInventory()))
+            openGodRecipeUI.remove(p);
     }
 
     @EventHandler
     public void powerSwordAttack(EntityDamageByEntityEvent e) {
-        if (!(e.getDamager() instanceof Player p)) return;
-        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 47)) return;
-        if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre").isApplied()) return;
-        if (!(e.getEntity() instanceof LivingEntity)) return;
+        if (!(e.getDamager() instanceof Player p))
+            return;
+        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 47))
+            return;
+        if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre")
+                .isApplied())
+            return;
+        if (!(e.getEntity() instanceof LivingEntity))
+            return;
         for (Entity ent : p.getNearbyEntities(10, 10, 10)) {
-            if (!AbilityManager.getDomainMobs().contains(ent.getType())) continue;
-            if (!(ent instanceof LivingEntity livingEnt)) continue;
+            if (!AbilityManager.getDomainMobs().contains(ent.getType()))
+                continue;
+            if (!(ent instanceof LivingEntity livingEnt))
+                continue;
             livingEnt.getWorld().strikeLightning(livingEnt.getLocation());
         }
     }
@@ -479,8 +694,8 @@ public class GodListener implements Listener {
             if (bag.getValue().isEmpty()) {
                 config.set(bag.getKey().toString(), false);
                 continue;
-            }
-            else config.set(bag.getKey().toString(), true);
+            } else
+                config.set(bag.getKey().toString(), true);
 
             int i = 0;
             for (ItemStack item : bag.getValue().getContents()) {
@@ -497,15 +712,19 @@ public class GodListener implements Listener {
     public Inventory loadPotionBag(int id, FileConfiguration config) {
         Inventory bag = Bukkit.createInventory(null, 9, "Potion Bag");
         potionBags.put(id, bag);
-        if (!config.getBoolean(String.valueOf(id))) return bag;
-        if (!config.contains(id + ".Items")) return bag;
+        if (!config.getBoolean(String.valueOf(id)))
+            return bag;
+        if (!config.contains(id + ".Items"))
+            return bag;
 
         ConfigurationSection section = config.getConfigurationSection(id + ".Items");
-        if (section == null) return bag;
+        if (section == null)
+            return bag;
 
         section.getKeys(false).forEach(key -> {
             ItemStack item = config.getItemStack(id + ".Items." + key);
-            if (item == null) return;
+            if (item == null)
+                return;
             bag.addItem(item);
         });
         return bag;
@@ -515,7 +734,8 @@ public class GodListener implements Listener {
         potionBags.remove(id);
 
         File potionBagFile = new File(SurvivalSkills.getInstance().getDataFolder(), "potionbags.yml");
-        if (!potionBagFile.exists()) SurvivalSkills.getInstance().saveResource("potionbags.yml", true);
+        if (!potionBagFile.exists())
+            SurvivalSkills.getInstance().saveResource("potionbags.yml", true);
         FileConfiguration potionBagData = YamlConfiguration.loadConfiguration(potionBagFile);
 
         potionBagData.set(String.valueOf(id), null);
@@ -529,7 +749,8 @@ public class GodListener implements Listener {
 
     public int getPotionBagID(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return 0;
+        if (meta == null)
+            return 0;
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
         int id = container.getOrDefault(potionBagKey, PersistentDataType.INTEGER, previousPotionBagID++);
@@ -546,7 +767,8 @@ public class GodListener implements Listener {
         for (Map.Entry<Location, PowerOreConversion> entry : powerOreConversions.entrySet()) {
             Location loc = entry.getKey();
             PowerOreConversion conversion = entry.getValue();
-            if (loc.getWorld() == null) continue;
+            if (loc.getWorld() == null)
+                continue;
             data.set("PowerOreConversions." + i + ".Location", loc);
             data.set("PowerOreConversions." + i + ".SecondsLeft", conversion.getSecondsLeft());
             data.set("PowerOreConversions." + i + ".Player", conversion.getUUID().toString());
@@ -556,18 +778,22 @@ public class GodListener implements Listener {
 
     public void loadPowerOreConversions() {
         File file = new File(SurvivalSkills.getInstance().getDataFolder(), "poweroreconversions.yml");
-        if (!file.exists()) return;
+        if (!file.exists())
+            return;
         FileConfiguration data = YamlConfiguration.loadConfiguration(file);
 
-        if (!data.contains("PowerOreConversions")) return;
+        if (!data.contains("PowerOreConversions"))
+            return;
         ConfigurationSection section = data.getConfigurationSection("PowerOreConversions");
-        if (section == null) return;
+        if (section == null)
+            return;
 
         section.getKeys(false).forEach(key -> {
             Location loc = data.getLocation("PowerOreConversions." + key + ".Location");
             int secondsLeft = data.getInt("PowerOreConversions." + key + ".SecondsLeft");
             String playerUUIDString = data.getString("PowerOreConversions." + key + ".Player");
-            if (loc == null || playerUUIDString == null) return;
+            if (loc == null || playerUUIDString == null)
+                return;
             UUID uuid = UUID.fromString(playerUUIDString);
             PowerOreConversion conversion = new PowerOreConversion(secondsLeft, loc, uuid);
             powerOreConversions.put(loc, conversion);
@@ -586,15 +812,23 @@ public class GodListener implements Listener {
         }.runTaskLaterAsynchronously(SurvivalSkills.getInstance(), 20);
 
         // Check if player has unlocked power ore
-        if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre").isApplied()) return;
-
+        PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
+        if (rewards == null) {
+            Bukkit.getLogger().log(Level.WARNING, "Player rewards not found for " + p.getName());
+            return;
+        }
+        if (!rewards.getReward("Mining", "PowerOre").isApplied())
+            return;
 
         // Check if there is obsidian below the player
         Block block = p.getLocation().getBlock().getRelative(0, -1, 0);
         Location loc = block.getLocation();
-        if (loc.getWorld() == null) return;
-        if (!loc.getWorld().getEnvironment().equals(World.Environment.NORMAL)) return;
-        if (!block.getType().equals(Material.OBSIDIAN)) return;
+        if (loc.getWorld() == null)
+            return;
+        if (!loc.getWorld().getEnvironment().equals(World.Environment.NORMAL))
+            return;
+        if (!block.getType().equals(Material.OBSIDIAN))
+            return;
 
         // Check if the player has 50 XP levels
         if (p.getLevel() < 50) {
@@ -644,15 +878,73 @@ public class GodListener implements Listener {
     }
 
     public Location getSafeNearbyLocation(Location loc) {
-        Location newLoc = loc.clone();
-        double xOff = (Math.random() - 0.5) * 20;
-        double zOff = (Math.random() - 0.5) * 20;
-        if (Math.abs(xOff) < 5) xOff = 5 * Math.signum(xOff);
-        else if (Math.abs(zOff) < 5) zOff = 5 * Math.signum(zOff);
-        newLoc.add(xOff, 0, zOff);
-        // Touch ground
-        while (newLoc.getBlock().getType().isAir()) newLoc.add(0, -1, 0);
-        return newLoc;
+        // Start from provided location; search downward first for first solid block
+        // with air above.
+        if (loc.getWorld() == null)
+            return loc;
+        World world = loc.getWorld();
+        int minY = world.getMinHeight();
+        int maxY = world.getMaxHeight();
+
+        Block base = loc.getBlock();
+        // If starting inside air, move downward until we find a non-air candidate or
+        // hit minY
+        Block search = base;
+        while (search.getY() > minY && search.getType().isAir()) {
+            search = search.getRelative(0, -1, 0);
+        }
+
+        // Now iterate downward to find a solid block with air above
+        Block candidate = search;
+        while (candidate.getY() > minY) {
+            if (candidate.getType().isSolid() && candidate.getRelative(0, 1, 0).getType().isAir()) {
+                return candidate.getLocation().add(0.5, 1, 0.5); // strike just above the block center
+            }
+            candidate = candidate.getRelative(0, -1, 0);
+        }
+
+        // Fallback: search upward from original position if downward search failed
+        // (e.g., void or liquids)
+        Block upSearch = base;
+        while (upSearch.getY() < maxY) {
+            if (upSearch.getType().isSolid() && upSearch.getRelative(0, 1, 0).getType().isAir()) {
+                return upSearch.getLocation().add(0.5, 1, 0.5);
+            }
+            upSearch = upSearch.getRelative(0, 1, 0);
+        }
+
+        // Last resort: original location
+        return loc;
+    }
+
+    /**
+     * Collect nearby hostile mobs or other players (excluding the source player)
+     * within radius.
+     */
+    private List<LivingEntity> getNearbyLightningTargets(Player source, double radius) {
+        List<LivingEntity> targets = new ArrayList<>();
+        for (Entity ent : source.getNearbyEntities(radius, radius, radius)) {
+            if (!(ent instanceof LivingEntity living))
+                continue;
+            if (ent.equals(source))
+                continue;
+            if (ent instanceof Player) {
+                targets.add(living);
+                continue;
+            }
+            if (isHostile(living))
+                targets.add(living);
+        }
+        // Sort by distance so closest get priority when capped
+        targets.sort(Comparator.comparingDouble(t -> t.getLocation().distanceSquared(source.getLocation())));
+        return targets;
+    }
+
+    /**
+     * Determine if a living entity is considered hostile for lightning targeting.
+     */
+    private boolean isHostile(LivingEntity ent) {
+        return ent instanceof Monster || ent instanceof Slime || ent instanceof Phantom;
     }
 
     public HashMap<Player, GodRecipeUI> getOpenGodRecipeUI() {
@@ -669,5 +961,158 @@ public class GodListener implements Listener {
 
     public ArrayList<Player> getPowerLaserCooldowns() {
         return powerLaserCooldowns;
+    }
+
+    // Teleport Anchor helper methods
+
+    /**
+     * Prompts a player to name their teleport anchor via chat input.
+     * This method sets up a temporary chat listener to capture the player's input.
+     *
+     * @param player   The player who is naming the anchor
+     * @param location The location where the anchor will be placed
+     */
+    private void promptForAnchorName(Player player, Location location) {
+        // TODO: move this function
+        // Register a one-time chat listener
+        SurvivalSkills.getInstance().getServer().getPluginManager().registerEvents(
+                new org.bukkit.event.Listener() {
+                    @EventHandler
+                    public void onPlayerChat(AsyncPlayerChatEvent e) {
+                        if (!e.getPlayer().equals(player))
+                            return;
+
+                        e.setCancelled(true);
+                        String input = e.getMessage().trim();
+
+                        // Unregister this listener
+                        // Unregister this listener on the main thread
+                        Bukkit.getScheduler().runTask(SurvivalSkills.getInstance(), () -> {
+                            AsyncPlayerChatEvent.getHandlerList().unregister(this);
+                        });
+
+                        if (input.equalsIgnoreCase("cancel")) {
+                            player.sendMessage(ChatColor.YELLOW + "Teleport anchor placement cancelled.");
+                            return;
+                        }
+
+                        if (input.isEmpty() || input.length() > 32) {
+                            player.sendMessage(ChatColor.RED + "Anchor name must be between 1 and 32 characters!");
+                            return;
+                        }
+
+                        // Check if name is already taken by this player
+                        for (TeleporterAnchor existingAnchor : teleportAnchors.values()) {
+                            if (!existingAnchor.name().equalsIgnoreCase(input))
+                                continue;
+                            player.sendMessage(ChatColor.RED + "Another anchor with that name already exists!");
+                            return;
+                        }
+
+                        // Place the anchor
+                        Bukkit.getScheduler().runTask(SurvivalSkills.getInstance(), () -> {
+                            placeAnchor(player, location, input);
+                        });
+                    }
+                },
+        // Register a one-time chat listener with timeout and disconnect cleanup
+        final SurvivalSkills plugin = SurvivalSkills.getInstance();
+        final long timeoutTicks = 20 * 30; // 30 seconds
+
+        class AnchorNameListener implements org.bukkit.event.Listener {
+            private boolean handled = false;
+
+            public void unregister() {
+                if (!handled) {
+                    handled = true;
+                    AsyncPlayerChatEvent.getHandlerList().unregister(this);
+                    PlayerQuitEvent.getHandlerList().unregister(this);
+                }
+            }
+
+            @EventHandler
+            public void onPlayerChat(AsyncPlayerChatEvent e) {
+                if (!e.getPlayer().equals(player))
+                    return;
+
+                e.setCancelled(true);
+                String input = e.getMessage().trim();
+
+                unregister();
+
+                if (input.equalsIgnoreCase("cancel")) {
+                    player.sendMessage(ChatColor.YELLOW + "Teleport anchor placement cancelled.");
+                    return;
+                }
+
+                if (input.isEmpty() || input.length() > 32) {
+                    player.sendMessage(ChatColor.RED + "Anchor name must be between 1 and 32 characters!");
+                    return;
+                }
+
+                // Check if name is already taken by this player
+                for (TeleporterAnchor existingAnchor : teleportAnchors.values()) {
+                    if (!existingAnchor.name().equalsIgnoreCase(input))
+                        continue;
+                    player.sendMessage(ChatColor.RED + "Another anchor with that name already exists!");
+                    return;
+                }
+
+                // Place the anchor
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    placeAnchor(player, location, input);
+                });
+            }
+
+            @EventHandler
+            public void onPlayerQuit(PlayerQuitEvent e) {
+                if (e.getPlayer().equals(player)) {
+                    unregister();
+                }
+            }
+        }
+
+        final AnchorNameListener listener = new AnchorNameListener();
+        plugin.getServer().getPluginManager().registerEvents(listener, plugin);
+
+        // Schedule timeout task
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (!listener.handled) {
+                listener.unregister();
+                player.sendMessage(ChatColor.YELLOW + "Teleport anchor naming timed out.");
+            }
+        }, timeoutTicks);
+    }
+
+    /**
+     * Places a teleport anchor at the specified location with the given name.
+     * This method handles the actual block placement and anchor registration.
+     *
+     * @param player   The player placing the anchor
+     * @param location The location to place the anchor
+     * @param name     The name for the anchor
+     */
+    private void placeAnchor(Player player, Location location, String name) {
+        if (location.getWorld() == null) {
+            player.sendMessage(ChatColor.RED + "Invalid world for anchor placement!");
+            return;
+        }
+
+        // Create and register the teleporter anchor
+        TeleporterAnchor anchor = new TeleporterAnchor(name, location, player.getUniqueId());
+        teleportAnchors.put(location, anchor);
+
+        // Notify player
+        player.sendMessage(ChatColor.GREEN + "Teleport anchor '" + name + "' placed successfully!");
+        player.playSound(player.getLocation(), Sound.BLOCK_RESPAWN_ANCHOR_SET_SPAWN, 1.0f, 1.0f);
+
+        // Add visual effects
+        location.getWorld().spawnParticle(Particle.PORTAL, location.clone().add(0.5, 1, 0.5),
+                20, 0.3, 0.3, 0.3, 0.1);
+    }
+
+    // Getters for teleport anchor data
+    public HashMap<Location, TeleporterAnchor> getTeleportAnchors() {
+        return teleportAnchors;
     }
 }

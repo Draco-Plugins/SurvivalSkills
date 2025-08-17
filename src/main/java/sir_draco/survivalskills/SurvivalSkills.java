@@ -152,6 +152,7 @@ public final class SurvivalSkills extends JavaPlugin {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to save leaderboard data", e);
         }
 
+        FileUtils.saveTeleportAnchors(godListener.getTeleportAnchors());
         FileUtils.savePowerOreConversions();
         FileUtils.savePotionBags();
         abilityManager.saveToolBelts();
@@ -221,30 +222,36 @@ public final class SurvivalSkills extends JavaPlugin {
 
         if (!TrialManager.getTrials().isEmpty())
             for (Trial trial : TrialManager.getTrials())
-                if (trial.getPlayers().contains(p)) trial.quitTrial(p);
+                if (trial.getPlayers().contains(p))
+                    trial.quitTrial(p);
     }
 
     public void playerJoin(Player p, boolean overrideNewPlayer) {
         abilityManager.getTimerTracker().put(p, new ArrayList<>());
 
         File dataFile = new File(getDataFolder(), FileUtils.PLAYERDATA_YML);
-        if (!dataFile.exists()) saveResource(FileUtils.PLAYERDATA_YML, true);
+        if (!dataFile.exists())
+            saveResource(FileUtils.PLAYERDATA_YML, true);
         FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
 
         boolean newPlayer = data.get(p.getUniqueId().toString()) == null;
-        if (overrideNewPlayer) newPlayer = false;
+        if (overrideNewPlayer)
+            newPlayer = false;
         FileUtils.loadData(p, data);
 
         // Check if the player should activate any nearby trophies
         for (Map.Entry<Location, Trophy> trophy : trophyManager.getTrophies().entrySet()) {
             Location loc = trophy.getKey();
-            if (!p.getWorld().equals(loc.getWorld()) || p.getLocation().distance(loc) > 50) continue;
+            if (!p.getWorld().equals(loc.getWorld()) || p.getLocation().distance(loc) > 50)
+                continue;
             trophy.getValue().getEffects().checkForPlayers();
         }
 
-        // Make sure the main XP level is correct, load the player's rewards, add them to active leaderboard players
-        // Load their perma trash inventory, and hide any glowing blocks from other player's spelunker ability
-        skillManager.checkMainXP(p);
+        // Make sure the main XP level is correct, load the player's rewards, add them
+        // to active leaderboard players
+        // Load their perma trash inventory, and hide any glowing blocks from other
+        // player's spelunker ability
+        skillManager.syncMainSkill(p);
         skillManager.loadPlayerRewards(p);
         skillManager.loadPlayerMultiplier(p, data);
         Leaderboard.leaderboardJoin(this, p);
@@ -255,16 +262,18 @@ public final class SurvivalSkills extends JavaPlugin {
         abilityManager.loadSpelunker(p, data);
 
         // Handle the scoreboard
-        if (newPlayer) SkillScoreboard.initializeScoreboard(this, p);
-        else if (toggledScoreboard.containsKey(p.getUniqueId()) && Boolean.TRUE.equals(toggledScoreboard.get(p.getUniqueId()))){
+        if (newPlayer)
+            SkillScoreboard.initializeScoreboard(this, p);
+        else if (toggledScoreboard.containsKey(p.getUniqueId())
+                && Boolean.TRUE.equals(toggledScoreboard.get(p.getUniqueId()))) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     SkillScoreboard.initializeScoreboard(instance, p);
                 }
             }.runTaskLater(this, 20);
-        }
-        else SkillScoreboard.hideScoreboard(this, p);
+        } else
+            SkillScoreboard.hideScoreboard(this, p);
 
         if (SkillManager.getSkillLevel(p.getUniqueId(), "Main") == 100
                 && !getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId())) {
@@ -336,9 +345,13 @@ public final class SurvivalSkills extends JavaPlugin {
     }
 
     public boolean isForced(Player p, String[] args) {
-        if (!p.hasPermission("survivalskills.op")) return false;
-        if (args.length < 1) return false;
-        for (String arg : args) if (arg.equalsIgnoreCase("force")) return true;
+        if (!p.hasPermission("survivalskills.op"))
+            return false;
+        if (args.length < 1)
+            return false;
+        for (String arg : args)
+            if (arg.equalsIgnoreCase("force"))
+                return true;
         return false;
     }
 

@@ -425,6 +425,7 @@ public class RecipeMaker {
         NamespacedKey powerChestplateKey = createKey("powerchestplate", plugin);
         NamespacedKey powerLeggingsKey = createKey("powerleggings", plugin);
         NamespacedKey powerBootsKey = createKey("powerboots", plugin);
+        NamespacedKey teleportAnchorKey = createKey("teleportanchor", plugin);
 
         createSmallShapedRecipe(torchKey, ItemStackGenerator.getUnlimitedTorch(), "ABA:BCB:ABA",
                 null, null, null, Material.LAVA_BUCKET, Material.COAL_BLOCK, Material.TORCH);
@@ -542,6 +543,9 @@ public class RecipeMaker {
                 ItemStackGenerator.getPowerOre(), null, ItemStackGenerator.getBeaconLeggings(), null, Material.NETHERITE_BLOCK, null);
         createSmallShapedRecipe(powerBootsKey, ItemStackGenerator.getPowerBoots(), "DDD:BCB:ADA",
                 ItemStackGenerator.getPowerOre(), null, ItemStackGenerator.getBeaconBoots(), null, Material.NETHERITE_BLOCK, null);
+
+        createSmallShapedRecipe(teleportAnchorKey, ItemStackGenerator.getTeleportAnchor(), "DAD:BCB:DAD",
+                                ItemStackGenerator.getPowerOre(), null, null, null, Material.ENDER_PEARL, Material.RESPAWN_ANCHOR);
     }
 
     public static void godRecipes(SurvivalSkills plugin) {

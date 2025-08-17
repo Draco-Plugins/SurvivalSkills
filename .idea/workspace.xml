@@ -5,14 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f98fc54c-90a8-439b-8b76-f1b1bc4cf67d" name="Changes" comment="Merge branch 'main' of https://github.com/Draco-Plugins/SurvivalSkills&#10;&#10;# Conflicts:&#10;#&#9;.gitignore&#10;#&#9;.idea/misc.xml">
+      <change afterPath="$PROJECT_DIR$/src/main/resources/teleportanchors.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/skill_listeners/CraftingSkill.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/skill_listeners/CraftingSkill.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/SurvivalSkills-2.22.jar" beforeDir="false" afterPath="$PROJECT_DIR$/target/SurvivalSkills-2.22.jar" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills$2.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/SurvivalSkills.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Utils/Utils.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/Utils/Utils.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/skill_listeners/CraftingSkill.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sir_draco/survivalskills/skill_listeners/CraftingSkill.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SurvivalSkills.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/SurvivalSkills.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/abilities/godItems/TeleporterAnchor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/abilities/godItems/TeleporterAnchor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/skill_listeners/GodListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/skill_listeners/GodListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/utils/FileUtils.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/utils/FileUtils.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/utils/ItemStackGenerator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/utils/ItemStackGenerator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/utils/RecipeMaker.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/sir_draco/survivalskills/utils/RecipeMaker.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,7 +38,7 @@
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/Draco-Plugins/SurvivalSkills.git&quot;,
-    &quot;accountId&quot;: &quot;978ea06c-d01d-48bc-8a66-73c394a0891e&quot;
+    &quot;accountId&quot;: &quot;cd312cd1-18f2-457a-93e7-0b5988366f32&quot;
   }
 }</component>
   <component name="InvalidFacetManager">
@@ -70,8 +70,9 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;teleport-anchors&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/dylan/Documents/IdeaProjects/CustomEvents&quot;,

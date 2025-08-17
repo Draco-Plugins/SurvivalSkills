@@ -1118,4 +1118,11 @@ public class ItemStackGenerator {
         boots.setItemMeta(meta);
         return boots;
     }
+
+    public static ItemStack getTeleportAnchor() {
+        String name = ChatColor.DARK_GRAY.toString() + ChatColor.BOLD + "Teleport Anchor";
+        ArrayList<String> loreList = new ArrayList<>();
+        loreList.add(ChatColor.GRAY + "Place down to add to the teleporter network");
+        return createCustomItem(Material.RESPAWN_ANCHOR, 1, name, null, null, loreList, 55, false, null);
+    }
 }
