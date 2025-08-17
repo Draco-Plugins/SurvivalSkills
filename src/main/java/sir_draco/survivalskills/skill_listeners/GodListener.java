@@ -1012,7 +1012,73 @@ public class GodListener implements Listener {
                         });
                     }
                 },
-                SurvivalSkills.getInstance());
+        // Register a one-time chat listener with timeout and disconnect cleanup
+        final SurvivalSkills plugin = SurvivalSkills.getInstance();
+        final long timeoutTicks = 20 * 30; // 30 seconds
+
+        class AnchorNameListener implements org.bukkit.event.Listener {
+            private boolean handled = false;
+
+            public void unregister() {
+                if (!handled) {
+                    handled = true;
+                    AsyncPlayerChatEvent.getHandlerList().unregister(this);
+                    PlayerQuitEvent.getHandlerList().unregister(this);
+                }
+            }
+
+            @EventHandler
+            public void onPlayerChat(AsyncPlayerChatEvent e) {
+                if (!e.getPlayer().equals(player))
+                    return;
+
+                e.setCancelled(true);
+                String input = e.getMessage().trim();
+
+                unregister();
+
+                if (input.equalsIgnoreCase("cancel")) {
+                    player.sendMessage(ChatColor.YELLOW + "Teleport anchor placement cancelled.");
+                    return;
+                }
+
+                if (input.isEmpty() || input.length() > 32) {
+                    player.sendMessage(ChatColor.RED + "Anchor name must be between 1 and 32 characters!");
+                    return;
+                }
+
+                // Check if name is already taken by this player
+                for (TeleporterAnchor existingAnchor : teleportAnchors.values()) {
+                    if (!existingAnchor.name().equalsIgnoreCase(input))
+                        continue;
+                    player.sendMessage(ChatColor.RED + "Another anchor with that name already exists!");
+                    return;
+                }
+
+                // Place the anchor
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    placeAnchor(player, location, input);
+                });
+            }
+
+            @EventHandler
+            public void onPlayerQuit(PlayerQuitEvent e) {
+                if (e.getPlayer().equals(player)) {
+                    unregister();
+                }
+            }
+        }
+
+        final AnchorNameListener listener = new AnchorNameListener();
+        plugin.getServer().getPluginManager().registerEvents(listener, plugin);
+
+        // Schedule timeout task
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (!listener.handled) {
+                listener.unregister();
+                player.sendMessage(ChatColor.YELLOW + "Teleport anchor naming timed out.");
+            }
+        }, timeoutTicks);
     }
 
     /**
