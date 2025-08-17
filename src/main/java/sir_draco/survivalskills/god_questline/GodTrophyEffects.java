@@ -49,19 +49,23 @@ public class GodTrophyEffects {
     }
 
     public void startAnimation() {
-        if (trophyLoc.getWorld() == null) return;
+        if (trophyLoc.getWorld() == null)
+            return;
         display = trophyLoc.getWorld().spawn(trophyLoc.clone().add(0.5, 2, 0.5), ItemDisplay.class);
         display.setItemStack(new ItemStack(Material.GRASS_BLOCK));
         Transformation transformation = display.getTransformation();
         transformation.getScale().set(0.2);
         display.setTransformation(transformation);
-        //display.setBillboard(Billboard.CENTER) // rotates automatically
+        // display.setBillboard(Billboard.CENTER) // rotates automatically
     }
 
     public void floatingEffect(int cycle) {
-        if (cycle % 12 == 0) movingUp = !movingUp;
-        if (movingUp) teleport(0, 0.05, 0);
-        else teleport(0, -0.05, 0);
+        if (cycle % 12 == 0)
+            movingUp = !movingUp;
+        if (movingUp)
+            teleport(0, 0.05, 0);
+        else
+            teleport(0, -0.05, 0);
     }
 
     public void rotateDisplay(float x, float y, float z) {
@@ -81,7 +85,8 @@ public class GodTrophyEffects {
     }
 
     public void teleport(double xChange, double yChange, double zChange) {
-        if (display == null) return;
+        if (display == null)
+            return;
         display.teleport(display.getLocation().clone().add(xChange, yChange, zChange));
     }
 
@@ -101,7 +106,8 @@ public class GodTrophyEffects {
             return;
         }
         World world = trophyLoc.getWorld();
-        if (world == null) return;
+        if (world == null)
+            return;
         world.playSound(trophyLoc, sound, 1, 1);
     }
 
@@ -121,7 +127,8 @@ public class GodTrophyEffects {
 
     public void spawnBlackHole() {
         World world = trophyLoc.getWorld();
-        if (world == null) return;
+        if (world == null)
+            return;
         blackHole = world.spawn(trophyLoc.clone().add(0.5, 2, 0.5), ItemDisplay.class);
         blackHole.setItemStack(new ItemStack(Material.AIR));
         blackHole.setShadowRadius(1.5f);
@@ -129,7 +136,8 @@ public class GodTrophyEffects {
     }
 
     public void changeBlackHoleSize(float change) {
-        if (blackHole == null) return;
+        if (blackHole == null)
+            return;
         blackHole.setShadowRadius(Math.max(0, blackHole.getShadowRadius() - change));
     }
 
@@ -143,19 +151,24 @@ public class GodTrophyEffects {
     public void spawnPlayer(String name, UUID playerUUID) {
         if (npcID != -1) {
             npcPlayer = TrophyManager.getRegistry().getById(npcID);
-            if (npcPlayer == null) return;
+            if (npcPlayer == null)
+                return;
             // Update the text
             getText(name, playerUUID);
-            if (npcPlayer.isSpawned()) return;
+            if (npcPlayer.isSpawned())
+                return;
             npcPlayer.spawn(trophyLoc.clone().add(0.5, 2.0, 0.5));
             return;
         }
 
         UUID uuid = UUID.randomUUID();
-        npcPlayer = TrophyManager.getRegistry().createNPC(EntityType.PLAYER, uuid, TrophyManager.getNextID(), TrophyManager.npcName);
-        if (npcPlayer == null) return;
+        npcPlayer = TrophyManager.getRegistry().createNPC(EntityType.PLAYER, uuid, TrophyManager.getNextID(),
+                TrophyManager.npcName);
+        if (npcPlayer == null)
+            return;
         npcPlayer.spawn(trophyLoc.clone().add(0.5, 2.0, 0.5));
-        if (npcPlayer.getEntity() == null) return;
+        if (npcPlayer.getEntity() == null)
+            return;
         npcPlayer.setProtected(true);
         npcID = npcPlayer.getId();
         SurvivalSkills.getInstance().getTrophyManager().getGodNPCIDs().put(playerUUID, npcID);
@@ -165,7 +178,8 @@ public class GodTrophyEffects {
 
         Player p = Bukkit.getPlayer(name);
         SkinTrait skin = npcPlayer.getOrAddTrait(SkinTrait.class);
-        if (p != null) skin.setSkinPersistent(p);
+        if (p != null)
+            skin.setSkinPersistent(p);
         else {
             new BukkitRunnable() {
                 @Override
@@ -227,13 +241,15 @@ public class GodTrophyEffects {
     }
 
     public void removePlayer() {
-        if (npcPlayer == null) return;
+        if (npcPlayer == null)
+            return;
         npcPlayer.despawn();
         npcPlayer = null;
     }
 
     public void destroyPlayer() {
-        if (npcPlayer == null) return;
+        if (npcPlayer == null)
+            return;
         npcPlayer.despawn();
         npcPlayer.destroy();
         TrophyManager.getRegistry().deregister(npcPlayer);
@@ -242,7 +258,8 @@ public class GodTrophyEffects {
 
     public void spawnCrystal(double x, double y, double z) {
         World world = trophyLoc.getWorld();
-        if (world == null) return;
+        if (world == null)
+            return;
         removeCrystal();
         crystal = (EnderCrystal) world.spawnEntity(new Location(trophyLoc.getWorld(), x, y, z), EntityType.END_CRYSTAL);
         crystal.setBeamTarget(trophyLoc.clone().add(0.5, 2, 0.5));
@@ -259,7 +276,8 @@ public class GodTrophyEffects {
     }
 
     public void moveCrystal() {
-        if (crystal != null) crystal.remove();
+        if (crystal != null)
+            crystal.remove();
         double radians = crystalRadians;
         spawnCrystal(centerX + (Math.cos(radians) * 2.5), centerY, centerZ + (Math.sin(radians) * 2.5));
         crystalRadians += 0.2;
