@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.commands.admin_commands;
+package sir_draco.survivalskills.commands.default_commands;
 
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
@@ -23,12 +23,14 @@ public class GodQuestCommand implements CommandExecutor {
     public GodQuestCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
         PluginCommand command = plugin.getCommand("godquest");
-        if (command != null) command.setExecutor(this);
+        if (command != null)
+            command.setExecutor(this);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player p)) return false;
+        if (!(sender instanceof Player p))
+            return false;
 
         // Check if the player has an active god quest
         if (!plugin.getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId())) {
@@ -45,11 +47,16 @@ public class GodQuestCommand implements CommandExecutor {
         }
 
         // Check what stage they are in
+        // TODO: Find a better way so that this is not hardcoded
         int stage;
-        if (quest.getPhase() >= 13 && quest.getPhase() <= 17) stage = 1;
-        else if (quest.getPhase() >= 18 && quest.getPhase() <= 35) stage = 2;
-        else if (quest.getPhase() == 36 || quest.getPhase() == 37) stage = 3;
-        else if (quest.getPhase() == 39) stage = 4;
+        if (quest.getPhase() >= 22 && quest.getPhase() <= 26)
+            stage = 1;
+        else if (quest.getPhase() >= 27 && quest.getPhase() <= 44)
+            stage = 2;
+        else if (quest.getPhase() == 45 || quest.getPhase() == 46)
+            stage = 3;
+        else if (quest.getPhase() == 48)
+            stage = 4;
         else {
             p.sendRawMessage(ChatColor.RED + "There are no recipes for this stage of the God Quest");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -66,7 +73,8 @@ public class GodQuestCommand implements CommandExecutor {
     public ArrayList<NamespacedKey> getRecipeList(int stage) {
         ArrayList<NamespacedKey> list = new ArrayList<>();
         for (Map.Entry<NamespacedKey, Integer> recipe : plugin.getGodRecipeKeys().entrySet()) {
-            if (recipe.getValue() != stage) continue;
+            if (recipe.getValue() != stage)
+                continue;
             list.add(recipe.getKey());
         }
         return list;
