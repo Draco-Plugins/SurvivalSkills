@@ -357,7 +357,9 @@ public class SkillManager {
         for (Skill skill : playerSkills.get(uuid).getSkills()) {
             if (skill.getSkillName().equalsIgnoreCase("Main"))
                 continue;
-            totalXP += Math.min(skill.getExperience(), MAX_EXPERIENCE); // Safety cap per requirement
+            // Cap each skill's experience at MAX_EXPERIENCE to ensure the main skill calculation does not exceed allowed limits,
+            // as required by the skill system design to prevent overflow and maintain consistency.
+            totalXP += Math.min(skill.getExperience(), MAX_EXPERIENCE);
             contributingSkills++;
         }
         if (contributingSkills == 0)
