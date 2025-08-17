@@ -283,5 +283,4 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
     }
 
     @Override
-    public Location location() {return location.clone();}
 }
