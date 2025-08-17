@@ -1,5 +1,7 @@
 package sir_draco.survivalskills.boards;
 
+import java.util.logging.Level;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -236,6 +238,12 @@ public class SkillScoreboard {
         // Player NameTags
         for (Player player : Bukkit.getOnlinePlayers()) {
             Skill playerMainSkill = SkillManager.getSkill(player.getUniqueId(), "Main");
+            if (playerMainSkill == null) {
+                Bukkit.getLogger().log(Level.WARNING,
+                        "Player " + player.getName() + " has no main skill set. This should not happen.");
+                continue;
+            }
+
             ChatColor color = getChatColor(playerMainSkill);
             String colorString;
             if (playerMainSkill.getLevel() == 100)
