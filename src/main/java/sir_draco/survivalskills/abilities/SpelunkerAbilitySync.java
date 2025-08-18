@@ -33,7 +33,8 @@ public class SpelunkerAbilitySync extends BukkitRunnable {
     @Override
     public void run() {
         // Make sure it is still active
-        if (!p.isOnline()) return;
+        if (!p.isOnline())
+            return;
         AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "Spelunker");
         if (timer == null || !timer.isActive()) {
             p.sendRawMessage(ChatColor.YELLOW + "Spelunker has run out of time!");
@@ -46,16 +47,24 @@ public class SpelunkerAbilitySync extends BukkitRunnable {
 
         // Create glowing blocks from previous async
         if (blockTracker != null) {
-            if (blockTracker.getClosestLocation() != null && counter == 0) {
+            if (blockTracker.getClosestLocation() != null
+                    && counter == 0
+                    && blockTracker.getClosestLocation().getWorld().getEnvironment()
+                            .equals(p.getLocation().getWorld().getEnvironment())) {
                 double distance = p.getLocation().distance(blockTracker.getClosestLocation().getLocation());
                 counter = (int) distance;
                 playSonarSound(blockTracker.getClosestLocation());
             }
-            if (!glowingBlocks.isEmpty() && blockTracker.getGlowsToRemove() != null && !blockTracker.getGlowsToRemove().isEmpty())
-                for (Block block : blockTracker.getGlowsToRemove()) removeGlow(block);
-            if (!blockTracker.getGlowsToAdd().isEmpty()) for (Block block : blockTracker.getGlowsToAdd()) makeGlowBlock(block);
+            if (!glowingBlocks.isEmpty() && blockTracker.getGlowsToRemove() != null
+                    && !blockTracker.getGlowsToRemove().isEmpty())
+                for (Block block : blockTracker.getGlowsToRemove())
+                    removeGlow(block);
+            if (!blockTracker.getGlowsToAdd().isEmpty())
+                for (Block block : blockTracker.getGlowsToAdd())
+                    makeGlowBlock(block);
         }
-        if (counter != 0) counter--;
+        if (counter != 0)
+            counter--;
 
         // Send to async event to check each block
         blockTracker = new SpelunkerAbilityAsync(plugin, p.getLocation().getBlock(), radius, glowingBlocks);
@@ -64,18 +73,29 @@ public class SpelunkerAbilitySync extends BukkitRunnable {
 
     public void playSonarSound(Block block) {
         String team = plugin.getMiningListener().getOreTeam(block.getType());
-        if (team.equalsIgnoreCase("none")) return;
-        if (team.equalsIgnoreCase(ChatColor.GREEN + "uncommon")) p.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1, 1);
-        else if (team.equalsIgnoreCase(ChatColor.BLUE + "rare")) p.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1, 1);
-        else p.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1, 1);
+        if (team.equalsIgnoreCase("none"))
+            return;
+        if (team.equalsIgnoreCase(ChatColor.GREEN + "uncommon"))
+            p.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_HARP, 1, 1);
+        else if (team.equalsIgnoreCase(ChatColor.BLUE + "rare"))
+            p.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1, 1);
+        else
+            p.playSound(block.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1, 1);
 
     }
 
     public void makeGlowBlock(Block block) {
         String team = plugin.getMiningListener().getOreTeam(block.getType());
-        if (team.equalsIgnoreCase("none")) return;
+        if (team.equalsIgnoreCase("none"))
+
+            // Ensure a valid world
+            return;
         World world = block.getLocation().getWorld();
-        if (world == null) return;
+        if (world == null)
+            return;
+        if (!world.getEnvironment().equals(p.getLocation().getWorld().getEnvironment()))
+            return;
+
         ItemDisplay item = world.spawn(block.getLocation().add(0.5, 0.5, 0.5), ItemDisplay.class);
         item.setItemStack(new ItemStack(block.getType()));
         item.setShadowStrength(0);
@@ -86,16 +106,20 @@ public class SpelunkerAbilitySync extends BukkitRunnable {
         hideGlowForAll(item);
 
         // Set color
-        if (team.equalsIgnoreCase(ChatColor.GREEN + "uncommon")) addGreenTeam(item.getUniqueId().toString());
-        if (team.equalsIgnoreCase(ChatColor.BLUE + "rare")) addBlueTeam(item.getUniqueId().toString());
+        if (team.equalsIgnoreCase(ChatColor.GREEN + "uncommon"))
+            addGreenTeam(item.getUniqueId().toString());
+        if (team.equalsIgnoreCase(ChatColor.BLUE + "rare"))
+            addBlueTeam(item.getUniqueId().toString());
         item.setGlowing(true);
         glowingBlocks.put(block, item);
     }
 
     public void hideGlowForAll(ItemDisplay ent) {
-        if (Bukkit.getOnlinePlayers().isEmpty()) return;
+        if (Bukkit.getOnlinePlayers().isEmpty())
+            return;
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (p.equals(player)) continue;
+            if (p.equals(player))
+                continue;
             hideGlowForPlayer(player, ent);
         }
     }
@@ -105,18 +129,23 @@ public class SpelunkerAbilitySync extends BukkitRunnable {
     }
 
     public void hideAllGlowForPlayer(Player player) {
-        if (glowingBlocks.isEmpty()) return;
-        for (Map.Entry<Block, ItemDisplay> ent : glowingBlocks.entrySet()) hideGlowForPlayer(player, ent.getValue());
+        if (glowingBlocks.isEmpty())
+            return;
+        for (Map.Entry<Block, ItemDisplay> ent : glowingBlocks.entrySet())
+            hideGlowForPlayer(player, ent.getValue());
     }
 
     public void endThread() {
-        if (glowingBlocks.isEmpty()) return;
-        for (Map.Entry<Block, ItemDisplay> item : glowingBlocks.entrySet()) item.getValue().remove();
+        if (glowingBlocks.isEmpty())
+            return;
+        for (Map.Entry<Block, ItemDisplay> item : glowingBlocks.entrySet())
+            item.getValue().remove();
         this.cancel();
     }
 
     public void removeGlow(Block block) {
-        if (!glowingBlocks.containsKey(block)) return;
+        if (!glowingBlocks.containsKey(block))
+            return;
         glowingBlocks.get(block).remove();
         glowingBlocks.remove(block);
     }
@@ -133,8 +162,8 @@ public class SpelunkerAbilitySync extends BukkitRunnable {
             greenTeam.setPrefix(ChatColor.GREEN + "");
             greenTeam.setDisplayName(ChatColor.GREEN + "uncommon");
             greenTeam.addEntry(uuid);
-        }
-        else team.addEntry(uuid);
+        } else
+            team.addEntry(uuid);
     }
 
     public void addBlueTeam(String uuid) {
@@ -145,8 +174,8 @@ public class SpelunkerAbilitySync extends BukkitRunnable {
             blueTeam.setPrefix(ChatColor.BLUE + "");
             blueTeam.setDisplayName(ChatColor.BLUE + "rare");
             blueTeam.addEntry(uuid);
-        }
-        else team.addEntry(uuid);
+        } else
+            team.addEntry(uuid);
     }
 
     public int getRadius() {
