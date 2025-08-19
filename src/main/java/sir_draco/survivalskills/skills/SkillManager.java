@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class SkillManager {
 
@@ -72,6 +73,11 @@ public class SkillManager {
 
         UUID uuid = p.getUniqueId();
         Skill skill = SkillManager.getSkill(uuid, skillName);
+        if (skill == null) {
+            Bukkit.getLogger().log(Level.WARNING, "Skill not found for player " + p.getName() + ": " + skillName);
+            return;
+        }
+
         if (skill.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) {
             SkillScoreboard.updateScoreboard(plugin, p, skillName);
             if (skill.getLevel() == 100 || skill.isCurrentMaxMessage())
@@ -97,7 +103,15 @@ public class SkillManager {
             sendActionBarMessage(p, ChatColor.GRAY + skillName + ChatColor.YELLOW + " (+" + xp + ")");
         if (skill.changeExperience(xp, plugin.getTrophyManager().playerMaxSkillLevel(uuid))) {
             skill.levelUpNotification(p);
-            plugin.getSkillManager().getPlayerRewards(p).handleReward(plugin, p, skill, skillName, true);
+
+            // Ensure that player rewards are loaded
+            PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+            if (rewards == null) {
+                Bukkit.getLogger().warning("Player rewards are not loaded for " + p.getName());
+                return;
+            }
+
+            rewards.handleReward(plugin, p, skill, skillName, true);
             if (plugin.getLeaderboardTracker().containsKey(p.getUniqueId())) {
                 LeaderboardPlayer player = plugin.getLeaderboardTracker().get(p.getUniqueId());
                 setScore(player, p, plugin, skill.getSkillName());
@@ -357,8 +371,10 @@ public class SkillManager {
         for (Skill skill : playerSkills.get(uuid).getSkills()) {
             if (skill.getSkillName().equalsIgnoreCase("Main"))
                 continue;
-            // Cap each skill's experience at MAX_EXPERIENCE to ensure the main skill calculation does not exceed allowed limits,
-            // as required by the skill system design to prevent overflow and maintain consistency.
+            // Cap each skill's experience at MAX_EXPERIENCE to ensure the main skill
+            // calculation does not exceed allowed limits,
+            // as required by the skill system design to prevent overflow and maintain
+            // consistency.
             totalXP += Math.min(skill.getExperience(), MAX_EXPERIENCE);
             contributingSkills++;
         }
