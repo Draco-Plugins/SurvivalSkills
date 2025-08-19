@@ -7,7 +7,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import sir_draco.survivalskills.TrialGUI;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,7 +48,8 @@ public class TrialUpgradeManager implements Listener {
             return;
         }
 
-        if (!TrialGUI.getUpgradeInventories().contains(event.getInventory())) return;
+        if (!TrialGUI.getUpgradeInventories().contains(event.getInventory()))
+            return;
 
         event.setCancelled(true);
         TrialGUI.handleUpgradeClick(event);
@@ -61,14 +61,16 @@ public class TrialUpgradeManager implements Listener {
             event.setCancelled(true);
             return;
         }
-        if (!TrialGUI.getUpgradeInventories().contains(event.getInventory())) return;
+        if (!TrialGUI.getUpgradeInventories().contains(event.getInventory()))
+            return;
 
         event.setCancelled(true);
     }
 
     @EventHandler
     public void onUpgradeGUIClose(InventoryCloseEvent event) {
-        if (!TrialGUI.getUpgradeInventories().contains(event.getInventory())) return;
+        if (!TrialGUI.getUpgradeInventories().contains(event.getInventory()))
+            return;
         TrialGUI.removeInventory(event.getInventory());
     }
 }

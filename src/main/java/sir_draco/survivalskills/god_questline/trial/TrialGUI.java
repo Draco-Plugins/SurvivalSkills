@@ -1,4 +1,4 @@
-package sir_draco.survivalskills;
+package sir_draco.survivalskills.god_questline.trial;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,9 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import sir_draco.survivalskills.god_questline.trial.PlayerTrialUpgrades;
-import sir_draco.survivalskills.god_questline.trial.TrialTree;
-import sir_draco.survivalskills.god_questline.trial.TrialUpgradeManager;
+import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,20 +34,23 @@ public class TrialGUI {
         // Create header with player points
         ItemStack pointsDisplay = new ItemStack(Material.EXPERIENCE_BOTTLE);
         ItemMeta pointsMeta = pointsDisplay.getItemMeta();
-        if (pointsMeta == null) return; // Safety check
+        if (pointsMeta == null)
+            return; // Safety check
         pointsMeta.setDisplayName(ChatColor.GOLD + "Trial Points: " + playerUpgrades.getAvailablePoints());
-        pointsMeta.setLore(List.of(ChatColor.GRAY + "Earn points by completing trials", ChatColor.RED + "You may only upgrade once per trial!"));
+        pointsMeta.setLore(List.of(ChatColor.GRAY + "Earn points by completing trials",
+                ChatColor.RED + "You may only upgrade once per trial!"));
         pointsDisplay.setItemMeta(pointsMeta);
         inv.setItem(4, pointsDisplay);
 
         // Place upgrades in specific slots
-        int[] upgradeSlots = {19, 21, 23, 25, 28, 30, 32, 34};
+        int[] upgradeSlots = { 19, 21, 23, 25, 28, 30, 32, 34 };
         int slotIndex = 0;
 
         for (String upgradeId : List.of("starting_weapon", "starting_armor", "starting_food",
-                                        "arrow_quantity", "damage_boost", "speed_boost",
-                                        "dodge_chance", "enchant_chance")) {
-            if (slotIndex >= upgradeSlots.length) break;
+                "arrow_quantity", "damage_boost", "speed_boost",
+                "dodge_chance", "enchant_chance")) {
+            if (slotIndex >= upgradeSlots.length)
+                break;
 
             TrialTree.TrialUpgrade upgrade = allUpgrades.get(upgradeId);
             if (upgrade != null) {
@@ -62,12 +63,15 @@ public class TrialGUI {
         // Add border decoration
         ItemStack border = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta borderMeta = border.getItemMeta();
-        if (borderMeta == null) return; // Safety check
+        if (borderMeta == null)
+            return; // Safety check
         borderMeta.setDisplayName(" ");
         border.setItemMeta(borderMeta);
 
-        for (int i = 0; i < 9; i++) inv.setItem(i, border);
-        for (int i = 45; i < 54; i++) inv.setItem(i, border);
+        for (int i = 0; i < 9; i++)
+            inv.setItem(i, border);
+        for (int i = 45; i < 54; i++)
+            inv.setItem(i, border);
         for (int i = 9; i < 45; i += 9) {
             inv.setItem(i, border);
             inv.setItem(i + 8, border);
@@ -83,7 +87,8 @@ public class TrialGUI {
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return item; // Safety check
+        if (meta == null)
+            return item; // Safety check
 
         // Set display name with level
         String levelDisplay = currentLevel > 0 ? " §7(Level " + currentLevel + "/" + upgrade.getMaxLevel() + ")" : "";
@@ -184,7 +189,8 @@ public class TrialGUI {
         StringBuilder formatted = new StringBuilder();
 
         for (String word : words) {
-            if (!formatted.isEmpty()) formatted.append(" ");
+            if (!formatted.isEmpty())
+                formatted.append(" ");
             formatted.append(word.substring(0, 1).toUpperCase()).append(word.substring(1));
         }
 
@@ -193,20 +199,28 @@ public class TrialGUI {
 
     private static String formatArmorTier(Material helmet) {
         String name = helmet.name().toLowerCase();
-        if (name.contains("leather")) return "Leather";
-        if (name.contains("chainmail")) return "Chainmail";
-        if (name.contains("iron")) return "Iron";
-        if (name.contains("diamond")) return "Diamond";
-        if (name.contains("netherite")) return "Netherite";
+        if (name.contains("leather"))
+            return "Leather";
+        if (name.contains("chainmail"))
+            return "Chainmail";
+        if (name.contains("iron"))
+            return "Iron";
+        if (name.contains("diamond"))
+            return "Diamond";
+        if (name.contains("netherite"))
+            return "Netherite";
         return "Unknown";
     }
 
     public static void handleUpgradeClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) return;
-        if (event.getCurrentItem() == null) return;
+        if (!(event.getWhoClicked() instanceof Player player))
+            return;
+        if (event.getCurrentItem() == null)
+            return;
 
         ItemStack item = event.getCurrentItem();
-        if (item.getItemMeta() == null || !item.getItemMeta().hasDisplayName()) return;
+        if (item.getItemMeta() == null || !item.getItemMeta().hasDisplayName())
+            return;
 
         String displayName = item.getItemMeta().getDisplayName();
         PlayerTrialUpgrades playerUpgrades = TrialUpgradeManager.getPlayerUpgrades(player);
@@ -215,7 +229,8 @@ public class TrialGUI {
         for (Map.Entry<String, TrialTree.TrialUpgrade> entry : TrialTree.getAllUpgrades().entrySet()) {
             TrialTree.TrialUpgrade upgrade = entry.getValue();
 
-            if (!displayName.contains(upgrade.getName())) continue;
+            if (!displayName.contains(upgrade.getName()))
+                continue;
             // Purchase the upgrade
             boolean success = playerUpgrades.purchaseUpgrade(upgrade.getId());
             if (!success) {
@@ -256,7 +271,8 @@ public class TrialGUI {
         PlayerTrialUpgrades playerUpgrades = TrialUpgradeManager.getPlayerUpgrades(p);
 
         for (TrialTree.TrialUpgrade upgrade : TrialTree.getAllUpgrades().values()) {
-            if (playerUpgrades.getAvailablePoints() >= upgrade.getCost(playerUpgrades.getUpgradeLevel(upgrade.getId()) + 1)) {
+            if (playerUpgrades.getAvailablePoints() >= upgrade
+                    .getCost(playerUpgrades.getUpgradeLevel(upgrade.getId()) + 1)) {
                 return true;
             }
         }
