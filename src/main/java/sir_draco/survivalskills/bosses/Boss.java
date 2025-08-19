@@ -33,7 +33,8 @@ public class Boss extends BukkitRunnable {
     private boolean appliedAttributes = false;
     private int stage = 1;
 
-    public Boss(String name, int spawnRadiusRequired, int spawnHeightRequired, double maxHealth, double damage, double defense, double speed, EntityType type, Location loc, int maxStage) {
+    public Boss(String name, int spawnRadiusRequired, int spawnHeightRequired, double maxHealth, double damage,
+            double defense, double speed, EntityType type, Location loc, int maxStage) {
         this.name = name;
         this.spawnRadiusRequired = spawnRadiusRequired;
         this.spawnHeightRequired = spawnHeightRequired;
@@ -62,15 +63,19 @@ public class Boss extends BukkitRunnable {
 
     @Override
     public void run() {
-        if (!spawnSuccess || boss.isDead()) cancel();
-        if (getHealthPercentage() != 1) checkStage(false, null);
+        if (!spawnSuccess || boss.isDead())
+            cancel();
+        if (getHealthPercentage() != 1)
+            checkStage(false, null);
     }
 
     public void checkStage(boolean invincibilityFrames, Sound crySound) {
         // The percentage of health missing divided by the increment for each stage
-        if (!appliedAttributes) return;
+        if (!appliedAttributes)
+            return;
         int properStage = (int) Math.ceil((1 - getHealthPercentage()) / (1d / maxStage));
-        if (stage >= properStage) return;
+        if (stage >= properStage)
+            return;
         stage = properStage;
         if (crySound != null) {
             boss.getWorld().playSound(boss.getLocation(), crySound, 1, 1);
@@ -86,6 +91,7 @@ public class Boss extends BukkitRunnable {
             // Give 5 seconds of invincibility if changing stages for the first time
             new BukkitRunnable() {
                 private int count = 0;
+
                 @Override
                 public void run() {
                     if (count == 100) {
@@ -101,7 +107,8 @@ public class Boss extends BukkitRunnable {
                         double yOffset = (Math.random() - 0.5) * 4;
                         double zOffset = (Math.random() - 0.5) * 4;
                         Location loc = boss.getLocation().clone().add(xOffset, yOffset, zOffset);
-                        boss.getWorld().spawnParticle(Particle.WHITE_SMOKE, loc, 1, Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+                        boss.getWorld().spawnParticle(Particle.WHITE_SMOKE, loc, 1, Math.random() - 0.5,
+                                Math.random() - 0.5, Math.random() - 0.5);
                     }
                 }
             }.runTaskTimerAsynchronously(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 1);
@@ -115,10 +122,12 @@ public class Boss extends BukkitRunnable {
 
     public boolean spawn(EntityType type, Location loc) {
         World world = loc.getWorld();
-        if (world == null) return false;
+        if (world == null)
+            return false;
 
         boolean adequateSpawnSpace = ensureSpawnSpace(loc);
-        if (!adequateSpawnSpace) return false;
+        if (!adequateSpawnSpace)
+            return false;
 
         try {
             boss = (LivingEntity) world.spawnEntity(loc, type);
@@ -142,15 +151,20 @@ public class Boss extends BukkitRunnable {
         boss.setPersistent(true);
 
         AttributeInstance attack = boss.getAttribute(Attribute.ATTACK_DAMAGE);
-        if (attack != null) attack.setBaseValue(damage);
+        if (attack != null)
+            attack.setBaseValue(damage);
         AttributeInstance armor = boss.getAttribute(Attribute.ARMOR);
-        if (armor != null) armor.setBaseValue(defense);
+        if (armor != null)
+            armor.setBaseValue(defense);
         AttributeInstance speedAttribute = boss.getAttribute(Attribute.MOVEMENT_SPEED);
-        if (speedAttribute != null) speedAttribute.setBaseValue(this.speed);
+        if (speedAttribute != null)
+            speedAttribute.setBaseValue(this.speed);
         AttributeInstance knockbackResistance = boss.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
-        if (knockbackResistance != null) knockbackResistance.setBaseValue(1);
+        if (knockbackResistance != null)
+            knockbackResistance.setBaseValue(1);
         AttributeInstance health = boss.getAttribute(Attribute.MAX_HEALTH);
-        if (health != null) health.setBaseValue(maxHealth);
+        if (health != null)
+            health.setBaseValue(maxHealth);
         boss.setHealth(maxHealth);
         appliedAttributes = true;
     }
@@ -160,7 +174,8 @@ public class Boss extends BukkitRunnable {
             for (int y = 0; y <= spawnHeightRequired; y++) {
                 for (int z = -spawnRadiusRequired; z <= spawnRadiusRequired; z++) {
                     Location loc = spawnLocation.clone().add(x, y, z);
-                    if (!loc.getBlock().isPassable()) return false;
+                    if (!loc.getBlock().isPassable())
+                        return false;
                 }
             }
         }
@@ -168,20 +183,28 @@ public class Boss extends BukkitRunnable {
     }
 
     public void despawnBoss() {
-        if (bossBar != null) bossBar.removeAll();
-        NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "boss" + boss.getUniqueId());
-        if (Bukkit.getBossBar(key) != null) Bukkit.removeBossBar(key);
-        if (boss != null) boss.remove();
+        if (bossBar != null)
+            bossBar.removeAll();
+        NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class),
+                "boss" + boss.getUniqueId());
+        if (Bukkit.getBossBar(key) != null)
+            Bukkit.removeBossBar(key);
+        if (boss != null && !boss.isDead())
+            boss.remove();
         cancel();
     }
 
     public void death() {
         deathAnimation();
-        if (bossBar != null) bossBar.removeAll();
-        NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "boss" + boss.getUniqueId());
-        if (Bukkit.getBossBar(key) != null) Bukkit.removeBossBar(key);
+        if (bossBar != null)
+            bossBar.removeAll();
+        NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class),
+                "boss" + boss.getUniqueId());
+        if (Bukkit.getBossBar(key) != null)
+            Bukkit.removeBossBar(key);
         boss.getWorld().playSound(boss.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
-        if (!boss.isDead()) boss.remove();
+        if (!boss.isDead())
+            boss.remove();
         cancel();
     }
 
@@ -192,9 +215,11 @@ public class Boss extends BukkitRunnable {
     // Method for giant health bar
     public void healthBar() {
         Bukkit.getServer().getBossBars().forEachRemaining(bar -> {
-            for (Player p : Bukkit.getOnlinePlayers()) bar.removePlayer(p);
+            for (Player p : Bukkit.getOnlinePlayers())
+                bar.removePlayer(p);
         });
-        NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "boss" + boss.getUniqueId());
+        NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class),
+                "boss" + boss.getUniqueId());
         bossBar = Bukkit.createBossBar(key, name, BarColor.WHITE, BarStyle.SOLID);
         addNearbyPlayersToBossBar();
     }
@@ -205,33 +230,46 @@ public class Boss extends BukkitRunnable {
     }
 
     public void addNearbyPlayersToBossBar() {
-        if (bossBar == null) return;
+        if (bossBar == null)
+            return;
         for (Entity e : boss.getNearbyEntities(50, 50, 50)) {
-            if (!(e instanceof Player p)) continue;
-            if (p.getLocation().distance(boss.getLocation()) > 50) continue;
-            if (bossBar.getPlayers().contains(p)) continue;
+            if (!(e instanceof Player p))
+                continue;
+            if (p.getLocation().distance(boss.getLocation()) > 50)
+                continue;
+            if (bossBar.getPlayers().contains(p))
+                continue;
             bossBar.addPlayer(p);
         }
     }
 
     public void checkCurrentBossBarPlayers() {
-        if (bossBar == null) return;
+        if (bossBar == null)
+            return;
         ArrayList<Player> removePlayers = new ArrayList<>();
         for (Player p : bossBar.getPlayers()) {
-            if (p.isOnline()) continue;
-            if (p.getLocation().distance(boss.getLocation()) <= 50) continue;
+            if (p.isOnline())
+                continue;
+            if (p.getLocation().distance(boss.getLocation()) <= 50)
+                continue;
             removePlayers.add(p);
         }
-        if (removePlayers.isEmpty()) return;
-        for (Player p : removePlayers) bossBar.removePlayer(p);
+        if (removePlayers.isEmpty())
+            return;
+        for (Player p : removePlayers)
+            bossBar.removePlayer(p);
     }
 
     public void updateBossBar() {
-        if (bossBar == null) return;
+        if (bossBar == null)
+            return;
         bossBar.setProgress(getHealthPercentage());
-        if (getHealthPercentage() < 0.33) bossBar.setColor(BarColor.RED);
-        else if (getHealthPercentage() < 0.66) bossBar.setColor(BarColor.YELLOW);
-        else bossBar.setColor(BarColor.WHITE);
+        if (getHealthPercentage() < 0.33)
+            bossBar.setColor(BarColor.RED);
+        else if (getHealthPercentage() < 0.66)
+            bossBar.setColor(BarColor.YELLOW);
+        else
+            bossBar.setColor(BarColor.WHITE);
     }
 
     public void attack() {
@@ -242,7 +280,8 @@ public class Boss extends BukkitRunnable {
                 break;
             }
         }
-        if (target == null) return;
+        if (target == null)
+            return;
         boss.attack(target);
     }
 
@@ -271,8 +310,10 @@ public class Boss extends BukkitRunnable {
     }
 
     public void setHealthPercentage(double healthPercentage) {
-        if (healthPercentage > 100) healthPercentage = 100;
-        if (healthPercentage <= 0) healthPercentage = 1;
+        if (healthPercentage > 100)
+            healthPercentage = 100;
+        if (healthPercentage <= 0)
+            healthPercentage = 1;
         boss.setHealth((healthPercentage / 100d) * maxHealth);
     }
 

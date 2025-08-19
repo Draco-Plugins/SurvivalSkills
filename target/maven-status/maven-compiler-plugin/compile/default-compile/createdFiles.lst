@@ -19,6 +19,7 @@ sir_draco\survivalskills\bosses\VillagerBoss$13.class
 sir_draco\survivalskills\skill_listeners\PlayerListener$1.class
 sir_draco\survivalskills\utils\LocationUtils.class
 sir_draco\survivalskills\skill_listeners\ArmorListener$15.class
+sir_draco\survivalskills\god_questline\trial\TrialGUI$2.class
 sir_draco\survivalskills\bosses\VillagerBoss$5.class
 sir_draco\survivalskills\bosses\VillagerBoss$6.class
 sir_draco\survivalskills\utils\RecipeMaker.class
@@ -58,7 +59,6 @@ sir_draco\survivalskills\bosses\VillagerBoss$2.class
 sir_draco\survivalskills\utils\ColorParser.class
 sir_draco\survivalskills\commands\default_commands\SkillStatsCommand$2.class
 sir_draco\survivalskills\abilities\BerserkerEffects.class
-sir_draco\survivalskills\TrialGUI$2.class
 sir_draco\survivalskills\skill_listeners\MiningSkill$1.class
 sir_draco\survivalskills\commands\default_commands\SkillStatsCommand$1.class
 sir_draco\survivalskills\abilities\godItems\EnderEssence.class

@@ -87,6 +87,9 @@ public class VillagerBoss extends Boss {
     public void run() {
         deathTimer--;
         if (!isSpawnSuccess() || villager.isDead()) {
+            if (music != null)
+                music.setDead(true);
+            despawnBoss();
             cancel();
             return;
         }
