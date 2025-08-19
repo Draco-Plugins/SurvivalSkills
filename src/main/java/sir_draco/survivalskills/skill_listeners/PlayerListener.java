@@ -28,8 +28,9 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
 
-@SuppressWarnings ("deprecation")
+@SuppressWarnings("deprecation")
 public class PlayerListener implements Listener {
 
     private final SurvivalSkills plugin;
@@ -59,17 +60,21 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void bucket(PlayerBucketEmptyEvent e) {
         Player p = e.getPlayer();
-        if (!e.getHand().equals(EquipmentSlot.HAND)) return;
+        if (!e.getHand().equals(EquipmentSlot.HAND))
+            return;
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if (hand.getItemMeta() == null) return;
-        if (!hand.getItemMeta().hasCustomModelData()) return;
+        if (hand.getItemMeta() == null)
+            return;
+        if (!hand.getItemMeta().hasCustomModelData())
+            return;
         if (hand.getItemMeta().getCustomModelData() == 17) {
             e.setCancelled(true);
 
             // Spawn a tropical fish
             Location loc = e.getBlock().getLocation().clone().add(0.5, 1, 0.5);
             World world = loc.getWorld();
-            if (world == null) return;
+            if (world == null)
+                return;
             world.spawnEntity(loc, EntityType.TROPICAL_FISH);
         }
     }
@@ -78,191 +83,240 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void playerDamageEvent(EntityDamageByEntityEvent e) {
         if (e.getDamager() instanceof Firework fw)
-            if (fw.hasMetadata("nodamage")) e.setCancelled(true);
+            if (fw.hasMetadata("nodamage"))
+                e.setCancelled(true);
     }
 
     @EventHandler
     public void playerCraftEvent(CraftItemEvent e) {
-        if (e.getClickedInventory() == null) return;
+        if (e.getClickedInventory() == null)
+            return;
         ItemStack result = e.getRecipe().getResult();
-        if (!ItemStackGenerator.isCustomItem(result)) return;
+        if (!ItemStackGenerator.isCustomItem(result))
+            return;
         ItemMeta meta = result.getItemMeta();
-        if (meta == null) return;
+        if (meta == null)
+            return;
 
         Player p = (Player) e.getWhoClicked();
         int modelData = meta.getCustomModelData();
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+        if (rewards == null) {
+            e.setCancelled(true);
+            p.sendRawMessage(ChatColor.RED + "Your player information is missing. Please rejoin the server.");
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            Bukkit.getLogger().log(Level.WARNING, "Player rewards are not loaded for " + p.getName());
+            return;
+        }
+
         switch (modelData) {
             case 1:
-                if (rewards.getReward("Mining", "UnlimitedTorch").isApplied()) return;
+                if (rewards.getReward("Mining", "UnlimitedTorch").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
                         + rewards.getReward("Mining", "UnlimitedTorch").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 3:
-                if (rewards.getReward("Mining", "MiningArmor").isApplied()) return;
+                if (rewards.getReward("Mining", "MiningArmor").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
                         + rewards.getReward("Mining", "MiningArmor").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 4:
-                if (rewards.getReward("Exploring", "JumpingBoots").isApplied()) return;
+                if (rewards.getReward("Exploring", "JumpingBoots").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
                         + rewards.getReward("Exploring", "JumpingBoots").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 5:
-                if (rewards.getReward("Exploring", "WandererArmor").isApplied()) return;
+                if (rewards.getReward("Exploring", "WandererArmor").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "WandererArmor").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward("Exploring", "WandererArmor").getLevel() + ChatColor.RED
+                        + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 6:
-                if (rewards.getReward("Exploring", "CaveFinder").isApplied()) return;
+                if (rewards.getReward("Exploring", "CaveFinder").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
                         + rewards.getReward("Exploring", "CaveFinder").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 7:
-                if (rewards.getReward("Exploring", "TravelerArmor").isApplied()) return;
+                if (rewards.getReward("Exploring", "TravelerArmor").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "TravelerArmor").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward("Exploring", "TravelerArmor").getLevel() + ChatColor.RED
+                        + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 8:
-                if (rewards.getReward("Exploring", "AdventurerArmor").isApplied()) return;
+                if (rewards.getReward("Exploring", "AdventurerArmor").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "AdventurerArmor").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward("Exploring", "AdventurerArmor").getLevel() + ChatColor.RED
+                        + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 9:
-                if (rewards.getReward("Farming", "WateringCan").isApplied()) return;
+                if (rewards.getReward("Farming", "WateringCan").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
                         + rewards.getReward("Exploring", "WateringCan").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 10:
-                if (rewards.getReward("Farming", "UnlimitedBoneMeal").isApplied()) return;
+                if (rewards.getReward("Farming", "UnlimitedBoneMeal").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "UnlimitedBoneMeal").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward("Exploring", "UnlimitedBoneMeal").getLevel() + ChatColor.RED
+                        + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 11:
-                if (rewards.getReward("Farming", "Harvester").isApplied()) return;
+                if (rewards.getReward("Farming", "Harvester").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
                         + rewards.getReward("Exploring", "Harvester").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 12:
-                if (rewards.getReward("Fighting", "GiantSummon").isApplied()) return;
+                if (rewards.getReward("Fighting", "GiantSummon").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
                         + rewards.getReward("Exploring", "GiantSummon").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 13:
-                if (rewards.getReward("Fighting", "BroodMotherSummon").isApplied()) return;
+                if (rewards.getReward("Fighting", "BroodMotherSummon").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "BroodMotherSummon").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward("Exploring", "BroodMotherSummon").getLevel() + ChatColor.RED
+                        + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 14:
-                if (rewards.getReward("Fighting", "TheExiledOneSummon").isApplied()) return;
+                if (rewards.getReward("Fighting", "TheExiledOneSummon").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "TheExiledOneSummon").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward("Exploring", "TheExiledOneSummon").getLevel() + ChatColor.RED
+                        + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 16:
-                if (rewards.getReward("Building", "AutoSortWand").isApplied()) return;
+                if (rewards.getReward("Building", "AutoSortWand").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be building level " + ChatColor.AQUA
                         + rewards.getReward("Building", "AutoSortWand").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 18:
-                if (rewards.getReward("Main", "FireworkCannon").isApplied()) return;
+                if (rewards.getReward("Main", "FireworkCannon").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be main level " + ChatColor.AQUA
                         + rewards.getReward("Main", "FireworkCannon").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 19:
-                if (rewards.getReward("Exploring", "GillArmor").isApplied()) return;
+                if (rewards.getReward("Exploring", "GillArmor").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
                         + rewards.getReward("Exploring", "GillArmor").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 27:
-                if (rewards.getReward("Mining", "ZapWand").isApplied()) return;
+                if (rewards.getReward("Mining", "ZapWand").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
                         + rewards.getReward("Mining", "ZapWand").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 32:
-                if (rewards.getReward("Exploring", "Magnet").isApplied()) return;
+                if (rewards.getReward("Exploring", "Magnet").isApplied())
+                    return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
                         + rewards.getReward("Exploring", "Magnet").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 999:
-                if (result.getType().equals(Material.WHITE_WOOL)) return;
-                if (result.getType().equals(Material.BLACK_WOOL)) return;
+                if (result.getType().equals(Material.WHITE_WOOL))
+                    return;
+                if (result.getType().equals(Material.BLACK_WOOL))
+                    return;
                 HashMap<String, Boolean> trophies = plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId());
                 switch (result.getType()) {
                     case DIAMOND_PICKAXE:
                         trophies = enterTrophy(trophies, "CaveTrophy");
-                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Cave Trophy");
+                        Bukkit.broadcastMessage(
+                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Cave Trophy");
                         break;
                     case OAK_SAPLING:
                         trophies = enterTrophy(trophies, "ForestTrophy");
-                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Forest Trophy");
+                        Bukkit.broadcastMessage(
+                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Forest Trophy");
                         break;
                     case SHEARS:
                         trophies = enterTrophy(trophies, "ColorTrophy");
-                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Color Trophy");
+                        Bukkit.broadcastMessage(
+                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Color Trophy");
                         break;
                     case GOLDEN_CARROT:
                         trophies = enterTrophy(trophies, "FarmingTrophy");
-                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Farming Trophy");
+                        Bukkit.broadcastMessage(
+                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Farming Trophy");
                         break;
                     case TRIDENT:
                         trophies = enterTrophy(trophies, "OceanTrophy");
-                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Ocean Trophy");
+                        Bukkit.broadcastMessage(
+                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Ocean Trophy");
                         break;
                     case FISHING_ROD:
                         trophies = enterTrophy(trophies, "FishingTrophy");
-                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Fishing Trophy");
+                        Bukkit.broadcastMessage(
+                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Fishing Trophy");
                         break;
                     case NETHERRACK:
                         trophies = enterTrophy(trophies, "NetherTrophy");
-                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Nether Trophy");
+                        Bukkit.broadcastMessage(
+                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Nether Trophy");
                         break;
                     case END_STONE:
                         trophies = enterTrophy(trophies, "EndTrophy");
-                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "End Trophy");
+                        Bukkit.broadcastMessage(
+                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "End Trophy");
                         break;
                     case DIAMOND_SWORD:
                         trophies = enterTrophy(trophies, "ChampionTrophy");
-                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Champion Trophy");
+                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA
+                                + "Champion Trophy");
                         break;
                     case GRASS_BLOCK:
                         if (SkillManager.getSkillLevel(p.getUniqueId(), "Main") != 100) {
                             e.setCancelled(true);
-                            p.sendRawMessage(ChatColor.RED + "You need to be main level " + ChatColor.AQUA + "100" + ChatColor.RED + " to craft this");
+                            p.sendRawMessage(ChatColor.RED + "You need to be main level " + ChatColor.AQUA + "100"
+                                    + ChatColor.RED + " to craft this");
                             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                             return;
                         }
-                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "God Trophy");
+                        Bukkit.broadcastMessage(
+                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "God Trophy");
                     default:
                         break;
                 }
@@ -276,32 +330,40 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void inventoryClickEvent(InventoryClickEvent e) {
-        if (e.getClickedInventory() == null) return;
-        if (e.getCurrentItem() == null) return;
+        if (e.getClickedInventory() == null)
+            return;
+        if (e.getCurrentItem() == null)
+            return;
         Player p = (Player) e.getWhoClicked();
-        if (!customInventories.containsKey(p)) return;
+        if (!customInventories.containsKey(p))
+            return;
 
         e.setCancelled(true);
         ItemStack arrow = e.getCurrentItem();
         ItemMeta meta = arrow.getItemMeta();
-        if (!arrow.getType().equals(Material.ARROW)) return;
-        if (meta == null) return;
-        if (meta.getDisplayName().equalsIgnoreCase("arrow")) return;
+        if (!arrow.getType().equals(Material.ARROW))
+            return;
+        if (meta == null)
+            return;
+        if (meta.getDisplayName().equalsIgnoreCase("arrow"))
+            return;
 
         int currentInv = 0;
         for (int i = 0; i < customInventories.get(p).size(); i++) {
-            if (!customInventories.get(p).get(i).equals(e.getClickedInventory())) continue;
+            if (!customInventories.get(p).get(i).equals(e.getClickedInventory()))
+                continue;
             currentInv = i;
             break;
         }
         if (meta.hasCustomModelData()) {
-            if (currentInv + 1 >= customInventories.get(p).size()) currentInv = -1;
+            if (currentInv + 1 >= customInventories.get(p).size())
+                currentInv = -1;
             Inventory inv = customInventories.get(p).get(currentInv + 1);
             openInventory.put(p, inv);
             p.openInventory(inv);
-        }
-        else {
-            if (currentInv - 1 < 0) currentInv = customInventories.get(p).size();
+        } else {
+            if (currentInv - 1 < 0)
+                currentInv = customInventories.get(p).size();
             Inventory inv = customInventories.get(p).get(currentInv - 1);
             openInventory.put(p, inv);
             p.openInventory(inv);
@@ -311,29 +373,35 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void inventoryDragEvent(InventoryDragEvent e) {
         Player p = (Player) e.getWhoClicked();
-        if (!customInventories.containsKey(p)) return;
+        if (!customInventories.containsKey(p))
+            return;
 
         e.setCancelled(true);
         ItemStack arrow = e.getOldCursor();
         ItemMeta meta = arrow.getItemMeta();
-        if (!arrow.getType().equals(Material.ARROW)) return;
-        if (meta == null) return;
-        if (meta.getDisplayName().equalsIgnoreCase("arrow")) return;
+        if (!arrow.getType().equals(Material.ARROW))
+            return;
+        if (meta == null)
+            return;
+        if (meta.getDisplayName().equalsIgnoreCase("arrow"))
+            return;
 
         int currentInv = 0;
         for (int i = 0; i < customInventories.get(p).size(); i++) {
-            if (!customInventories.get(p).get(i).equals(e.getInventory())) continue;
+            if (!customInventories.get(p).get(i).equals(e.getInventory()))
+                continue;
             currentInv = i;
             break;
         }
         if (meta.hasCustomModelData()) {
-            if (currentInv + 1 >= customInventories.get(p).size()) currentInv = -1;
+            if (currentInv + 1 >= customInventories.get(p).size())
+                currentInv = -1;
             Inventory inv = customInventories.get(p).get(currentInv + 1);
             openInventory.put(p, inv);
             p.openInventory(inv);
-        }
-        else {
-            if (currentInv - 1 < 0) currentInv = customInventories.get(p).size();
+        } else {
+            if (currentInv - 1 < 0)
+                currentInv = customInventories.get(p).size();
             Inventory inv = customInventories.get(p).get(currentInv - 1);
             openInventory.put(p, inv);
             p.openInventory(inv);
@@ -343,7 +411,8 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void inventoryCloseEvent(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
-        if (openInventory.containsKey(p) && !openInventory.get(p).equals(e.getInventory())) return;
+        if (openInventory.containsKey(p) && !openInventory.get(p).equals(e.getInventory()))
+            return;
         customInventories.remove(p);
         openInventory.remove(p);
     }
@@ -351,11 +420,13 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void deathEvent(PlayerDeathEvent e) {
         LeaderboardPlayer player = plugin.getLeaderboardTracker().get(e.getEntity().getUniqueId());
-        if (player == null) return;
+        if (player == null)
+            return;
         int deaths = player.getDeathScore() + 1;
         player.setDeathScore(deaths);
 
-        if (deaths >= 75) deathLocations.put(e.getEntity(), e.getEntity().getLocation());
+        if (deaths >= 75)
+            deathLocations.put(e.getEntity(), e.getEntity().getLocation());
     }
 
     @EventHandler
@@ -373,7 +444,8 @@ public class PlayerListener implements Listener {
                 if (deaths >= 30)
                     p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 1200, 2));
                 if (deaths >= 40)
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 0, false, false, true));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 0, false,
+                            false, true));
                 if (deaths >= 50) {
                     PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
                     if (!rewards.isAddedDeathResistance()) {
@@ -391,12 +463,16 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void useXPVoucher(PlayerInteractEvent e) {
-        if (e.getHand() == null) return;
-        if (e.getHand().equals(EquipmentSlot.OFF_HAND)) return;
-        if (e.getAction().equals(Action.RIGHT_CLICK_BLOCK) || e.getAction().equals(Action.RIGHT_CLICK_AIR)) return;
+        if (e.getHand() == null)
+            return;
+        if (e.getHand().equals(EquipmentSlot.OFF_HAND))
+            return;
+        if (e.getAction().equals(Action.RIGHT_CLICK_BLOCK) || e.getAction().equals(Action.RIGHT_CLICK_AIR))
+            return;
         Player p = e.getPlayer();
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(hand, 26)) return;
+        if (!ItemStackGenerator.isCustomItem(hand, 26))
+            return;
 
         AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "XPVoucher");
         if (timer != null) {
@@ -423,7 +499,8 @@ public class PlayerListener implements Listener {
         Player p = e.getPlayer();
 
         ItemStack item = e.getItem();
-        if (!ItemStackGenerator.isCustomItem(item, 31)) return;
+        if (!ItemStackGenerator.isCustomItem(item, 31))
+            return;
         e.setCancelled(true);
         // Apply the speed boost to the player
         p.setVelocity(p.getLocation().getDirection().multiply(1.5));
@@ -434,8 +511,8 @@ public class PlayerListener implements Listener {
         if (trophies == null) {
             trophies = new HashMap<>();
             trophies.put(trophyName, true);
-        }
-        else trophies.put(trophyName, true);
+        } else
+            trophies.put(trophyName, true);
         return trophies;
     }
 
