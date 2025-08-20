@@ -21,16 +21,66 @@ import sir_draco.survivalskills.utils.MojangAPI;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.IOException;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.TextStyle;
+import java.util.Locale;
 import java.util.UUID;
 
+/**
+ * Handles visual & NPC effects for a God Trophy.
+ * Life-cycle (cycle ticks):
+ * 1 : spawn tiny grass block display
+ * 5-9: scale up (0.3 -> 0.7) with chime at 9
+ * 18-59: float & rotate
+ * 60: spawn black hole & wither sound
+ * 61-99: rotate & descend into black hole
+ * 100-104: shrink black hole
+ * 105: remove black hole (teleport sound)
+ * 120: lightning
+ * 121: spawn player NPC + stationary crystal
+ * >121: particles every 2 ticks & crystal orbit every 4 ticks
+ */
 public class GodTrophyEffects {
 
-    private final double centerX;
-    private final double centerY;
-    private final double centerZ;
+    // Spatial constants
+    private static final double HALF = 0.5;
+    private static final double DISPLAY_START_Y_OFFSET = 2.0;
+    private static final double NPC_Y_OFFSET = 2.0;
+    private static final double CRYSTAL_ORBIT_RADIUS = 2.5;
+    private static final double FLOATING_STEP = 0.05;
+    private static final double DESCENT_STEP = 0.05;
+    private static final float ROTATION_Y = 0.05f;
+    private static final int FLOATING_INTERVAL = 12;
+    private static final double CRYSTAL_ANGLE_INCREMENT = 0.2;
+
+    // Cycle boundaries
+    private static final int CYCLE_FLOATING_START = 18;
+    private static final int CYCLE_FLOATING_END = 60; // exclusive of 60
+    private static final int CYCLE_BLACKHOLE_SPAWN = 60;
+    private static final int CYCLE_DESCEND_END = 100; // exclusive of 100
+    private static final int CYCLE_BLACKHOLE_SHRINK_START = 100;
+    private static final int CYCLE_BLACKHOLE_SHRINK_END = 105; // exclusive 105
+    private static final int CYCLE_BLACKHOLE_REMOVE = 105;
+    private static final int CYCLE_LIGHTNING = 120;
+    private static final int CYCLE_NPC_SPAWN = 121;
+    private static final int CYCLE_EFFECTS_START = 122; // trophy idle effects begin strictly after spawn
+
+    // Scaling
+    private static final float INITIAL_SCALE = 0.2f;
+    private static final float SCALE_INCREMENT = 0.1f;
+
+    // Timings
+    private static final int TALK_RANGE = 10;
+    private static final int TALK_DELAY_TICKS = 20 * 15;
+
+    // Metadata key
+    private static final String META_TROPHY = "trophy";
+
+    // Center fields were previously used for orbit; logic now derives from base
+    // location + HALF.
     private final Location trophyLoc;
+    private final String playerName;
+    private final UUID playerUUID;
 
     private ItemDisplay display;
     private ItemDisplay blackHole;
@@ -40,39 +90,108 @@ public class GodTrophyEffects {
     private double crystalRadians = 0;
     private int npcID = -1;
 
-    public GodTrophyEffects(Location trophyLoc) {
+    public GodTrophyEffects(Location trophyLoc, String playerName, UUID playerUUID) {
         this.trophyLoc = trophyLoc;
-        centerX = trophyLoc.getX() + 0.5;
-        centerY = trophyLoc.getY() + 1.5;
-        centerZ = trophyLoc.getZ() + 0.5;
-        // loadParticlePhase();
+        this.playerName = playerName;
+        this.playerUUID = playerUUID;
+    }
+
+    public void tickTrophy(int cycle) {
+        // Pre-spawn animation phase
+        if (cycle < CYCLE_EFFECTS_START) {
+            growDirtBlock(cycle);
+            displayDirtBlock(cycle);
+            if (handleTransitionEvents(cycle))
+                return; // returns true if processing should stop this tick
+        }
+        tickIdleEffects(cycle);
+    }
+
+    private void tickIdleEffects(int cycle) {
+        if (cycle <= CYCLE_NPC_SPAWN)
+            return;
+        if (cycle % 2 == 0) {
+            var world = world();
+            if (world != null)
+                world.spawnParticle(Particle.ENCHANT, offset(0, 0, 0), 40);
+        }
+        if (cycle % 4 == 0)
+            moveCrystal();
+        questParticleEffect();
+    }
+
+    private boolean handleTransitionEvents(int cycle) {
+        // Display removal
+        if (cycle == CYCLE_BLACKHOLE_SHRINK_START)
+            removeDisplay();
+
+        // Shrink black hole
+        if (cycle >= CYCLE_BLACKHOLE_SHRINK_START && cycle < CYCLE_BLACKHOLE_SHRINK_END) {
+            changeBlackHoleSize(0.20f);
+        } else if (cycle == CYCLE_BLACKHOLE_REMOVE) {
+            playSound(Sound.ENTITY_ENDERMAN_TELEPORT);
+            removeBlackHole();
+        } else if (cycle == CYCLE_LIGHTNING) { // Lightning & sound
+            var w = world();
+            if (w == null)
+                return true;
+            w.strikeLightningEffect(offset(0, 0, 0));
+            playSound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER);
+        } else if (cycle == CYCLE_NPC_SPAWN) {
+            spawnPlayer(playerName, playerUUID);
+            // First crystal spawn is stationary above block center
+            spawnCrystal(HALF, 1.5, HALF);
+        }
+        return false;
+    }
+
+    private void displayDirtBlock(int cycle) {
+        if (cycle >= CYCLE_FLOATING_START && cycle < CYCLE_FLOATING_END) {
+            rotateDisplay(0, ROTATION_Y, 0);
+            floatingEffect(cycle);
+        } else if (cycle == CYCLE_BLACKHOLE_SPAWN) {
+            spawnBlackHole();
+            playSound(Sound.ENTITY_WITHER_SPAWN);
+        } else if (cycle > CYCLE_BLACKHOLE_SPAWN && cycle < CYCLE_DESCEND_END) {
+            rotateDisplay(0, ROTATION_Y, 0);
+            teleport(0, -DESCENT_STEP, 0);
+        }
+    }
+
+    private void growDirtBlock(int cycle) {
+        if (cycle == 1) {
+            startAnimation();
+            return;
+        }
+        if (cycle >= 5 && cycle <= 9) {
+            // cycles 5..9 produce scales 0.3..0.7
+            float scale = INITIAL_SCALE + ((cycle - 4) * SCALE_INCREMENT); // (5-4)*0.1 => 0.3 ... (9-4)*0.1 => 0.7
+            scaleDisplay(scale);
+            if (cycle == 9)
+                playSound(Sound.BLOCK_NOTE_BLOCK_CHIME);
+        }
     }
 
     public void startAnimation() {
-        if (trophyLoc.getWorld() == null)
+        var w = world();
+        if (w == null)
             return;
-        display = trophyLoc.getWorld().spawn(trophyLoc.clone().add(0.5, 2, 0.5), ItemDisplay.class);
+        display = w.spawn(offset(0, DISPLAY_START_Y_OFFSET, 0), ItemDisplay.class);
         display.setItemStack(new ItemStack(Material.GRASS_BLOCK));
         Transformation transformation = display.getTransformation();
-        transformation.getScale().set(0.2);
+        transformation.getScale().set(INITIAL_SCALE);
         display.setTransformation(transformation);
-        // display.setBillboard(Billboard.CENTER) // rotates automatically
     }
 
     public void floatingEffect(int cycle) {
-        if (cycle % 12 == 0)
+        if (cycle % FLOATING_INTERVAL == 0)
             movingUp = !movingUp;
-        if (movingUp)
-            teleport(0, 0.05, 0);
-        else
-            teleport(0, -0.05, 0);
+        teleport(0, movingUp ? FLOATING_STEP : -FLOATING_STEP, 0);
     }
 
     public void rotateDisplay(float x, float y, float z) {
-        if (display == null) {
-            Bukkit.getLogger().warning("No display");
+        if (display == null)
             return;
-        }
         Transformation transformation = display.getTransformation();
         Quaternionf quaternion = new Quaternionf();
         quaternion.rotateX(x);
@@ -91,24 +210,18 @@ public class GodTrophyEffects {
     }
 
     public void scaleDisplay(float scale) {
-        if (display == null) {
-            Bukkit.getLogger().warning("No display");
+        if (display == null)
             return;
-        }
         Transformation transformation = display.getTransformation();
         transformation.getScale().set(scale);
         display.setTransformation(transformation);
     }
 
     public void playSound(Sound sound) {
-        if (display == null) {
-            Bukkit.getLogger().warning("No display");
+        var w = world();
+        if (w == null)
             return;
-        }
-        World world = trophyLoc.getWorld();
-        if (world == null)
-            return;
-        world.playSound(trophyLoc, sound, 1, 1);
+        w.playSound(trophyLoc, sound, 1, 1);
     }
 
     public void removeDisplay() {
@@ -126,10 +239,10 @@ public class GodTrophyEffects {
     }
 
     public void spawnBlackHole() {
-        World world = trophyLoc.getWorld();
-        if (world == null)
+        var w = world();
+        if (w == null)
             return;
-        blackHole = world.spawn(trophyLoc.clone().add(0.5, 2, 0.5), ItemDisplay.class);
+        blackHole = w.spawn(offset(0, DISPLAY_START_Y_OFFSET, 0), ItemDisplay.class);
         blackHole.setItemStack(new ItemStack(Material.AIR));
         blackHole.setShadowRadius(1.5f);
         blackHole.setShadowStrength(5f);
@@ -157,7 +270,7 @@ public class GodTrophyEffects {
             getText(name, playerUUID);
             if (npcPlayer.isSpawned())
                 return;
-            npcPlayer.spawn(trophyLoc.clone().add(0.5, 2.0, 0.5));
+            npcPlayer.spawn(offset(0, NPC_Y_OFFSET, 0));
             return;
         }
 
@@ -166,7 +279,7 @@ public class GodTrophyEffects {
                 TrophyManager.npcName);
         if (npcPlayer == null)
             return;
-        npcPlayer.spawn(trophyLoc.clone().add(0.5, 2.0, 0.5));
+        npcPlayer.spawn(offset(0, NPC_Y_OFFSET, 0));
         if (npcPlayer.getEntity() == null)
             return;
         npcPlayer.setProtected(true);
@@ -208,8 +321,8 @@ public class GodTrophyEffects {
     private void getText(String name, UUID uuid) {
         Text text = npcPlayer.getOrAddTrait(Text.class);
         text.toggleTalkClose();
-        text.setRange(10.0);
-        text.setDelay(20 * 15);
+        text.setRange(TALK_RANGE);
+        text.setDelay(TALK_DELAY_TICKS);
         text.getTexts().clear();
         text.add(ChatColor.AQUA + "What a nice day");
         text.add(ChatColor.AQUA + name + " sure is impressive");
@@ -225,11 +338,8 @@ public class GodTrophyEffects {
         if (!SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().containsKey(uuid))
             text.add(ChatColor.GOLD + "Right click me to start the " + ChatColor.BOLD + "God Quest");
 
-        // Get the current day of the week
-        LocalDate currentDate = LocalDate.now();
-        DayOfWeek dayOfWeek = currentDate.getDayOfWeek();
-        String day = dayOfWeek.name().toLowerCase();
-        day = day.substring(0, 1).toUpperCase() + day.substring(1);
+        // Day of week
+        String day = LocalDate.now().getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
         text.add(ChatColor.AQUA + "Happy " + day);
 
         // Get the playtime of the player
@@ -257,13 +367,15 @@ public class GodTrophyEffects {
     }
 
     public void spawnCrystal(double x, double y, double z) {
-        World world = trophyLoc.getWorld();
-        if (world == null)
+        // Interpret x,y,z as offsets from base trophy block for clarity / consistency
+        var w = world();
+        if (w == null)
             return;
         removeCrystal();
-        crystal = (EnderCrystal) world.spawnEntity(new Location(trophyLoc.getWorld(), x, y, z), EntityType.END_CRYSTAL);
-        crystal.setBeamTarget(trophyLoc.clone().add(0.5, 2, 0.5));
-        crystal.setMetadata("trophy", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
+        Location spawnLoc = new Location(w, trophyLoc.getX() + x, trophyLoc.getY() + y, trophyLoc.getZ() + z);
+        crystal = (EnderCrystal) w.spawnEntity(spawnLoc, EntityType.END_CRYSTAL);
+        crystal.setBeamTarget(offset(0, NPC_Y_OFFSET, 0));
+        crystal.setMetadata(META_TROPHY, new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
         crystal.setShowingBottom(false);
         crystal.setInvulnerable(true);
     }
@@ -279,11 +391,26 @@ public class GodTrophyEffects {
         if (crystal != null)
             crystal.remove();
         double radians = crystalRadians;
-        spawnCrystal(centerX + (Math.cos(radians) * 2.5), centerY, centerZ + (Math.sin(radians) * 2.5));
-        crystalRadians += 0.2;
+        // Convert from absolute intended center positions back to offsets for
+        // spawnCrystal
+        double offsetX = (Math.cos(radians) * CRYSTAL_ORBIT_RADIUS) + HALF;
+        double offsetZ = (Math.sin(radians) * CRYSTAL_ORBIT_RADIUS) + HALF;
+        double offsetY = 1.5; // keep constant height (same as initial crystal spawn y-offset)
+        spawnCrystal(offsetX, offsetY, offsetZ);
+        crystalRadians += CRYSTAL_ANGLE_INCREMENT;
     }
 
     public void questParticleEffect() {
 
+    }
+
+    // Helper: world reference (may be null if chunk / world unloaded)
+    private World world() {
+        return trophyLoc.getWorld();
+    }
+
+    // Helper: location offset from base block center
+    private Location offset(double x, double y, double z) {
+        return trophyLoc.clone().add(HALF + x, y, HALF + z);
     }
 }
