@@ -257,7 +257,7 @@ public class DragonBoss extends Boss {
         }
 
         for (int i = 0; i < 5; i++) {
-            Location loc = randomLoc(dragon.getLocation(), 30, true);
+            Location loc = randomLoc(dragon.getLocation(), 30);
             if (loc == null)
                 continue;
             Enderman eman = (Enderman) dragon.getWorld().spawnEntity(loc, EntityType.ENDERMAN);
