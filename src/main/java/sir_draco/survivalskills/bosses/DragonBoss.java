@@ -5,6 +5,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.*;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -17,6 +18,9 @@ public class DragonBoss extends Boss {
     private final EnderDragon dragon;
     private final ArrayList<Location> crystalLocations = new ArrayList<>();
     private final ArrayList<Player> players = new ArrayList<>();
+
+    // Maximum allowed vertical height for the dragon before being forced back down
+    private static final int MAX_DRAGON_HEIGHT = 150; // blocks (Y coordinate)
 
     private int lightningDefault = 20 * 30;
     private int lightningCounter = lightningDefault;
@@ -54,6 +58,9 @@ public class DragonBoss extends Boss {
             cancel();
             return;
         }
+
+        // Ensure the dragon does not fly too high above the End island
+        enforceAltitudeLimit();
 
         if (!gotCrystals) {
             getCrystalLocations();
@@ -162,6 +169,34 @@ public class DragonBoss extends Boss {
             Bukkit.broadcastMessage(
                     ChatColor.GRAY + "[Server] " + ChatColor.ITALIC + "Keep Inventory Enabled in the End");
         }
+    }
+
+    /**
+     * Keeps the dragon from flying excessively high. If the dragon's Y exceeds
+     * MAX_DRAGON_HEIGHT it is teleported back down just above the highest solid
+     * block at its current X/Z (to avoid suffocation) and given a slight downward
+     * velocity so it resumes normal flight.
+     */
+    private void enforceAltitudeLimit() {
+        Location loc = dragon.getLocation();
+        if (loc.getY() <= MAX_DRAGON_HEIGHT)
+            return;
+        World world = loc.getWorld();
+        if (world == null)
+            return;
+
+        int highestY = world.getHighestBlockYAt(loc.getBlockX(), loc.getBlockZ());
+        double targetY = highestY + 10; // a little above the surface / obsidian pillars
+        // Safety clamp in case highestY is void-ish or extreme
+        if (targetY < 5)
+            targetY = 70; // fallback typical island height
+
+        Location newLoc = new Location(world, loc.getX(), targetY, loc.getZ(), loc.getYaw(), loc.getPitch());
+        dragon.teleport(newLoc, PlayerTeleportEvent.TeleportCause.PLUGIN);
+        dragon.setVelocity(new Vector(0, -0.6, 0));
+
+        // Optional subtle particles to mask teleport (avoid spam by not broadcasting)
+        world.spawnParticle(Particle.PORTAL, newLoc.clone().add(0, 2, 0), 30, 1, 1, 1, 0.1);
     }
 
     public void lightningStrike(int numStrikes) {
