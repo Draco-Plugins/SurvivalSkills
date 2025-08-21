@@ -28,16 +28,18 @@ public class DragonBoss extends Boss {
     private boolean gotCrystals = false;
     private boolean isRespawn = false;
 
-    public DragonBoss(String name, int spawnRadiusRequired, int spawnHeightRequired, double maxHealth, double damage, double defense, double speed, EntityType type, Location loc, LivingEntity entity) {
+    public DragonBoss(String name, int spawnRadiusRequired, int spawnHeightRequired, double maxHealth, double damage,
+            double defense, double speed, EntityType type, Location loc, LivingEntity entity) {
         super(name, spawnRadiusRequired, spawnHeightRequired, maxHealth, damage, defense, speed, type, loc, 3);
         setBoss(entity);
         dragon = (EnderDragon) getBoss();
         dragonAttributes();
 
         Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
-        + ChatColor.RESET + "So you have finally come to challenge me?");
+                + ChatColor.RESET + "So you have finally come to challenge me?");
         for (Player p : Bukkit.getOnlinePlayers()) {
-            if (!p.getWorld().getEnvironment().equals(World.Environment.THE_END)) continue;
+            if (!p.getWorld().getEnvironment().equals(World.Environment.THE_END))
+                continue;
             p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1, 1);
         }
     }
@@ -59,44 +61,50 @@ public class DragonBoss extends Boss {
         }
 
         checkStage(false, Sound.ENTITY_ENDER_DRAGON_GROWL);
-        if (isDisableAttack()) return;
+        if (isDisableAttack())
+            return;
         if (lightningCounter == 0) {
             lightningStrike((int) Math.max(5, (1 - getHealthPercentage()) * 40));
             lightningCounter = lightningDefault;
-        }
-        else lightningCounter--;
+        } else
+            lightningCounter--;
 
         if (attackCounter == 0) {
             attack();
             attackCounter = attackDefault;
-        }
-        else attackCounter--;
+        } else
+            attackCounter--;
 
         if (!enableStages) {
             enableStages = true;
             setAppliedAttributes(true);
         }
 
-        if (timeSinceDragonFollowerSpawn > 0) timeSinceDragonFollowerSpawn--;
+        if (timeSinceDragonFollowerSpawn > 0)
+            timeSinceDragonFollowerSpawn--;
     }
 
     @Override
     public void attack() {
         if (getStage() == 1) {
-            if (Math.random() < 0.5) cannon();
-            else deathRain();
+            if (Math.random() < 0.5)
+                cannon();
+            else
+                deathRain();
         } else if (getStage() == 2) {
             if (attackDefault != 160) {
                 attackDefault = 20 * 4;
                 lightningDefault = 20 * 10;
             }
-            if (Math.random() < 0.5) cannon();
-            else deathRain();
+            if (Math.random() < 0.5)
+                cannon();
+            else
+                deathRain();
         } else {
             if (!regeneratedCrystals) {
                 resetCrystals();
                 Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
-                + ChatColor.RESET + "I will not go down so easily");
+                        + ChatColor.RESET + "I will not go down so easily");
                 regeneratedCrystals = true;
             }
             if (attackDefault != 100) {
@@ -105,9 +113,12 @@ public class DragonBoss extends Boss {
             }
 
             double chance = Math.random();
-            if (chance > 0.66) cannon();
-            else if (chance > 0.33) deathRain();
-            else spawnAngryEndermen();
+            if (chance > 0.66)
+                cannon();
+            else if (chance > 0.33)
+                deathRain();
+            else
+                spawnAngryEndermen();
         }
     }
 
@@ -115,11 +126,11 @@ public class DragonBoss extends Boss {
     public void deathAnimation() {
         if (dragon.getWorld().hasMetadata("killedfirstdragon")) {
             Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
-            + ChatColor.RESET + "I always come back");
-        }
-        else {
+                    + ChatColor.RESET + "I always come back");
+        } else {
             dragon.getWorld().setGameRule(GameRule.KEEP_INVENTORY, false);
-            Bukkit.broadcastMessage(ChatColor.GRAY + "[Server] " + ChatColor.ITALIC + "Keep Inventory Disabled in the End");
+            Bukkit.broadcastMessage(
+                    ChatColor.GRAY + "[Server] " + ChatColor.ITALIC + "Keep Inventory Disabled in the End");
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -133,7 +144,8 @@ public class DragonBoss extends Boss {
             Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
                     + ChatColor.RESET + "This is only the beginning");
 
-            dragon.getWorld().setMetadata("killedfirstdragon", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
+            dragon.getWorld().setMetadata("killedfirstdragon",
+                    new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "toggleoverworldfirstdragon");
         }
         cancel();
@@ -141,12 +153,14 @@ public class DragonBoss extends Boss {
 
     public void dragonAttributes() {
         AttributeInstance health = dragon.getAttribute(Attribute.MAX_HEALTH);
-        if (health != null) health.setBaseValue(getMaxHealth());
+        if (health != null)
+            health.setBaseValue(getMaxHealth());
         dragon.setHealth(getMaxHealth());
         dragon.setMetadata("boss", new FixedMetadataValue(SurvivalSkills.getPlugin(SurvivalSkills.class), true));
         if (!dragon.getWorld().hasMetadata("killedfirstdragon")) {
             dragon.getWorld().setGameRule(GameRule.KEEP_INVENTORY, true);
-            Bukkit.broadcastMessage(ChatColor.GRAY + "[Server] " + ChatColor.ITALIC + "Keep Inventory Enabled in the End");
+            Bukkit.broadcastMessage(
+                    ChatColor.GRAY + "[Server] " + ChatColor.ITALIC + "Keep Inventory Enabled in the End");
         }
     }
 
@@ -156,37 +170,57 @@ public class DragonBoss extends Boss {
 
         int radius = 30;
         for (int i = 0; i < numStrikes; i++) {
-            Location loc = randomLoc(orgLoc, radius, true);
-            if (loc != null) end.strikeLightning(loc);
+            Location loc = randomLoc(orgLoc, radius);
+            if (loc != null)
+                end.strikeLightning(loc);
         }
     }
 
-    public Location randomLoc(Location loc, int radius, boolean rand) {
-        if (loc.getY() < 30) return null;
-        Location newLoc;
-        if (rand) {
+    public Location randomLoc(Location origin, int radius) {
+        if (origin.getY() < 30)
+            return null;
+
+        final int maxTries = 40;
+        for (int tries = 0; tries < maxTries; tries++) {
             double x = Math.floor((Math.random() - 0.5) * radius * 2);
             double z = Math.floor((Math.random() - 0.5) * radius * 2);
-            newLoc = loc.clone().add(x, -1, z);
-        }
-        else newLoc = loc.add(0, -1, 0);
+            Location probe = origin.clone().add(x, 0, z);
 
-        Material mat = newLoc.getBlock().getType();
-        if (newLoc.getBlock().isEmpty() || mat.isAir()) return randomLoc(newLoc, radius, false);
-        if (mat.equals(Material.END_CRYSTAL) || mat.equals(Material.BEDROCK)) return randomLoc(newLoc.add(1, 0, 0), radius, false);
-        return newLoc;
+            // Descend until we hit a solid, non‑air block (cap descent to avoid void walks)
+            int maxDescent = 64;
+            int descent = 0;
+            while (probe.getBlock().isPassable() && descent < maxDescent && probe.getY() > -32) {
+                probe.subtract(0, 1, 0);
+                descent++;
+            }
+            if (descent == maxDescent)
+                continue;
+
+            Material m = probe.getBlock().getType();
+            if (m == Material.BEDROCK
+                    || m == Material.END_PORTAL
+                    || m == Material.END_PORTAL_FRAME) {
+                continue; // Skip portal / frame / bedrock
+            }
+
+            return probe;
+        }
+        return null;
     }
 
     public void cannon() {
         // Get nearby player as a target
         Player p = null;
         for (Entity ent : dragon.getNearbyEntities(100, 100, 100)) {
-            if (!(ent instanceof Player player)) continue;
-            if (!players.contains(player)) continue;
+            if (!(ent instanceof Player player))
+                continue;
+            if (!players.contains(player))
+                continue;
             p = player;
             break;
         }
-        if (p == null) return;
+        if (p == null)
+            return;
 
         Location targetLocation = p.getLocation().clone();
         Location originLocation = dragon.getLocation().clone();
@@ -224,27 +258,33 @@ public class DragonBoss extends Boss {
 
         for (int i = 0; i < 5; i++) {
             Location loc = randomLoc(dragon.getLocation(), 30, true);
-            if (loc == null) continue;
+            if (loc == null)
+                continue;
             Enderman eman = (Enderman) dragon.getWorld().spawnEntity(loc, EntityType.ENDERMAN);
             eman.setCustomName(ChatColor.LIGHT_PURPLE + "Dragon Worshipper");
             eman.setCustomNameVisible(true);
             AttributeInstance health = eman.getAttribute(Attribute.MAX_HEALTH);
-            if (health != null) health.setBaseValue(50);
+            if (health != null)
+                health.setBaseValue(50);
             eman.setHealth(50);
             AttributeInstance speed = eman.getAttribute(Attribute.MOVEMENT_SPEED);
-            if (speed != null) speed.setBaseValue(0.5);
+            if (speed != null)
+                speed.setBaseValue(0.5);
             AttributeInstance damage = eman.getAttribute(Attribute.ATTACK_DAMAGE);
-            if (damage != null) damage.setBaseValue(15);
+            if (damage != null)
+                damage.setBaseValue(15);
 
             timeSinceDragonFollowerSpawn = 20 * 30;
             eman.getWorld().spawnParticle(Particle.PORTAL, eman.getLocation().clone().add(0, 1, 0), 15);
             Player p = null;
             for (Entity ent : eman.getNearbyEntities(10, 10, 10)) {
-                if (!(ent instanceof Player)) continue;
+                if (!(ent instanceof Player))
+                    continue;
                 p = (Player) ent;
                 break;
             }
-            if (p == null) continue;
+            if (p == null)
+                continue;
             eman.setTarget(p);
             eman.teleportTowards(p);
             eman.attack(p);
@@ -270,7 +310,8 @@ public class DragonBoss extends Boss {
                     if (!loc.getBlock().isEmpty()) {
                         // Set the block above on fire
                         loc.add(0, 1, 0).getBlock().setType(Material.FIRE);
-                        if (loc.getWorld() != null) loc.getWorld().createExplosion(loc, 4, false, false);
+                        if (loc.getWorld() != null)
+                            loc.getWorld().createExplosion(loc, 4, false, false);
                         cancel();
                         return;
                     }
@@ -279,10 +320,14 @@ public class DragonBoss extends Boss {
                     loc.add(vector);
 
                     // Slow down the movement in each direction
-                    if (vector.getX() < 0 && Math.abs(vector.getX()) >= 0.01) vector.setX(vector.getX() + 0.01);
-                    if (vector.getX() >= 0.01) vector.setX(vector.getX() - 0.01);
-                    if (vector.getZ() < 0 && Math.abs(vector.getZ()) >= 0.01) vector.setZ(vector.getZ() + 0.01);
-                    if (vector.getZ() >= 0.01) vector.setZ(vector.getZ() - 0.01);
+                    if (vector.getX() < 0 && Math.abs(vector.getX()) >= 0.01)
+                        vector.setX(vector.getX() + 0.01);
+                    if (vector.getX() >= 0.01)
+                        vector.setX(vector.getX() - 0.01);
+                    if (vector.getZ() < 0 && Math.abs(vector.getZ()) >= 0.01)
+                        vector.setZ(vector.getZ() + 0.01);
+                    if (vector.getZ() >= 0.01)
+                        vector.setZ(vector.getZ() - 0.01);
                 }
             }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 1);
         }
@@ -304,12 +349,14 @@ public class DragonBoss extends Boss {
 
     public void lifeSteal() {
         AttributeInstance health = dragon.getAttribute(Attribute.MAX_HEALTH);
-        if (health == null) return;
+        if (health == null)
+            return;
         dragon.setHealth(Math.min(dragon.getHealth() + 20, health.getValue()));
         Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: " +
                 ChatColor.RESET + "I will feed off your fallen comrade");
         for (Player p : Bukkit.getOnlinePlayers()) {
-            if (!p.getWorld().getEnvironment().equals(World.Environment.THE_END)) continue;
+            if (!p.getWorld().getEnvironment().equals(World.Environment.THE_END))
+                continue;
             p.playSound(p, Sound.ENTITY_GENERIC_DRINK, 1, 1);
         }
     }
@@ -317,14 +364,16 @@ public class DragonBoss extends Boss {
     public void getCrystalLocations() {
         World world = dragon.getWorld();
         for (Entity ent : world.getEntities()) {
-            if (!(ent instanceof EnderCrystal)) continue;
+            if (!(ent instanceof EnderCrystal))
+                continue;
             crystalLocations.add(ent.getLocation());
         }
     }
 
     public void resetCrystals() {
         for (Location loc : crystalLocations) {
-            if (loc.getWorld() == null) continue;
+            if (loc.getWorld() == null)
+                continue;
             EnderCrystal crystal = (EnderCrystal) loc.getWorld().spawnEntity(loc, EntityType.END_CRYSTAL);
             crystal.setBeamTarget(dragon.getLocation());
         }
