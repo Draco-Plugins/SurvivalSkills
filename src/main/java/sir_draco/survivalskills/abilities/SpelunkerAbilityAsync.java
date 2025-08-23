@@ -8,12 +8,13 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 
 public class SpelunkerAbilityAsync extends BukkitRunnable {
 
     private final Block playerBlock;
     private final int radius;
-    private final ArrayList<Material> ores;
+    private final Set<Material> ores;
     private final ArrayList<Block> currentGlows = new ArrayList<>();
     private final ArrayList<Block> glowsToAdd = new ArrayList<>();
 
