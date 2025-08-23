@@ -18,6 +18,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
@@ -76,12 +77,21 @@ public class Utils {
             return;
         if (meta.getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey)) {
             try {
-                String itemContainer = meta.getPersistentDataContainer().get(ItemStackGenerator.skillsItemKey,
-                        PersistentDataType.STRING);
-                if (itemContainer != null && itemContainer.equals("Trophy")) {
+                PersistentDataContainer container = meta.getPersistentDataContainer();
+                if (container == null)
+                    return;
+                if (!container.has(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING))
+                    return;
+
+                String itemContainer = container.get(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING);
+                if (itemContainer == null)
+                    return;
+
+                if (itemContainer.equals("Trophy"))
                     ent.remove();
-                    Bukkit.getLogger().log(Level.INFO, "Removed item with TrophyItem metadata");
-                }
+                else
+                    Bukkit.getLogger().log(Level.INFO, "Item with unknown skills item key: " + itemContainer);
+
             } catch (Exception e) {
                 Bukkit.getLogger().log(Level.WARNING, "Failed to remove trophy item", e);
             }
