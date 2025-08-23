@@ -131,13 +131,21 @@ public class FightingSkill implements Listener {
             ArrayList<ItemStack> drops = new ArrayList<>();
             switch (e.getEntity().getType()) {
                 case ZOMBIE:
-                    drops.add(ItemStackGenerator.getGiantBossItem());
+                    Map<Integer, ItemStack> leftoverGiant = null;
+                    if (p != null)
+                        leftoverGiant = p.getInventory().addItem(ItemStackGenerator.getGiantBossItem());
+                    if (leftoverGiant == null || !leftoverGiant.isEmpty())
+                        drops.add(ItemStackGenerator.getGiantBossItem());
                     removeGiant(e.getEntity());
                     Bukkit.broadcastMessage(ChatColor.AQUA + "The Giant" + ChatColor.LIGHT_PURPLE + " has been slain!");
                     killExperience(p, plugin.getSkillManager().getFightingXP() * 500);
                     break;
                 case SPIDER:
-                    drops.add(ItemStackGenerator.getBroodMotherBossItem());
+                    Map<Integer, ItemStack> leftoverBroodMother = null;
+                    if (p != null)
+                        leftoverBroodMother = p.getInventory().addItem(ItemStackGenerator.getBroodMotherBossItem());
+                    if (leftoverBroodMother == null || !leftoverBroodMother.isEmpty())
+                        drops.add(ItemStackGenerator.getBroodMotherBossItem());
                     if (Math.random() < 0.2)
                         drops.add(ItemStackGenerator.getBroodingSilk());
                     removeBroodMother(e.getEntity());
@@ -146,7 +154,11 @@ public class FightingSkill implements Listener {
                     killExperience(p, plugin.getSkillManager().getFightingXP() * 1000);
                     break;
                 case VILLAGER:
-                    drops.add(ItemStackGenerator.getVillagerBossItem());
+                    Map<Integer, ItemStack> leftoverVillager = null;
+                    if (p != null)
+                        leftoverVillager = p.getInventory().addItem(ItemStackGenerator.getVillagerBossItem());
+                    if (leftoverVillager == null || !leftoverVillager.isEmpty())
+                        drops.add(ItemStackGenerator.getVillagerBossItem());
                     removeVillager(e.getEntity());
                     Bukkit.broadcastMessage(
                             ChatColor.AQUA + "The Exiled One" + ChatColor.LIGHT_PURPLE + " has been slain!");
@@ -154,8 +166,10 @@ public class FightingSkill implements Listener {
                     break;
                 case ENDER_DRAGON:
                     if (dragonBoss != null) {
-                        if (p != null
-                                && !p.getInventory().addItem(ItemStackGenerator.getEnderDragonBossItem()).isEmpty())
+                        Map<Integer, ItemStack> leftoverDragon = null;
+                        if (p != null)
+                            leftoverDragon = p.getInventory().addItem(ItemStackGenerator.getEnderDragonBossItem());
+                        if (leftoverDragon == null || !leftoverDragon.isEmpty())
                             drops.add(ItemStackGenerator.getEnderDragonBossItem());
 
                         World world = dragonBoss.getBoss().getWorld();

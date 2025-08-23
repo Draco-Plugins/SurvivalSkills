@@ -3,22 +3,25 @@ package sir_draco.survivalskills.abilities.armor;
 import org.bukkit.Color;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import sir_draco.survivalskills.utils.ItemStackGenerator;
+
 import static sir_draco.survivalskills.skill_listeners.ArmorListener.beaconEffects;
 import static sir_draco.survivalskills.skill_listeners.ArmorListener.playersWearingBeaconArmor;
 
-public class RainbowArmor extends BukkitRunnable {
+public class BeaconArmor extends BukkitRunnable {
 
     private final Player p;
 
     private int count = 0;
 
-    public RainbowArmor(Player p) {
+    public BeaconArmor(Player p) {
         this.p = p;
     }
 
@@ -33,44 +36,51 @@ public class RainbowArmor extends BukkitRunnable {
         Color armorColor = convertCountToRGB(count);
         setArmor(playerInventory, armorColor);
 
-        if (count % 40 == 0) handleBeaconEffect();
+        if (count % 40 == 0)
+            handleBeaconEffect();
 
         // Reset count
         count += 1;
-        if (count >= 500) count = 0;
+        if (count >= 500)
+            count = 0;
     }
 
     private void setArmor(PlayerInventory inv, Color color) {
-        if (inv.getBoots() == null) {
+        if (inv.getBoots() == null || !ItemStackGenerator.isCustomItem(inv.getBoots(), 29)) {
             playersWearingBeaconArmor.remove(p.getUniqueId());
             cancel();
             return;
         }
-        inv.setBoots(colorArmor(inv.getBoots(), color));
+        ItemStack boots = colorArmor(inv.getBoots(), color);
+        p.sendEquipmentChange(p, EquipmentSlot.FEET, boots);
 
-        if (inv.getLeggings() == null) {
+        if (inv.getLeggings() == null || !ItemStackGenerator.isCustomItem(inv.getLeggings(), 29)) {
             playersWearingBeaconArmor.remove(p.getUniqueId());
             cancel();
             return;
         }
-        inv.setLeggings(colorArmor(inv.getLeggings(), color));
+        ItemStack leggings = colorArmor(inv.getLeggings(), color);
+        p.sendEquipmentChange(p, EquipmentSlot.LEGS, leggings);
 
-        if (inv.getChestplate() == null) {
+        if (inv.getChestplate() == null || !ItemStackGenerator.isCustomItem(inv.getChestplate(), 29)) {
             playersWearingBeaconArmor.remove(p.getUniqueId());
             cancel();
             return;
         }
-        inv.setChestplate(colorArmor(inv.getChestplate(), color));
+        ItemStack chestplate = colorArmor(inv.getChestplate(), color);
+        p.sendEquipmentChange(p, EquipmentSlot.CHEST, chestplate);
 
-        if (inv.getHelmet() == null) {
+        if (inv.getHelmet() == null || !ItemStackGenerator.isCustomItem(inv.getHelmet(), 29)) {
             playersWearingBeaconArmor.remove(p.getUniqueId());
             cancel();
             return;
         }
-        inv.setHelmet(colorArmor(inv.getHelmet(), color));
+        ItemStack helmet = colorArmor(inv.getHelmet(), color);
+        p.sendEquipmentChange(p, EquipmentSlot.HEAD, helmet);
     }
 
     private ItemStack colorArmor(ItemStack armor, Color armorColor) {
+        armor = armor.clone();
         if (armor.getItemMeta() == null) {
             playersWearingBeaconArmor.remove(p.getUniqueId());
             return armor;
@@ -92,10 +102,13 @@ public class RainbowArmor extends BukkitRunnable {
     }
 
     private void handleBeaconEffect() {
-        for (PotionEffect effect : beaconEffects) p.addPotionEffect(effect);
+        for (PotionEffect effect : beaconEffects)
+            p.addPotionEffect(effect);
         for (Entity entity : p.getNearbyEntities(10, 10, 10)) {
-            if (!(entity instanceof Player player)) continue;
-            for (PotionEffect effect : beaconEffects) player.addPotionEffect(effect);
+            if (!(entity instanceof Player player))
+                continue;
+            for (PotionEffect effect : beaconEffects)
+                player.addPotionEffect(effect);
         }
     }
 }

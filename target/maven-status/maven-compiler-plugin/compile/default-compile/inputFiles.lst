@@ -2,10 +2,12 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\MainSkill.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\godItems\EnderEssence.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\TabCompleter.java
+c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\BeaconArmor.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\PowerOreConversion.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\CancelAbilityCooldownsCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\default_commands\ToggleTrailCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\SurvivalSkills.java
+c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\PowerArmor.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\SurvivalSkillsCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\CraftingSkill.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial_mobs\BlazingGhast.java
@@ -60,7 +62,6 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial\RelativeBlock.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\TravelerArmor.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\trophy\TrophyListener.java
-c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\RainbowArmor.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\bosses\VillagerBoss.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\ColorParser.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\bosses\DragonBoss.java

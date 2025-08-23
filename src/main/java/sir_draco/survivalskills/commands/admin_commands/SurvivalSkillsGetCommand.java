@@ -20,12 +20,14 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
 
     public SurvivalSkillsGetCommand(SurvivalSkills plugin) {
         PluginCommand command = plugin.getCommand("ssget");
-        if (command != null) command.setExecutor(this);
+        if (command != null)
+            command.setExecutor(this);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player p)) return false;
+        if (!(sender instanceof Player p))
+            return false;
         if (strings.length != 1) {
             p.sendRawMessage(ChatColor.RED + "Usage: /ssget <item>");
             return false;
@@ -39,8 +41,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             p.sendRawMessage(ChatColor.GREEN + "You have received: Mining Armor");
             p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
             return true;
-        }
-        else if (strings[0].equalsIgnoreCase("wandererarmor")) {
+        } else if (strings[0].equalsIgnoreCase("wandererarmor")) {
             p.getInventory().addItem(ItemStackGenerator.getWandererHelmet());
             p.getInventory().addItem(ItemStackGenerator.getWandererChestplate());
             p.getInventory().addItem(ItemStackGenerator.getWandererLeggings());
@@ -48,8 +49,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             p.sendRawMessage(ChatColor.GREEN + "You have received: Wanderer Armor");
             p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
             return true;
-        }
-        else if (strings[0].equalsIgnoreCase("travelerarmor")) {
+        } else if (strings[0].equalsIgnoreCase("travelerarmor")) {
             p.getInventory().addItem(ItemStackGenerator.getTravelerHelmet());
             p.getInventory().addItem(ItemStackGenerator.getTravelerChestplate());
             p.getInventory().addItem(ItemStackGenerator.getTravelerLeggings());
@@ -57,8 +57,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             p.sendRawMessage(ChatColor.GREEN + "You have received: Traveler Armor");
             p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
             return true;
-        }
-        else if (strings[0].equalsIgnoreCase("gillarmor")) {
+        } else if (strings[0].equalsIgnoreCase("gillarmor")) {
             p.getInventory().addItem(ItemStackGenerator.getGillHelmet());
             p.getInventory().addItem(ItemStackGenerator.getGillChestplate());
             p.getInventory().addItem(ItemStackGenerator.getGillLeggings());
@@ -66,8 +65,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             p.sendRawMessage(ChatColor.GREEN + "You have received: Gill Armor");
             p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
             return true;
-        }
-        else if (strings[0].equalsIgnoreCase("adventurerarmor")) {
+        } else if (strings[0].equalsIgnoreCase("adventurerarmor")) {
             p.getInventory().addItem(ItemStackGenerator.getAdventurerHelmet());
             p.getInventory().addItem(ItemStackGenerator.getAdventurerChestplate());
             p.getInventory().addItem(ItemStackGenerator.getAdventurerLeggings());
@@ -75,8 +73,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             p.sendRawMessage(ChatColor.GREEN + "You have received: Adventurer Armor");
             p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
             return true;
-        }
-        else if (strings[0].equalsIgnoreCase("beaconarmor")) {
+        } else if (strings[0].equalsIgnoreCase("beaconarmor")) {
             p.getInventory().addItem(ItemStackGenerator.getBeaconHelmet());
             p.getInventory().addItem(ItemStackGenerator.getBeaconChestplate());
             p.getInventory().addItem(ItemStackGenerator.getBeaconLeggings());
@@ -84,8 +81,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             p.sendRawMessage(ChatColor.GREEN + "You have received: Beacon Armor");
             p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
             return true;
-        }
-        else if (strings[0].equalsIgnoreCase("powerarmor")) {
+        } else if (strings[0].equalsIgnoreCase("powerarmor")) {
             p.getInventory().addItem(ItemStackGenerator.getPowerHelmet());
             p.getInventory().addItem(ItemStackGenerator.getPowerChestplate());
             p.getInventory().addItem(ItemStackGenerator.getPowerLeggings());
@@ -156,7 +152,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             case "unlimitedlavabucket" -> ItemStackGenerator.getUnlimitedLavaBucket();
             case "weatherartifact" -> ItemStackGenerator.getWeatherArtifact();
             case "timeartifact" -> ItemStackGenerator.getTimeArtifact();
-            case "xpvoucher" -> ItemStackGenerator.getExperienceMultiplierVoucher();
+            case "xpvoucher" -> ItemStackGenerator.getExperienceMultiplierVoucher(2, 60);
             case "zapwand" -> ItemStackGenerator.getZapWand();
             case "magnet" -> ItemStackGenerator.getMagnet();
             case "webshooter" -> ItemStackGenerator.getWebShooter();
