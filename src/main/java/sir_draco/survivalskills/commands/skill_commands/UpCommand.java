@@ -21,12 +21,14 @@ public class UpCommand implements CommandExecutor {
     public UpCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
         PluginCommand command = plugin.getCommand("ssup");
-        if (command != null) command.setExecutor(this);
+        if (command != null)
+            command.setExecutor(this);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player p)) return false;
+        if (!(sender instanceof Player p))
+            return false;
         // Check for level requirements
         if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(MINING, UP_COMMAND).isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "/ssup is not enabled on this server");
@@ -34,7 +36,8 @@ public class UpCommand implements CommandExecutor {
             return false;
         }
 
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(MINING, UP_COMMAND).isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(MINING, UP_COMMAND).isApplied()
+                && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force /ssup use: " + ChatColor.AQUA + "/ssup force");
             }
@@ -46,7 +49,7 @@ public class UpCommand implements CommandExecutor {
         }
 
         // The player can't be in the nether or the end
-        if (p.getWorld().getEnvironment().equals(World.Environment.NORMAL)) {
+        if (!p.getWorld().getEnvironment().equals(World.Environment.NORMAL)) {
             p.sendRawMessage(ChatColor.RED + "You can only use /ssup in the Overworld");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
