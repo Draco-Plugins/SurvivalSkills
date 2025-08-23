@@ -3,7 +3,11 @@ package sir_draco.survivalskills.skill_listeners;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.block.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Chest;
+import org.bukkit.block.DoubleChest;
+import org.bukkit.block.ShulkerBox;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -26,6 +30,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("deprecation")
 public class BuildingSkill implements Listener {
@@ -222,36 +227,34 @@ public class BuildingSkill implements Listener {
     }
 
     public List<ItemStack> getSortedItems(ItemStack[] itemsRaw) {
-        ArrayList<ItemStack> items = new ArrayList<>(Arrays.asList(itemsRaw));
-        List<ItemStack> sortedItems = new ArrayList<>();
-        int itemsSize = items.size();
+        // Filter out nulls & enchanted books first to avoid duplication (books handled
+        // separately)
+        List<ItemStack> filtered = Arrays.stream(itemsRaw)
+                .filter(Objects::nonNull)
+                .filter(i -> i.getType() != Material.ENCHANTED_BOOK)
+                .collect(Collectors.toList());
 
-        int addedItemsCounter = 0;
-        while (addedItemsCounter < itemsSize) {
-            ItemStack itemToAdd = null;
-            String itemType = null;
-            for (ItemStack item : items) {
-                if (item == null || item.getType().equals(Material.ENCHANTED_BOOK) || itemToAdd == null) {
-                    if (itemToAdd == null && item != null) {
-                        itemToAdd = item;
-                        itemType = item.getType().toString();
+        if (filtered.isEmpty())
+            return Collections.emptyList();
+
+        // Sort by (1) material name (2) display name if present (strip color for
+        // consistency)
+        filtered.sort(java.util.Comparator
+                .comparing((ItemStack i) -> i.getType().toString())
+                .thenComparing(i -> {
+                    ItemMeta meta = i.getItemMeta();
+                    if (meta != null && meta.hasDisplayName()) {
+                        return ChatColor.stripColor(meta.getDisplayName());
                     }
-                    continue;
-                }
+                    return ""; // items without name come first for that material
+                }));
 
-                // check if the item type is alphabetically before the current itemType
-                if (item.getType().toString().compareTo(itemType) < 0) {
-                    itemToAdd = item;
-                    itemType = item.getType().toString();
-                }
-            }
-
-            items.remove(itemToAdd);
-            sortedItems = condenseList((ArrayList<ItemStack>) sortedItems, itemToAdd);
-            addedItemsCounter++;
+        // Condense consecutive similar stacks (sorting groups identical items together)
+        List<ItemStack> condensed = new ArrayList<>();
+        for (ItemStack item : filtered) {
+            condenseList((ArrayList<ItemStack>) condensed, item.clone()); // clone to avoid mutating original references
         }
-
-        return sortedItems;
+        return condensed;
     }
 
     public List<ItemStack> condenseList(ArrayList<ItemStack> items, ItemStack itemToAdd) {
@@ -299,60 +302,43 @@ public class BuildingSkill implements Listener {
     }
 
     public List<ItemStack> getSortedEnchantedBooks(ItemStack[] itemsRaw) {
-        ArrayList<ItemStack> enchantedBooks = new ArrayList<>();
-        for (ItemStack item : itemsRaw) {
-            if (item == null || !item.getType().equals(Material.ENCHANTED_BOOK))
-                continue;
-            enchantedBooks.add(item);
-        }
+        List<ItemStack> enchantedBooks = Arrays.stream(itemsRaw)
+                .filter(Objects::nonNull)
+                .filter(i -> i.getType() == Material.ENCHANTED_BOOK)
+                .collect(Collectors.toList());
 
         if (enchantedBooks.isEmpty())
             return enchantedBooks;
 
-        // Sort the enchanted books by enchantment name
-        enchantedBooks.sort((book1, book2) -> {
-            String enchantmentName1 = getFirstEnchantmentName(book1);
-            String enchantmentName2 = getFirstEnchantmentName(book2);
-            if (enchantmentName1.equals(enchantmentName2))
-                return Integer.compare(getEnchantLevel(book1), getEnchantLevel(book2));
-            return enchantmentName1.compareTo(enchantmentName2);
-        });
+        enchantedBooks.sort(java.util.Comparator
+                .comparing(this::buildEnchantmentSortKey)
+                .thenComparingInt(this::getTotalEnchantmentLevels));
 
         return enchantedBooks;
     }
 
-    private String getFirstEnchantmentName(ItemStack book) {
+    private String buildEnchantmentSortKey(ItemStack book) {
         if (book == null)
             return "";
         ItemMeta meta = book.getItemMeta();
-        if (meta == null)
-            return "";
         if (!(meta instanceof EnchantmentStorageMeta enchantmentMeta))
             return "";
-        Map<Enchantment, Integer> enchantments = enchantmentMeta.getStoredEnchants();
-        if (enchantments.isEmpty())
+        Map<Enchantment, Integer> enchants = enchantmentMeta.getStoredEnchants();
+        if (enchants.isEmpty())
             return "";
-        Enchantment enchant = enchantments.keySet().iterator().next();
-        if (enchant == null)
-            return "";
-        return enchant.getKey().toString();
+        return enchants.entrySet().stream()
+                .sorted(java.util.Comparator.comparing(e -> e.getKey().getKey().toString()))
+                .map(e -> e.getKey().getKey() + ":" + e.getValue())
+                .collect(Collectors.joining("|"));
     }
 
-    private int getEnchantLevel(ItemStack book) {
+    private int getTotalEnchantmentLevels(ItemStack book) {
         if (book == null)
             return 0;
         ItemMeta meta = book.getItemMeta();
-        if (meta == null)
-            return 0;
         if (!(meta instanceof EnchantmentStorageMeta enchantmentMeta))
             return 0;
-        Map<Enchantment, Integer> enchantments = enchantmentMeta.getStoredEnchants();
-        if (enchantments.isEmpty())
-            return 0;
-        Enchantment enchant = enchantments.keySet().iterator().next();
-        if (enchant == null)
-            return 0;
-        return enchantments.get(enchant);
+        return enchantmentMeta.getStoredEnchants().values().stream().mapToInt(Integer::intValue).sum();
     }
 
     public boolean isBannedReturn(Material material) {
