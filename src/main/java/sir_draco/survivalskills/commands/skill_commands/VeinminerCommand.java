@@ -17,12 +17,14 @@ public class VeinminerCommand implements CommandExecutor {
     public VeinminerCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
         PluginCommand command = plugin.getCommand("veinminer");
-        if (command != null) command.setExecutor(this);
+        if (command != null)
+            command.setExecutor(this);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player p)) return false;
+        if (!(sender instanceof Player p))
+            return false;
 
         // Check for level requirements reset and active times and radius
         if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "VeinminerI").isEnabled()) {
@@ -40,7 +42,8 @@ public class VeinminerCommand implements CommandExecutor {
         }
 
         // Enable veinminer
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "VeinminerI").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "VeinminerI").isApplied()
+                && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force veinminer use: " + ChatColor.AQUA + "/veinminer force");
             }
@@ -49,9 +52,11 @@ public class VeinminerCommand implements CommandExecutor {
                     + ChatColor.RED + " to use veinminer");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
+        } else if (plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "VeinminerII").isApplied()) {
+            plugin.getMiningListener().getVeinminerTracker().put(p, 1);
+        } else {
+            plugin.getMiningListener().getVeinminerTracker().put(p, 0);
         }
-        else if (plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "VeinminerII").isApplied()) plugin.getMiningListener().getVeinminerTracker().put(p, 1);
-        else plugin.getMiningListener().getVeinminerTracker().put(p, 0);
 
         p.sendRawMessage(ChatColor.GREEN + "Veinminer has been enabled!");
         p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);

@@ -7,6 +7,7 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.skill_listeners.MiningSkill;
@@ -23,7 +24,8 @@ public class VeinMinerAsync extends BukkitRunnable {
     private final Material material;
     private final int blocksPerHunger;
 
-    public VeinMinerAsync(SurvivalSkills plugin, Player p, MiningSkill skill, Block block, Material material, int blocksPerHunger) {
+    public VeinMinerAsync(SurvivalSkills plugin, Player p, MiningSkill skill, Block block, Material material,
+            int blocksPerHunger) {
         this.plugin = plugin;
         this.p = p;
         this.skill = skill;
@@ -38,7 +40,7 @@ public class VeinMinerAsync extends BukkitRunnable {
         ArrayList<Block> blocks = getVeinBlocks(block);
         ArrayList<Block> eventBlockTrackingList = new ArrayList<>(blocks);
         skill.getVeinTracker().put(p, eventBlockTrackingList);
-        if (skill.getVeinminerTracker().get(p) == 0) {
+        if (skill.getVeinminerTracker().get(p) != 2) {
             int food = p.getFoodLevel();
             int newFood = food - (blocks.size() / blocksPerHunger);
             if (newFood < 0) {
@@ -47,7 +49,15 @@ public class VeinMinerAsync extends BukkitRunnable {
                 skill.getVeinTracker().remove(p);
                 return;
             }
-            p.setFoodLevel(newFood);
+
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    FoodLevelChangeEvent event = new FoodLevelChangeEvent(p, newFood);
+                    p.setFoodLevel(newFood);
+                    Bukkit.getServer().getPluginManager().callEvent(event);
+                }
+            }.runTask(plugin);
         }
 
         ItemStack pickaxe = p.getInventory().getItemInMainHand();
@@ -55,6 +65,7 @@ public class VeinMinerAsync extends BukkitRunnable {
         // Break all the blocks in the vein 1 block per tick
         new BukkitRunnable() {
             int i = 0;
+
             @Override
             public void run() {
                 if (i >= blocks.size()) {
@@ -66,7 +77,8 @@ public class VeinMinerAsync extends BukkitRunnable {
                 Block blockToBreak = blocks.get(i);
                 BlockBreakEvent event = new BlockBreakEvent(blockToBreak, p);
                 Bukkit.getServer().getPluginManager().callEvent(event);
-                if (!event.isCancelled()) blockToBreak.breakNaturally(pickaxe);
+                if (!event.isCancelled())
+                    blockToBreak.breakNaturally(pickaxe);
                 i++;
             }
         }.runTaskTimer(plugin, 0, 1);
@@ -81,9 +93,11 @@ public class VeinMinerAsync extends BukkitRunnable {
         return blocks;
     }
 
-    public ArrayList<Block> getVeinBlockHelper(Material type, Block startBlock, ArrayList<Block> checkedBlocks, ArrayList<Block> blocks, int iterations) {
+    public ArrayList<Block> getVeinBlockHelper(Material type, Block startBlock, ArrayList<Block> checkedBlocks,
+            ArrayList<Block> blocks, int iterations) {
         iterations++;
-        if (iterations > 10000 || blocks.size() >= 100) return blocks;
+        if (iterations > 10000 || blocks.size() >= 100)
+            return blocks;
         Block left = startBlock.getRelative(-1, 0, 0);
         Block right = startBlock.getRelative(1, 0, 0);
         Block front = startBlock.getRelative(0, 0, 1);
@@ -91,17 +105,25 @@ public class VeinMinerAsync extends BukkitRunnable {
         Block up = startBlock.getRelative(0, 1, 0);
         Block down = startBlock.getRelative(0, -1, 0);
 
-        if (type.equals(left.getType()) && !blocks.contains(left)) blocks.add(left);
-        if (type.equals(right.getType()) && !blocks.contains(right)) blocks.add(right);
-        if (type.equals(front.getType()) && !blocks.contains(front)) blocks.add(front);
-        if (type.equals(back.getType()) && !blocks.contains(back)) blocks.add(back);
-        if (type.equals(up.getType()) && !blocks.contains(up)) blocks.add(up);
-        if (type.equals(down.getType()) && !blocks.contains(down)) blocks.add(down);
+        if (type.equals(left.getType()) && !blocks.contains(left))
+            blocks.add(left);
+        if (type.equals(right.getType()) && !blocks.contains(right))
+            blocks.add(right);
+        if (type.equals(front.getType()) && !blocks.contains(front))
+            blocks.add(front);
+        if (type.equals(back.getType()) && !blocks.contains(back))
+            blocks.add(back);
+        if (type.equals(up.getType()) && !blocks.contains(up))
+            blocks.add(up);
+        if (type.equals(down.getType()) && !blocks.contains(down))
+            blocks.add(down);
 
         checkedBlocks.add(startBlock);
-        if (checkedBlocks.size() == blocks.size()) return blocks;
+        if (checkedBlocks.size() == blocks.size())
+            return blocks;
         for (Block block : blocks) {
-            if (checkedBlocks.contains(block)) continue;
+            if (checkedBlocks.contains(block))
+                continue;
             return getVeinBlockHelper(type, block, checkedBlocks, blocks, iterations);
         }
         return blocks;
