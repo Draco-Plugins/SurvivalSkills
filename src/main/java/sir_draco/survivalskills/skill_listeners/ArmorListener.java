@@ -1,5 +1,6 @@
 package sir_draco.survivalskills.skill_listeners;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -47,25 +48,17 @@ public class ArmorListener implements Listener {
     public ArmorListener(SurvivalSkills plugin) {
         this.plugin = plugin;
         createBeaconEffects();
+
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            armorCheck(p);
+        }
     }
 
     @EventHandler
     public void playerJoin(PlayerJoinEvent e) {
         // Check what armor they are wearing
         Player p = e.getPlayer();
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                checkHealthRegen(p);
-                playerWearingJumpingBoots(p, p.getInventory().getArmorContents());
-                playerWearingWandererArmor(p, p.getInventory().getArmorContents());
-                playerWearingTravelerArmor(p, p.getInventory().getArmorContents());
-                playerWearingGillArmor(p, p.getInventory().getArmorContents());
-                playerWearingAdventurerArmor(p, p.getInventory().getArmorContents());
-                playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
-                playerWearingPowerArmor(p, p.getInventory().getArmorContents());
-            }
-        }.runTaskLater(plugin, 20);
+        armorCheck(p);
     }
 
     @EventHandler
@@ -275,6 +268,22 @@ public class ArmorListener implements Listener {
             PowerArmor.releaseDamage(p);
             p.sendMessage(ChatColor.GOLD + "Shockwave released!");
         }
+    }
+
+    private void armorCheck(Player p) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                checkHealthRegen(p);
+                playerWearingJumpingBoots(p, p.getInventory().getArmorContents());
+                playerWearingWandererArmor(p, p.getInventory().getArmorContents());
+                playerWearingTravelerArmor(p, p.getInventory().getArmorContents());
+                playerWearingGillArmor(p, p.getInventory().getArmorContents());
+                playerWearingAdventurerArmor(p, p.getInventory().getArmorContents());
+                playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
+                playerWearingPowerArmor(p, p.getInventory().getArmorContents());
+            }
+        }.runTaskLater(plugin, 20);
     }
 
     public boolean isArmor(Material mat) {
