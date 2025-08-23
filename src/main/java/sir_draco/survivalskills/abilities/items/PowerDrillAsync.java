@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.abilities;
+package sir_draco.survivalskills.abilities.items;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -30,6 +30,7 @@ public class PowerDrillAsync extends BukkitRunnable {
         this.block = block;
         this.direction = p.getLocation().getDirection();
     }
+
     @Override
     public void run() {
         // Get the blocks in the vein and remove hunger appropriately
@@ -41,6 +42,7 @@ public class PowerDrillAsync extends BukkitRunnable {
         // Break all the blocks around a block in the list 1 tick at a time
         new BukkitRunnable() {
             int i = 0;
+
             @Override
             public void run() {
                 if (i >= blocks.size()) {
@@ -49,8 +51,10 @@ public class PowerDrillAsync extends BukkitRunnable {
                 }
 
                 for (int j = 0; j <= 8; j++) {
-                    if (i + j >= blocks.size()) break;
-                    if (j == 0) Objects.requireNonNull(block.getLocation().getWorld()).playSound(block.getLocation(),
+                    if (i + j >= blocks.size())
+                        break;
+                    if (j == 0)
+                        Objects.requireNonNull(block.getLocation().getWorld()).playSound(block.getLocation(),
                                 Sound.BLOCK_ANVIL_FALL, 1, 1);
                     Block block = blocks.get(i + j);
                     breakBlock(block, p, pickaxe);
@@ -59,6 +63,7 @@ public class PowerDrillAsync extends BukkitRunnable {
             }
         }.runTaskTimer(plugin, 0, 1);
     }
+
     public ArrayList<Block> getBlocks(Block block) {
         ArrayList<Block> blocks = new ArrayList<>();
         blocks.add(block);
@@ -67,14 +72,16 @@ public class PowerDrillAsync extends BukkitRunnable {
         for (int i = 1; i <= 19; i++) {
             startingLocation.add(direction);
             Block nextBlock = startingLocation.getBlock();
-            if (blocks.contains(nextBlock)) continue;
+            if (blocks.contains(nextBlock))
+                continue;
             blocks.add(nextBlock);
             // Add the blocks surrounding the block too
             for (int x = -1; x <= 1; x++) {
                 for (int y = -1; y <= 1; y++) {
                     for (int z = -1; z <= 1; z++) {
                         Block neighbor = nextBlock.getRelative(x, y, z);
-                        if (blocks.contains(neighbor)) continue;
+                        if (blocks.contains(neighbor))
+                            continue;
                         blocks.add(neighbor);
                     }
                 }
@@ -82,10 +89,13 @@ public class PowerDrillAsync extends BukkitRunnable {
         }
         return blocks;
     }
+
     public void breakBlock(Block block, Player p, ItemStack tool) {
-        if (block.getType().isAir()) return;
+        if (block.getType().isAir())
+            return;
         BlockBreakEvent event = new BlockBreakEvent(block, p);
         Bukkit.getServer().getPluginManager().callEvent(event);
-        if (!event.isCancelled()) block.breakNaturally(tool);
+        if (!event.isCancelled())
+            block.breakNaturally(tool);
     }
 }

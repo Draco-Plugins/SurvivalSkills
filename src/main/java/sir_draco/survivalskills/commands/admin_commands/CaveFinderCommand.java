@@ -5,8 +5,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
-import sir_draco.survivalskills.abilities.CaveFinderAsync;
+
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.abilities.items.CaveFinderAsync;
 
 @SuppressWarnings("NullableProblems")
 public class CaveFinderCommand implements CommandExecutor {
@@ -16,12 +17,14 @@ public class CaveFinderCommand implements CommandExecutor {
     public CaveFinderCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
         PluginCommand command = plugin.getCommand("cavefinder");
-        if (command != null) command.setExecutor(this);
+        if (command != null)
+            command.setExecutor(this);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player p)) return false;
+        if (!(sender instanceof Player p))
+            return false;
         CaveFinderAsync caveFinder = new CaveFinderAsync(p, plugin);
         caveFinder.runTaskAsynchronously(plugin);
         return true;

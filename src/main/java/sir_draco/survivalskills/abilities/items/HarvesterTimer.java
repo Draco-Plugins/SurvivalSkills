@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.abilities;
+package sir_draco.survivalskills.abilities.items;
 
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -20,7 +20,8 @@ public class HarvesterTimer extends BukkitRunnable {
     @Override
     public void run() {
         this.timer--;
-        if (this.timer > 0) return;
+        if (this.timer > 0)
+            return;
         plugin.getFarmingListener().getHarvesterCooldowns().remove(p);
         p.playSound(p, Sound.BLOCK_NOTE_BLOCK_BASS, 1, 1);
         this.cancel();

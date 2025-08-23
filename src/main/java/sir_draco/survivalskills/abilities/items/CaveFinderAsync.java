@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.abilities;
+package sir_draco.survivalskills.abilities.items;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -37,6 +37,7 @@ public class CaveFinderAsync extends BukkitRunnable {
 
         new BukkitRunnable() {
             private int count = 0;
+
             @Override
             public void run() {
                 Particle.DustOptions dust = new Particle.DustOptions(org.bukkit.Color.RED, 1);
@@ -55,14 +56,16 @@ public class CaveFinderAsync extends BukkitRunnable {
                     }
                 }
                 count++;
-                if (count > 20) cancel();
+                if (count > 20)
+                    cancel();
             }
         }.runTaskTimer(plugin, 0, 10);
     }
 
     public ArrayList<Location> getParticleLocations(Location loc, int radius) {
         Location locStart = findCaveAir(loc, radius);
-        if (locStart == null) return null;
+        if (locStart == null)
+            return null;
         return tracePathThroughLocations(locStart, loc.clone().add(0, 2, 0));
     }
 
@@ -76,9 +79,12 @@ public class CaveFinderAsync extends BukkitRunnable {
                         trueCave = true;
                         return locCheck;
                     }
-                    if (!block.isEmpty() && !block.getType().isAir()) continue;
-                    if (block.getLightFromSky() > 0) continue;
-                    if (block.getLightLevel() == 0) return locCheck;
+                    if (!block.isEmpty() && !block.getType().isAir())
+                        continue;
+                    if (block.getLightFromSky() > 0)
+                        continue;
+                    if (block.getLightLevel() == 0)
+                        return locCheck;
                 }
             }
         }

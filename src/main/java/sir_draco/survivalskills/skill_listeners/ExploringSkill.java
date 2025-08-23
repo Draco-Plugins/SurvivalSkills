@@ -19,8 +19,9 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
-import sir_draco.survivalskills.abilities.CaveFinderAsync;
-import sir_draco.survivalskills.abilities.Magnet;
+
+import sir_draco.survivalskills.abilities.items.CaveFinderAsync;
+import sir_draco.survivalskills.abilities.items.Magnet;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.rewards.PlayerRewards;
@@ -43,16 +44,22 @@ public class ExploringSkill implements Listener {
 
     @EventHandler
     public void vehicleMoveEvent(VehicleMoveEvent e) {
-        if (e.getVehicle().getPassengers().isEmpty()) return;
-        if (e.getVehicle().getPassengers().getFirst().getType() != EntityType.PLAYER) return;
+        if (e.getVehicle().getPassengers().isEmpty())
+            return;
+        if (e.getVehicle().getPassengers().getFirst().getType() != EntityType.PLAYER)
+            return;
         Player p = (Player) e.getVehicle().getPassengers().getFirst();
         UUID uuid = p.getUniqueId();
         Location loc = p.getLocation().getBlock().getLocation();
-        if (!locationTracker.containsKey(uuid)) locationTracker.put(uuid, loc);
-        if (!stepCounter.containsKey(uuid)) stepCounter.put(uuid, 0);
-        if (sameBlock(locationTracker.get(uuid), loc)) return;
+        if (!locationTracker.containsKey(uuid))
+            locationTracker.put(uuid, loc);
+        if (!stepCounter.containsKey(uuid))
+            stepCounter.put(uuid, 0);
+        if (sameBlock(locationTracker.get(uuid), loc))
+            return;
 
-        if (loc.getWorld() == null) return;
+        if (loc.getWorld() == null)
+            return;
         World locTrackerWorld = locationTracker.get(uuid).getWorld();
         if (locTrackerWorld == null) {
             locationTracker.put(uuid, loc);
@@ -69,8 +76,8 @@ public class ExploringSkill implements Listener {
         if (steps < 100) {
             stepCounter.put(p.getUniqueId(), steps);
             return;
-        }
-        else stepCounter.put(p.getUniqueId(), steps - 100);
+        } else
+            stepCounter.put(p.getUniqueId(), steps - 100);
 
         SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getExploringXP() * 100, "Exploring");
         stepCounter.put(uuid, 0);
@@ -81,11 +88,15 @@ public class ExploringSkill implements Listener {
         Player p = e.getPlayer();
         UUID uuid = p.getUniqueId();
         Location loc = p.getLocation().getBlock().getLocation();
-        if (!locationTracker.containsKey(uuid)) locationTracker.put(uuid, loc);
-        if (!stepCounter.containsKey(uuid)) stepCounter.put(uuid, 0);
-        if (sameBlock(locationTracker.get(uuid), loc)) return;
+        if (!locationTracker.containsKey(uuid))
+            locationTracker.put(uuid, loc);
+        if (!stepCounter.containsKey(uuid))
+            stepCounter.put(uuid, 0);
+        if (sameBlock(locationTracker.get(uuid), loc))
+            return;
 
-        if (loc.getWorld() == null) return;
+        if (loc.getWorld() == null)
+            return;
         World locTrackerWorld = locationTracker.get(uuid).getWorld();
         if (locTrackerWorld == null) {
             locationTracker.put(uuid, loc);
@@ -102,8 +113,8 @@ public class ExploringSkill implements Listener {
         if (steps < 100) {
             stepCounter.put(p.getUniqueId(), steps);
             return;
-        }
-        else stepCounter.put(p.getUniqueId(), steps - 100);
+        } else
+            stepCounter.put(p.getUniqueId(), steps - 100);
 
         SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getExploringXP() * 100, "Exploring");
         stepCounter.put(uuid, 0);
@@ -112,18 +123,22 @@ public class ExploringSkill implements Listener {
     @EventHandler
     public void exploringSkill(PlayerMoveEvent e) {
         Player p = e.getPlayer();
-        if (p.isSwimming()) setSwimSpeed(p);
+        if (p.isSwimming())
+            setSwimSpeed(p);
         if (!p.hasPotionEffect(PotionEffectType.REGENERATION)) {
-            if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "HealthRegen").isApplied()) return;
+            if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "HealthRegen").isApplied())
+                return;
             p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, Integer.MAX_VALUE, 0, true, false));
         }
     }
 
     @EventHandler
     public void onFallDamage(EntityDamageEvent e) {
-        if (!(e.getEntity() instanceof Player p)) return;
+        if (!(e.getEntity() instanceof Player p))
+            return;
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
-        if (e.getCause() != EntityDamageEvent.DamageCause.FALL) return;
+        if (e.getCause() != EntityDamageEvent.DamageCause.FALL)
+            return;
         if (ArmorListener.playersWearingAdventurerArmor.contains(p.getUniqueId())) {
             e.setCancelled(true);
             return;
@@ -133,21 +148,27 @@ public class ExploringSkill implements Listener {
             return;
         }
 
-        if (!rewards.getReward("Exploring", "FallI").isApplied()) return;
-        if (rewards.getReward("Exploring", "FallII").isApplied()) e.setDamage(e.getDamage() / 2);
-        else e.setDamage(e.getDamage() / 4);
+        if (!rewards.getReward("Exploring", "FallI").isApplied())
+            return;
+        if (rewards.getReward("Exploring", "FallII").isApplied())
+            e.setDamage(e.getDamage() / 2);
+        else
+            e.setDamage(e.getDamage() / 4);
     }
 
     @EventHandler
     public void useCaveFinder(PlayerInteractEvent e) {
         Player p = e.getPlayer();
-        if (e.getHand() != EquipmentSlot.HAND) return;
+        if (e.getHand() != EquipmentSlot.HAND)
+            return;
         PlayerInventory inv = p.getInventory();
         if (!ItemStackGenerator.isCustomItem(inv.getItemInMainHand(), 6)
-                && !ItemStackGenerator.isCustomItem(inv.getItemInOffHand(), 6)) return;
+                && !ItemStackGenerator.isCustomItem(inv.getItemInOffHand(), 6))
+            return;
         if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "CaveFinder").isApplied()) {
             p.sendRawMessage(ChatColor.RED + "You must be exploring level" + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Exploring", "CaveFinder").getLevel());
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Exploring", "CaveFinder")
+                            .getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
@@ -164,7 +185,8 @@ public class ExploringSkill implements Listener {
             return;
         }
 
-        if (activeMagnets.contains(p)) return;
+        if (activeMagnets.contains(p))
+            return;
 
         if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "Magnet").isApplied()) {
             p.sendRawMessage(ChatColor.RED + "You must be exploring level" + ChatColor.AQUA
@@ -177,29 +199,35 @@ public class ExploringSkill implements Listener {
     }
 
     public int getPlayerSteps(UUID uuid) {
-        if (!stepCounter.containsKey(uuid)) return 0;
+        if (!stepCounter.containsKey(uuid))
+            return 0;
         return stepCounter.get(uuid);
     }
 
     public boolean sameBlock(Location loc1, Location loc2) {
-        if (loc1.getWorld() == null) return true;
-        if (loc2.getWorld() == null) return true;
-        if (!loc1.getWorld().getEnvironment().equals(loc2.getWorld().getEnvironment())) return false;
-        if (loc1.getBlockX() != loc2.getBlockX()) return false;
-        if (loc1.getBlockY() != loc2.getBlockY()) return false;
+        if (loc1.getWorld() == null)
+            return true;
+        if (loc2.getWorld() == null)
+            return true;
+        if (!loc1.getWorld().getEnvironment().equals(loc2.getWorld().getEnvironment()))
+            return false;
+        if (loc1.getBlockX() != loc2.getBlockX())
+            return false;
+        if (loc1.getBlockY() != loc2.getBlockY())
+            return false;
         return (loc1.getBlockZ() == loc2.getBlockZ());
     }
 
     public void setSwimSpeed(Player p) {
         double speed = plugin.getSkillManager().getPlayerRewards(p).getSwimSpeed();
-        if (speed == 0) return;
+        if (speed == 0)
+            return;
 
         if (ArmorListener.playersWearingGillArmor.contains(p.getUniqueId())) {
             speed *= 0.6;
             Vector v = p.getLocation().getDirection();
             p.setVelocity(v.multiply(speed));
-        }
-        else {
+        } else {
             speed *= 0.2;
             Vector v = p.getLocation().getDirection();
             p.setVelocity(v.multiply(speed));

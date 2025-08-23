@@ -546,12 +546,12 @@ public class ItemStackGenerator {
                 ColorParser.generateGradient("#8008FB", "#FD242D", "Power Sword"), true);
         ArrayList<String> loreList = new ArrayList<>();
         loreList.add(ChatColor.GRAY + "The sword is teeming with energy");
-        loreList.add(ChatColor.LIGHT_PURPLE + "Right click to strike lightning nearby");
+        loreList.add(ChatColor.LIGHT_PURPLE + "Right click to perform a dash attack");
         ItemStack sword = createCustomItem(Material.NETHERITE_SWORD, 1, name, null, null, loreList, 47, false, null);
         ItemMeta meta = sword.getItemMeta();
         if (meta == null)
             return sword;
-        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE, new AttributeModifier(skillsItemKey, 14,
+        meta.addAttributeModifier(Attribute.ATTACK_DAMAGE, new AttributeModifier(skillsItemKey, 15,
                 AttributeModifier.Operation.ADD_NUMBER, EquipmentSlotGroup.MAINHAND));
         meta.setUnbreakable(true);
         sword.setItemMeta(meta);

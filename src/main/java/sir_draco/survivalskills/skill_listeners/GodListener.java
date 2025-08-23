@@ -12,7 +12,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
@@ -35,11 +34,11 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import sir_draco.survivalskills.abilities.AbilityManager;
 import sir_draco.survivalskills.abilities.godItems.EnderEssence;
 import sir_draco.survivalskills.abilities.godItems.TeleporterAnchor;
-import sir_draco.survivalskills.abilities.PowerDrillAsync;
-import sir_draco.survivalskills.abilities.PowerLaser;
+import sir_draco.survivalskills.abilities.items.PowerDrillAsync;
+import sir_draco.survivalskills.abilities.items.PowerLaser;
+import sir_draco.survivalskills.abilities.items.PowerSword;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -134,20 +133,20 @@ public class GodListener implements Listener {
     @SuppressWarnings("deprecation")
     @EventHandler
     public void onUseGodItem(PlayerInteractEvent e) {
+        Player p = e.getPlayer();
+        ItemStack mainHand = p.getInventory().getItemInMainHand();
+        if (!ItemStackGenerator.isCustomItem(mainHand))
+            return;
         if (e.getHand() == null || !e.getHand().equals(EquipmentSlot.HAND))
             return;
         if (!e.getAction().equals(Action.RIGHT_CLICK_AIR) && !e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
-            return;
-        Player p = e.getPlayer();
-        ItemStack mainHand = p.getInventory().getItemInMainHand();
-
-        if (!ItemStackGenerator.isCustomItem(mainHand))
             return;
         ItemMeta meta = mainHand.getItemMeta();
         if (meta == null)
             return;
         if (!meta.hasCustomModelData())
             return;
+
         int modelData = meta.getCustomModelData();
 
         if (modelData == 33) {
@@ -268,24 +267,9 @@ public class GodListener implements Listener {
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
             }
-            // Strike lightning only if there are nearby hostile mobs or other players
+            // Spinning dash attack like when flying with a trident
             e.setCancelled(true);
-            List<LivingEntity> targets = getNearbyLightningTargets(p, 12.0);
-            if (targets.isEmpty()) {
-                p.sendRawMessage(ChatColor.YELLOW + "No valid targets nearby for lightning strike.");
-                p.playSound(p, Sound.BLOCK_NOTE_BLOCK_BASS, 0.7f, 0.8f);
-                return;
-            }
-            World world = p.getWorld();
-            int strikes = 0;
-            for (LivingEntity target : targets) {
-                if (strikes >= 8)
-                    break; // safety cap similar to original behavior
-                Location strikeLoc = getSafeNearbyLocation(target.getLocation());
-                if (strikeLoc.getWorld() != null)
-                    world.strikeLightning(strikeLoc);
-                strikes++;
-            }
+            PowerSword.activate(p);
         } else if (modelData == 50) {
             e.setCancelled(true);
             if (powerLaserCooldowns.contains(p))
@@ -348,13 +332,6 @@ public class GodListener implements Listener {
     public void handleGodDamage(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player p))
             return;
-
-        if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 47)) {
-            if (!e.getCause().equals(EntityDamageEvent.DamageCause.LIGHTNING))
-                return;
-            e.setCancelled(true);
-            return;
-        }
 
         if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 37)) {
             if (!e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) &&
@@ -658,26 +635,6 @@ public class GodListener implements Listener {
             openGodRecipeUI.remove(p);
     }
 
-    @EventHandler
-    public void powerSwordAttack(EntityDamageByEntityEvent e) {
-        if (!(e.getDamager() instanceof Player p))
-            return;
-        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 47))
-            return;
-        if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre")
-                .isApplied())
-            return;
-        if (!(e.getEntity() instanceof LivingEntity))
-            return;
-        for (Entity ent : p.getNearbyEntities(10, 10, 10)) {
-            if (!AbilityManager.getDomainMobs().contains(ent.getType()))
-                continue;
-            if (!(ent instanceof LivingEntity livingEnt))
-                continue;
-            livingEnt.getWorld().strikeLightning(livingEnt.getLocation());
-        }
-    }
-
     public PotionEffect getRandomPotionEffect() {
         return new PotionEffect(potionEffects.get((int) Math.floor(Math.random() * potionEffects.size())),
                 160, 0);
@@ -916,36 +873,6 @@ public class GodListener implements Listener {
 
         // Last resort: original location
         return loc;
-    }
-
-    /**
-     * Collect nearby hostile mobs or other players (excluding the source player)
-     * within radius.
-     */
-    private List<LivingEntity> getNearbyLightningTargets(Player source, double radius) {
-        List<LivingEntity> targets = new ArrayList<>();
-        for (Entity ent : source.getNearbyEntities(radius, radius, radius)) {
-            if (!(ent instanceof LivingEntity living))
-                continue;
-            if (ent.equals(source))
-                continue;
-            if (ent instanceof Player) {
-                targets.add(living);
-                continue;
-            }
-            if (isHostile(living))
-                targets.add(living);
-        }
-        // Sort by distance so closest get priority when capped
-        targets.sort(Comparator.comparingDouble(t -> t.getLocation().distanceSquared(source.getLocation())));
-        return targets;
-    }
-
-    /**
-     * Determine if a living entity is considered hostile for lightning targeting.
-     */
-    private boolean isHostile(LivingEntity ent) {
-        return ent instanceof Monster || ent instanceof Slime || ent instanceof Phantom;
     }
 
     public HashMap<Player, GodRecipeUI> getOpenGodRecipeUI() {

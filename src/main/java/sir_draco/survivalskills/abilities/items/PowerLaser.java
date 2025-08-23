@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.abilities;
+package sir_draco.survivalskills.abilities.items;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -36,8 +36,10 @@ public class PowerLaser extends BukkitRunnable {
             // Create sonic boom particles from the start to the end
             for (int i = 0; i <= 49; i++) {
                 Location loc = startLocation.clone().add(startLocation.getDirection().multiply(i));
-                if (loc.getWorld() == null) break;
-                if (startLocation.distance(loc) > startLocation.distance(endLocation)) break;
+                if (loc.getWorld() == null)
+                    break;
+                if (startLocation.distance(loc) > startLocation.distance(endLocation))
+                    break;
 
                 loc.getWorld().spawnParticle(Particle.SONIC_BOOM, loc, 1);
             }
@@ -46,17 +48,22 @@ public class PowerLaser extends BukkitRunnable {
         // Damage entities near the beam from the start location until the end location
         if (time == 10) {
             Location pLoc = p.getLocation();
-            if (pLoc.getWorld() == null) return;
+            if (pLoc.getWorld() == null)
+                return;
             pLoc.getWorld().playSound(pLoc, Sound.ENTITY_WARDEN_SONIC_BOOM, 1, 1);
 
             for (int i = 0; i <= 49; i++) {
                 Location loc = startLocation.clone().add(startLocation.getDirection().multiply(i));
-                if (loc.getWorld() == null) break;
-                if (startLocation.distance(loc) > startLocation.distance(endLocation)) break;
+                if (loc.getWorld() == null)
+                    break;
+                if (startLocation.distance(loc) > startLocation.distance(endLocation))
+                    break;
 
                 for (Entity ent : loc.getWorld().getNearbyEntities(loc, 1, 1, 1)) {
-                    if (!(ent instanceof LivingEntity livingEnt)) continue;
-                    if (livingEnt == p) continue;
+                    if (!(ent instanceof LivingEntity livingEnt))
+                        continue;
+                    if (livingEnt == p)
+                        continue;
                     livingEnt.damage(30, p);
                 }
             }
@@ -70,7 +77,8 @@ public class PowerLaser extends BukkitRunnable {
         Location loc = startLocation.clone();
         for (int i = 0; i <= 49; i++) {
             loc.add(loc.getDirection());
-            if (!loc.getBlock().getType().equals(Material.AIR) && !loc.getBlock().getType().equals(Material.WATER)) return loc;
+            if (!loc.getBlock().getType().equals(Material.AIR) && !loc.getBlock().getType().equals(Material.WATER))
+                return loc;
         }
         return loc.add(loc.getDirection().multiply(50));
     }

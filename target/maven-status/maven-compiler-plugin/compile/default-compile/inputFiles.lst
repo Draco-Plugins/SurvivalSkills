@@ -2,6 +2,7 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\MainSkill.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\godItems\EnderEssence.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\TabCompleter.java
+c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\items\Magnet.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\BeaconArmor.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\PowerOreConversion.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\CancelAbilityCooldownsCommand.java
@@ -13,7 +14,6 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial_mobs\BlazingGhast.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\FileUtils.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\TrialUtils.java
-c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\HarvesterTimer.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\ArmorListener.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\PlayerListener.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\AbilityManager.java
@@ -35,9 +35,7 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\godItems\TeleporterAnchor.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\GodTrophyQuest.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial\TrialLootTable.java
-c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\CaveFinderAsync.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\default_commands\SkillStatsCommand.java
-c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\PowerDrillAsync.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\Grave.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\FightingSkill.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\GillArmor.java
@@ -53,7 +51,6 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\boards\SkillScoreboard.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\TogglePhantomsCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\rewards\RewardNotifications.java
-c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\HarvesterAsync.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\rewards\PlayerRewards.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial_mobs\WaveMob.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\MojangAPI.java
@@ -65,6 +62,7 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\bosses\VillagerBoss.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\ColorParser.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\bosses\DragonBoss.java
+c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\items\HarvesterTimer.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\default_commands\ToggleMaxSkillMessageCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\trophy\CircularRotationObject.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\trophy\TrophyManager.java
@@ -95,7 +93,6 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\JumpingBoots.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\UpCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial\ProtectedArea.java
-c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\Magnet.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\AutoTrash.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\ToggleGodQuestCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\default_commands\ToggleSpeedCommand.java
@@ -106,16 +103,18 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial\Wave.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\MobScannerCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\FishingSkill.java
+c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\items\PowerLaser.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\ItemStackGenerator.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\WaterBreathingCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\ResetFirstDragon.java
-c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\PowerLaser.java
+c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\items\PowerDrillAsync.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\SurvivalSkillsGetCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial_mobs\FrostRevenant.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\FlyingTimer.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\GodListener.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\bosses\Boss.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial\TrialBuildingData.java
+c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\items\PowerSword.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\GodTrophyEffects.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\AbilityTimer.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\ResetAllCommand.java
@@ -133,7 +132,9 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\WaterBreathingTimer.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial\TrialManager.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\WandererArmor.java
+c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\items\CaveFinderAsync.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\rewards\RewardItemInfo.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\RecipeRecord.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\AdventurerArmor.java
+c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\items\HarvesterAsync.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\FarmingSkill.java

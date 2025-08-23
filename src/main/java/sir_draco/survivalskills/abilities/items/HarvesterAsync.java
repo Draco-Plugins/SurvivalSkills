@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.abilities;
+package sir_draco.survivalskills.abilities.items;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -32,7 +32,8 @@ public class HarvesterAsync extends BukkitRunnable {
         // Get the blocks to be harvested
         ArrayList<Block> blocks = getHarvestedCrops();
 
-        // Add the blocks to the harvestedBlocks list using a duplicate list of the blocks
+        // Add the blocks to the harvestedBlocks list using a duplicate list of the
+        // blocks
         plugin.getFarmingListener().getHarvestedBlocks().put(p, new ArrayList<>(blocks));
 
         // Split the blocks list into multiple lists of 50 blocks
@@ -45,7 +46,8 @@ public class HarvesterAsync extends BukkitRunnable {
                 blocksTemp.clear();
             }
         }
-        if (!blocksTemp.isEmpty()) blocksSplit.add(new ArrayList<>(blocksTemp));
+        if (!blocksTemp.isEmpty())
+            blocksSplit.add(new ArrayList<>(blocksTemp));
 
         // Break the crops over multiple ticks
         new BukkitRunnable() {
@@ -72,23 +74,30 @@ public class HarvesterAsync extends BukkitRunnable {
     }
 
     public ArrayList<Block> getNearbyCrops(ArrayList<Block> blocks, ArrayList<Block> blocksChecked, Block block) {
-        if (blocks.size() >= 200) return blocks;
+        if (blocks.size() >= 200)
+            return blocks;
         for (int x = -1; x <= 1; x++) {
             for (int z = -1; z <= 1; z++) {
                 Block b = block.getRelative(x, 0, z);
-                if (b.equals(block)) continue;
-                if (!b.getType().equals(type)) continue;
-                if (blocks.contains(b)) continue;
+                if (b.equals(block))
+                    continue;
+                if (!b.getType().equals(type))
+                    continue;
+                if (blocks.contains(b))
+                    continue;
                 BlockData data = block.getState().getBlockData();
                 if (data instanceof Ageable ageable)
-                    if (ageable.getAge() != ageable.getMaximumAge()) continue;
+                    if (ageable.getAge() != ageable.getMaximumAge())
+                        continue;
                 blocks.add(b);
             }
         }
         blocksChecked.add(block);
-        if (blocksChecked.size() == blocks.size()) return blocks;
+        if (blocksChecked.size() == blocks.size())
+            return blocks;
         for (Block b : blocks) {
-            if (blocksChecked.contains(b)) continue;
+            if (blocksChecked.contains(b))
+                continue;
             return getNearbyCrops(blocks, blocksChecked, b);
         }
         return blocks;

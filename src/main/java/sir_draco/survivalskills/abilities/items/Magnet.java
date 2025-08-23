@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.abilities;
+package sir_draco.survivalskills.abilities.items;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
@@ -29,17 +29,23 @@ public class Magnet extends BukkitRunnable {
         }
 
         for (Entity ent : p.getNearbyEntities(20, 20, 20)) {
-            if (!(ent instanceof Item)) continue;
+            if (!(ent instanceof Item))
+                continue;
             ItemStack item = ((Item) ent).getItemStack();
-            if (p.getLocation().distance(ent.getLocation()) < 1) return;
+            if (p.getLocation().distance(ent.getLocation()) < 1)
+                return;
             ItemMeta meta = item.getItemMeta();
-            if (meta == null) continue;
+            if (meta == null)
+                continue;
             if (!meta.getPersistentDataContainer().isEmpty()
                     && meta.getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey)
-                    && meta.getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING)) {
-                String type = meta.getPersistentDataContainer().get(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING);
+                    && meta.getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey,
+                            PersistentDataType.STRING)) {
+                String type = meta.getPersistentDataContainer().get(ItemStackGenerator.skillsItemKey,
+                        PersistentDataType.STRING);
                 if (type != null)
-                    if (type.equals("Trophy")) continue;
+                    if (type.equals("Trophy"))
+                        continue;
             }
 
             Vector toPlayer = ProjectileCalculator.getNoGravityVector(ent.getLocation(), p.getLocation(),
