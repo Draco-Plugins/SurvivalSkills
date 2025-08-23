@@ -50,7 +50,7 @@ public class DragonBoss extends Boss {
 
     @Override
     public void run() {
-        if (dragon.isDead()) {
+        if (dragon.isDead() || dragon.getHealth() <= 0) {
             cancel();
             return;
         }
