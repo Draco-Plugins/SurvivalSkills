@@ -24,6 +24,9 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.NamespacedKey;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.abilities.AutoTrash;
 import sir_draco.survivalskills.skills.SkillManager;
@@ -60,6 +63,9 @@ public class FishingSkill implements Listener {
 
     private int id = 1;
 
+    // Persistent data keys for artifact cooldown tracking
+    private final NamespacedKey artifactLastUsedKey;
+
     public FishingSkill(SurvivalSkills plugin) {
         this.plugin = plugin;
         createCommonLootTable();
@@ -67,6 +73,7 @@ public class FishingSkill implements Listener {
         createEpicLootTable();
         createLegendaryLootTable();
         createExoticLootTable();
+        this.artifactLastUsedKey = new NamespacedKey(plugin, "artifact_last_used");
     }
 
     @EventHandler
@@ -80,7 +87,8 @@ public class FishingSkill implements Listener {
             Player p = e.getPlayer();
             int lureLevel = 0;
             ItemStack rod = p.getInventory().getItemInMainHand();
-            if (rod.containsEnchantment(Enchantment.LURE)) lureLevel = Math.min(3, rod.getEnchantmentLevel(Enchantment.LURE));
+            if (rod.containsEnchantment(Enchantment.LURE))
+                lureLevel = Math.min(3, rod.getEnchantmentLevel(Enchantment.LURE));
 
             // Get fishing skill speed level
             int minSpeed = plugin.getSkillManager().getPlayerRewards(p).getFishingMinTickSpeed();
@@ -91,8 +99,7 @@ public class FishingSkill implements Listener {
             if (!hook.isSkyInfluenced()) {
                 minSpeed = minSpeed * 2;
                 maxSpeed = maxSpeed * 2;
-            }
-            else if (hook.getWorld().hasStorm()) {
+            } else if (hook.getWorld().hasStorm()) {
                 int pID = id;
                 id++;
                 rainFishers.put(p, pID);
@@ -100,14 +107,16 @@ public class FishingSkill implements Listener {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (!hook.getLocation().getBlock().getType().equals(Material.WATER)) return;
+                        if (!hook.getLocation().getBlock().getType().equals(Material.WATER))
+                            return;
                         if (!rainFishers.containsKey(p) || rainFishers.get(p) != pID) {
                             hook.remove();
                             return;
                         }
                         // Check if the player is using a fishing rod with luck of the sea
                         int luckLevel = 0;
-                        if (rod.containsEnchantment(Enchantment.LUCK_OF_THE_SEA)) luckLevel = rod.getEnchantmentLevel(Enchantment.LUCK_OF_THE_SEA);
+                        if (rod.containsEnchantment(Enchantment.LUCK_OF_THE_SEA))
+                            luckLevel = rod.getEnchantmentLevel(Enchantment.LUCK_OF_THE_SEA);
                         ArrayList<ItemStack> items = getItemsToDrop(p, luckLevel);
 
                         // Get the velocity of the entity that was caught and then remove the entity
@@ -115,8 +124,11 @@ public class FishingSkill implements Listener {
                         World world = e.getHook().getWorld();
                         Vector velocity = ProjectileCalculator.getVector(loc, p.getLocation(), 0.5);
 
-                        // Set the velocity of all the items in the list to the velocity of the entity that was caught
-                        if (!items.isEmpty()) for (ItemStack item : items) world.dropItem(loc, item).setVelocity(velocity);
+                        // Set the velocity of all the items in the list to the velocity of the entity
+                        // that was caught
+                        if (!items.isEmpty())
+                            for (ItemStack item : items)
+                                world.dropItem(loc, item).setVelocity(velocity);
 
                         handleFishingExperience(p);
                         handleDurability(rod);
@@ -133,8 +145,10 @@ public class FishingSkill implements Listener {
             return;
         }
 
-        if (e.getState() != PlayerFishEvent.State.CAUGHT_FISH) return;
-        if (e.getCaught() == null) return;
+        if (e.getState() != PlayerFishEvent.State.CAUGHT_FISH)
+            return;
+        if (e.getCaught() == null)
+            return;
         // Get the list of items to drop
         Player p = e.getPlayer();
 
@@ -153,8 +167,7 @@ public class FishingSkill implements Listener {
                     spawnFishingBoss(world, loc, velocity);
                     return;
                 }
-            }
-            else {
+            } else {
                 if (chance <= 0.004) {
                     Location loc = e.getHook().getLocation();
                     World world = e.getHook().getWorld();
@@ -171,7 +184,8 @@ public class FishingSkill implements Listener {
         // Check if the player is using a fishing rod with luck of the sea
         ItemStack rod = p.getInventory().getItemInMainHand();
         int luckLevel = 0;
-        if (rod.containsEnchantment(Enchantment.LUCK_OF_THE_SEA)) luckLevel = rod.getEnchantmentLevel(Enchantment.LUCK_OF_THE_SEA);
+        if (rod.containsEnchantment(Enchantment.LUCK_OF_THE_SEA))
+            luckLevel = rod.getEnchantmentLevel(Enchantment.LUCK_OF_THE_SEA);
         ArrayList<ItemStack> items = getItemsToDrop(p, luckLevel);
 
         // Get the velocity of the entity that was caught and then remove the entity
@@ -180,8 +194,11 @@ public class FishingSkill implements Listener {
         Vector velocity = ProjectileCalculator.getVector(loc, p.getLocation(), 0.5);
         e.getCaught().remove();
 
-        // Set the velocity of all the items in the list to the velocity of the entity that was caught
-        if (!items.isEmpty()) for (ItemStack item : items) world.dropItem(loc, item).setVelocity(velocity);
+        // Set the velocity of all the items in the list to the velocity of the entity
+        // that was caught
+        if (!items.isEmpty())
+            for (ItemStack item : items)
+                world.dropItem(loc, item).setVelocity(velocity);
 
         SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), "Fishing");
     }
@@ -196,25 +213,30 @@ public class FishingSkill implements Listener {
     @EventHandler
     public void playerMoveInWater(PlayerMoveEvent e) {
         Player p = e.getPlayer();
-        if (!p.isSwimming() && !p.isInWater()) return;
+        if (!p.isSwimming() && !p.isInWater())
+            return;
         if (plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "WaterBreathingIII").isApplied()) {
             p.setRemainingAir(300);
             return;
         }
-        if (waterBreathers.contains(p)) p.setRemainingAir(300);
+        if (waterBreathers.contains(p))
+            p.setRemainingAir(300);
     }
 
     @EventHandler
     public void killFishingBoss(EntityDeathEvent e) {
-        if (!e.getEntity().hasMetadata("fishingboss")) return;
+        if (!e.getEntity().hasMetadata("fishingboss"))
+            return;
         e.getDrops().clear();
         e.setDroppedExp(0);
-        e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(), ItemStackGenerator.getFishingBossItem());
+        e.getEntity().getWorld().dropItemNaturally(e.getEntity().getLocation(),
+                ItemStackGenerator.getFishingBossItem());
     }
 
     @EventHandler
     public void rainEvent(WeatherChangeEvent e) {
-        if (e.getWorld().hasStorm()) return;
+        if (e.getWorld().hasStorm())
+            return;
         Bukkit.broadcastMessage(ChatColor.YELLOW + "Rain has started falling. Fishing speeds greatly increased!");
         for (Player p : Bukkit.getOnlinePlayers()) {
             p.playSound(p, Sound.ENTITY_FISHING_BOBBER_SPLASH, 1, 1);
@@ -224,14 +246,16 @@ public class FishingSkill implements Listener {
     @EventHandler
     public void onTrashClose(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
-        if (!openTrashInventories.contains(p)) return;
+        if (!openTrashInventories.contains(p))
+            return;
         openTrashInventories.remove(p);
     }
 
     @EventHandler
     public void onClickTrashInventory(InventoryClickEvent e) {
         Player p = (Player) e.getWhoClicked();
-        if (!openTrashInventories.contains(p)) return;
+        if (!openTrashInventories.contains(p))
+            return;
         if (!trashInventories.containsKey(p) && !permaTrash.containsKey(p)) {
             openTrashInventories.remove(p);
             return;
@@ -243,23 +267,28 @@ public class FishingSkill implements Listener {
             if (e.getClick().isShiftClick()) {
                 // get the upper inventory of the player
                 Inventory top = p.getOpenInventory().getTopInventory();
-                if (Objects.equals(top, check.getTrashInventory())) trash = check;
-            }
-            else if (Objects.equals(e.getInventory(), check.getTrashInventory())) trash = check;
+                if (Objects.equals(top, check.getTrashInventory()))
+                    trash = check;
+            } else if (Objects.equals(e.getInventory(), check.getTrashInventory()))
+                trash = check;
         }
         if (permaTrash.containsKey(p) && trash == null) {
             AutoTrash check = permaTrash.get(p);
-            if (Objects.equals(e.getInventory(), check.getTrashInventory())) trash = check;
+            if (Objects.equals(e.getInventory(), check.getTrashInventory()))
+                trash = check;
         }
-        if (trash == null) return;
+        if (trash == null)
+            return;
 
         if (e.getClick().equals(ClickType.DOUBLE_CLICK)) {
             e.setCancelled(true);
             return;
         }
 
-        if (e.getRawSlot() < 0) return;
-        if (e.getRawSlot() >= trash.getTrashInventory().getSize() && !e.isShiftClick()) return;
+        if (e.getRawSlot() < 0)
+            return;
+        if (e.getRawSlot() >= trash.getTrashInventory().getSize() && !e.isShiftClick())
+            return;
 
         if (e.isShiftClick()) {
             if (e.getCurrentItem() == null) {
@@ -269,25 +298,25 @@ public class FishingSkill implements Listener {
 
             if (e.getRawSlot() >= trash.getTrashInventory().getSize()) {
                 ItemStack item = e.getCurrentItem();
-                if (item == null) return;
+                if (item == null)
+                    return;
                 e.setCancelled(true);
                 int slot = trash.findOpenSlot();
-                if (slot == -1) return;
+                if (slot == -1)
+                    return;
                 trash.addTrashItem(item, slot);
-            }
-            else {
+            } else {
                 e.setCancelled(true);
                 trash.removeTrashItem(e.getCurrentItem(), e.getRawSlot());
             }
-        }
-        else {
+        } else {
             if (e.getCurrentItem() != null) {
                 e.setCancelled(true);
                 trash.removeTrashItem(e.getCurrentItem(), e.getRawSlot());
-            }
-            else {
+            } else {
                 ItemStack item = e.getCursor();
-                if (item == null) return;
+                if (item == null)
+                    return;
                 e.setCancelled(true);
                 trash.addTrashItem(item, e.getRawSlot());
             }
@@ -297,7 +326,8 @@ public class FishingSkill implements Listener {
     @EventHandler
     public void onDragTrashInventory(InventoryDragEvent e) {
         Player p = (Player) e.getWhoClicked();
-        if (!openTrashInventories.contains(p)) return;
+        if (!openTrashInventories.contains(p))
+            return;
         if (!trashInventories.containsKey(p) && !permaTrash.containsKey(p)) {
             openTrashInventories.remove(p);
             return;
@@ -306,42 +336,58 @@ public class FishingSkill implements Listener {
         AutoTrash trash = null;
         if (trashInventories.containsKey(p)) {
             AutoTrash check = trashInventories.get(p);
-            if (Objects.equals(e.getInventory(), check.getTrashInventory())) trash = check;
+            if (Objects.equals(e.getInventory(), check.getTrashInventory()))
+                trash = check;
         }
         if (permaTrash.containsKey(p) && trash == null) {
             AutoTrash check = permaTrash.get(p);
-            if (Objects.equals(e.getInventory(), check.getTrashInventory())) trash = check;
+            if (Objects.equals(e.getInventory(), check.getTrashInventory()))
+                trash = check;
         }
-        if (trash == null) return;
+        if (trash == null)
+            return;
         e.setCancelled(true);
 
         int slot = e.getRawSlots().iterator().next();
-        if (slot >= trash.getTrashInventory().getSize() || slot < 0) return;
-        if (trash.getTrashInventory().getItem(slot) != null && e.getCursor() != null) trash.removeTrashItem(e.getCursor(), slot);
+        if (slot >= trash.getTrashInventory().getSize() || slot < 0)
+            return;
+        if (trash.getTrashInventory().getItem(slot) != null && e.getCursor() != null)
+            trash.removeTrashItem(e.getCursor(), slot);
         else {
             ItemStack item = e.getOldCursor();
-            if (item.getType().isAir()) return;
+            if (item.getType().isAir())
+                return;
             trash.addTrashItem(item, slot);
         }
     }
 
     @EventHandler
     public void onItemPickup(EntityPickupItemEvent e) {
-        if (!(e.getEntity() instanceof Player p)) return;
-        if (disabledAutoTrash.contains(p)) return;
-        if (!trashInventories.containsKey(p) && !permaTrash.containsKey(p)) return;
+        if (!(e.getEntity() instanceof Player p))
+            return;
+        if (disabledAutoTrash.contains(p))
+            return;
+        if (!trashInventories.containsKey(p) && !permaTrash.containsKey(p))
+            return;
 
         ItemStack item = e.getItem().getItemStack();
-        if (item.getItemMeta() != null && item.getItemMeta().hasCustomModelData()) return;
-        if (item.getItemMeta() != null && item.getItemMeta().getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey)) return;
+        if (item.getItemMeta() != null && item.getItemMeta().hasCustomModelData())
+            return;
+        if (item.getItemMeta() != null
+                && item.getItemMeta().getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey))
+            return;
         if (trashInventories.containsKey(p)) {
             AutoTrash trash = trashInventories.get(p);
-            if (trash == null) return;
+            if (trash == null)
+                return;
             if (item.getType().equals(Material.ENCHANTED_BOOK)) {
                 ItemMeta meta = item.getItemMeta();
-                if (meta == null) return;
-                if (!(meta instanceof EnchantmentStorageMeta enchantMeta)) return;
-                if (enchantMeta.getStoredEnchants().isEmpty()) return;
+                if (meta == null)
+                    return;
+                if (!(meta instanceof EnchantmentStorageMeta enchantMeta))
+                    return;
+                if (enchantMeta.getStoredEnchants().isEmpty())
+                    return;
                 Enchantment enchant = enchantMeta.getStoredEnchants().keySet().iterator().next();
 
                 if (!trash.getEnchants().isEmpty() && trash.getEnchants().contains(enchant)) {
@@ -349,8 +395,7 @@ public class FishingSkill implements Listener {
                     e.getItem().remove();
                     return;
                 }
-            }
-            else if (trash.getTrashMaterials().contains(item.getType())) {
+            } else if (trash.getTrashMaterials().contains(item.getType())) {
                 e.setCancelled(true);
                 e.getItem().remove();
                 return;
@@ -360,18 +405,24 @@ public class FishingSkill implements Listener {
             AutoTrash trash = permaTrash.get(p);
             if (item.getType().equals(Material.ENCHANTED_BOOK)) {
                 ItemMeta meta = item.getItemMeta();
-                if (meta == null) return;
-                if (!(meta instanceof EnchantmentStorageMeta enchantMeta)) return;
-                if (enchantMeta.getStoredEnchants().isEmpty()) return;
+                if (meta == null)
+                    return;
+                if (!(meta instanceof EnchantmentStorageMeta enchantMeta))
+                    return;
+                if (enchantMeta.getStoredEnchants().isEmpty())
+                    return;
                 Enchantment enchant = enchantMeta.getStoredEnchants().keySet().iterator().next();
 
-                if (trash.getEnchants().isEmpty()) return;
-                if (!trash.getEnchants().contains(enchant)) return;
+                if (trash.getEnchants().isEmpty())
+                    return;
+                if (!trash.getEnchants().contains(enchant))
+                    return;
                 e.setCancelled(true);
                 e.getItem().remove();
                 return;
             }
-            if (!trash.getTrashMaterials().contains(item.getType())) return;
+            if (!trash.getTrashMaterials().contains(item.getType()))
+                return;
             e.setCancelled(true);
             e.getItem().remove();
         }
@@ -380,9 +431,11 @@ public class FishingSkill implements Listener {
     @EventHandler
     public void onBucketPickup(PlayerBucketFillEvent e) {
         ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(hand, 30)) return;
+        if (!ItemStackGenerator.isCustomItem(hand, 30))
+            return;
         Material type = e.getBlockClicked().getType();
-        if (!type.equals(Material.WATER) && !type.equals(Material.LAVA)) return;
+        if (!type.equals(Material.WATER) && !type.equals(Material.LAVA))
+            return;
 
         e.setCancelled(true);
         e.getBlockClicked().setType(Material.AIR);
@@ -391,13 +444,13 @@ public class FishingSkill implements Listener {
     @EventHandler
     public void onBucketUse(PlayerBucketEmptyEvent e) {
         ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(hand)) return;
+        if (!ItemStackGenerator.isCustomItem(hand))
+            return;
 
         if (hand.getType().equals(Material.WATER_BUCKET)) {
             e.setCancelled(true);
             e.getBlockClicked().getRelative(e.getBlockFace()).setType(Material.WATER);
-        }
-        else if (hand.getType().equals(Material.LAVA_BUCKET)) {
+        } else if (hand.getType().equals(Material.LAVA_BUCKET)) {
             e.setCancelled(true);
             e.getBlockClicked().getRelative(e.getBlockFace()).setType(Material.LAVA);
         }
@@ -405,10 +458,13 @@ public class FishingSkill implements Listener {
 
     @EventHandler
     public void onArtifactUse(PlayerInteractEvent e) {
-        if (e.getHand() == null || e.getHand().equals(EquipmentSlot.OFF_HAND)) return;
-        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && !e.getAction().equals(Action.RIGHT_CLICK_AIR)) return;
+        if (e.getHand() == null || e.getHand().equals(EquipmentSlot.OFF_HAND))
+            return;
+        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && !e.getAction().equals(Action.RIGHT_CLICK_AIR))
+            return;
         ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(hand)) return;
+        if (!ItemStackGenerator.isCustomItem(hand))
+            return;
 
         Player p = e.getPlayer();
         if (hand.getType().equals(Material.BREEZE_ROD)) {
@@ -434,17 +490,9 @@ public class FishingSkill implements Listener {
             p.sendRawMessage(ChatColor.GREEN + "You have summoned a storm!");
             p.playSound(p, Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1, 1);
 
-            // Update the time in the lore of the item
-            ItemMeta meta = hand.getItemMeta();
-            if (meta == null) return;
-            List<String> lore = meta.getLore();
-            if (lore == null) return;
-            long time = System.currentTimeMillis();
-            lore.set(lore.size() - 1, ChatColor.GRAY + "Last Used: " + time);
-            meta.setLore(lore);
-            hand.setItemMeta(meta);
-        }
-        else if (hand.getType().equals(Material.CLOCK)) {
+            // Store last used time in persistent data instead of lore
+            setArtifactLastUsed(hand, System.currentTimeMillis());
+        } else if (hand.getType().equals(Material.CLOCK)) {
             if (itemIsOnCooldown(hand)) {
                 int time = getSecondsTillCooldown(hand);
                 int minutes = time / 60;
@@ -460,22 +508,13 @@ public class FishingSkill implements Listener {
                 world.setTime(0);
                 Bukkit.broadcastMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "[Server] " + ChatColor.RESET +
                         ChatColor.GOLD + p.getName() + ChatColor.YELLOW + " has set the time to day!");
-            }
-            else {
+            } else {
                 world.setTime(13000);
                 Bukkit.broadcastMessage(ChatColor.GRAY.toString() + ChatColor.ITALIC + "[Server] " + ChatColor.RESET +
                         ChatColor.GOLD + p.getName() + ChatColor.YELLOW + " has set the time to night!");
             }
-
-            // Update the time in the lore of the item
-            ItemMeta meta = hand.getItemMeta();
-            if (meta == null) return;
-            List<String> lore = meta.getLore();
-            if (lore == null) return;
-            long time = System.currentTimeMillis();
-            lore.set(lore.size() - 1, ChatColor.GRAY + "Last Used: " + time);
-            meta.setLore(lore);
-            hand.setItemMeta(meta);
+            // Store last used time in persistent data instead of lore
+            setArtifactLastUsed(hand, System.currentTimeMillis());
         }
     }
 
@@ -491,11 +530,16 @@ public class FishingSkill implements Listener {
             int level = enchantments.get(enchantment);
             ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
             EnchantmentStorageMeta meta = (EnchantmentStorageMeta) book.getItemMeta();
-            if (meta == null || enchantment == null) return new ItemStack(Material.AIR);
-            if (isLegendary) meta.addStoredEnchant(enchantment, level, false);
-            else if (isEpic && level >= 4) meta.addStoredEnchant(enchantment, Math.max(3, getRandomPositiveInteger(level)), false);
-            else if (level == 1) meta.addStoredEnchant(enchantment, 1, false);
-            else meta.addStoredEnchant(enchantment, Math.max(1, getRandomPositiveInteger(level)), false);
+            if (meta == null || enchantment == null)
+                return new ItemStack(Material.AIR);
+            if (isLegendary)
+                meta.addStoredEnchant(enchantment, level, false);
+            else if (isEpic && level >= 4)
+                meta.addStoredEnchant(enchantment, Math.max(3, getRandomPositiveInteger(level)), false);
+            else if (level == 1)
+                meta.addStoredEnchant(enchantment, 1, false);
+            else
+                meta.addStoredEnchant(enchantment, Math.max(1, getRandomPositiveInteger(level)), false);
             book.setItemMeta(meta);
             return book;
         }
@@ -508,11 +552,16 @@ public class FishingSkill implements Listener {
 
     public int getFishingLineNumber(Player p) {
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
-        if (rewards.getReward("Fishing", "FishingLineV").isApplied()) return 10;
-        if (rewards.getReward("Fishing", "FishingLineIV").isApplied()) return 7;
-        if (rewards.getReward("Fishing", "FishingLineIII").isApplied()) return 5;
-        if (rewards.getReward("Fishing", "FishingLineII").isApplied()) return 3;
-        if (rewards.getReward("Fishing", "FishingLineI").isApplied()) return 2;
+        if (rewards.getReward("Fishing", "FishingLineV").isApplied())
+            return 10;
+        if (rewards.getReward("Fishing", "FishingLineIV").isApplied())
+            return 7;
+        if (rewards.getReward("Fishing", "FishingLineIII").isApplied())
+            return 5;
+        if (rewards.getReward("Fishing", "FishingLineII").isApplied())
+            return 3;
+        if (rewards.getReward("Fishing", "FishingLineI").isApplied())
+            return 2;
         return 1;
     }
 
@@ -526,10 +575,14 @@ public class FishingSkill implements Listener {
         double legendaryPercentage = rewards.getLegendaryFishingLootChance() + (luckLevel * 0.005);
         double exoticPercentage = rewards.getExoticFishingLootChance() + (luckLevel * 0.00005);
 
-        if (rewards.getCommonFishingLootChance() == 0) commonPercentage = 0;
-        if (rewards.getRareFishingLootChance() == 0) rarePercentage = 0;
-        if (rewards.getEpicFishingLootChance() == 0) epicPercentage = 0;
-        if (rewards.getLegendaryFishingLootChance() == 0) legendaryPercentage = 0;
+        if (rewards.getCommonFishingLootChance() == 0)
+            commonPercentage = 0;
+        if (rewards.getRareFishingLootChance() == 0)
+            rarePercentage = 0;
+        if (rewards.getEpicFishingLootChance() == 0)
+            epicPercentage = 0;
+        if (rewards.getLegendaryFishingLootChance() == 0)
+            legendaryPercentage = 0;
 
         for (int i = 1; i <= lineNumber; i++) {
             double chance = Math.random();
@@ -539,38 +592,34 @@ public class FishingSkill implements Listener {
                 p.sendRawMessage(ChatColor.LIGHT_PURPLE + "You have caught an exotic item!");
                 p.playSound(p, Sound.ENTITY_DOLPHIN_ATTACK, 1, 1);
                 p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-            }
-            else if (legendaryPercentage != 0 && chance < legendaryPercentage) {
+            } else if (legendaryPercentage != 0 && chance < legendaryPercentage) {
                 Material mat = getMaterial(p, 1);
                 if (mat.equals(Material.ENCHANTED_BOOK)) {
                     items.add(getEnchantedBook(legendaryEnchantments, false, true));
-                }
-                else if (mat.equals(Material.EXPERIENCE_BOTTLE)) {
+                } else if (mat.equals(Material.EXPERIENCE_BOTTLE)) {
                     items.add(new ItemStack(Material.EXPERIENCE_BOTTLE, Math.max(48, getRandomPositiveInteger(64))));
-                }
-                else items.add(new ItemStack(mat));
+                } else
+                    items.add(new ItemStack(mat));
             } else if (epicPercentage != 0 && chance < epicPercentage) {
                 Material mat = getMaterial(p, 2);
                 if (mat.equals(Material.ENCHANTED_BOOK)) {
                     items.add(getEnchantedBook(epicEnchantments, true, false));
-                }
-                else if (mat.equals(Material.EXPERIENCE_BOTTLE)) {
+                } else if (mat.equals(Material.EXPERIENCE_BOTTLE)) {
                     items.add(new ItemStack(Material.EXPERIENCE_BOTTLE, Math.max(12, getRandomPositiveInteger(24))));
-                }
-                else if (!mat.equals(Material.GOLDEN_HORSE_ARMOR) && !mat.equals(Material.IRON_HORSE_ARMOR)
+                } else if (!mat.equals(Material.GOLDEN_HORSE_ARMOR) && !mat.equals(Material.IRON_HORSE_ARMOR)
                         && !mat.equals(Material.HEART_OF_THE_SEA) && !mat.equals(Material.GHAST_TEAR)) {
                     items.add(new ItemStack(mat, getRandomPositiveInteger(3)));
-                }
-                else items.add(new ItemStack(mat));
+                } else
+                    items.add(new ItemStack(mat));
             } else if (rarePercentage != 0 && chance < rarePercentage) {
                 Material mat = getMaterial(p, 3);
                 if (mat.equals(Material.ENCHANTED_BOOK)) {
                     items.add(getEnchantedBook(rareEnchantments, false, false));
-                }
-                else if (!mat.equals(Material.LEATHER_HORSE_ARMOR) && !mat.equals(Material.NAME_TAG) && !mat.equals(Material.SADDLE)) {
+                } else if (!mat.equals(Material.LEATHER_HORSE_ARMOR) && !mat.equals(Material.NAME_TAG)
+                        && !mat.equals(Material.SADDLE)) {
                     items.add(new ItemStack(mat, getRandomPositiveInteger(3)));
-                }
-                else items.add(new ItemStack(mat));
+                } else
+                    items.add(new ItemStack(mat));
             } else if (commonPercentage != 0 && chance < commonPercentage) {
                 Material mat = getMaterial(p, 4);
                 items.add(new ItemStack(mat, getRandomPositiveInteger(2)));
@@ -581,38 +630,41 @@ public class FishingSkill implements Listener {
     }
 
     public Material getMaterial(Player p, int type) {
-        if (!nonStackableItems.containsKey(p)) nonStackableItems.put(p, 0);
+        if (!nonStackableItems.containsKey(p))
+            nonStackableItems.put(p, 0);
         if (type == 1) {
             Material mat;
-            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type, p);
+            if (nonStackableItems.get(p) >= 5)
+                return getStackableMaterial(type, p);
 
             int random = getRandomPositiveInteger(legendaryLootTable.size()) - 1;
             mat = legendaryLootTable.get(random);
             checkStackable(p, mat);
-            if (mat.equals(Material.ELYTRA) && !p.getWorld().hasMetadata("killedfirstdragon")) return getMaterial(p, 1);
+            if (mat.equals(Material.ELYTRA) && !p.getWorld().hasMetadata("killedfirstdragon"))
+                return getMaterial(p, 1);
             return mat;
-        }
-        else if (type == 2) {
+        } else if (type == 2) {
             Material mat;
-            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type, p);
+            if (nonStackableItems.get(p) >= 5)
+                return getStackableMaterial(type, p);
 
             int random = getRandomPositiveInteger(epicLootTable.size()) - 1;
             mat = epicLootTable.get(random);
             checkStackable(p, mat);
             return mat;
-        }
-        else if (type == 3) {
+        } else if (type == 3) {
             Material mat;
-            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type, p);
+            if (nonStackableItems.get(p) >= 5)
+                return getStackableMaterial(type, p);
 
             int random = getRandomPositiveInteger(rareLootTable.size()) - 1;
             mat = rareLootTable.get(random);
             checkStackable(p, mat);
             return mat;
-        }
-        else {
+        } else {
             Material mat;
-            if (nonStackableItems.get(p) >= 5) return getStackableMaterial(type, p);
+            if (nonStackableItems.get(p) >= 5)
+                return getStackableMaterial(type, p);
 
             int random = getRandomPositiveInteger(commonLootTable.size()) - 1;
             mat = commonLootTable.get(random);
@@ -622,38 +674,46 @@ public class FishingSkill implements Listener {
     }
 
     public void checkStackable(Player p, Material mat) {
-        if (mat.toString().contains("HORSE")) nonStackableItems.put(p, nonStackableItems.get(p) + 1);
-        if (mat.equals(Material.SADDLE)) nonStackableItems.put(p, nonStackableItems.get(p) + 1);
+        if (mat.toString().contains("HORSE"))
+            nonStackableItems.put(p, nonStackableItems.get(p) + 1);
+        if (mat.equals(Material.SADDLE))
+            nonStackableItems.put(p, nonStackableItems.get(p) + 1);
     }
 
     public Material getStackableMaterial(int type, Player p) {
         if (type == 1) {
             int random = getRandomPositiveInteger(legendaryLootTable.size()) - 1;
             Material mat = legendaryLootTable.get(random);
-            if (mat.toString().contains("HORSE")) return getStackableMaterial(type, p);
-            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type, p);
-            if (mat.equals(Material.ELYTRA) && !p.getWorld().hasMetadata("killedfirstdragon")) return getStackableMaterial(type, p);
+            if (mat.toString().contains("HORSE"))
+                return getStackableMaterial(type, p);
+            if (mat.equals(Material.SADDLE))
+                return getStackableMaterial(type, p);
+            if (mat.equals(Material.ELYTRA) && !p.getWorld().hasMetadata("killedfirstdragon"))
+                return getStackableMaterial(type, p);
             return mat;
-        }
-        else if (type == 2) {
+        } else if (type == 2) {
             int random = getRandomPositiveInteger(epicLootTable.size()) - 1;
             Material mat = epicLootTable.get(random);
-            if (mat.toString().contains("HORSE")) return getStackableMaterial(type, p);
-            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type, p);
+            if (mat.toString().contains("HORSE"))
+                return getStackableMaterial(type, p);
+            if (mat.equals(Material.SADDLE))
+                return getStackableMaterial(type, p);
             return mat;
-        }
-        else if (type == 3) {
+        } else if (type == 3) {
             int random = getRandomPositiveInteger(rareLootTable.size()) - 1;
             Material mat = rareLootTable.get(random);
-            if (mat.toString().contains("HORSE")) return getStackableMaterial(type, p);
-            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type, p);
+            if (mat.toString().contains("HORSE"))
+                return getStackableMaterial(type, p);
+            if (mat.equals(Material.SADDLE))
+                return getStackableMaterial(type, p);
             return mat;
-        }
-        else {
+        } else {
             int random = getRandomPositiveInteger(commonLootTable.size()) - 1;
             Material mat = commonLootTable.get(random);
-            if (mat.toString().contains("HORSE")) return getStackableMaterial(type, p);
-            if (mat.equals(Material.SADDLE)) return getStackableMaterial(type, p);
+            if (mat.toString().contains("HORSE"))
+                return getStackableMaterial(type, p);
+            if (mat.equals(Material.SADDLE))
+                return getStackableMaterial(type, p);
             return mat;
         }
     }
@@ -661,21 +721,25 @@ public class FishingSkill implements Listener {
     public void handleFishingExperience(Player p) {
         int xp = (int) (Math.random() * 6);
         int xpMultiplier = (int) plugin.getSkillManager().getPlayerRewards(p).getExperienceMultiplier();
-        if (xp != 0) p.getWorld().spawn(p.getLocation(), ExperienceOrb.class).setExperience(xp * xpMultiplier);
+        if (xp != 0)
+            p.getWorld().spawn(p.getLocation(), ExperienceOrb.class).setExperience(xp * xpMultiplier);
     }
 
     public void handleDurability(ItemStack fishingRod) {
-        if (fishingRod == null) return;
+        if (fishingRod == null)
+            return;
         if (fishingRod.getType().equals(Material.FISHING_ROD)) {
             Damageable meta = (Damageable) fishingRod.getItemMeta();
-            if (meta == null) return;
+            if (meta == null)
+                return;
 
             if (fishingRod.containsEnchantment(Enchantment.UNBREAKING)) {
                 double chance = Math.random() * 100;
                 int level = fishingRod.getEnchantmentLevel(Enchantment.UNBREAKING);
-                if (chance <= (100f / (level + 1))) meta.setDamage(meta.getDamage() + 1);
-            }
-            else meta.setDamage(meta.getDamage() + 1);
+                if (chance <= (100f / (level + 1)))
+                    meta.setDamage(meta.getDamage() + 1);
+            } else
+                meta.setDamage(meta.getDamage() + 1);
             fishingRod.setItemMeta(meta);
         }
     }
@@ -697,7 +761,8 @@ public class FishingSkill implements Listener {
         boots.addUnsafeEnchantment(Enchantment.THORNS, 6);
         trident.addUnsafeEnchantment(Enchantment.IMPALING, 10);
 
-        if (boss.getEquipment() == null) return;
+        if (boss.getEquipment() == null)
+            return;
         boss.getEquipment().setHelmet(helmet);
         boss.getEquipment().setChestplate(chestplate);
         boss.getEquipment().setLeggings(leggings);
@@ -705,50 +770,79 @@ public class FishingSkill implements Listener {
         boss.getEquipment().setItemInMainHand(trident);
 
         AttributeInstance healthAttribute = boss.getAttribute(Attribute.MAX_HEALTH);
-        if (healthAttribute != null) healthAttribute.setBaseValue(100);
+        if (healthAttribute != null)
+            healthAttribute.setBaseValue(100);
         boss.setHealth(100);
         AttributeInstance speedInstance = boss.getAttribute(Attribute.MOVEMENT_SPEED);
-        if (speedInstance != null) speedInstance.setBaseValue(0.35);
+        if (speedInstance != null)
+            speedInstance.setBaseValue(0.35);
     }
 
     public boolean itemIsOnCooldown(ItemStack hand) {
-        if (hand == null) return true;
+        if (hand == null)
+            return true;
         ItemMeta meta = hand.getItemMeta();
-        if (meta == null) return true;
-        if (!meta.hasLore()) return true;
-        List<String> lore = meta.getLore();
-        if (lore == null) return true;
-        for (String line : lore) {
-            if (!line.contains("Last Used:")) continue;
-            String[] split = line.split(":");
-            if (split.length < 2) return true;
-            String timeString = split[1].replace(" ", "");
-            if (timeString.equalsIgnoreCase("never")) return false;
-            long time = Long.parseLong(timeString);
-            if (time == 0) return false;
-            return (System.currentTimeMillis() - time) < 3600000;
+        if (meta == null)
+            return true;
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+
+        // Backwards compatibility: migrate old lore-based timestamp if present
+        // TODO: Remove backwards compatibility in future versions
+        if (!pdc.has(artifactLastUsedKey, PersistentDataType.LONG)) {
+            if (meta.hasLore()) {
+                List<String> lore = meta.getLore();
+                if (lore != null) {
+                    for (String line : lore) {
+                        if (line.contains("Last Used:")) {
+                            String[] split = line.split(":");
+                            if (split.length >= 2) {
+                                String timeString = split[1].replace(" ", "");
+                                if (!timeString.equalsIgnoreCase("never")) {
+                                    try {
+                                        long legacyTime = Long.parseLong(timeString);
+                                        setArtifactLastUsed(hand, legacyTime);
+                                    } catch (NumberFormatException ignored) {
+                                        // ignore malformed legacy value
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
         }
-        return true;
+
+        Long time = pdc.get(artifactLastUsedKey, PersistentDataType.LONG);
+        if (time == null || time == 0L)
+            return false; // never used or legacy 'never'
+        return (System.currentTimeMillis() - time) < 3600000; // 1 hour cooldown
     }
 
     public int getSecondsTillCooldown(ItemStack hand) {
-        if (hand == null) return 0;
+        if (hand == null)
+            return 0;
         ItemMeta meta = hand.getItemMeta();
-        if (meta == null) return 0;
-        if (!meta.hasLore()) return 0;
-        List<String> lore = meta.getLore();
-        if (lore == null) return 0;
-        for (String line : lore) {
-            if (!line.contains("Last Used:")) continue;
-            String[] split = line.split(":");
-            if (split.length < 2) return 0;
-            String timeString = split[1].replace(" ", "");
-            if (timeString.equalsIgnoreCase("never")) return 0;
-            long time = Long.parseLong(timeString);
-            if (time == 0) return 0;
-            return 3600 - (int) ((System.currentTimeMillis() - time) / 1000);
-        }
-        return 0;
+        if (meta == null)
+            return 0;
+        PersistentDataContainer pdc = meta.getPersistentDataContainer();
+        Long time = pdc.get(artifactLastUsedKey, PersistentDataType.LONG);
+        if (time == null || time == 0L)
+            return 0;
+        long elapsed = System.currentTimeMillis() - time;
+        if (elapsed >= 3600000)
+            return 0;
+        return 3600 - (int) (elapsed / 1000);
+    }
+
+    private void setArtifactLastUsed(ItemStack item, long timestamp) {
+        if (item == null)
+            return;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return;
+        meta.getPersistentDataContainer().set(artifactLastUsedKey, PersistentDataType.LONG, timestamp);
+        item.setItemMeta(meta);
     }
 
     public void createCommonLootTable() {
