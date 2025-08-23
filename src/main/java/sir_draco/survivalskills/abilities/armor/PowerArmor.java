@@ -73,7 +73,8 @@ public final class PowerArmor {
             lore = new ArrayList<>(lore);
         }
 
-        String newLine = ChatColor.GRAY + "Absorbed Damage: " + ChatColor.BOLD + ChatColor.DARK_AQUA + updated;
+        int updatedInt = (int) updated;
+        String newLine = ChatColor.GRAY + "Absorbed Damage: " + ChatColor.BOLD + ChatColor.DARK_AQUA + updatedInt;
 
         int foundIndex = -1;
         for (int i = 0; i < lore.size(); i++) {
