@@ -14,6 +14,8 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import sir_draco.survivalskills.abilities.items.HarvesterAsync;
@@ -36,12 +38,15 @@ public class FarmingSkill implements Listener {
     private final SurvivalSkills plugin;
     private final HashMap<Player, ArrayList<Block>> harvestedBlocks = new HashMap<>();
     private final HashMap<Player, HarvesterTimer> harvesterCooldowns = new HashMap<>();
+    private final Map<Material, Integer> foodNutritionMap = new HashMap<>();
+    private final Map<Material, Float> foodSaturationMap = new HashMap<>();
     private final ArrayList<Material> leafBlocks = new ArrayList<>();
     private final ArrayList<Player> autoEat = new ArrayList<>();
 
     public FarmingSkill(SurvivalSkills plugin) {
         this.plugin = plugin;
         createLeafList();
+        createFoodMappings();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOW)
@@ -131,46 +136,88 @@ public class FarmingSkill implements Listener {
         if (plugin.getSkillManager().getPlayerRewards(p).getReward(FARMING, "NoHunger").isApplied()) {
             e.setCancelled(true);
             p.setFoodLevel(20);
+            p.setSaturation(20);
             return;
         }
 
         handleAutoEat(e, p);
     }
 
-    @SuppressWarnings("deprecation")
     private void handleAutoEat(FoodLevelChangeEvent e, Player p) {
-        if (autoEat.contains(p)) {
-            // Get the first food item in the player's inventory
-            for (ItemStack item : p.getInventory().getContents()) {
-                if (item == null
-                        || item.getType().equals(Material.ROTTEN_FLESH)
-                        || (item.getItemMeta() != null && item.getItemMeta().hasCustomModelData()))
-                    continue;
-                if (handleEdibleItem(e, p, item))
-                    return;
+        if (!autoEat.contains(p))
+            return;
+
+        // Process on next tick
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                ArrayList<ItemStack> edibleItems = findEdibleItems(p);
+                if (edibleItems.isEmpty()) {
+                    p.sendRawMessage(ChatColor.RED + "You have no food to eat!");
+                    autoEat.remove(p);
+                    p.sendRawMessage(ChatColor.YELLOW + "Auto Eat has been disabled.");
+                    p.playSound(p, Sound.ENTITY_PANDA_EAT, 1, 1);
+                } else {
+                    for (ItemStack next : edibleItems) {
+                        consumeFoodItem(p, next);
+                    }
+                }
             }
-            p.sendRawMessage(ChatColor.RED + "You have no food to eat!");
-            autoEat.remove(p);
-            p.sendRawMessage(ChatColor.YELLOW + "Auto Eat has been disabled.");
-            p.playSound(p, Sound.ENTITY_PANDA_EAT, 1, 1);
-        }
+        }.runTaskLater(plugin, 1);
     }
 
-    private boolean handleEdibleItem(FoodLevelChangeEvent e, Player p, ItemStack item) {
-        if (item.getType().isEdible()) {
-            e.setCancelled(true);
-            // Get the amount of food the item will restore
-            int foodRestore = getFoodLevelRestorationAmount(item.getType());
-            p.setFoodLevel(Math.min(p.getFoodLevel() + foodRestore, 20));
-            p.setSaturation(Math.min(p.getSaturation() + foodRestore * 0.6f, 20));
+    @SuppressWarnings("deprecation")
+    private ArrayList<ItemStack> findEdibleItems(Player p) {
+        ArrayList<ItemStack> edibleItems = new ArrayList<>();
+        for (ItemStack item : p.getInventory().getContents()) {
+            if (item == null)
+                continue;
+            if (!item.getType().isEdible())
+                continue;
+            if (item.getType().equals(Material.ROTTEN_FLESH) || item.getType().equals(Material.POISONOUS_POTATO)
+                    || item.getType().equals(Material.SPIDER_EYE))
+                continue; // skip negative food
+            if (item.getItemMeta() != null && item.getItemMeta().hasCustomModelData())
+                continue; // skip custom items (likely special tools)
 
-            if (item.getAmount() > 1)
-                item.setAmount(item.getAmount() - 1);
-            else
-                p.getInventory().remove(item);
-            return true;
+            edibleItems.add(item);
         }
-        return false;
+        return edibleItems;
+    }
+
+    private void consumeFoodItem(Player p, ItemStack stack) {
+        if (stack == null)
+            return;
+
+        ItemMeta meta = stack.getItemMeta();
+        if (meta == null)
+            return;
+
+        int foodAmount = foodNutritionMap.getOrDefault(stack.getType(), 0);
+        float saturationAmount = foodSaturationMap.getOrDefault(stack.getType(), 0f);
+
+        if (foodAmount == 0)
+            return;
+
+        // Calculate how many items it would take to fill hunger
+        int itemsNeeded = (20 - p.getFoodLevel()) / foodAmount;
+        if ((20 - p.getFoodLevel()) % foodAmount != 0)
+            itemsNeeded++;
+
+        // Remove what items are available from the stack amount
+        int itemsAvailable = stack.getAmount();
+        int itemsUsed = 0;
+        if (itemsAvailable > itemsNeeded) {
+            itemsUsed = itemsNeeded;
+            stack.setAmount(itemsAvailable - itemsNeeded);
+        } else {
+            itemsUsed = itemsAvailable;
+            p.getInventory().remove(stack);
+        }
+
+        // Update the player's food level and saturation
+        p.setFoodLevel(Math.min(20, p.getFoodLevel() + (foodAmount * itemsUsed)));
+        p.setSaturation(Math.min(20, p.getSaturation() + (saturationAmount * itemsUsed)));
     }
 
     public void handleWateringCan(Player p, Block block) {
@@ -356,24 +403,107 @@ public class FarmingSkill implements Listener {
         return false;
     }
 
-    public int getFoodLevelRestorationAmount(Material mat) {
-        return switch (mat) {
-            case BEETROOT, DRIED_KELP, POTATO, PUFFERFISH, TROPICAL_FISH -> 1;
-            case COOKIE, CHICKEN, COD, MUTTON, MELON_SLICE, SALMON -> 2;
-            case CARROT, BEEF, PORKCHOP, RABBIT -> 3;
-            case APPLE, CHORUS_FRUIT, ENCHANTED_GOLDEN_APPLE, GOLDEN_APPLE -> 4;
-            case BAKED_POTATO, COOKED_COD, BREAD, COOKED_RABBIT -> 5;
-            case BEETROOT_SOUP, COOKED_MUTTON, COOKED_CHICKEN, COOKED_SALMON, GOLDEN_CARROT, HONEY_BOTTLE,
-                    MUSHROOM_STEW ->
-                6;
-            case COOKED_BEEF, COOKED_PORKCHOP, PUMPKIN_PIE -> 8;
-            case RABBIT_STEW -> 10;
-            default -> 0;
-        };
-    }
-
     public Map<Player, HarvesterTimer> getHarvesterCooldowns() {
         return harvesterCooldowns;
+    }
+
+    public void createFoodMappings() {
+        // Basic crops / simple foods
+        foodNutritionMap.put(Material.APPLE, 4);
+        foodSaturationMap.put(Material.APPLE, 0.6f);
+        foodNutritionMap.put(Material.BAKED_POTATO, 5);
+        foodSaturationMap.put(Material.BAKED_POTATO, 1.2f);
+        foodNutritionMap.put(Material.BEETROOT, 1);
+        foodSaturationMap.put(Material.BEETROOT, 1.2f);
+        foodNutritionMap.put(Material.BEETROOT_SOUP, 6);
+        foodSaturationMap.put(Material.BEETROOT_SOUP, 1.2f);
+        foodNutritionMap.put(Material.BREAD, 5);
+        foodSaturationMap.put(Material.BREAD, 1.2f);
+        foodNutritionMap.put(Material.CARROT, 3);
+        foodSaturationMap.put(Material.CARROT, 1.2f);
+        foodNutritionMap.put(Material.MELON_SLICE, 2);
+        foodSaturationMap.put(Material.MELON_SLICE, 0.6f);
+        foodNutritionMap.put(Material.POTATO, 1);
+        foodSaturationMap.put(Material.POTATO, 0.6f);
+        foodNutritionMap.put(Material.BAKED_POTATO, 5);
+        foodSaturationMap.put(Material.BAKED_POTATO, 1.2f);
+
+        // Meat / fish
+        foodNutritionMap.put(Material.BEEF, 3);
+        foodSaturationMap.put(Material.BEEF, 0.6f);
+        foodNutritionMap.put(Material.COOKED_BEEF, 8);
+        foodSaturationMap.put(Material.COOKED_BEEF, 1.6f);
+        foodNutritionMap.put(Material.CHICKEN, 2);
+        foodSaturationMap.put(Material.CHICKEN, 0.6f);
+        foodNutritionMap.put(Material.COOKED_CHICKEN, 6);
+        foodSaturationMap.put(Material.COOKED_CHICKEN, 1.2f);
+        foodNutritionMap.put(Material.PORKCHOP, 3);
+        foodSaturationMap.put(Material.PORKCHOP, 0.6f);
+        foodNutritionMap.put(Material.COOKED_PORKCHOP, 8);
+        foodSaturationMap.put(Material.COOKED_PORKCHOP, 1.6f);
+        foodNutritionMap.put(Material.RABBIT, 3);
+        foodSaturationMap.put(Material.RABBIT, 0.6f);
+        foodNutritionMap.put(Material.COOKED_RABBIT, 5);
+        foodSaturationMap.put(Material.COOKED_RABBIT, 1.2f);
+        foodNutritionMap.put(Material.MUTTON, 2);
+        foodSaturationMap.put(Material.MUTTON, 0.6f);
+        foodNutritionMap.put(Material.COOKED_MUTTON, 6);
+        foodSaturationMap.put(Material.COOKED_MUTTON, 1.6f);
+        foodNutritionMap.put(Material.COD, 2);
+        foodSaturationMap.put(Material.COD, 0.2f);
+        foodNutritionMap.put(Material.COOKED_COD, 5);
+        foodSaturationMap.put(Material.COOKED_COD, 1.2f);
+        foodNutritionMap.put(Material.SALMON, 2);
+        foodSaturationMap.put(Material.SALMON, 0.2f);
+        foodNutritionMap.put(Material.COOKED_SALMON, 6);
+        foodSaturationMap.put(Material.COOKED_SALMON, 1.6f);
+
+        // Prepared / special foods
+        foodNutritionMap.put(Material.GOLDEN_APPLE, 4);
+        foodSaturationMap.put(Material.GOLDEN_APPLE, 2.4f);
+        foodNutritionMap.put(Material.ENCHANTED_GOLDEN_APPLE, 4);
+        foodSaturationMap.put(Material.ENCHANTED_GOLDEN_APPLE, 2.4f);
+        foodNutritionMap.put(Material.GOLDEN_CARROT, 6);
+        foodSaturationMap.put(Material.GOLDEN_CARROT, 2.4f);
+        foodNutritionMap.put(Material.HONEY_BOTTLE, 6);
+        foodSaturationMap.put(Material.HONEY_BOTTLE, 0.2f);
+        foodNutritionMap.put(Material.PUMPKIN_PIE, 8);
+        foodSaturationMap.put(Material.PUMPKIN_PIE, 0.6f);
+        foodNutritionMap.put(Material.POISONOUS_POTATO, 2);
+        foodSaturationMap.put(Material.POISONOUS_POTATO, 0.6f);
+        foodNutritionMap.put(Material.COOKIE, 2);
+        foodSaturationMap.put(Material.COOKIE, 0.2f);
+        foodNutritionMap.put(Material.MUSHROOM_STEW, 6);
+        foodSaturationMap.put(Material.MUSHROOM_STEW, 1.2f);
+        foodNutritionMap.put(Material.RABBIT_STEW, 10);
+        foodSaturationMap.put(Material.RABBIT_STEW, 1.2f);
+        foodNutritionMap.put(Material.SUSPICIOUS_STEW, 6);
+        foodSaturationMap.put(Material.SUSPICIOUS_STEW, 1.2f);
+        foodNutritionMap.put(Material.BEETROOT_SOUP, 6);
+        foodSaturationMap.put(Material.BEETROOT_SOUP, 1.2f);
+
+        // Berries / small foods
+        foodNutritionMap.put(Material.SWEET_BERRIES, 2);
+        foodSaturationMap.put(Material.SWEET_BERRIES, 0.2f);
+        foodNutritionMap.put(Material.GLOW_BERRIES, 2);
+        foodSaturationMap.put(Material.GLOW_BERRIES, 0.2f);
+
+        // Fish variants
+        foodNutritionMap.put(Material.TROPICAL_FISH, 1);
+        foodSaturationMap.put(Material.TROPICAL_FISH, 0.2f);
+        foodNutritionMap.put(Material.PUFFERFISH, 1);
+        foodSaturationMap.put(Material.PUFFERFISH, 0.2f);
+
+        // Other
+        foodNutritionMap.put(Material.MELON_SLICE, 2);
+        foodSaturationMap.put(Material.MELON_SLICE, 0.6f);
+        // PUMPKIN_PIE already added above
+        foodNutritionMap.put(Material.DRIED_KELP, 1);
+        foodSaturationMap.put(Material.DRIED_KELP, 0.6f);
+        foodNutritionMap.put(Material.ROTTEN_FLESH, 4);
+        foodSaturationMap.put(Material.ROTTEN_FLESH, 0.2f);
+        foodNutritionMap.put(Material.SPIDER_EYE, 2);
+        foodSaturationMap.put(Material.SPIDER_EYE, 1.6f);
     }
 
     public Map<Player, ArrayList<Block>> getHarvestedBlocks() {
