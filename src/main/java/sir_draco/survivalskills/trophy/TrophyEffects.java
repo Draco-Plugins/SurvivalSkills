@@ -44,7 +44,7 @@ public class TrophyEffects extends BukkitRunnable {
     private UUID playerUUID;
 
     public TrophyEffects(SurvivalSkills plugin, Location loc, int type, Trophy trophy, String playerName,
-            UUID playerUUID) {
+            UUID playerUUID, boolean freshPlacement) {
         this.plugin = plugin;
         this.loc = loc;
         this.type = type;
@@ -58,6 +58,10 @@ public class TrophyEffects extends BukkitRunnable {
             }
             if (plugin.getServer().getPluginManager().isPluginEnabled("Citizens"))
                 citizensEnabled = true;
+            // Skip to NPC spawn
+            if (!freshPlacement) {
+                this.cycle = 121;
+            }
             return;
         }
         spawnItem(0.5, 1.0, 0.5);

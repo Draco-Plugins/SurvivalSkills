@@ -70,7 +70,8 @@ public class TrophyManager {
                 String playerName = trophyData.getString(key + ".PlayerName");
 
                 Trophy trophy = new Trophy(loc, uuid, type, id, playerName);
-                trophy.spawnTrophy(plugin);
+                // Server load: not a fresh placement, so skip placement-only animations
+                trophy.spawnTrophy(plugin, false);
                 trophies.put(loc, trophy);
             }
         });

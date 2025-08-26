@@ -26,32 +26,42 @@ public class Trophy {
         this.playerName = playerName;
     }
 
-    public void spawnTrophy(SurvivalSkills plugin) {
+    /**
+     * Spawns (or re-spawns) the trophy effects.
+     *
+     * @param plugin         plugin instance
+     * @param freshPlacement true when the player has just placed the trophy (play
+     *                       full animations)
+     */
+    public void spawnTrophy(SurvivalSkills plugin, boolean freshPlacement) {
         // Block
         Block block = loc.getBlock();
         block.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
         block.getState().update();
 
         int type = getTrophyType();
-        effects = new TrophyEffects(plugin, loc, type, this, playerName, uuid);
+        effects = new TrophyEffects(plugin, loc, type, this, playerName, uuid, freshPlacement);
         effects.runTaskTimer(plugin, 20, 2);
     }
 
     public void breakTrophy(ItemStack item) {
-        if (loc.getWorld() == null) return;
+        if (loc.getWorld() == null)
+            return;
         loc.getWorld().dropItemNaturally(loc, item);
         loc.getBlock().setType(Material.AIR);
         loc.getBlock().getState().update();
 
         if (effects != null) {
-            if (effects.getGodTrophy() != null) effects.getGodTrophy().destroyPlayer();
+            if (effects.getGodTrophy() != null)
+                effects.getGodTrophy().destroyPlayer();
             effects.removeItem();
             effects.cancel();
         }
     }
 
     public void shutdownTrophy() {
-        if (loc.getWorld() == null) return;
+        if (loc.getWorld() == null)
+            return;
         loc.getBlock().setType(Material.AIR);
         loc.getBlock().getState().update();
         if (effects != null) {
@@ -61,14 +71,16 @@ public class Trophy {
     }
 
     public void restartTrophy(boolean run) {
-        if (effects == null) return;
+        if (effects == null)
+            return;
         if (!run) {
             effects.removeItem();
             effects.setRun(false);
             return;
         }
 
-        if (effects.getType() != 10) effects.spawnItem(0.5, 1.0, 0.5);
+        if (effects.getType() != 10)
+            effects.spawnItem(0.5, 1.0, 0.5);
         if (effects.getGodTrophy() != null && effects.getCycle() > 130) {
             try {
                 effects.getGodTrophy().spawnPlayer(playerName, uuid);

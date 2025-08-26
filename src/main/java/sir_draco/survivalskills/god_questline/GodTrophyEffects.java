@@ -140,7 +140,7 @@ public class GodTrophyEffects {
         } else if (cycle == CYCLE_NPC_SPAWN) {
             spawnPlayer(playerName, playerUUID);
             // First crystal spawn is stationary above block center
-            spawnCrystal(HALF, 1.5, HALF);
+            spawnCrystal(0, 1.5, 0);
         }
         return false;
     }
@@ -371,6 +371,9 @@ public class GodTrophyEffects {
         var w = world();
         if (w == null)
             return;
+        // Proactively clean any orphaned/duplicate crystals (e.g. from prior plugin
+        // reloads)
+        cleanupNearbyTrophyCrystals(1.25); // small radius around center
         removeCrystal();
         Location spawnLoc = new Location(w, trophyLoc.getX() + x, trophyLoc.getY() + y, trophyLoc.getZ() + z);
         crystal = (EnderCrystal) w.spawnEntity(spawnLoc, EntityType.END_CRYSTAL);
@@ -382,9 +385,13 @@ public class GodTrophyEffects {
 
     public void removeCrystal() {
         if (crystal != null) {
-            crystal.remove();
+            if (!crystal.isDead()) {
+                crystal.remove();
+            }
             crystal = null;
         }
+        // Also clear any stragglers that may have lost reference (e.g. after reload)
+        cleanupNearbyTrophyCrystals(1.25);
     }
 
     public void moveCrystal() {
@@ -398,6 +405,24 @@ public class GodTrophyEffects {
         double offsetY = 1.5; // keep constant height (same as initial crystal spawn y-offset)
         spawnCrystal(offsetX, offsetY, offsetZ);
         crystalRadians += CRYSTAL_ANGLE_INCREMENT;
+    }
+
+    private void cleanupNearbyTrophyCrystals(double radius) {
+        var w = world();
+        if (w == null)
+            return;
+        var center = offset(0, 0, 0);
+        for (var ent : w.getNearbyEntities(center, radius, radius, radius)) {
+            if (!(ent instanceof EnderCrystal ec))
+                continue;
+            if (!ec.hasMetadata(META_TROPHY))
+                continue;
+            // If it's not the actively tracked crystal (or we lost the reference), remove
+            // it
+            if (crystal == null || !ec.getUniqueId().equals(crystal.getUniqueId())) {
+                ec.remove();
+            }
+        }
     }
 
     public void questParticleEffect() {
