@@ -14,7 +14,6 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.logging.Level;
 
 public class PowerDrillAsync extends BukkitRunnable {
 
@@ -30,8 +29,6 @@ public class PowerDrillAsync extends BukkitRunnable {
         this.listener = listener;
         this.block = block;
         this.direction = p.getLocation().getDirection().clone();
-
-        Bukkit.getLogger().log(Level.INFO, "Starting PowerDrillAsync for player: " + p.getName());
     }
 
     @Override

@@ -15,7 +15,6 @@ import sir_draco.survivalskills.skill_listeners.MiningSkill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
-import java.util.logging.Level;
 
 public class VeinMinerAsync extends BukkitRunnable {
 
@@ -34,8 +33,6 @@ public class VeinMinerAsync extends BukkitRunnable {
         this.block = block;
         this.material = material;
         this.blocksPerHunger = blocksPerHunger;
-
-        Bukkit.getLogger().log(Level.INFO, "Starting VeinMinerAsync for player: " + p.getName());
         this.skill.setVeinMinerActive(p, true);
     }
 
