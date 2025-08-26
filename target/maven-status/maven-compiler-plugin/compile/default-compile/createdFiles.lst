@@ -7,6 +7,7 @@ sir_draco\survivalskills\rewards\RewardNotifications.class
 sir_draco\survivalskills\bosses\VillagerBoss$11.class
 sir_draco\survivalskills\abilities\godItems\EnderEssence$1.class
 sir_draco\survivalskills\bosses\VillagerBoss$17.class
+sir_draco\survivalskills\skill_listeners\FarmingSkill$2.class
 sir_draco\survivalskills\SurvivalSkills$1.class
 sir_draco\survivalskills\bosses\VillagerBoss$18.class
 sir_draco\survivalskills\rewards\RewardItemInfo.class

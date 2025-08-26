@@ -40,13 +40,14 @@ import sir_draco.survivalskills.abilities.items.PowerDrillAsync;
 import sir_draco.survivalskills.abilities.items.PowerLaser;
 import sir_draco.survivalskills.abilities.items.PowerSword;
 import sir_draco.survivalskills.rewards.PlayerRewards;
-import sir_draco.survivalskills.rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.GodRecipeUI;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
-import sir_draco.survivalskills.god_questline.PowerOreConversion;
+import sir_draco.survivalskills.god_questline.powerore.PowerOreChallenge;
 import sir_draco.survivalskills.utils.FileUtils;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
+import sir_draco.survivalskills.god_questline.powerore.PowerOreSimonSaysTask;
+import sir_draco.survivalskills.god_questline.powerore.PowerOreScavengerHuntTask;
 import sir_draco.survivalskills.utils.Utils;
 
 import java.io.File;
@@ -62,7 +63,9 @@ public class GodListener implements Listener {
     private final HashMap<EntityType, ItemStack> godItems = new HashMap<>();
     private final HashMap<Integer, Inventory> potionBags = new HashMap<>();
     private final HashMap<Player, GodRecipeUI> openGodRecipeUI = new HashMap<>();
-    private final HashMap<Location, PowerOreConversion> powerOreConversions = new HashMap<>();
+    // New challenge-based conversions (instant tasks)
+    private final HashMap<Location, PowerOreChallenge> powerOreChallenges = new HashMap<>();
+    private final HashMap<UUID, PowerOreChallenge> playerChallenges = new HashMap<>();
     private final HashMap<Player, ArrayList<Block>> drillTracker = new HashMap<>();
     private final ArrayList<Player> powerLaserCooldowns = new ArrayList<>();
     private final ArrayList<Player> conversionCooldowns = new ArrayList<>();
@@ -427,18 +430,28 @@ public class GodListener implements Listener {
             return;
         }
 
-        if (block.getType().equals(Material.OBSIDIAN) && powerOreConversions.containsKey(loc)) {
-            PowerOreConversion conversion = powerOreConversions.get(loc);
-            if (!conversion.getUUID().equals(p.getUniqueId())) {
+        if (block.getType().equals(Material.OBSIDIAN)) {
+            // New challenge system
+            if (powerOreChallenges.containsKey(loc)) {
+                PowerOreChallenge challenge = powerOreChallenges.get(loc);
                 e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "This is not your ore to break");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return;
+                if (!challenge.getUniqueId().equals(p.getUniqueId())) {
+                    p.sendMessage(ChatColor.RED + "This Power Ore belongs to another player");
+                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    return;
+                }
+                if (challenge.getStatus() == PowerOreChallenge.Status.RUNNING) {
+                    p.sendMessage(ChatColor.RED + "The ore is still charging. Complete your task first.");
+                    return;
+                }
+                if (challenge.getStatus() == PowerOreChallenge.Status.SUCCESS && !challenge.isRewardDropped()) {
+                    block.setType(Material.AIR);
+                    // drop reward and remove mappings
+                    challenge.reward();
+                    powerOreChallenges.remove(loc);
+                    playerChallenges.remove(p.getUniqueId());
+                }
             }
-            e.setDropItems(false);
-            conversion.breakOre();
-            powerOreConversions.remove(loc);
-            return;
         }
 
         if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 48)) {
@@ -523,19 +536,22 @@ public class GodListener implements Listener {
         if (e.getClickedBlock() == null)
             return;
 
-        // Handle power ore conversion time left display
+        // Scavenger Hunt head interaction (runs alongside other right-click logic)
+        Player scavengerPlayer = e.getPlayer();
+        PowerOreChallenge challenge = playerChallenges.get(scavengerPlayer.getUniqueId());
+        if (challenge != null && challenge.getTask() instanceof PowerOreScavengerHuntTask huntTask) {
+            // Attempt to handle if clicking a head
+            if (e.getClickedBlock().getType() == Material.PLAYER_HEAD
+                    || e.getClickedBlock().getType() == Material.PLAYER_WALL_HEAD) {
+                boolean handled = huntTask.handleInteract(e.getClickedBlock());
+                if (handled) {
+                    e.setCancelled(true); // Prevent other plugins from consuming
+                }
+            }
+        }
+
         Player p = e.getPlayer();
         Location location = e.getClickedBlock().getLocation();
-        if (powerOreConversions.containsKey(location)) {
-            PowerOreConversion conversion = powerOreConversions.get(location);
-            if (!conversion.getUUID().equals(p.getUniqueId()))
-                return;
-
-            // Tell the player how much time is left
-            p.sendRawMessage(
-                    ChatColor.YELLOW + "Time left: " + RewardNotifications.cooldown(conversion.getSecondsLeft()));
-            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-        }
 
         // Check for teleport anchor interaction
         if (e.getClickedBlock().getType() != Material.RESPAWN_ANCHOR)
@@ -575,14 +591,23 @@ public class GodListener implements Listener {
         }
 
         String inventoryTitle = e.getView().getTitle();
-        if (!inventoryTitle.contains("Teleporter Network"))
-            return;
-        e.setCancelled(true);
+        if (inventoryTitle.contains("Teleporter Network") || inventoryTitle.contains("Simon Says")) {
+            e.setCancelled(true);
+        }
     }
 
     @EventHandler
     public void onGUIClick(InventoryClickEvent e) {
         Player p = (Player) e.getWhoClicked();
+
+        // Simon Says task inventory interaction
+        PowerOreChallenge challenge = playerChallenges.get(p.getUniqueId());
+        if (challenge != null && challenge.getStatus().equals(PowerOreChallenge.Status.RUNNING)
+                && challenge.getTask() instanceof PowerOreSimonSaysTask simonTask) {
+            simonTask.handleClick(e);
+            return;
+        }
+
         if (openGodRecipeUI.containsKey(p)) {
             e.setCancelled(true);
             openGodRecipeUI.get(p).handleClick(e);
@@ -623,6 +648,14 @@ public class GodListener implements Listener {
     public void onGUIClose(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
         String inventoryTitle = e.getView().getTitle();
+
+        // Simon Says early close detection
+        PowerOreChallenge challenge = playerChallenges.get(p.getUniqueId());
+        if (challenge != null && challenge.getStatus().equals(PowerOreChallenge.Status.RUNNING)
+                && challenge.getTask() instanceof PowerOreSimonSaysTask simonTask) {
+            simonTask.handleClose();
+            return;
+        }
 
         if (inventoryTitle.contains("Teleporter Network")) {
             teleportGUIPage.remove(p);
@@ -718,18 +751,19 @@ public class GodListener implements Listener {
     }
 
     public void savePowerOreConversions(FileConfiguration data) {
-        // Empty the file
-        data.set("PowerOreConversions", null);
+        // New format: only persist charged (completed) ores awaiting pickup.
+        data.set("ChargedPowerOres", null);
 
         int i = 1;
-        for (Map.Entry<Location, PowerOreConversion> entry : powerOreConversions.entrySet()) {
+        for (Map.Entry<Location, PowerOreChallenge> entry : powerOreChallenges.entrySet()) {
             Location loc = entry.getKey();
-            PowerOreConversion conversion = entry.getValue();
             if (loc.getWorld() == null)
                 continue;
-            data.set("PowerOreConversions." + i + ".Location", loc);
-            data.set("PowerOreConversions." + i + ".SecondsLeft", conversion.getSecondsLeft());
-            data.set("PowerOreConversions." + i + ".Player", conversion.getUUID().toString());
+            if (entry.getValue().getStatus() != PowerOreChallenge.Status.SUCCESS)
+                continue;
+
+            data.set("ChargedPowerOres." + i + ".Location", loc);
+            data.set("ChargedPowerOres." + i + ".Player", entry.getValue().getUniqueId().toString());
             i++;
         }
     }
@@ -740,27 +774,29 @@ public class GodListener implements Listener {
             return;
         FileConfiguration data = YamlConfiguration.loadConfiguration(file);
 
-        if (!data.contains("PowerOreConversions"))
-            return;
-        ConfigurationSection section = data.getConfigurationSection("PowerOreConversions");
-        if (section == null)
-            return;
-
-        section.getKeys(false).forEach(key -> {
-            Location loc = data.getLocation("PowerOreConversions." + key + ".Location");
-            int secondsLeft = data.getInt("PowerOreConversions." + key + ".SecondsLeft");
-            String playerUUIDString = data.getString("PowerOreConversions." + key + ".Player");
-            if (loc == null || playerUUIDString == null)
-                return;
-            UUID uuid = UUID.fromString(playerUUIDString);
-            PowerOreConversion conversion = new PowerOreConversion(secondsLeft, loc, uuid);
-            powerOreConversions.put(loc, conversion);
-            conversion.runTaskTimer(SurvivalSkills.getInstance(), 20, 1);
-        });
+        // New key handling
+        if (data.contains("ChargedPowerOres")) {
+            ConfigurationSection section = data.getConfigurationSection("ChargedPowerOres");
+            if (section != null) {
+                section.getKeys(false).forEach(key -> {
+                    Location loc = data.getLocation("ChargedPowerOres." + key + ".Location");
+                    String playerUUID = data.getString("ChargedPowerOres." + key + ".Player");
+                    if (loc == null || playerUUID == null)
+                        return;
+                    try {
+                        // Create a completed power ore conversion
+                        PowerOreChallenge challenge = new PowerOreChallenge(loc, UUID.fromString(playerUUID));
+                        powerOreChallenges.put(loc, challenge);
+                    } catch (IllegalArgumentException ignored) {
+                        Bukkit.getLogger().log(Level.WARNING, "Invalid UUID in power ore conversions: " + playerUUID);
+                    }
+                });
+            }
+        }
     }
 
     public void tryPowerOreConversion(Player p) {
-        // Add cooldown for player
+        // Cooldown on attempts
         conversionCooldowns.add(p);
         new BukkitRunnable() {
             @Override
@@ -769,50 +805,36 @@ public class GodListener implements Listener {
             }
         }.runTaskLaterAsynchronously(SurvivalSkills.getInstance(), 20);
 
-        // Check if player has unlocked power ore
         PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
-        if (rewards == null) {
-            Bukkit.getLogger().log(Level.WARNING, "Player rewards not found for " + p.getName());
+        if (rewards == null || !rewards.getReward("Mining", "PowerOre").isApplied())
             return;
-        }
-        if (!rewards.getReward("Mining", "PowerOre").isApplied())
-            return;
-
-        // Check if there is obsidian below the player
         Block block = p.getLocation().getBlock().getRelative(0, -1, 0);
+        if (block.getType() != Material.OBSIDIAN)
+            return;
         Location loc = block.getLocation();
-        if (loc.getWorld() == null)
+        if (loc.getWorld() == null || loc.getWorld().getEnvironment() != World.Environment.NORMAL)
             return;
-        if (!loc.getWorld().getEnvironment().equals(World.Environment.NORMAL))
-            return;
-        if (!block.getType().equals(Material.OBSIDIAN))
-            return;
-
-        // Check if the player has 50 XP levels
         if (p.getLevel() < 50) {
             p.sendRawMessage(ChatColor.RED + "You need 50 levels of experience to power the ore");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
-
-        // Check if the player is already converting an ore
-        for (PowerOreConversion conversion : powerOreConversions.values()) {
-            if (conversion.getUUID().equals(p.getUniqueId())) {
-                p.sendRawMessage(ChatColor.RED + "Your life force can only power one ore at a time");
-                p.sendRawMessage(ChatColor.YELLOW + "Your ore is at: " + conversion.getLocation().getBlockX() + ", " +
-                        conversion.getLocation().getBlockY() + ", " + conversion.getLocation().getBlockZ());
-                return;
-            }
+        if (playerChallenges.containsKey(p.getUniqueId())) {
+            PowerOreChallenge existing = playerChallenges.get(p.getUniqueId());
+            p.sendMessage(ChatColor.RED + "You are already attempting a Power Ore challenge at "
+                    + existing.getOreLocation().getBlockX() + ", " + existing.getOreLocation().getBlockY() + ", "
+                    + existing.getOreLocation().getBlockZ());
+            return;
         }
 
-        // Take the levels and add a power ore conversion object to the list
+        // Deduct levels
         p.setLevel(p.getLevel() - 50);
-        PowerOreConversion conversion = new PowerOreConversion(3600 * 6, loc, p.getUniqueId());
-        powerOreConversions.put(loc, conversion);
-        conversion.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
 
-        p.sendRawMessage(ChatColor.GREEN + "The ore conversion will take 6 hours");
-        p.sendRawMessage(ChatColor.GREEN + "The ore will have a green circle above it when it is done");
+        PowerOreChallenge.TaskType taskType = PowerOreChallenge.randomTask(new Random());
+        PowerOreChallenge challenge = new PowerOreChallenge(loc, p, taskType);
+        powerOreChallenges.put(loc, challenge);
+        playerChallenges.put(p.getUniqueId(), challenge);
+        challenge.start();
     }
 
     public void createGodWeaponMap() {
@@ -1001,5 +1023,10 @@ public class GodListener implements Listener {
     // Getters for teleport anchor data
     public HashMap<Location, TeleporterAnchor> getTeleportAnchors() {
         return teleportAnchors;
+    }
+
+    public void removeOreConversion(UUID uuid, Location loc) {
+        powerOreChallenges.remove(loc);
+        playerChallenges.remove(uuid);
     }
 }
