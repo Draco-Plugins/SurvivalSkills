@@ -455,6 +455,31 @@ public class GodListener implements Listener {
         }
 
         if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 48)) {
+            // Make sure the player is trackable
+            if (!drillTracker.containsKey(p))
+                drillTracker.put(p, new ArrayList<>());
+
+            // Make sure this block isn't part of a previous drill task
+            if (drillTracker.get(p).contains(e.getBlock())) {
+                drillTracker.get(p).remove(e.getBlock());
+                return;
+            }
+
+            // Make sure this block is not a part of a vein miner task. We check the
+            // global active flag first (covers race conditions where the per-block list
+            // has already been mutated) and fall back to the per-block tracker.
+            if (SurvivalSkills.getInstance().getMiningListener() != null) {
+                var mining = SurvivalSkills.getInstance().getMiningListener();
+                // Quick metadata check (most up-to-date, per-event)
+                if (p.hasMetadata("survivalskills_veinminer_break"))
+                    return;
+                // Fallback broader activity flags / trackers
+                if (mining.isVeinMinerActive(p))
+                    return;
+                if (mining.getVeinTracker().containsKey(p) && mining.getVeinTracker().get(p).contains(e.getBlock()))
+                    return;
+            }
+
             // Make sure the player has the ability to drill
             PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
             if (rewards == null) {
@@ -470,19 +495,10 @@ public class GodListener implements Listener {
                 return;
             }
 
-            // Make sure this block isn't part of a previous drill task
-            if (!drillTracker.containsKey(p))
-                drillTracker.put(p, new ArrayList<>());
-            if (drillTracker.get(p).contains(e.getBlock())) {
-                drillTracker.get(p).remove(e.getBlock());
-                return;
-            }
-            // Prevent drill crossover by ignoring air blocks
-            if (block.getType().equals(Material.AIR))
-                return;
             PowerDrillAsync drillTask = new PowerDrillAsync(SurvivalSkills.getInstance(), p, this, e.getBlock());
             drillTask.runTaskAsynchronously(SurvivalSkills.getInstance());
         }
+
     }
 
     @EventHandler

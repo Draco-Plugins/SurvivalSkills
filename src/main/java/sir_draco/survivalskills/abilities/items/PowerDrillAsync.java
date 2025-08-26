@@ -14,6 +14,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.logging.Level;
 
 public class PowerDrillAsync extends BukkitRunnable {
 
@@ -28,18 +29,19 @@ public class PowerDrillAsync extends BukkitRunnable {
         this.p = p;
         this.listener = listener;
         this.block = block;
-        this.direction = p.getLocation().getDirection();
+        this.direction = p.getLocation().getDirection().clone();
+
+        Bukkit.getLogger().log(Level.INFO, "Starting PowerDrillAsync for player: " + p.getName());
     }
 
     @Override
     public void run() {
-        // Get the blocks in the vein and remove hunger appropriately
         ArrayList<Block> blocks = getBlocks(block);
         ArrayList<Block> eventBlockTrackingList = new ArrayList<>(blocks);
         listener.getDrillTracker().put(p, eventBlockTrackingList);
         ItemStack pickaxe = p.getInventory().getItemInMainHand();
 
-        // Break all the blocks around a block in the list 1 tick at a time
+        // Break all the blocks around a block in the list 1 tick at a time (sync)
         new BukkitRunnable() {
             int i = 0;
 
@@ -91,7 +93,7 @@ public class PowerDrillAsync extends BukkitRunnable {
     }
 
     public void breakBlock(Block block, Player p, ItemStack tool) {
-        if (block.getType().isAir())
+        if (block.getLocation().getBlock().getType().isAir())
             return;
         BlockBreakEvent event = new BlockBreakEvent(block, p);
         Bukkit.getServer().getPluginManager().callEvent(event);

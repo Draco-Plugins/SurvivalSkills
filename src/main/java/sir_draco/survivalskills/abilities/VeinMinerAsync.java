@@ -10,10 +10,12 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.metadata.FixedMetadataValue;
 import sir_draco.survivalskills.skill_listeners.MiningSkill;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 public class VeinMinerAsync extends BukkitRunnable {
 
@@ -32,6 +34,9 @@ public class VeinMinerAsync extends BukkitRunnable {
         this.block = block;
         this.material = material;
         this.blocksPerHunger = blocksPerHunger;
+
+        Bukkit.getLogger().log(Level.INFO, "Starting VeinMinerAsync for player: " + p.getName());
+        this.skill.setVeinMinerActive(p, true);
     }
 
     @Override
@@ -40,7 +45,7 @@ public class VeinMinerAsync extends BukkitRunnable {
         ArrayList<Block> blocks = getVeinBlocks(block);
         ArrayList<Block> eventBlockTrackingList = new ArrayList<>(blocks);
         skill.getVeinTracker().put(p, eventBlockTrackingList);
-        if (skill.getVeinminerTracker().get(p) != 2) {
+        if (skill.getVeinminerTracker().get(p) == 0) {
             int food = p.getFoodLevel();
             int newFood = food - (blocks.size() / blocksPerHunger);
             if (newFood < 0) {
@@ -62,7 +67,9 @@ public class VeinMinerAsync extends BukkitRunnable {
 
         ItemStack pickaxe = p.getInventory().getItemInMainHand();
 
-        // Break all the blocks in the vein 1 block per tick
+        // Break all the blocks in the vein 1 block per tick (main thread). We run
+        // this inside a synchronous repeating task to avoid multi-threaded world
+        // mutations when Power Drill also operates.
         new BukkitRunnable() {
             int i = 0;
 
@@ -70,15 +77,27 @@ public class VeinMinerAsync extends BukkitRunnable {
             public void run() {
                 if (i >= blocks.size()) {
                     plugin.getMiningListener().getVeinTracker().remove(p);
+                    p.removeMetadata("survivalskills_veinminer_break", plugin);
+                    skill.setVeinMinerActive(p, false);
                     cancel();
                     return;
                 }
 
+                // Make sure the block is breakable
                 Block blockToBreak = blocks.get(i);
+                if (blockToBreak.getType().isAir()) {
+                    i++;
+                    return;
+                }
+
+                // Mark this break as coming from vein miner (metadata cleared immediately
+                // after)
+                p.setMetadata("survivalskills_veinminer_break", new FixedMetadataValue(plugin, true));
                 BlockBreakEvent event = new BlockBreakEvent(blockToBreak, p);
                 Bukkit.getServer().getPluginManager().callEvent(event);
-                if (!event.isCancelled())
+                if (!event.isCancelled()) {
                     blockToBreak.breakNaturally(pickaxe);
+                }
                 i++;
             }
         }.runTaskTimer(plugin, 0, 1);

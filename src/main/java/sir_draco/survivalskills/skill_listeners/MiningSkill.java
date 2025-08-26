@@ -36,6 +36,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.Utils;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MiningSkill implements Listener {
 
@@ -55,6 +56,7 @@ public class MiningSkill implements Listener {
     private final HashMap<Player, ArrayList<Block>> veinTracker = new HashMap<>();
     private final HashMap<Player, Inventory> toolBelts = new HashMap<>();
     private final int blocksPerHunger;
+    private final Set<UUID> activeVeinMinerPlayers = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public MiningSkill(SurvivalSkills plugin, int blocksPerHunger) {
         this.plugin = plugin;
@@ -81,7 +83,9 @@ public class MiningSkill implements Listener {
 
         // Handle XP
         double multiplier = getMultiplier(e.getBlock().getType());
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getMiningXP() * multiplier, "Mining");
+        double xpAmount = plugin.getSkillManager().getMiningXP() * multiplier;
+
+        SkillManager.experienceEvent(plugin, p, xpAmount, "Mining");
 
         // Handle double ore chance
         doubleOre(p, e);
@@ -383,7 +387,8 @@ public class MiningSkill implements Listener {
             return;
         if (!p.isSneaking())
             return;
-        if (!ores.contains(e.getBlock().getType()))
+        Material material = e.getBlock().getType();
+        if (!ores.contains(material))
             return;
 
         // Make sure this block isn't part of a previous vein mine
@@ -394,7 +399,7 @@ public class MiningSkill implements Listener {
             return;
         }
 
-        VeinMinerAsync veinMiner = new VeinMinerAsync(plugin, p, this, e.getBlock(), e.getBlock().getType(),
+        VeinMinerAsync veinMiner = new VeinMinerAsync(plugin, p, this, e.getBlock(), material,
                 blocksPerHunger);
         veinMiner.runTaskAsynchronously(plugin);
     }
@@ -554,5 +559,18 @@ public class MiningSkill implements Listener {
 
     public HashMap<Player, Inventory> getToolBelts() {
         return toolBelts;
+    }
+
+    // Vein miner activity flag helpers
+    public void setVeinMinerActive(Player p, boolean active) {
+        if (active) {
+            activeVeinMinerPlayers.add(p.getUniqueId());
+        } else {
+            activeVeinMinerPlayers.remove(p.getUniqueId());
+        }
+    }
+
+    public boolean isVeinMinerActive(Player p) {
+        return activeVeinMinerPlayers.contains(p.getUniqueId());
     }
 }
