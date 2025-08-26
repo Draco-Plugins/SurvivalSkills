@@ -40,6 +40,7 @@ public class PowerSword extends BukkitRunnable {
     public void run() {
         // Safety: stop if player invalid
         if (!player.isOnline() || player.isDead()) {
+            player.setRiptiding(false);
             cancel();
             return;
         }
