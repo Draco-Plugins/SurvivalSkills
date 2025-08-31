@@ -60,7 +60,7 @@ public class TrophyEffects extends BukkitRunnable {
                 citizensEnabled = true;
             // Skip to NPC spawn
             if (!freshPlacement) {
-                this.cycle = 121;
+                this.cycle = 122;
             }
             return;
         }
@@ -697,7 +697,7 @@ public class TrophyEffects extends BukkitRunnable {
     public void godParticles() {
         if (!citizensEnabled)
             return;
-        if (cycle == 1 && godTrophy == null)
+        if (cycle == 1 || godTrophy == null)
             godTrophy = new GodTrophyEffects(loc, playerName, playerUUID);
         godTrophy.tickTrophy(cycle);
     }
