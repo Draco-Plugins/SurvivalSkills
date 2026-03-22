@@ -47,6 +47,9 @@ public class GodTrophyEffects {
     private static final double DISPLAY_START_Y_OFFSET = 2.0;
     private static final double NPC_Y_OFFSET = 2.0;
     private static final double CRYSTAL_ORBIT_RADIUS = 2.5;
+    // Cleanup radius must exceed orbit radius to catch orphaned crystals from
+    // prior reloads / missed removals
+    private static final double CRYSTAL_CLEANUP_RADIUS = CRYSTAL_ORBIT_RADIUS + 1.0;
     private static final double FLOATING_STEP = 0.05;
     private static final double DESCENT_STEP = 0.05;
     private static final float ROTATION_Y = 0.05f;
@@ -372,9 +375,9 @@ public class GodTrophyEffects {
         if (w == null)
             return;
         // Proactively clean any orphaned/duplicate crystals (e.g. from prior plugin
-        // reloads)
-        cleanupNearbyTrophyCrystals(1.25); // small radius around center
-        removeCrystal();
+        // reloads) – use full cleanup radius so orbit crystals are also removed
+        cleanupNearbyTrophyCrystals(CRYSTAL_CLEANUP_RADIUS);
+        removeCrystal(); // remove currently tracked crystal if present
         Location spawnLoc = new Location(w, trophyLoc.getX() + x, trophyLoc.getY() + y, trophyLoc.getZ() + z);
         crystal = (EnderCrystal) w.spawnEntity(spawnLoc, EntityType.END_CRYSTAL);
         crystal.setBeamTarget(offset(0, NPC_Y_OFFSET, 0));
@@ -395,27 +398,37 @@ public class GodTrophyEffects {
     }
 
     public void moveCrystal() {
-        if (crystal != null)
-            crystal.remove();
+        // If crystal reference lost or entity dead (e.g., after reload / chunk issues),
+        // respawn a fresh one at starting orbit angle and clean up stragglers.
+        if (crystal == null || crystal.isDead()) {
+            cleanupNearbyTrophyCrystals(CRYSTAL_CLEANUP_RADIUS);
+            crystalRadians = 0; // reset orbit
+            spawnCrystal((Math.cos(0) * CRYSTAL_ORBIT_RADIUS) + HALF, 1.5,
+                    (Math.sin(0) * CRYSTAL_ORBIT_RADIUS) + HALF);
+            return;
+        }
+
+        // Advance angle then teleport existing crystal instead of removing and
+        // spawning a new entity every tick – prevents accumulation if removal ever
+        // fails and reduces entity churn.
         double radians = crystalRadians;
-        // Convert from absolute intended center positions back to offsets for
-        // spawnCrystal
-        double offsetX = (Math.cos(radians) * CRYSTAL_ORBIT_RADIUS) + HALF;
-        double offsetZ = (Math.sin(radians) * CRYSTAL_ORBIT_RADIUS) + HALF;
-        double offsetY = 1.5; // keep constant height (same as initial crystal spawn y-offset)
-        spawnCrystal(offsetX, offsetY, offsetZ);
+        double x = (Math.cos(radians) * CRYSTAL_ORBIT_RADIUS) + HALF;
+        double z = (Math.sin(radians) * CRYSTAL_ORBIT_RADIUS) + HALF;
+        double y = 1.5; // constant vertical offset
+        Location newLoc = new Location(crystal.getWorld(), trophyLoc.getX() + x, trophyLoc.getY() + y,
+                trophyLoc.getZ() + z);
+        crystal.teleport(newLoc);
         crystalRadians += CRYSTAL_ANGLE_INCREMENT;
     }
 
     private void cleanupNearbyTrophyCrystals(double radius) {
+        // TODO: Crystals are still left behind so this temp fix is incorrect
         var w = world();
         if (w == null)
             return;
         var center = offset(0, 0, 0);
         for (var ent : w.getNearbyEntities(center, radius, radius, radius)) {
             if (!(ent instanceof EnderCrystal ec))
-                continue;
-            if (!ec.hasMetadata(META_TROPHY))
                 continue;
             // If it's not the actively tracked crystal (or we lost the reference), remove
             // it

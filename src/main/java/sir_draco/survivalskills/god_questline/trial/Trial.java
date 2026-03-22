@@ -8,9 +8,11 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
+import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+
 import sir_draco.survivalskills.boards.SkillScoreboard;
 import sir_draco.survivalskills.god_questline.trial_mobs.WaveMob;
 import sir_draco.survivalskills.rewards.RewardNotifications;
@@ -162,6 +164,33 @@ public class Trial extends BukkitRunnable {
         }
     }
 
+    /**
+     * Attempt to skip the countdown between waves for this trial. Returns true
+     * if the skip was accepted and the next wave will start (or is already
+     * starting). Only players who are part of the trial may trigger this.
+     */
+    public synchronized boolean attemptSkipCountdown(Player p) {
+        // Only participants can request skip
+        if (!players.contains(p))
+            return false;
+
+        // If the trial is already active or the wave is already spawning, cannot skip
+        if (activeWave || waveSpawned)
+            return false;
+
+        // If we've already progressed beyond maxWave, don't allow skip
+        if (waveNumber > maxWave)
+            return false;
+
+        // Only skip if timer is positive (i.e., a countdown is in progress)
+        if (timer <= 0)
+            return false;
+
+        // Immediately trigger the wave start
+        timer = 1;
+        return true;
+    }
+
     public void loadBuilding(ArrayList<RelativeBlock> building) {
         int increment = building.size() / 120;
         new BukkitRunnable() {
@@ -303,6 +332,18 @@ public class Trial extends BukkitRunnable {
                 continue;
             if (mob.getEntity().isDead())
                 continue;
+
+            // If the mob is a phantom and is more than half the width of the box away from
+            // the center teleport it
+            if (mob.getEntity() instanceof Phantom phantom) {
+                double distance = phantom.getLocation().distance(centerLocation);
+                double boxWidth = protectedArea.boundingBox().getWidthX();
+                if (distance > boxWidth / 2 - 1) {
+                    mob.getEntity().teleport(centerLocation.clone().add(0.5, 1, 0.5));
+                }
+                continue;
+            }
+
             if (protectedArea.boundingBox().contains(mob.getEntity().getLocation().toVector()))
                 continue;
             mob.getEntity().teleport(centerLocation.clone().add(0.5, 1, 0.5));

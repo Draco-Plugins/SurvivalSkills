@@ -55,6 +55,9 @@ public class TrialManager implements Listener {
     private static final WaveGenerator waveGenerator = new WaveGenerator();
     private static final HashMap<UUID, TrialBuildingData> trialBuildingOwnership = new HashMap<>();
     private static final HashMap<UUID, Long> trialBuildingCreationCooldownList = new HashMap<>();
+    // Track last crouch times for double-crouch detection to skip wave countdowns
+    private static final HashMap<UUID, Long> lastCrouchTimes = new HashMap<>();
+    private static final long DOUBLE_CROUCH_MS = 600; // time window for double-crouch
 
     private static FileConfiguration trialBuildingConfig = null;
     private static FileConfiguration trialDataConfig = null;
@@ -68,15 +71,56 @@ public class TrialManager implements Listener {
     }
 
     @EventHandler
+    public void onPlayerSneakToggle(PlayerToggleSneakEvent e) {
+        Player p = e.getPlayer();
+        if (!e.isSneaking())
+            return; // only care about when player starts sneaking
+
+        // If the player is currently in a trial and between waves, allow double-crouch
+        // to skip
+        for (Trial trial : trials) {
+            if (!trial.getPlayers().contains(p))
+                continue;
+            // Delegate to trial to handle whether skipping is allowed
+            if (trial.attemptSkipCountdown(p)) {
+                // consumed by trial, do not process further
+                return;
+            }
+        }
+
+        // Otherwise, handle double-crouch for players waiting to start next wave in
+        // lobby
+        long now = System.currentTimeMillis();
+        UUID id = p.getUniqueId();
+        if (lastCrouchTimes.containsKey(id)) {
+            long prev = lastCrouchTimes.get(id);
+            if (now - prev <= DOUBLE_CROUCH_MS) {
+                // double-crouch detected: try to skip any trial the player is part of
+                for (Trial trial : trials) {
+                    if (!trial.getPlayers().contains(p))
+                        continue;
+                    if (trial.attemptSkipCountdown(p))
+                        break;
+                }
+                lastCrouchTimes.remove(id);
+                return;
+            }
+        }
+        lastCrouchTimes.put(id, now);
+    }
+
+    @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         loadCompletedTrials(e.getPlayer());
     }
 
     @EventHandler
     public void onTrialBuildingBreak(BlockBreakEvent e) {
-        if (protectedAreas.isEmpty()) return;
+        if (protectedAreas.isEmpty())
+            return;
         for (ProtectedArea protectedArea : protectedAreas.values()) {
-            if (!protectedArea.world().equals(e.getBlock().getWorld())) continue;
+            if (!protectedArea.world().equals(e.getBlock().getWorld()))
+                continue;
             if (protectedArea.boundingBox().contains(e.getBlock().getLocation().toVector())) {
                 e.setCancelled(true);
                 return;
@@ -89,21 +133,26 @@ public class TrialManager implements Listener {
         if (e.getEntity().hasMetadata("trialmob") && e.getEntity() instanceof Creeper) {
             for (Trial trial : trials) {
                 Wave wave = trial.getWave();
-                if (wave == null) continue;
+                if (wave == null)
+                    continue;
 
-                if (wave.getWaveMobs().isEmpty()) continue;
+                if (wave.getWaveMobs().isEmpty())
+                    continue;
                 WaveMob waveMob = wave.getWaveMob(e.getEntity());
-                if (waveMob == null) continue;
+                if (waveMob == null)
+                    continue;
                 wave.removeWaveMob(waveMob);
                 e.blockList().clear();
                 return;
             }
         }
 
-        if (protectedAreas.isEmpty()) return;
+        if (protectedAreas.isEmpty())
+            return;
         for (ProtectedArea protectedArea : protectedAreas.values()) {
             for (Block block : e.blockList()) {
-                if (!protectedArea.world().equals(block.getWorld())) continue;
+                if (!protectedArea.world().equals(block.getWorld()))
+                    continue;
                 if (protectedArea.boundingBox().contains(block.getLocation().toVector())) {
                     e.blockList().clear();
                     return;
@@ -114,10 +163,13 @@ public class TrialManager implements Listener {
 
     @EventHandler
     public void onEndermanBlockTake(EntityChangeBlockEvent e) {
-        if (protectedAreas.isEmpty()) return;
-        if (!e.getEntity().getType().equals(EntityType.ENDERMAN)) return;
+        if (protectedAreas.isEmpty())
+            return;
+        if (!e.getEntity().getType().equals(EntityType.ENDERMAN))
+            return;
         for (ProtectedArea protectedArea : protectedAreas.values()) {
-            if (!protectedArea.world().equals(e.getBlock().getWorld())) continue;
+            if (!protectedArea.world().equals(e.getBlock().getWorld()))
+                continue;
             if (protectedArea.boundingBox().contains(e.getBlock().getLocation().toVector())) {
                 e.setCancelled(true);
                 return;
@@ -127,9 +179,11 @@ public class TrialManager implements Listener {
 
     @EventHandler
     public void onTrialBuildingPlace(BlockPlaceEvent e) {
-        if (protectedAreas.isEmpty()) return;
+        if (protectedAreas.isEmpty())
+            return;
         for (ProtectedArea protectedArea : protectedAreas.values()) {
-            if (!protectedArea.world().equals(e.getBlock().getWorld())) continue;
+            if (!protectedArea.world().equals(e.getBlock().getWorld()))
+                continue;
             if (protectedArea.boundingBox().contains(e.getBlock().getLocation().toVector())) {
                 e.setCancelled(true);
                 return;
@@ -140,15 +194,19 @@ public class TrialManager implements Listener {
     @EventHandler
     public void playerSendCommand(PlayerCommandPreprocessEvent e) {
         if (spectatingPlayers.containsKey(e.getPlayer())) {
-            if (e.getMessage().toLowerCase().startsWith("/godtrial")) return;
+            if (e.getMessage().toLowerCase().startsWith("/godtrial"))
+                return;
             e.setCancelled(true);
             return;
         }
 
-        if (trials.isEmpty()) return;
-        if (!isTrialPlayer(e.getPlayer())) return;
+        if (trials.isEmpty())
+            return;
+        if (!isTrialPlayer(e.getPlayer()))
+            return;
         // Check if the first letters of the message are "/godtrial"
-        if (e.getMessage().toLowerCase().startsWith("/godtrial")) return;
+        if (e.getMessage().toLowerCase().startsWith("/godtrial"))
+            return;
         e.setCancelled(true);
     }
 
@@ -176,12 +234,16 @@ public class TrialManager implements Listener {
 
     @EventHandler
     public void onTrialMobDeath(EntityDeathEvent e) {
-        if (e.getEntity() instanceof Player) return;
-        if (!e.getEntity().hasMetadata("trialmob") && !e.getEntity().hasMetadata("trialboss")) return;
-        if (trials.isEmpty()) return;
+        if (e.getEntity() instanceof Player)
+            return;
+        if (!e.getEntity().hasMetadata("trialmob") && !e.getEntity().hasMetadata("trialboss"))
+            return;
+        if (trials.isEmpty())
+            return;
         for (Trial trial : trials) {
             Wave wave = trial.getWave();
-            if (wave == null) continue;
+            if (wave == null)
+                continue;
 
             int scoreMultiplier = (trial.getWaveNumber() / 5) + 1;
 
@@ -192,7 +254,8 @@ public class TrialManager implements Listener {
                     return;
                 }
 
-                if (!e.getEntity().hasMetadata("trialboss")) return;
+                if (!e.getEntity().hasMetadata("trialboss"))
+                    return;
 
                 wave.getBoss().death();
                 trial.changeScore(scoreMultiplier * 1000);
@@ -207,7 +270,8 @@ public class TrialManager implements Listener {
             }
 
             if (wave.getWaveMobs().isEmpty()) {
-                if (!trial.isActiveWave()) continue;
+                if (!trial.isActiveWave())
+                    continue;
                 trial.endWave();
                 continue;
             }
@@ -215,10 +279,10 @@ public class TrialManager implements Listener {
             if (e.getEntity().hasMetadata("extramob")) {
                 wave.removeExtraMob(e.getEntity());
                 trial.changeScore(scoreMultiplier * 10);
-            }
-            else {
+            } else {
                 WaveMob waveMob = wave.getWaveMob(e.getEntity());
-                if (waveMob == null) continue;
+                if (waveMob == null)
+                    continue;
                 e.getDrops().clear();
                 waveMob.dropItems();
                 wave.removeWaveMob(waveMob);
@@ -237,23 +301,30 @@ public class TrialManager implements Listener {
 
     @EventHandler
     public void onTrialMobDamage(EntityDamageEvent e) {
-        if (trials.isEmpty()) return;
-        if (e.getEntity() instanceof Player) return;
+        if (trials.isEmpty())
+            return;
+        if (e.getEntity() instanceof Player)
+            return;
 
         // Check if it is a trial mob
-        if (!e.getEntity().hasMetadata("trialmob") && !e.getEntity().hasMetadata("trialboss")) return;
+        if (!e.getEntity().hasMetadata("trialmob") && !e.getEntity().hasMetadata("trialboss"))
+            return;
 
         // See if a player damaged the mob
-        if (!(e instanceof EntityDamageByEntityEvent)) e.setCancelled(true);
+        if (!(e instanceof EntityDamageByEntityEvent))
+            e.setCancelled(true);
     }
 
     @EventHandler
     public void onTrialMobDamageByPlayer(EntityDamageByEntityEvent e) {
-        if (trials.isEmpty()) return;
-        if (e.getEntity() instanceof Player) return;
+        if (trials.isEmpty())
+            return;
+        if (e.getEntity() instanceof Player)
+            return;
 
         // Check if it is a trial mob
-        if (!e.getEntity().hasMetadata("trialmob") && !(e.getEntity().hasMetadata("trialboss"))) return;
+        if (!e.getEntity().hasMetadata("trialmob") && !(e.getEntity().hasMetadata("trialboss")))
+            return;
 
         // Prevent fireball damage
         if (e.getDamager() instanceof Fireball) {
@@ -278,7 +349,8 @@ public class TrialManager implements Listener {
                 p = (Player) trident.getShooter();
             }
             case Player player -> p = player;
-            default -> {}
+            default -> {
+            }
         }
 
         if (p == null) {
@@ -288,10 +360,13 @@ public class TrialManager implements Listener {
 
         for (Trial trial : trials) {
             Wave wave = trial.getWave();
-            if (wave == null) continue;
-            if (wave.getWaveMobs().isEmpty()) continue;
+            if (wave == null)
+                continue;
+            if (wave.getWaveMobs().isEmpty())
+                continue;
             WaveMob waveMob = wave.getWaveMob(e.getEntity());
-            if (waveMob == null) continue;
+            if (waveMob == null)
+                continue;
             if (!trial.getPlayers().contains(p)) {
                 e.setCancelled(true);
                 return;
@@ -304,19 +379,23 @@ public class TrialManager implements Listener {
 
     @EventHandler
     public void onTrialMobCombust(EntityCombustEvent e) {
-        if (trials.isEmpty()) return;
+        if (trials.isEmpty())
+            return;
 
         // Check if it is a trial mob
-        if (!e.getEntity().hasMetadata("trialmob")) return;
+        if (!e.getEntity().hasMetadata("trialmob"))
+            return;
 
         e.setCancelled(true);
     }
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
-        if (trials.isEmpty()) return;
+        if (trials.isEmpty())
+            return;
         for (Trial trial : trials) {
-            if (!trial.getPlayers().contains(e.getEntity())) continue;
+            if (!trial.getPlayers().contains(e.getEntity()))
+                continue;
             trial.endTrial();
             e.getEntity().getInventory().clear();
             return;
@@ -325,18 +404,22 @@ public class TrialManager implements Listener {
 
     @EventHandler
     public void onPlayerHurt(EntityDamageEvent e) {
-        if (trials.isEmpty()) return;
-        if (!(e.getEntity() instanceof Player p)) return;
+        if (trials.isEmpty())
+            return;
+        if (!(e.getEntity() instanceof Player p))
+            return;
 
         // Get the amount of damage and subtract it from the player's trial score
         double damage = e.getDamage();
         Trial trial = null;
         for (Trial t : trials) {
-            if (!t.getPlayers().contains(p)) continue;
+            if (!t.getPlayers().contains(p))
+                continue;
             trial = t;
             break;
         }
-        if (trial == null) return;
+        if (trial == null)
+            return;
         trial.changeScore((int) -damage * 2);
         if (Math.random() < TrialTree.getDodgeChance(TrialUpgradeManager.getPlayerUpgrades(p))) {
             e.setCancelled(true);
@@ -344,42 +427,54 @@ public class TrialManager implements Listener {
         }
 
         // Check if they were hit by a snowball
-        if (!e.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE)) return;
-        if (!(e instanceof EntityDamageByEntityEvent entityDamageByEntityEvent)) return;
-        if (!(entityDamageByEntityEvent.getDamager() instanceof Snowball)) return;
+        if (!e.getCause().equals(EntityDamageEvent.DamageCause.PROJECTILE))
+            return;
+        if (!(e instanceof EntityDamageByEntityEvent entityDamageByEntityEvent))
+            return;
+        if (!(entityDamageByEntityEvent.getDamager() instanceof Snowball))
+            return;
 
-        if (trial.getWave() == null) return;
-        if (!trial.getWave().isBossWave()) return;
+        if (trial.getWave() == null)
+            return;
+        if (!trial.getWave().isBossWave())
+            return;
 
         // Freeze the player for 2 seconds
         float walkSpeed = p.getWalkSpeed();
-        if (walkSpeed == 0) return;
+        if (walkSpeed == 0)
+            return;
         p.setWalkSpeed(0);
         Bukkit.getScheduler().runTaskLater(SurvivalSkills.getInstance(), () -> p.setWalkSpeed(walkSpeed), 40);
     }
 
     @EventHandler
     public void onRewardGUIClick(InventoryClickEvent e) {
-        if (rewardInventories.contains(e.getView().getTopInventory()) && !rewardInventories.contains(e.getInventory())) {
+        if (rewardInventories.contains(e.getView().getTopInventory())
+                && !rewardInventories.contains(e.getInventory())) {
             e.setCancelled(true);
             return;
         }
-        if (!rewardInventories.contains(e.getInventory())) return;
+        if (!rewardInventories.contains(e.getInventory()))
+            return;
 
         e.setCancelled(true);
-        if (e.getCurrentItem() == null) return;
+        if (e.getCurrentItem() == null)
+            return;
         e.getWhoClicked().getInventory().addItem(e.getCurrentItem());
         e.getWhoClicked().closeInventory();
     }
 
     @EventHandler
     public void onUseEnchantedBook(InventoryClickEvent e) {
-        if (e.getCurrentItem() == null) return;
-        if (e.getCursor() == null) return;
+        if (e.getCurrentItem() == null)
+            return;
+        if (e.getCursor() == null)
+            return;
 
         ItemStack item = e.getCurrentItem();
         ItemStack book = e.getCursor();
-        if (!book.getType().equals(Material.ENCHANTED_BOOK)) return;
+        if (!book.getType().equals(Material.ENCHANTED_BOOK))
+            return;
         if (item.getItemMeta() == null
                 || !item.getItemMeta().getPersistentDataContainer().has(trialObjectKey, PersistentDataType.STRING))
             return;
@@ -389,9 +484,11 @@ public class TrialManager implements Listener {
 
         if (item.getType().equals(Material.ENCHANTED_BOOK)) {
             EnchantmentStorageMeta itemMeta = (EnchantmentStorageMeta) item.getItemMeta();
-            if (itemMeta == null) return;
+            if (itemMeta == null)
+                return;
             EnchantmentStorageMeta bookMeta = (EnchantmentStorageMeta) book.getItemMeta();
-            if (bookMeta == null) return;
+            if (bookMeta == null)
+                return;
 
             // Apply the book enchant to the item
             for (Map.Entry<Enchantment, Integer> enchant : bookMeta.getStoredEnchants().entrySet()) {
@@ -411,7 +508,8 @@ public class TrialManager implements Listener {
         }
 
         EnchantmentStorageMeta bookMeta = (EnchantmentStorageMeta) book.getItemMeta();
-        if (bookMeta == null) return;
+        if (bookMeta == null)
+            return;
 
         // Apply the book enchant to the item
         for (Map.Entry<Enchantment, Integer> enchant : bookMeta.getStoredEnchants().entrySet()) {
@@ -434,7 +532,8 @@ public class TrialManager implements Listener {
             return;
         }
 
-        if (!trialSelectionInventories.contains(e.getInventory())) return;
+        if (!trialSelectionInventories.contains(e.getInventory()))
+            return;
         e.setCancelled(true);
         TrialUtils.handleTrialSelectionClick(e.getClickedInventory(), (Player) e.getWhoClicked(), e.getCurrentItem());
     }
@@ -447,15 +546,18 @@ public class TrialManager implements Listener {
             return;
         }
 
-        if (!trialSelectionInventories.contains(e.getInventory())) return;
+        if (!trialSelectionInventories.contains(e.getInventory()))
+            return;
         e.setCancelled(true);
     }
 
     @EventHandler
     public void onTrialPartyInventoryClose(InventoryCloseEvent e) {
-        if (pendingTrials.isEmpty()) return;
+        if (pendingTrials.isEmpty())
+            return;
         Player p = (Player) e.getPlayer();
-        if (!pendingTrials.containsKey(p)) return;
+        if (!pendingTrials.containsKey(p))
+            return;
 
         new BukkitRunnable() {
 
@@ -463,7 +565,8 @@ public class TrialManager implements Listener {
             public void run() {
                 // Check if the player has any inventory open
                 if (p.getOpenInventory().getTopInventory().getSize() != 9) {
-                    if (pendingTrials.containsKey(p)) pendingTrials.get(p).endPendingTrial();
+                    if (pendingTrials.containsKey(p))
+                        pendingTrials.get(p).endPendingTrial();
                     pendingTrials.remove(p);
                 }
             }
@@ -476,7 +579,8 @@ public class TrialManager implements Listener {
             e.setCancelled(true);
             return;
         }
-        if (!rewardInventories.contains(e.getInventory())) return;
+        if (!rewardInventories.contains(e.getInventory()))
+            return;
 
         e.setCancelled(true);
         e.getWhoClicked().getInventory().addItem(e.getOldCursor());
@@ -485,41 +589,51 @@ public class TrialManager implements Listener {
 
     @EventHandler
     public void onRewardGUIClose(InventoryCloseEvent e) {
-        if (!rewardInventories.contains(e.getInventory())) return;
+        if (!rewardInventories.contains(e.getInventory()))
+            return;
         rewardInventories.remove(e.getInventory());
     }
 
     @EventHandler
     public void onItemPickup(EntityPickupItemEvent e) {
-        if (!(e.getEntity() instanceof Player p)) return;
+        if (!(e.getEntity() instanceof Player p))
+            return;
 
         ItemStack item = e.getItem().getItemStack();
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return;
+        if (meta == null)
+            return;
 
         boolean playerInTrial = false;
         for (Trial trial : trials) {
-            if (!trial.getPlayers().contains(p)) continue;
+            if (!trial.getPlayers().contains(p))
+                continue;
             playerInTrial = true;
         }
 
         // If a player is not in a trial, they cannot pick up trial items
         if (!playerInTrial) {
-            if (meta.getPersistentDataContainer().has(trialObjectKey, PersistentDataType.STRING)) e.setCancelled(true);
+            if (meta.getPersistentDataContainer().has(trialObjectKey, PersistentDataType.STRING))
+                e.setCancelled(true);
             return;
         }
 
         // If a player is in a trial, they can only pick up trial items
-        if (!meta.getPersistentDataContainer().has(trialObjectKey, PersistentDataType.STRING)) e.setCancelled(true);
+        if (!meta.getPersistentDataContainer().has(trialObjectKey, PersistentDataType.STRING))
+            e.setCancelled(true);
     }
 
     @EventHandler
     public void onPlayerLeaveTrialArea(PlayerMoveEvent e) {
-        if (trials.isEmpty()) return;
+        if (trials.isEmpty())
+            return;
         for (Trial trial : trials) {
-            if (!trial.getPlayers().contains(e.getPlayer())) continue;
-            if (trial.getProtectedArea().boundingBox().contains(e.getPlayer().getLocation().toVector())) continue;
-            if (!trial.isBuildingCreated()) continue;
+            if (!trial.getPlayers().contains(e.getPlayer()))
+                continue;
+            if (trial.getProtectedArea().boundingBox().contains(e.getPlayer().getLocation().toVector()))
+                continue;
+            if (!trial.isBuildingCreated())
+                continue;
             trial.quitTrial(e.getPlayer());
             return;
         }
@@ -527,24 +641,29 @@ public class TrialManager implements Listener {
 
     @EventHandler
     public void onBeaconEffect(EntityPotionEffectEvent e) {
-        if (trials.isEmpty()) return;
+        if (trials.isEmpty())
+            return;
 
-        if (!(e.getEntity() instanceof Player p)) return;
+        if (!(e.getEntity() instanceof Player p))
+            return;
         EntityPotionEffectEvent.Cause cause = e.getCause();
         if (!cause.equals(EntityPotionEffectEvent.Cause.BEACON)
                 && !cause.equals(EntityPotionEffectEvent.Cause.COMMAND)
                 && !cause.equals(EntityPotionEffectEvent.Cause.PLUGIN)
-                && !cause.equals(EntityPotionEffectEvent.Cause.POTION_SPLASH)) return;
+                && !cause.equals(EntityPotionEffectEvent.Cause.POTION_SPLASH))
+            return;
 
         for (Trial trial : trials) {
-            if (!trial.getPlayers().contains(p)) continue;
+            if (!trial.getPlayers().contains(p))
+                continue;
             e.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onSlimeSplit(SlimeSplitEvent e) {
-        if (!e.getEntity().hasMetadata("trialmob")) return;
+        if (!e.getEntity().hasMetadata("trialmob"))
+            return;
         e.setCancelled(true);
     }
 
@@ -552,7 +671,8 @@ public class TrialManager implements Listener {
     public void onTarget(EntityTargetLivingEntityEvent e) {
         Entity entity = e.getEntity();
 
-        if (!entity.hasMetadata("trialmob")) return;
+        if (!entity.hasMetadata("trialmob"))
+            return;
 
         // Ensure that the mobs can only target the trial player near them
         if (!(e.getTarget() instanceof Player target)) {
@@ -576,7 +696,8 @@ public class TrialManager implements Listener {
         // Check if the event is triggered by an Evoker
         Entity caster = e.getEntity();
         if (caster instanceof Evoker) {
-            if (!caster.hasMetadata("trialmob")) return;
+            if (!caster.hasMetadata("trialmob"))
+                return;
             // Loop through spawned entities
             for (Entity spawnedEntity : caster.getWorld().getEntities()) {
                 spawnedEntity.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
@@ -584,8 +705,10 @@ public class TrialManager implements Listener {
 
                 // Find the trial the mob belongs to
                 for (Trial trial : trials) {
-                    if (trial.getWave() == null) continue;
-                    if (trial.getWave().getWaveMob(spawnedEntity) == null) continue;
+                    if (trial.getWave() == null)
+                        continue;
+                    if (trial.getWave().getWaveMob(spawnedEntity) == null)
+                        continue;
                     // Add the mob to the extra entities of the wave
                     trial.getWave().addExtraMob(spawnedEntity);
                 }
@@ -595,10 +718,12 @@ public class TrialManager implements Listener {
 
     @EventHandler
     public void onEntityTransform(EntityTransformEvent e) {
-        if (e.getEntity().hasMetadata("trialmob")) e.setCancelled(true);
+        if (e.getEntity().hasMetadata("trialmob"))
+            e.setCancelled(true);
         // Preserve the held item
         LivingEntity entity = (LivingEntity) e.getEntity();
-        if (entity.getEquipment() == null) return;
+        if (entity.getEquipment() == null)
+            return;
         ItemStack mainHandItem = entity.getEquipment().getItemInMainHand();
 
         new BukkitRunnable() {
@@ -612,8 +737,10 @@ public class TrialManager implements Listener {
     @EventHandler
     public void onEndermanTeleport(EntityTeleportEvent e) {
         // Check if the entity is an Enderman
-        if (!e.getEntity().hasMetadata("trialmob")) return;
-        if (e.getEntity() instanceof Enderman) e.setCancelled(true);
+        if (!e.getEntity().hasMetadata("trialmob"))
+            return;
+        if (e.getEntity() instanceof Enderman)
+            e.setCancelled(true);
     }
 
     @EventHandler
@@ -622,38 +749,50 @@ public class TrialManager implements Listener {
     }
 
     public static boolean isTrialPlayer(Player p) {
-        for (Trial trial : trials) if (trial.getPlayers().contains(p)) return true;
+        for (Trial trial : trials)
+            if (trial.getPlayers().contains(p))
+                return true;
         return false;
     }
 
     public static void loadProtectedAreas() {
         if (trialDataConfig == null) {
             File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
-            if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
+            if (!file.exists())
+                SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
             trialDataConfig = YamlConfiguration.loadConfiguration(file);
         }
 
         ConfigurationSection section = trialDataConfig.getConfigurationSection("");
-        if (section == null) return;
-        if (section.getKeys(false).isEmpty()) return;
+        if (section == null)
+            return;
+        if (section.getKeys(false).isEmpty())
+            return;
 
         for (String key : section.getKeys(false)) {
             // Get the min and max boundaries of the bounding box
-            if (!trialDataConfig.contains(key + ".ProtectedArea")) continue;
+            if (!trialDataConfig.contains(key + ".ProtectedArea"))
+                continue;
             String minString = (String) trialDataConfig.get(key + ".ProtectedArea.Min");
-            if (minString == null) continue;
+            if (minString == null)
+                continue;
             String maxString = (String) trialDataConfig.get(key + ".ProtectedArea.Max");
-            if (maxString == null) continue;
+            if (maxString == null)
+                continue;
             String[] minLocation = minString.split(":");
             String[] maxLocation = maxString.split(":");
-            if (minLocation.length != 3 || maxLocation.length != 3) continue;
+            if (minLocation.length != 3 || maxLocation.length != 3)
+                continue;
 
             BoundingBox box = new BoundingBox();
-            box.resize(Double.parseDouble(minLocation[0]), Double.parseDouble(minLocation[1]), Double.parseDouble(minLocation[2]),
-                    Double.parseDouble(maxLocation[0]), Double.parseDouble(maxLocation[1]), Double.parseDouble(maxLocation[2]));
+            box.resize(Double.parseDouble(minLocation[0]), Double.parseDouble(minLocation[1]),
+                    Double.parseDouble(minLocation[2]),
+                    Double.parseDouble(maxLocation[0]), Double.parseDouble(maxLocation[1]),
+                    Double.parseDouble(maxLocation[2]));
 
             String worldString = (String) trialDataConfig.get(key + ".ProtectedArea.World");
-            if (worldString == null) continue;
+            if (worldString == null)
+                continue;
             // Use world name instead of UUID for reliability
             World world = Bukkit.getWorld(worldString);
 
@@ -667,17 +806,38 @@ public class TrialManager implements Listener {
     public static void loadCompletedTrials(Player p) {
         if (trialDataConfig == null) {
             File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
-            if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
+            if (!file.exists())
+                SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
             trialDataConfig = YamlConfiguration.loadConfiguration(file);
         }
 
+        ArrayList<Integer> gamemodesBeaten = new ArrayList<>();
         if (trialDataConfig.contains(p.getUniqueId() + ".CompletedTrials")) {
-            ArrayList<Integer> gamemodesBeaten = new ArrayList<>();
-            for (String gamemode : trialDataConfig.getStringList(p.getUniqueId() + ".CompletedTrials"))
-                gamemodesBeaten.add(Integer.parseInt(gamemode));
-            playerGamemodesBeaten.put(p, gamemodesBeaten);
+            // Support both lists of integers and lists of strings
+            try {
+                List<?> raw = trialDataConfig.getList(p.getUniqueId() + ".CompletedTrials");
+                if (raw != null) {
+                    for (Object o : raw) {
+                        if (o instanceof Integer i)
+                            gamemodesBeaten.add(i);
+                        else if (o instanceof String s) {
+                            try {
+                                gamemodesBeaten.add(Integer.parseInt(s));
+                            } catch (NumberFormatException ignored) {
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // fallback - try string list parse
+                for (String gamemode : trialDataConfig.getStringList(p.getUniqueId() + ".CompletedTrials"))
+                    try {
+                        gamemodesBeaten.add(Integer.parseInt(gamemode));
+                    } catch (NumberFormatException ignored) {
+                    }
+            }
         }
-        else playerGamemodesBeaten.put(p, new ArrayList<>());
+        playerGamemodesBeaten.put(p, gamemodesBeaten);
     }
 
     public static void startCleanupTask() {
@@ -702,7 +862,8 @@ public class TrialManager implements Listener {
                 if (buildingLocation.getWorld() == null) {
                     SurvivalSkills.getInstance().getLogger().warning(
                             "World no longer exists for expired trial building owned by " +
-                            Bukkit.getOfflinePlayer(buildingData.owner()).getName() + ". Removing from records only.");
+                                    Bukkit.getOfflinePlayer(buildingData.owner()).getName()
+                                    + ". Removing from records only.");
                     toRemove.add(buildingId);
                     continue;
                 }
@@ -716,7 +877,8 @@ public class TrialManager implements Listener {
                     world.loadChunk(chunkX, chunkZ);
                 }
 
-                // Remove the protected area (chunks will be loaded within removeProtectedArea method)
+                // Remove the protected area (chunks will be loaded within removeProtectedArea
+                // method)
                 ProtectedArea protectedArea = protectedAreas.get(buildingId);
                 if (protectedArea != null) {
                     TrialUtils.removeProtectedArea(protectedArea);
@@ -727,12 +889,14 @@ public class TrialManager implements Listener {
                 toRemove.add(buildingId);
 
                 SurvivalSkills.getInstance().getLogger().info("Removed expired trial building owned by " +
-                                                                      Bukkit.getOfflinePlayer(buildingData.owner()).getName());
+                        Bukkit.getOfflinePlayer(buildingData.owner()).getName());
             }
         }
 
-        for (UUID id : toRemove) trialBuildingOwnership.remove(id);
-        if (!toRemove.isEmpty()) saveTrialBuildingData(true);
+        for (UUID id : toRemove)
+            trialBuildingOwnership.remove(id);
+        if (!toRemove.isEmpty())
+            saveTrialBuildingData(true);
     }
 
     public static void updateTrialUsage(UUID trialBuildingId) {
@@ -755,15 +919,26 @@ public class TrialManager implements Listener {
     private static void saveTrialBuildingData(boolean saveFile) {
         if (trialDataConfig == null) {
             File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
-            if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
+            if (!file.exists())
+                SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
             trialDataConfig = YamlConfiguration.loadConfiguration(file);
         }
 
-        // Get a list of all currently stored UUIDs
+        // Get a list of all currently stored top-level keys
         List<String> existingKeys = new ArrayList<>(trialDataConfig.getKeys(false));
-        // Remove keys that are no longer in use
+        // Remove building keys that are no longer in use, but DO NOT remove player
+        // completed-trial entries (they live at the same top level). We identify
+        // building entries by the presence of an ".Owner" child key.
         for (String key : existingKeys) {
             try {
+                // If this key stores player completed trials, skip deletion
+                if (trialDataConfig.contains(key + ".CompletedTrials"))
+                    continue;
+
+                // Only consider removing keys that look like building entries
+                if (!trialDataConfig.contains(key + ".Owner"))
+                    continue;
+
                 UUID uuid = UUID.fromString(key);
                 if (!trialBuildingOwnership.containsKey(uuid))
                     trialDataConfig.set(key, null);
@@ -781,7 +956,8 @@ public class TrialManager implements Listener {
             trialDataConfig.set(key + ".Location", locationToString(data.location()));
         }
 
-        if (!saveFile) return;
+        if (!saveFile)
+            return;
 
         try {
             File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
@@ -807,10 +983,12 @@ public class TrialManager implements Listener {
         }
 
         ConfigurationSection section = trialDataConfig.getConfigurationSection("");
-        if (section == null) return;
+        if (section == null)
+            return;
 
         for (String key : section.getKeys(false)) {
-            if (!trialDataConfig.contains(key + ".Owner")) continue;
+            if (!trialDataConfig.contains(key + ".Owner"))
+                continue;
 
             try {
                 UUID buildingId = UUID.fromString(key);
@@ -834,32 +1012,40 @@ public class TrialManager implements Listener {
 
     private static Location stringToLocation(String str) {
         String[] parts = str.split(":");
-        if (parts.length != 4) return null;
+        if (parts.length != 4)
+            return null;
 
         World world = Bukkit.getWorld(UUID.fromString(parts[0]));
-        if (world == null) return null;
+        if (world == null)
+            return null;
 
-        return new Location(world, Double.parseDouble(parts[1]), Double.parseDouble(parts[2]), Double.parseDouble(parts[3]));
+        return new Location(world, Double.parseDouble(parts[1]), Double.parseDouble(parts[2]),
+                Double.parseDouble(parts[3]));
     }
 
     public static void handleTrials() {
         // End existing trials
         if (!trials.isEmpty()) {
             ArrayList<Trial> trials = new ArrayList<>(TrialManager.trials);
-            for (Trial trial : trials) trial.endTrial();
+            for (Trial trial : trials)
+                trial.endTrial();
         }
 
-        if (protectedAreas.isEmpty()) return;
+        if (protectedAreas.isEmpty())
+            return;
 
         for (Map.Entry<UUID, ProtectedArea> protectedArea : protectedAreas.entrySet()) {
             String minLocation = protectedArea.getValue().boundingBox().getMinX() + ":"
-                    + protectedArea.getValue().boundingBox().getMinY() + ":" + protectedArea.getValue().boundingBox().getMinZ();
+                    + protectedArea.getValue().boundingBox().getMinY() + ":"
+                    + protectedArea.getValue().boundingBox().getMinZ();
             String maxLocation = protectedArea.getValue().boundingBox().getMaxX() + ":"
-                    + protectedArea.getValue().boundingBox().getMaxY() + ":" + protectedArea.getValue().boundingBox().getMaxZ();
+                    + protectedArea.getValue().boundingBox().getMaxY() + ":"
+                    + protectedArea.getValue().boundingBox().getMaxZ();
             trialDataConfig.set(protectedArea.getKey().toString() + ".ProtectedArea.Min", minLocation);
             trialDataConfig.set(protectedArea.getKey().toString() + ".ProtectedArea.Max", maxLocation);
             // Save world name instead of UUID for reliability
-            trialDataConfig.set(protectedArea.getKey().toString() + ".ProtectedArea.World", protectedArea.getValue().world().getName());
+            trialDataConfig.set(protectedArea.getKey().toString() + ".ProtectedArea.World",
+                    protectedArea.getValue().world().getName());
         }
 
         saveTrialBuildingData(false);
@@ -876,13 +1062,15 @@ public class TrialManager implements Listener {
         }
     }
 
-    public static Wave spawnWave(Wave wave, ArrayList<Location> spawningSpots, ArrayList<Player> players, int playerCount) {
+    public static Wave spawnWave(Wave wave, ArrayList<Location> spawningSpots, ArrayList<Player> players,
+            int playerCount) {
         if (spawningSpots == null || spawningSpots.isEmpty()) {
             SurvivalSkills.getInstance().getLogger().warning("No spawning spots provided for wave " + wave);
             return null;
         }
 
-        if (wave == null) return null;
+        if (wave == null)
+            return null;
         Wave waveObject = wave.duplicate();
         if (waveObject == null) {
             SurvivalSkills.getInstance().getLogger().warning("Wave " + wave + " does not exist");
@@ -899,7 +1087,8 @@ public class TrialManager implements Listener {
             return waveObject;
         }
 
-        if (playerCount > 1) waveObject.scaleMobs(playerCount);
+        if (playerCount > 1)
+            waveObject.scaleMobs(playerCount);
 
         for (WaveMob waveMob : waveObject.getWaveMobs()) {
             Location location = getRandomSpawningSpot(spawningSpots);
@@ -1039,15 +1228,19 @@ public class TrialManager implements Listener {
     }
 
     public static boolean isInTrial(Player p) {
-        if (trials.isEmpty()) return false;
-        for (Trial trial : trials) if (trial.getPlayers().contains(p)) return true;
+        if (trials.isEmpty())
+            return false;
+        for (Trial trial : trials)
+            if (trial.getPlayers().contains(p))
+                return true;
         return false;
     }
 
     public static ItemStack getTrialItem(Material mat, int amount) {
         ItemStack item = new ItemStack(mat, amount);
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return item;
+        if (meta == null)
+            return item;
         meta.getPersistentDataContainer().set(trialObjectKey, PersistentDataType.STRING, "trialitem");
         item.setItemMeta(meta);
         return item;

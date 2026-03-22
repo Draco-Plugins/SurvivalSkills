@@ -49,31 +49,99 @@ public class VillagerBoss extends Boss {
             Biome biome = loc.getBlock().getBiome();
             String biomeName = "DEFAULT";
             try {
-                biomeName = biome.getKeyOrThrow().getKey().toString();
+                biomeName = biome.toString();
             } catch (Exception e) {
                 e.printStackTrace();
                 Bukkit.getLogger().warning("Failed to get biome key for " + loc.getBlock().getBiome());
             }
 
             switch (biomeName) {
+                // Desert-like
                 case "DESERT":
+                case "DESERT_HILLS":
+                case "DESERT_LAKES":
                     villager.setVillagerType(Villager.Type.DESERT);
                     break;
+
+                // Jungle family
                 case "JUNGLE":
+                case "JUNGLE_HILLS":
+                case "JUNGLE_EDGE":
+                case "BAMBOO_JUNGLE":
+                case "BAMBOO_JUNGLE_HILLS":
                     villager.setVillagerType(Villager.Type.JUNGLE);
                     break;
+
+                // Savanna / Badlands / Mesa
                 case "SAVANNA":
+                case "SAVANNA_PLATEAU":
+                case "WINDSWEPT_SAVANNA":
+                case "MESA":
+                case "MESA_PLATEAU":
+                case "BADLANDS":
+                case "BADLANDS_PLATEAU":
+                case "ERODED_BADLANDS":
                     villager.setVillagerType(Villager.Type.SAVANNA);
                     break;
-                case "SNOWY":
+
+                // Snowy / icy
+                case "SNOWY_TUNDRA":
+                case "SNOWY_MOUNTAINS":
+                case "ICE_SPIKES":
+                case "SNOWY_BEACH":
+                case "FROZEN_RIVER":
+                case "FROZEN_OCEAN":
                     villager.setVillagerType(Villager.Type.SNOW);
                     break;
-                case "SWAMP":
-                    villager.setVillagerType(Villager.Type.SWAMP);
-                    break;
+
+                // Taiga family
                 case "TAIGA":
+                case "TAIGA_HILLS":
+                case "TAIGA_MOUNTAINS":
+                case "GIANT_TREE_TAIGA":
+                case "OLD_GROWTH_PINE_TAIGA":
+                case "OLD_GROWTH_SPRUCE_TAIGA":
+                case "SNOWY_TAIGA":
+                case "TAIGA_COLD":
                     villager.setVillagerType(Villager.Type.TAIGA);
                     break;
+
+                // Swamp / mangrove
+                case "SWAMP":
+                case "MANGROVE_SWAMP":
+                    villager.setVillagerType(Villager.Type.SWAMP);
+                    break;
+
+                // Plains / flower meadows / others that suit plains villagers
+                case "PLAINS":
+                case "SUNFLOWER_PLAINS":
+                case "MEADOW":
+                case "FLOWER_FOREST":
+                case "GROVE":
+                case "FOREST":
+                case "OLD_GROWTH_BIRCH_FOREST":
+                case "BIRCH_FOREST":
+                case "DARK_FOREST":
+                case "WOODED_HILLS":
+                case "WOODED_MOUNTAINS":
+                case "MUSHROOM_FIELDS":
+                case "MUSHROOM_FIELD_SHORE":
+                case "STONE_SHORE":
+                case "RIVER":
+                case "BEACH":
+                    villager.setVillagerType(Villager.Type.PLAINS);
+                    break;
+
+                // Fallback / rare or nether/end biomes map to plains as a safe default
+                case "THE_END":
+                case "END_MIDLANDS":
+                case "END_HIGHLANDS":
+                case "END_BARRENS":
+                case "NETHER_WASTES":
+                case "WARPED_FOREST":
+                case "CRIMSON_FOREST":
+                case "SOUL_SAND_VALLEY":
+                case "BASALT_DELTAS":
                 default:
                     villager.setVillagerType(Villager.Type.PLAINS);
                     break;

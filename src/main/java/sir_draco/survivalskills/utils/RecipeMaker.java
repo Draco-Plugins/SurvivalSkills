@@ -580,14 +580,14 @@ public class RecipeMaker {
                                 Material.SLIME_BLOCK);
 
                 createSmallShapedRecipe(wandererHelmetKey, ItemStackGenerator.getWandererHelmet(), "BAB:B B:DDD",
-                                ItemStackGenerator.getSpeedPotion(), null, null, null, Material.CHAIN, null);
+                                ItemStackGenerator.getSpeedPotion(), null, null, null, Material.IRON_CHAIN, null);
                 createSmallShapedRecipe(wandererChestplateKey, ItemStackGenerator.getWandererChestplate(),
                                 "B B:BAB:BBB",
-                                ItemStackGenerator.getSpeedPotion(), null, null, null, Material.CHAIN, null);
+                                ItemStackGenerator.getSpeedPotion(), null, null, null, Material.IRON_CHAIN, null);
                 createSmallShapedRecipe(wandererLeggingsKey, ItemStackGenerator.getWandererLeggings(), "BAB:B B:B B",
-                                ItemStackGenerator.getSpeedPotion(), null, null, null, Material.CHAIN, null);
+                                ItemStackGenerator.getSpeedPotion(), null, null, null, Material.IRON_CHAIN, null);
                 createSmallShapedRecipe(wandererBootsKey, ItemStackGenerator.getWandererBoots(), "DDD:B B:BAB",
-                                ItemStackGenerator.getSpeedPotion(), null, null, null, Material.CHAIN, null);
+                                ItemStackGenerator.getSpeedPotion(), null, null, null, Material.IRON_CHAIN, null);
 
                 createSmallShapedRecipe(travelerHelmetKey, ItemStackGenerator.getTravelerHelmet(), "BAB:B B:DDD",
                                 ItemStackGenerator.getWandererHelmet(), null, null, null, Material.DIAMOND, null);

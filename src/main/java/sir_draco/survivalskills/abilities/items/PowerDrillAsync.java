@@ -2,6 +2,7 @@ package sir_draco.survivalskills.abilities.items;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -90,7 +91,8 @@ public class PowerDrillAsync extends BukkitRunnable {
     }
 
     public void breakBlock(Block block, Player p, ItemStack tool) {
-        if (block.getLocation().getBlock().getType().isAir())
+        Material type = block.getType();
+        if (type.isAir() || type == Material.BEDROCK || type == Material.BARRIER || type == Material.STRUCTURE_VOID)
             return;
         BlockBreakEvent event = new BlockBreakEvent(block, p);
         Bukkit.getServer().getPluginManager().callEvent(event);

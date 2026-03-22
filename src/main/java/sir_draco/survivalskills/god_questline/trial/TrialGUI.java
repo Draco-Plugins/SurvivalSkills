@@ -38,7 +38,8 @@ public class TrialGUI {
             return; // Safety check
         pointsMeta.setDisplayName(ChatColor.GOLD + "Trial Points: " + playerUpgrades.getAvailablePoints());
         pointsMeta.setLore(List.of(ChatColor.GRAY + "Earn points by completing trials",
-                ChatColor.RED + "You may only upgrade once per trial!"));
+                ChatColor.GRAY + "the inventory closes if you can't afford anything else",
+                ChatColor.RED + "Your points reset every trial!"));
         pointsDisplay.setItemMeta(pointsMeta);
         inv.setItem(4, pointsDisplay);
 
@@ -68,8 +69,11 @@ public class TrialGUI {
         borderMeta.setDisplayName(" ");
         border.setItemMeta(borderMeta);
 
-        for (int i = 0; i < 9; i++)
+        for (int i = 0; i < 9; i++) {
+            if (i == 4)
+                continue;
             inv.setItem(i, border);
+        }
         for (int i = 45; i < 54; i++)
             inv.setItem(i, border);
         for (int i = 9; i < 45; i += 9) {

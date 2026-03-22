@@ -200,6 +200,11 @@ public class TrialUtils {
             if (completedTrials == null) return;
             if (completedTrials.isEmpty()) return;
             data.set(p.getUniqueId() + ".CompletedTrials", completedTrials);
+            try {
+                data.save(file);
+            } catch (Exception e) {
+                SurvivalSkills.getInstance().getLogger().warning("Failed to save completed trials for " + p.getName());
+            }
             return;
         }
 
@@ -213,6 +218,11 @@ public class TrialUtils {
                 if (completedTrials == null) return;
                 if (completedTrials.isEmpty()) return;
                 data.set(p.getUniqueId() + ".CompletedTrials", completedTrials);
+                try {
+                    data.save(file);
+                } catch (Exception e) {
+                    SurvivalSkills.getInstance().getLogger().warning("Failed to save completed trials for " + p.getName());
+                }
             }
         }.runTaskAsynchronously(SurvivalSkills.getInstance());
     }
