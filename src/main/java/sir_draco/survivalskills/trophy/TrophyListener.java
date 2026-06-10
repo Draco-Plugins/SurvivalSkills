@@ -1,6 +1,5 @@
 package sir_draco.survivalskills.trophy;
 
-import net.citizensnpcs.api.event.NPCRightClickEvent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -53,7 +52,6 @@ public class TrophyListener implements Listener {
         }
     }
 
-    @SuppressWarnings("deprecation")
     @EventHandler
     public void playerPlaceTrophy(PlayerInteractEvent e) {
         Player p = e.getPlayer();
@@ -243,39 +241,6 @@ public class TrophyListener implements Listener {
         if (e.getItem().getItemStack().getEnchantmentLevel(Enchantment.KNOCKBACK) != 5)
             return;
         e.setCancelled(true);
-    }
-
-    @EventHandler
-    public void clickGodNPC(NPCRightClickEvent e) {
-        Player p = e.getClicker();
-        if (!plugin.getTrophyManager().getGodNPCIDs().containsKey(p.getUniqueId())) {
-            p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": Are you expecting something?");
-            p.playSound(p, Sound.ENTITY_VILLAGER_YES, 1, 1);
-            return;
-        }
-
-        if (plugin.getTrophyManager().getGodNPCIDs().get(p.getUniqueId()) != e.getNPC().getId()) {
-            p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": You have your own god to talk to!");
-            p.playSound(p, Sound.ENTITY_VILLAGER_YES, 1, 1);
-            return;
-        }
-
-        // Check if the god quest is enabled
-        if (!plugin.getTrophyManager().isGodQuestEnabled()) {
-            p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": The God Quest is not enabled on this server");
-            p.playSound(p, Sound.ENTITY_VILLAGER_YES, 1, 1);
-            return;
-        }
-
-        GodTrophyQuest quest;
-        if (plugin.getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId()))
-            quest = plugin.getTrophyManager().getPlayerGodQuestData().get(p.getUniqueId());
-        else {
-            quest = new GodTrophyQuest(p.getUniqueId());
-            plugin.getTrophyManager().getPlayerGodQuestData().put(p.getUniqueId(), quest);
-        }
-
-        quest.handleNPCInteract(p);
     }
 
     @EventHandler

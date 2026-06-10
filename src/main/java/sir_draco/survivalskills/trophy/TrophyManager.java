@@ -1,17 +1,13 @@
 package sir_draco.survivalskills.trophy;
 
-import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.npc.MemoryNPCDataStore;
-import net.citizensnpcs.api.npc.NPCRegistry;
 import org.bukkit.*;
-import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.external.providers.CitizensRegistryProvider;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.utils.ColorParser;
 
@@ -19,10 +15,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class TrophyManager {
 
-    public final static NPCRegistry registry = CitizensAPI.createAnonymousNPCRegistry(new MemoryNPCDataStore());
     public final static String npcName = ColorParser.colorizeString("God Trophy",
             ColorParser.generateGradient("#FFFF00", "#FFFFFF", 10), true);
 
@@ -33,13 +29,19 @@ public class TrophyManager {
     private final HashMap<UUID, GodTrophyQuest> playerGodQuestData = new HashMap<>();
     private final HashMap<UUID, Integer> godNPCIDs = new HashMap<>();
 
-    private boolean godQuestEnabled;
+    public static CitizensRegistryProvider registry = null;
     private static int nextID = 1;
+
+    private boolean godQuestEnabled;
 
     public TrophyManager(SurvivalSkills plugin) {
         this.plugin = plugin;
+        if (plugin.isCitizensEnabled()) {
+            registry = new CitizensRegistryProvider();
+        }
+
         loadTrophies();
-        loadGodQuestStatus();
+        loadGodQuestStatus(plugin.isCitizensEnabled());
     }
 
     /**
@@ -93,9 +95,15 @@ public class TrophyManager {
         trophyTracker.put(uuid, trophyList);
     }
 
-    public void loadGodQuestStatus() {
+    public void loadGodQuestStatus(boolean isCitizensEnabled) {
         FileConfiguration config = plugin.getTrueConfig();
         godQuestEnabled = config.getBoolean("GodQuestEnabled");
+
+        if (isCitizensEnabled) return;
+        if (godQuestEnabled) {
+            Bukkit.getLogger().log(Level.WARNING, "God Questline is enabled but Citizens plugin is not installed. Disabling God Questline.");
+            godQuestEnabled = false;
+        }
     }
 
     public void saveTrophies() throws IOException {
@@ -246,7 +254,7 @@ public class TrophyManager {
         return num;
     }
 
-    public static NPCRegistry getRegistry() {
+    public static CitizensRegistryProvider getCitizensRegistryProvider() {
         return registry;
     }
 

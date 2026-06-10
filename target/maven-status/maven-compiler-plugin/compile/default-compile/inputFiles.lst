@@ -41,6 +41,7 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\skill_listeners\FightingSkill.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\abilities\armor\GillArmor.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\VeinminerCommand.java
+c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\external\listeners\CitizensTrophyListener.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial\PendingTrial.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial\Trial.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial\WaveGenerator.java
@@ -89,6 +90,7 @@ c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\surv
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\skill_commands\ToggleTrashCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\god_questline\trial_mobs\HellsGatekeeper.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\trophy\TrophyEffects.java
+c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\external\providers\CitizensRegistryProvider.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\commands\admin_commands\CaveFinderCommand.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\skills\Skill.java
 c:\Users\dylan\Desktop\Coding\VSCode\SurvivalSkills\src\main\java\sir_draco\survivalskills\utils\LocationUtils.java

@@ -4,5 +4,6 @@
     "java.configuration.updateBuildConfiguration": "automatic",
     "yaml.schemas": {
         "https://www.schemastore.org/bukkit-plugin.json": "file:///c%3A/Users/dylan/Desktop/Coding/VSCode/SurvivalSkills/src/main/resources/plugin.yml"
-    }
+    },
+    "rust-analyzer.workspace.discoverConfig": null
 }

@@ -16,6 +16,7 @@ import sir_draco.survivalskills.boards.Leaderboard;
 import sir_draco.survivalskills.boards.LeaderboardPlayer;
 import sir_draco.survivalskills.boards.SkillScoreboard;
 import sir_draco.survivalskills.commands.skill_commands.*;
+import sir_draco.survivalskills.external.listeners.CitizensTrophyListener;
 import sir_draco.survivalskills.god_questline.*;
 import sir_draco.survivalskills.god_questline.trial.Trial;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
@@ -92,6 +93,9 @@ public final class SurvivalSkills extends JavaPlugin {
             }
         }
 
+        // Check for plugin dependencies
+        FileUtils.checkPluginDependencies(world);
+
         FileUtils.loadFiles();
 
         // Load plugin features
@@ -115,9 +119,6 @@ public final class SurvivalSkills extends JavaPlugin {
 
         // If the plugin is reloaded without a restart
         Utils.loadOnlinePlayers(this);
-
-        // Check for plugin dependencies
-        FileUtils.checkPluginDependencies(world);
     }
 
     @Override
@@ -197,6 +198,10 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(godListener, this);
         getServer().getPluginManager().registerEvents(new TrialManager(), this);
         getServer().getPluginManager().registerEvents(new TrialUpgradeManager(), this);
+        
+        if (citizensEnabled) {
+            getServer().getPluginManager().registerEvents(new CitizensTrophyListener(this), this);
+        }
     }
 
     /**

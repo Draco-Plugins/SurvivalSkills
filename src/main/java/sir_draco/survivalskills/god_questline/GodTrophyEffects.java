@@ -265,8 +265,9 @@ public class GodTrophyEffects {
     }
 
     public void spawnPlayer(String name, UUID playerUUID) {
+        if (TrophyManager.getCitizensRegistryProvider() == null) return;
         if (npcID != -1) {
-            npcPlayer = TrophyManager.getRegistry().getById(npcID);
+            npcPlayer = TrophyManager.getCitizensRegistryProvider().getRegistry().getById(npcID);
             if (npcPlayer == null)
                 return;
             // Update the text
@@ -278,7 +279,7 @@ public class GodTrophyEffects {
         }
 
         UUID uuid = UUID.randomUUID();
-        npcPlayer = TrophyManager.getRegistry().createNPC(EntityType.PLAYER, uuid, TrophyManager.getNextID(),
+        npcPlayer = TrophyManager.getCitizensRegistryProvider().getRegistry().createNPC(EntityType.PLAYER, uuid, TrophyManager.getNextID(),
                 TrophyManager.npcName);
         if (npcPlayer == null)
             return;
@@ -354,26 +355,23 @@ public class GodTrophyEffects {
     }
 
     public void removePlayer() {
-        if (npcPlayer == null)
-            return;
+        if (npcPlayer == null) return;
         npcPlayer.despawn();
         npcPlayer = null;
     }
 
     public void destroyPlayer() {
-        if (npcPlayer == null)
-            return;
+        if (npcPlayer == null) return;
         npcPlayer.despawn();
         npcPlayer.destroy();
-        TrophyManager.getRegistry().deregister(npcPlayer);
+        TrophyManager.getCitizensRegistryProvider().getRegistry().deregister(npcPlayer);
         npcPlayer = null;
     }
 
     public void spawnCrystal(double x, double y, double z) {
         // Interpret x,y,z as offsets from base trophy block for clarity / consistency
         var w = world();
-        if (w == null)
-            return;
+        if (w == null) return;
         // Proactively clean any orphaned/duplicate crystals (e.g. from prior plugin
         // reloads) – use full cleanup radius so orbit crystals are also removed
         cleanupNearbyTrophyCrystals(CRYSTAL_CLEANUP_RADIUS);
@@ -388,9 +386,7 @@ public class GodTrophyEffects {
 
     public void removeCrystal() {
         if (crystal != null) {
-            if (!crystal.isDead()) {
-                crystal.remove();
-            }
+            if (!crystal.isDead()) crystal.remove();
             crystal = null;
         }
         // Also clear any stragglers that may have lost reference (e.g. after reload)

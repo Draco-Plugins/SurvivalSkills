@@ -1,7 +1,7 @@
 name: SurvivalSkills
 version: "${project.version}"
 main: sir_draco.survivalskills.SurvivalSkills
-api-version: "1.21"
+api-version: "26.1.2"
 authors: [Sir Draco]
 load: POSTWORLD
 softdepend: [Citizens, GriefPrevention, WorldGuard]
