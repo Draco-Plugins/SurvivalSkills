@@ -1,10 +1,5 @@
 package sir_draco.survivalskills.utils;
 
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.protection.managers.RegionManager;
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-import com.sk89q.worldguard.protection.regions.RegionContainer;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -97,39 +92,18 @@ public class FileUtils {
         SurvivalSkills.getInstance().setToolBeltData(toolBeltData);
     }
 
-    public static void checkPluginDependencies(World world) {
+    public static void checkPluginDependencies() {
         Plugin griefPrevention = Bukkit.getServer().getPluginManager().getPlugin("GriefPrevention");
         if (griefPrevention != null && griefPrevention.isEnabled())
             SurvivalSkills.getInstance().setGriefPreventionEnabled(true);
 
-        checkWorldGuard(world);
+        Plugin worldGuard = Bukkit.getServer().getPluginManager().getPlugin("WorldGuard");
+        if (worldGuard != null && worldGuard.isEnabled())
+            SurvivalSkills.getInstance().setWorldGuardEnabled(true);
 
         Plugin citizens = Bukkit.getServer().getPluginManager().getPlugin("Citizens");
         if (citizens != null && citizens.isEnabled())
             SurvivalSkills.getInstance().setCitizensEnabled(true);
-    }
-
-    public static void checkWorldGuard(World world) {
-        Plugin worldGuard = Bukkit.getServer().getPluginManager().getPlugin("WorldGuard");
-        if (worldGuard == null || !worldGuard.isEnabled()) return;
-
-        SurvivalSkills.getInstance().setWorldGuardEnabled(true);
-        RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
-        SurvivalSkills.getInstance().setContainer(container);
-        if (world == null) {
-            Bukkit.getLogger().warning("Could not find world for worldguard");
-        } else {
-            RegionManager regions = container.get(BukkitAdapter.adapt(world));
-            if (regions == null) {
-                Bukkit.getLogger().warning("Could not find region manager for worldguard");
-            } else {
-                ProtectedRegion spawnRegion = regions.getRegion("spawn");
-                if (spawnRegion == null) {
-                    Bukkit.getLogger().warning("Could not find spawn region in worldguard. Please create a region called 'spawn'.");
-                }
-                SurvivalSkills.getInstance().setRegion(spawnRegion);
-            }
-        }
     }
 
     public static void updateConfig(FileConfiguration config) {
@@ -828,5 +802,13 @@ public class FileUtils {
             Bukkit.getLogger().log(Level.SEVERE,
                     "[SurvivalSkills] Failed to save teleport anchors file", e);
         }
+    }
+
+    public static String loadSpawnRegionName() {
+        FileConfiguration config = SurvivalSkills.getInstance().getTrueConfig();
+
+        String spawnName = config.getString("WorldGuardSpawnRegion");
+        if (spawnName == null) return "spawn";
+        return spawnName;
     }
 }

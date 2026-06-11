@@ -1,7 +1,5 @@
 package sir_draco.survivalskills;
 
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-import com.sk89q.worldguard.protection.regions.RegionContainer;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -17,6 +15,7 @@ import sir_draco.survivalskills.boards.LeaderboardPlayer;
 import sir_draco.survivalskills.boards.SkillScoreboard;
 import sir_draco.survivalskills.commands.skill_commands.*;
 import sir_draco.survivalskills.external.listeners.CitizensTrophyListener;
+import sir_draco.survivalskills.external.providers.WorldGuardProvider;
 import sir_draco.survivalskills.god_questline.*;
 import sir_draco.survivalskills.god_questline.trial.Trial;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
@@ -78,15 +77,14 @@ public final class SurvivalSkills extends JavaPlugin {
     private boolean worldGuardEnabled = false;
     private boolean citizensEnabled = false;
     private boolean exponentialXP = false;
-    private RegionContainer container = null;
-    private ProtectedRegion region = null;
+    private WorldGuardProvider worldGuardProvider = null;
 
     @Override
     public void onEnable() {
         instance = this;
 
-        // Make sure there are no stragglers from before
-        World world = Bukkit.getWorld("world");
+        // Make sure there are no trophy item stragglers from before 
+        World world = Bukkit.getWorld(Bukkit.getWorlds().get(0).getName());
         if (world != null) {
             for (Entity ent : world.getEntities()) {
                 Utils.tryRemovingTrophyItem(ent);
@@ -94,7 +92,7 @@ public final class SurvivalSkills extends JavaPlugin {
         }
 
         // Check for plugin dependencies
-        FileUtils.checkPluginDependencies(world);
+        FileUtils.checkPluginDependencies();
 
         FileUtils.loadFiles();
 
@@ -416,14 +414,6 @@ public final class SurvivalSkills extends JavaPlugin {
         this.worldGuardEnabled = worldGuardEnabled;
     }
 
-    public void setContainer(RegionContainer container) {
-        this.container = container;
-    }
-
-    public void setRegion(ProtectedRegion region) {
-        this.region = region;
-    }
-
     public void setFlightCommand(FlightCommand flightCommand) {
         this.flightCommand = flightCommand;
     }
@@ -464,6 +454,10 @@ public final class SurvivalSkills extends JavaPlugin {
         return godListener;
     }
 
+    public WorldGuardProvider getWorldGuardProvider() {
+        return worldGuardProvider;
+    }
+
     public void setSkillManager(SkillManager skillManager) {
         this.skillManager = skillManager;
     }
@@ -482,14 +476,6 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public void setExponentialXP(boolean exponentialXP) {
         this.exponentialXP = exponentialXP;
-    }
-
-    public ProtectedRegion getRegion() {
-        return region;
-    }
-
-    public RegionContainer getContainer() {
-        return container;
     }
 
     public void setConfig(FileConfiguration config) {

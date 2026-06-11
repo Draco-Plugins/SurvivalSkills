@@ -21,6 +21,8 @@ ExponentialXP: true
 VeinMinerHungerAmount: 2
 # Number of seconds before a grave is removed
 GraveLifespan: 3600
+# The name of the protected spawn region area if using WorldGuard
+WorldGuardSpawnRegion: "spawn"
 # ------
 
 # God Trophy

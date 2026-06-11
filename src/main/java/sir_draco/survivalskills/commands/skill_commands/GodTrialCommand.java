@@ -1,6 +1,5 @@
 package sir_draco.survivalskills.commands.skill_commands;
 
-import com.sk89q.worldedit.math.BlockVector3;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -327,8 +326,8 @@ public class GodTrialCommand implements CommandExecutor {
 
         // Check if a player is in spawn
         Location pLocation = p.getLocation();
-        if (SurvivalSkills.getInstance().getRegion() != null &&
-                SurvivalSkills.getInstance().getRegion().contains(BlockVector3.at(pLocation.getX(), pLocation.getY(), pLocation.getZ()))) {
+        if (SurvivalSkills.getInstance().getWorldGuardProvider() != null &&
+                SurvivalSkills.getInstance().getWorldGuardProvider().locationInRegion(pLocation.getX(), pLocation.getY(), pLocation.getZ())) {
             p.sendMessage(ChatColor.RED + "You cannot start a trial in spawn");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
@@ -341,7 +340,7 @@ public class GodTrialCommand implements CommandExecutor {
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
-        }
+        } 
 
         // Check if the player's inventory is empty
         if (checkInventory(p)) return true;

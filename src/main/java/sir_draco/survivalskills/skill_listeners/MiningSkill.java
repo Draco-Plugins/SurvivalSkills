@@ -138,9 +138,8 @@ public class MiningSkill implements Listener {
             return;
         // Check if they are in spawn
         if (plugin.isWorldGuardEnabled()) {
-            boolean canPlace = Utils.canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
-            if (!canPlace)
-                return;
+            boolean canPlace = SurvivalSkills.getInstance().getWorldGuardProvider().canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
+            if (!canPlace) return;
         }
 
         // Place torch if possible

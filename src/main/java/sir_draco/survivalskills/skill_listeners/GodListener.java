@@ -211,9 +211,8 @@ public class GodListener implements Listener {
                 return;
             // Check if they are in spawn
             if (SurvivalSkills.getInstance().isWorldGuardEnabled()) {
-                boolean canPlace = Utils.canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
-                if (!canPlace)
-                    return;
+                boolean canPlace = SurvivalSkills.getInstance().getWorldGuardProvider().canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
+                if (!canPlace) return;
             }
 
             // Place sponge if possible
@@ -245,9 +244,8 @@ public class GodListener implements Listener {
                 return;
             // Check if they are in spawn
             if (SurvivalSkills.getInstance().isWorldGuardEnabled()) {
-                boolean canPlace = Utils.canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
-                if (!canPlace)
-                    return;
+                boolean canPlace = SurvivalSkills.getInstance().getWorldGuardProvider().canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
+                if (!canPlace) return;
             }
 
             // Place sponge if possible
@@ -517,7 +515,7 @@ public class GodListener implements Listener {
 
             // Check if they are in spawn
             if (SurvivalSkills.getInstance().isWorldGuardEnabled()) {
-                boolean canPlace = Utils.canPlaceBlockInRegion(p, e.getBlock().getLocation());
+                boolean canPlace = SurvivalSkills.getInstance().getWorldGuardProvider().canPlaceBlockInRegion(p, e.getBlock().getLocation());
                 if (!canPlace && !p.hasPermission("survivalskills.op")) {
                     p.sendMessage(ChatColor.RED + "You cannot place teleport anchors in this region!");
                     e.setCancelled(true);

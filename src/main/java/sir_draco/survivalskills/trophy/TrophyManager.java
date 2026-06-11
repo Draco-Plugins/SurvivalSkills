@@ -101,7 +101,7 @@ public class TrophyManager {
 
         if (isCitizensEnabled) return;
         if (godQuestEnabled) {
-            Bukkit.getLogger().log(Level.WARNING, "God Questline is enabled but Citizens plugin is not installed. Disabling God Questline.");
+            Bukkit.getLogger().log(Level.WARNING, "[Survival Skills] God Questline is enabled but Citizens plugin is not installed. Disabling God Questline.");
             godQuestEnabled = false;
         }
     }
