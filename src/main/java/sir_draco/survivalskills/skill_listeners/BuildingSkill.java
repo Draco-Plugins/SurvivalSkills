@@ -75,6 +75,19 @@ public class BuildingSkill implements Listener {
             else
                 return;
 
+            // Prioritize returning items to the off hand
+            if (e.getHand().equals(EquipmentSlot.OFF_HAND)) {
+                ItemStack offHand = p.getInventory().getItemInOffHand();
+                if (offHand == null) {
+                    p.getInventory().setItemInOffHand(item);
+                    return;
+                }
+                if (offHand.getType().equals(item.getType())) {
+                    p.getInventory().setItemInOffHand(offHand);
+                    return;
+                }
+            }
+
             // Give the player the item
             p.getInventory().addItem(item);
         }
