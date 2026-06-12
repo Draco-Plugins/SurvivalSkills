@@ -9,18 +9,17 @@
 
 ### Naming Conventions
 
-- Follow Google's Java style guide:
-    - `UpperCamelCase` for class and interface names.
-    - `lowerCamelCase` for method and variable names.
-    - `UPPER_SNAKE_CASE` for constants.
-    - `lowercase` for package names.
+- `UpperCamelCase` for class and interface names.
+- `lowerCamelCase` for method and variable names.
+- `UPPER_SNAKE_CASE` for constants.
+- `lowercase` for package names.
 - Use nouns for classes (`UserService`) and verbs for methods (`getUserById`).
 - Avoid abbreviations and Hungarian notation.
 
 ### Logging
 
 - Logs should only be used when things go wrong. Success paths should not have log messages
-- For all Minecraft plugin development use the format `Bukkit.getLogger().log(Level.<LEVEL>, "[PluginName] <message>", <exception>)`.
+- For all Minecraft plugin development use the format `Bukkit.getLogger().log(Level.<LEVEL>, "[SurvivalSkills] <message>", <exception>)`.
 - Use appropriate log levels (`INFO`, `WARNING`, `SEVERE`, etc.) and avoid logging sensitive information.
 - If messages contain variables use String.format() for better readability and performance.
 
