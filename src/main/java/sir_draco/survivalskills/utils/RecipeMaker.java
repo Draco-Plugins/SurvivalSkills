@@ -192,7 +192,7 @@ public class RecipeMaker {
                 forestRecipe.addIngredient(Material.MANGROVE_LOG);
                 forestRecipe.addIngredient(Material.DARK_OAK_LOG);
                 forestRecipe.addIngredient(Material.JUNGLE_LOG);
-                forestRecipe.addIngredient(Material.MUSHROOM_STEW);
+                forestRecipe.addIngredient(Material.PALE_OAK_LOG);
                 addShapelessRecipe(forestRecipe, forestKey);
 
                 // Farming Trophy
