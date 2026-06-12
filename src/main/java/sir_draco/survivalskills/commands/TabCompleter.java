@@ -105,7 +105,6 @@ public class TabCompleter implements Listener {
         words.add("mininghelmet");
         words.add("miningleggings");
         words.add("potionbag");
-        words.add("sortofstonepick");
         words.add("sortwand");
         words.add("timeartifact");
         words.add("travelerarmor");

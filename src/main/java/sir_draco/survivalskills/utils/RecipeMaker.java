@@ -529,7 +529,6 @@ public class RecipeMaker {
                 NamespacedKey giantBoss = createKey("giantboss", plugin);
                 NamespacedKey broodMotherBoss = createKey("broodmotherboss", plugin);
                 NamespacedKey villagerboss = createKey("villagerboss", plugin);
-                NamespacedKey sortOfStonePick = createKey("sortofstonepick", plugin);
                 NamespacedKey gapple = createKey("gapple", plugin);
                 NamespacedKey fireworkcannon = createKey("fireworkcannon", plugin);
                 NamespacedKey sortwand = createKey("sortwand", plugin);
@@ -545,8 +544,6 @@ public class RecipeMaker {
 
                 createSmallShapedRecipe(torchKey, ItemStackGenerator.getUnlimitedTorch(), "ABA:BCB:ABA",
                                 null, null, null, Material.LAVA_BUCKET, Material.COAL_BLOCK, Material.TORCH);
-                createSmallShapedRecipe(sortOfStonePick, ItemStackGenerator.getSortOfStonePick(), "AAA: B : B ",
-                                null, null, null, Material.COBBLED_DEEPSLATE, Material.STICK, null);
                 createSmallShapedRecipe(bronzeKey, ItemStackGenerator.getBronzeIngot(), "AAA:ABA:AAA",
                                 null, null, null, Material.COPPER_BLOCK, Material.GOLD_BLOCK, null);
                 createSmallShapedRecipe(zapWandKey, ItemStackGenerator.getZapWand(), "DDD:AAA:DDD",

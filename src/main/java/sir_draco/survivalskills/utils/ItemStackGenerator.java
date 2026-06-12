@@ -1313,16 +1313,7 @@ public class ItemStackGenerator {
         potion.setItemMeta(meta);
         return potion;
     }
-
-    public static ItemStack getSortOfStonePick() {
-        String name = ChatColor.GRAY.toString() + ChatColor.BOLD + "Sort Of Stone Pickaxe";
-        String lore = ChatColor.GRAY + "Sure";
-        HashMap<Enchantment, Integer> enchants = new HashMap<>();
-        enchants.put(Enchantment.EFFICIENCY, 2);
-        enchants.put(Enchantment.UNBREAKING, 5);
-        return createCustomItem(Material.STONE_PICKAXE, 1, name, null, lore, null, 0, false, enchants);
-    }
-
+    
     public static ItemStack getUnlimitedTropicalFishBucket() {
         String name = ColorParser.colorizeString("Unlimited Tropical Fish Bucket",
                 ColorParser.generateGradient("#084CFB", "#ADF3FD", "Unlimited Tropical Fish Bucket"), true);
