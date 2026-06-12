@@ -30,7 +30,7 @@ public class SkillsMultiplierCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (strings.length < 2) {
             if (sender instanceof Player p) {
-                p.sendRawMessage(ChatColor.RED + "Usage: /skillsmultiplier <player/all> <multiplier>");
+                p.sendRawMessage(ChatColor.RED + "Usage: /skillsmultiplier <player/all> <multiplier> [seconds]");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             }
             return false;
@@ -66,9 +66,9 @@ public class SkillsMultiplierCommand implements CommandExecutor {
             }
         }
         else {
-            if (strings.length < 3) {
+            if (strings.length < 2) {
                 if (sender instanceof Player p) {
-                    p.sendRawMessage(ChatColor.RED + "Usage: /skillsmultiplier player <player> <multiplier> [time]");
+                    p.sendRawMessage(ChatColor.RED + "Usage: /skillsmultiplier " + strings[0] + " <multiplier> [seconds]");
                     p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 }
                 return false;
@@ -77,7 +77,7 @@ public class SkillsMultiplierCommand implements CommandExecutor {
             // Find the player
             Player p = null;
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (!player.getName().equalsIgnoreCase(strings[1])) continue;
+                if (!player.getName().equalsIgnoreCase(strings[0])) continue;
                 p = player;
                 break;
             }
@@ -92,7 +92,7 @@ public class SkillsMultiplierCommand implements CommandExecutor {
 
             double multiplier;
             try {
-                multiplier = Double.parseDouble(strings[2]);
+                multiplier = Double.parseDouble(strings[1]);
             }
             catch (NumberFormatException e) {
                 if (sender instanceof Player player) {
@@ -110,9 +110,9 @@ public class SkillsMultiplierCommand implements CommandExecutor {
             }
 
             int activeTime = 3600;
-            if (strings.length >= 4) {
+            if (strings.length >= 3) {
                 try {
-                    activeTime = Integer.parseInt(strings[3]);
+                    activeTime = Integer.parseInt(strings[2]);
                 }
                 catch (NumberFormatException e) {
                     if (sender instanceof Player player) {

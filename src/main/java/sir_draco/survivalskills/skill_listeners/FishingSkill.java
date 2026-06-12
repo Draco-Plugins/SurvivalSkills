@@ -24,7 +24,6 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.NamespacedKey;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
@@ -107,8 +106,7 @@ public class FishingSkill implements Listener {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (!hook.getLocation().getBlock().getType().equals(Material.WATER))
-                            return;
+                        if (!hook.getLocation().getBlock().getType().equals(Material.WATER)) return;
                         if (!rainFishers.containsKey(p) || rainFishers.get(p) != pID) {
                             hook.remove();
                             return;
@@ -131,7 +129,7 @@ public class FishingSkill implements Listener {
                                 world.dropItem(loc, item).setVelocity(velocity);
 
                         handleFishingExperience(p);
-                        handleDurability(rod);
+                        handleDurability(p, rod);
                         SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), "Fishing");
                         hook.remove();
                         rainFishers.remove(p);
@@ -145,15 +143,14 @@ public class FishingSkill implements Listener {
             return;
         }
 
-        if (e.getState() != PlayerFishEvent.State.CAUGHT_FISH)
-            return;
-        if (e.getCaught() == null)
-            return;
+        if (e.getState() != PlayerFishEvent.State.CAUGHT_FISH) return;
+        if (e.getCaught() == null) return;
         // Get the list of items to drop
         Player p = e.getPlayer();
 
         // Check if the player is above fighting level 50 and try to spawn fishing boss
         if (plugin.getSkillManager().getPlayerRewards(p).getReward("Fighting", "FishingKing").isApplied()) {
+            // TODO: Extract to a function and allow the boss to be spawned regardless of whether the fishing trophy has been made or not
             double chance = Math.random();
 
             if (!plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId()).get("FishingTrophy")) {
@@ -725,21 +722,25 @@ public class FishingSkill implements Listener {
             p.getWorld().spawn(p.getLocation(), ExperienceOrb.class).setExperience(xp * xpMultiplier);
     }
 
-    public void handleDurability(ItemStack fishingRod) {
-        if (fishingRod == null)
-            return;
+    public void handleDurability(Player p, ItemStack fishingRod) {
+        if (fishingRod == null) return;
         if (fishingRod.getType().equals(Material.FISHING_ROD)) {
             Damageable meta = (Damageable) fishingRod.getItemMeta();
-            if (meta == null)
-                return;
+            if (meta == null) return;
 
             if (fishingRod.containsEnchantment(Enchantment.UNBREAKING)) {
                 double chance = Math.random() * 100;
                 int level = fishingRod.getEnchantmentLevel(Enchantment.UNBREAKING);
                 if (chance <= (100f / (level + 1)))
                     meta.setDamage(meta.getDamage() + 1);
-            } else
-                meta.setDamage(meta.getDamage() + 1);
+            } 
+            // Check if the rod should break completely
+            else if (fishingRod.getType().getMaxDurability() <= meta.getDamage()) {
+                p.playEffect(EntityEffect.BREAK_EQUIPMENT_MAIN_HAND);
+                fishingRod.setAmount(0);
+                return;
+            }
+            else meta.setDamage(meta.getDamage() + 1);
             fishingRod.setItemMeta(meta);
         }
     }
