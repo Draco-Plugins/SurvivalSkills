@@ -111,7 +111,7 @@ public class SkillManager {
                 return;
             }
 
-            rewards.handleReward(plugin, p, skill, skillName, true);
+            rewards.handleReward(p, skill, skillName, true);
             if (plugin.getLeaderboardTracker().containsKey(p.getUniqueId())) {
                 LeaderboardPlayer player = plugin.getLeaderboardTracker().get(p.getUniqueId());
                 setScore(player, p, plugin, skill.getSkillName());
@@ -397,7 +397,7 @@ public class SkillManager {
         main.levelUpNotification(p);
         PlayerRewards rewards = getPlayerRewards(p);
         if (rewards != null)
-            rewards.handleReward(plugin, p, main, "Main", true);
+            rewards.handleReward(p, main, "Main", true);
 
         if (main.getLevel() == 100) {
             // TODO: Convert to method

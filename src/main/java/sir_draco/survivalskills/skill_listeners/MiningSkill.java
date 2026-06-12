@@ -117,10 +117,8 @@ public class MiningSkill implements Listener {
             return;
         }
 
-        if (e.getHand() == null)
-            return;
-        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
-            return;
+        if (e.getHand() == null) return;
+        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
 
         if (e.getHand().equals(EquipmentSlot.OFF_HAND)
                 && !ItemStackGenerator.isCustomItem(p.getInventory().getItemInOffHand(), 1))
@@ -130,12 +128,10 @@ public class MiningSkill implements Listener {
             return;
         e.setCancelled(true);
 
-        if (e.getClickedBlock() == null)
-            return;
+        if (e.getClickedBlock() == null) return;
 
         // Check if it is in a claim
-        if (plugin.isGriefPreventionEnabled() && Utils.checkForClaim(p, e.getClickedBlock().getLocation()))
-            return;
+        if (plugin.isGriefPreventionEnabled() && Utils.checkForClaim(p, e.getClickedBlock().getLocation())) return;
         // Check if they are in spawn
         if (plugin.isWorldGuardEnabled()) {
             boolean canPlace = SurvivalSkills.getInstance().getWorldGuardProvider().canPlaceBlockInRegion(p, e.getClickedBlock().getLocation());
@@ -144,8 +140,7 @@ public class MiningSkill implements Listener {
 
         // Place torch if possible
         Block desiredBlock = e.getClickedBlock().getRelative(e.getBlockFace());
-        if (!desiredBlock.isEmpty() && !desiredBlock.getType().isAir())
-            return;
+        if (!desiredBlock.isEmpty() && !desiredBlock.getType().isAir()) return;
         if (e.getBlockFace().equals(BlockFace.UP) || e.getBlockFace().equals(BlockFace.DOWN)) {
             desiredBlock.setType(Material.TORCH);
             desiredBlock.getState().setType(Material.TORCH);
