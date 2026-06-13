@@ -182,6 +182,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
             case "giantbossitem" -> ItemStackGenerator.getGiantBossItem();
             case "broodmotherbossitem" -> ItemStackGenerator.getBroodMotherBossItem();
             case "villagerbossitem" -> ItemStackGenerator.getVillagerBossItem();
+            case "fishingbossitem" -> ItemStackGenerator.getFishingBossItem();
             case "powersword" -> ItemStackGenerator.getPowerSword();
             case "powerdrill" -> ItemStackGenerator.getPowerDrill();
             case "powerlaser" -> ItemStackGenerator.getPowerLaser();

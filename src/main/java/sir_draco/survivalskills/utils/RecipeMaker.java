@@ -234,19 +234,18 @@ public class RecipeMaker {
                 String lore5 = ChatColor.AQUA + "~Fish swim towards your hook out of respect~";
                 ItemStack fishingTrophy = ItemStackGenerator.getTrophyItem(Material.FISHING_ROD, name5, lore5);
                 trophyItems.put(5, fishingTrophy);
-                ShapedRecipe fishingRecipe = new ShapedRecipe(fishingKey, fishingTrophy);
-                fishingRecipe.shape("ABC", "DEF", "GHI");
-                fishingRecipe.setIngredient('A', Material.INK_SAC);
-                fishingRecipe.setIngredient('B', Material.COD);
-                fishingRecipe.setIngredient('C', Material.NAUTILUS_SHELL);
-                fishingRecipe.setIngredient('D', Material.PUFFERFISH);
-                fishingRecipe.setIngredient('E', Material.FISHING_ROD);
-                fishingRecipe.setIngredient('F', Material.SALMON);
-                fishingRecipe.setIngredient('G', Material.TROPICAL_FISH);
-                fishingRecipe.setIngredient('H', Material.LILY_PAD);
+                ShapelessRecipe fishingRecipe = new ShapelessRecipe(fishingKey, fishingTrophy);
+                fishingRecipe.addIngredient(Material.INK_SAC);
+                fishingRecipe.addIngredient(Material.COD);
+                fishingRecipe.addIngredient(Material.NAUTILUS_SHELL);
+                fishingRecipe.addIngredient(Material.PUFFERFISH);
+                fishingRecipe.addIngredient(Material.FISHING_ROD);
+                fishingRecipe.addIngredient(Material.SALMON);
+                fishingRecipe.addIngredient(Material.TROPICAL_FISH);
+                fishingRecipe.addIngredient(Material.LILY_PAD);
                 // Fishing Boss
-                fishingRecipe.setIngredient('I', new RecipeChoice.ExactChoice(ItemStackGenerator.getFishingBossItem()));
-                addShapedRecipe(fishingRecipe, fishingKey);
+                fishingRecipe.addIngredient(new RecipeChoice.ExactChoice(ItemStackGenerator.getFishingBossItem()));
+                addShapelessRecipe(fishingRecipe, fishingKey);
 
                 // Color Recipe
                 Map<Enchantment, Integer> enchants = new HashMap<>();
@@ -256,82 +255,79 @@ public class RecipeMaker {
                 String lore6 = ChatColor.DARK_GRAY + "~You merely adopted the dark, I was born in it~";
                 ItemStack blackFragment = ItemStackGenerator.createCustomItem(Material.BLACK_WOOL, 1, name6,
                                 ChatColor.DARK_GRAY, lore6, null, 15, true, enchants);
-                ShapedRecipe blackRecipe = new ShapedRecipe(blackKey, blackFragment);
-                blackRecipe.shape("ABC", "DEF", "G  ");
-                blackRecipe.setIngredient('A',
+                ShapelessRecipe blackRecipe = new ShapelessRecipe(blackKey, blackFragment);
+                blackRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(
                                                 Material.LIGHT_GRAY_WOOL, 1, "Bundle Of Dense Light Gray Wool",
                                                 ChatColor.GRAY, "The sheep are naked", null, 15, true, enchants)));
-                blackRecipe.setIngredient('B',
+                blackRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.GRAY_WOOL, 1,
                                                 "Bundle Of Dense Gray Wool", ChatColor.DARK_GRAY, "The sheep are naked",
                                                 null, 15, true, enchants)));
-                blackRecipe.setIngredient('C',
+                blackRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.BLACK_WOOL, 1,
                                                 "Bundle Of Dense Black Wool", ChatColor.BLACK, "The sheep are naked",
                                                 null, 15, true, enchants)));
-                blackRecipe.setIngredient('D',
+                blackRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.BROWN_WOOL, 1,
                                                 "Bundle Of Dense Brown Wool", ChatColor.getByChar("#6E2C00"),
                                                 "The sheep are naked", null, 15, true, enchants)));
-                blackRecipe.setIngredient('E',
+                blackRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.RED_WOOL, 1,
                                                 "Bundle Of Dense Red Wool", ChatColor.RED, "The sheep are naked", null,
                                                 15, true, enchants)));
-                blackRecipe.setIngredient('F',
+                blackRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.ORANGE_WOOL,
                                                 1, "Bundle Of Dense Orange Wool", ChatColor.getByChar("#FF8C00"),
                                                 "The sheep are naked", null, 15, true, enchants)));
-                blackRecipe.setIngredient('G',
+                blackRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.YELLOW_WOOL,
                                                 1, "Bundle Of Dense Yellow Wool", ChatColor.YELLOW,
                                                 "The sheep are naked", null, 15, true, enchants)));
-                addShapedRecipe(blackRecipe, blackKey);
+                addShapelessRecipe(blackRecipe, blackKey);
 
                 // White
                 String name7 = ChatColor.WHITE + ChatColor.BOLD.toString() + "White Fragment";
                 String lore7 = ChatColor.WHITE + "~All colors become one~";
                 ItemStack whiteFragment = ItemStackGenerator.createCustomItem(Material.WHITE_WOOL, 1, name7,
                                 ChatColor.WHITE, lore7, null, 15, true, enchants);
-                ShapedRecipe whiteRecipe = new ShapedRecipe(whiteKey, whiteFragment);
-                whiteRecipe.shape("ABC", "DEF", "GHI");
-                whiteRecipe.setIngredient('A',
+                ShapelessRecipe whiteRecipe = new ShapelessRecipe(whiteKey, whiteFragment);
+                whiteRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.PINK_WOOL, 1,
                                                 "Bundle Of Dense Pink Wool", ChatColor.getByChar("#FF00A2"),
                                                 "The sheep are naked", null, 15, true, enchants)));
-                whiteRecipe.setIngredient('B',
+                whiteRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.MAGENTA_WOOL,
                                                 1, "Bundle Of Dense Magenta Wool", ChatColor.LIGHT_PURPLE,
                                                 "The sheep are naked", null, 15, true, enchants)));
-                whiteRecipe.setIngredient('C',
+                whiteRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.PURPLE_WOOL,
                                                 1, "Bundle Of Dense Purple Wool", ChatColor.DARK_PURPLE,
                                                 "The sheep are naked", null, 15, true, enchants)));
-                whiteRecipe.setIngredient('D',
+                whiteRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.BLUE_WOOL, 1,
                                                 "Bundle Of Dense Blue Wool", ChatColor.DARK_BLUE, "The sheep are naked",
                                                 null, 15, true, enchants)));
-                whiteRecipe.setIngredient('E',
+                whiteRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(
                                                 Material.LIGHT_BLUE_WOOL, 1, "Bundle Of Dense Light Blue Wool",
                                                 ChatColor.BLUE, "The sheep are naked", null, 15, true, enchants)));
-                whiteRecipe.setIngredient('F',
+                whiteRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.CYAN_WOOL, 1,
                                                 "Bundle Of Dense Cyan Wool", ChatColor.getByChar("#009696"),
                                                 "The sheep are naked", null, 15, true, enchants)));
-                whiteRecipe.setIngredient('G',
+                whiteRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.GREEN_WOOL, 1,
                                                 "Bundle Of Dense Green Wool", ChatColor.DARK_GREEN,
                                                 "The sheep are naked", null, 15, true, enchants)));
-                whiteRecipe.setIngredient('H',
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.LIME_WOOL, 1,
                                                 "Bundle Of Dense Lime Wool", ChatColor.GREEN, "The sheep are naked",
-                                                null, 15, true, enchants)));
-                whiteRecipe.setIngredient('I',
+                                                null, 15, true, enchants));
+                whiteRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.createCustomItem(Material.WHITE_WOOL, 1,
                                                 "Bundle Of Dense White Wool", ChatColor.GRAY, "The sheep are naked",
                                                 null, 15, true, enchants)));
-                addShapedRecipe(whiteRecipe, whiteKey);
+                addShapelessRecipe(whiteRecipe, whiteKey);
 
                 // Color
                 List<List<String>> colors = new ArrayList<>();
@@ -349,12 +345,11 @@ public class RecipeMaker {
                 ItemStack colorTrophy = ItemStackGenerator.getTrophyItem(Material.SHEARS, name8, lore8);
                 trophyItems.put(6, colorTrophy);
 
-                ShapedRecipe colorRecipe = new ShapedRecipe(colorKey, colorTrophy);
-                colorRecipe.shape("A", "B", "C");
-                colorRecipe.setIngredient('A', new RecipeChoice.ExactChoice(whiteFragment));
-                colorRecipe.setIngredient('B', new RecipeChoice.ExactChoice(blackFragment));
-                colorRecipe.setIngredient('C', Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-                addShapedRecipe(colorRecipe, colorKey);
+                ShapelessRecipe colorRecipe = new ShapelessRecipe(colorKey, colorTrophy);
+                colorRecipe.addIngredient(new RecipeChoice.ExactChoice(whiteFragment));
+                colorRecipe.addIngredient(new RecipeChoice.ExactChoice(blackFragment));
+                colorRecipe.addIngredient(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
+                addShapelessRecipe(colorRecipe, colorKey);
 
                 // Nether Recipe
                 String name9 = ChatColor.DARK_RED + ChatColor.BOLD.toString() + "Nether Trophy";
@@ -399,26 +394,25 @@ public class RecipeMaker {
                                 ColorParser.generateGradient("#FFE200", "#FF0000", 33), false);
                 ItemStack championTrophy = ItemStackGenerator.getTrophyItem(Material.DIAMOND_SWORD, name11, lore11);
                 trophyItems.put(9, championTrophy);
-                ShapedRecipe championRecipe = new ShapedRecipe(championKey, championTrophy);
-                championRecipe.shape("ABC", "DEF", "G  ");
-                championRecipe.setIngredient('A', Material.NETHER_STAR);
+                ShapelessRecipe championRecipe = new ShapelessRecipe(championKey, championTrophy);
+                championRecipe.addIngredient(Material.NETHER_STAR);
                 // Ender Dragon
-                championRecipe.setIngredient('B',
+                championRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.getEnderDragonBossItem()));
                 // Giant
-                championRecipe.setIngredient('C', new RecipeChoice.ExactChoice(ItemStackGenerator.getGiantBossItem()));
+                championRecipe.addIngredient(new RecipeChoice.ExactChoice(ItemStackGenerator.getGiantBossItem()));
                 // BroodMother
-                championRecipe.setIngredient('D',
+                championRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.getBroodMotherBossItem()));
                 // Elder Guardian
-                championRecipe.setIngredient('E',
+                championRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.getElderGuardianBossItem()));
                 // Warden
-                championRecipe.setIngredient('F', new RecipeChoice.ExactChoice(ItemStackGenerator.getWardenBossItem()));
+                championRecipe.addIngredient(new RecipeChoice.ExactChoice(ItemStackGenerator.getWardenBossItem()));
                 // Villager Boss
-                championRecipe.setIngredient('G',
+                championRecipe.addIngredient(
                                 new RecipeChoice.ExactChoice(ItemStackGenerator.getVillagerBossItem()));
-                addShapedRecipe(championRecipe, championKey);
+                addShapelessRecipe(championRecipe, championKey);
 
                 // God Trophy
                 String name12 = ColorParser.colorizeString("God Trophy",
