@@ -303,15 +303,14 @@ public class FarmingSkill implements Listener {
             block.applyBoneMeal(BlockFace.UP);
         else if (block.getType().equals(Material.MOSS_BLOCK))
             block.applyBoneMeal(BlockFace.UP);
-        else if (block.getType().toString().contains("SAPLING"))
+        else if (block.getType().toString().contains("SAPLING")
+                || block.getType().toString().contains("PROPAGULE"))
             block.applyBoneMeal(BlockFace.UP);
         else {
             BlockData state = block.getState().getBlockData();
-            if (!(state instanceof Ageable))
-                return;
+            if (!(state instanceof Ageable)) return;
             Ageable age = (Ageable) block.getState().getBlockData();
-            if (age.getAge() == age.getMaximumAge())
-                return;
+            if (age.getAge() == age.getMaximumAge()) return;
             age.setAge(age.getMaximumAge());
             block.setBlockData(age);
             block.getState().update();
