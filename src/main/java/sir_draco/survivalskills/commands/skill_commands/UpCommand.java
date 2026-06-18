@@ -9,12 +9,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.utils.LocationUtils;
 
 @SuppressWarnings("NullableProblems")
 public class UpCommand implements CommandExecutor {
 
-    public static final String MINING = "Mining";
     public static final String UP_COMMAND = "UpCommand";
     private final SurvivalSkills plugin;
 
@@ -30,19 +30,19 @@ public class UpCommand implements CommandExecutor {
         if (!(sender instanceof Player p))
             return false;
         // Check for level requirements
-        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(MINING, UP_COMMAND).isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.MINING, UP_COMMAND).isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "/ssup is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
         }
 
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(MINING, UP_COMMAND).isApplied()
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, UP_COMMAND).isApplied()
                 && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force /ssup use: " + ChatColor.AQUA + "/ssup force");
             }
             p.sendRawMessage(ChatColor.GREEN + "You need to be mining level " + ChatColor.AQUA +
-                    plugin.getSkillManager().getDefaultPlayerRewards().getReward(MINING, UP_COMMAND).getLevel()
+                    plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.MINING, UP_COMMAND).getLevel()
                     + ChatColor.GREEN + " to use /ssup");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;

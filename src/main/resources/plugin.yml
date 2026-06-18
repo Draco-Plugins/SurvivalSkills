@@ -141,25 +141,10 @@ commands:
 permissions:
     survivalskills.default:
         description: Default permissions
-        default: not op
+        default: true
     survivalskills.op:
         description: Op permissions
         default: op
     survivalskills.creative:
         description: Allows the player to use creative mode
         default: op
-    survivalskills.fishinglineI:
-        description: Allows the player to use the fishing line I skill
-        default: not op
-    survivalskills.fishinglineII:
-        description: Allows the player to use the fishing line II skill
-        default: not op
-    survivalskills.fishinglineIII:
-        description: Allows the player to use the fishing line III skill
-        default: not op
-    survivalskills.fishinglineIV:
-        description: Allows the player to use the fishing line IV skill
-        default: not op
-    survivalskills.fishinglineV:
-        description: Allows the player to use the fishing line V skill
-        default: not op

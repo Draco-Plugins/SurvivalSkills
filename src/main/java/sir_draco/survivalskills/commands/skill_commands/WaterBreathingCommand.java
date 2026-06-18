@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.abilities.AbilityTimer;
 import sir_draco.survivalskills.abilities.WaterBreathingTimer;
 import sir_draco.survivalskills.rewards.RewardNotifications;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 @SuppressWarnings("NullableProblems")
@@ -27,18 +28,18 @@ public class WaterBreathingCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (!(sender instanceof Player p)) return false;
         // Check for level requirements
-        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Fishing", "WaterBreathingI").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.FISHING, "WaterBreathingI").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Water Breathing is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
         }
 
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "WaterBreathingI").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FISHING, "WaterBreathingI").isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force water breathing use: " + ChatColor.AQUA + "/waterbreathing force");
             }
             p.sendRawMessage(ChatColor.GREEN + "You need to be fishing level " + ChatColor.AQUA +
-                    plugin.getSkillManager().getDefaultPlayerRewards().getReward("Fishing", "WaterBreathingI").getLevel()
+                    plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.FISHING, "WaterBreathingI").getLevel()
                     + ChatColor.GREEN + " to use Water Breathing");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
@@ -59,7 +60,7 @@ public class WaterBreathingCommand implements CommandExecutor {
         }
 
         // Give water breathing
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "WaterBreathingII").isApplied()) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FISHING, "WaterBreathingII").isApplied()) {
             enableWaterBreathing(p, 900, 3600);
         }
         else enableWaterBreathing(p, 1800, 1800);

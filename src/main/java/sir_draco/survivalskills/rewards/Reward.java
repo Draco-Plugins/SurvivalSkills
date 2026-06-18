@@ -1,8 +1,10 @@
 package sir_draco.survivalskills.rewards;
 
+import sir_draco.survivalskills.skills.SkillCategory;
+
 public class Reward {
 
-    private final String skillType;
+    private final SkillCategory skillCategory;
     private final String name;
     private final String rewardType;
 
@@ -10,8 +12,8 @@ public class Reward {
     private boolean enabled;
     private boolean applied = false;
 
-    public Reward(String skillType, String name, String rewardType, int level, boolean enabled) {
-        this.skillType = skillType;
+    public Reward(SkillCategory skillCategory, String name, String rewardType, int level, boolean enabled) {
+        this.skillCategory = skillCategory;
         this.name = name;
         this.rewardType = rewardType;
         this.level = level;
@@ -19,7 +21,7 @@ public class Reward {
     }
 
     public Reward copyReward() {
-        return new Reward(skillType, name, rewardType, level, enabled);
+        return new Reward(skillCategory, name, rewardType, level, enabled);
     }
 
     public void applyReward() {
@@ -42,8 +44,8 @@ public class Reward {
         return name;
     }
 
-    public String getSkillType() {
-        return skillType;
+    public SkillCategory getSkillCategory() {
+        return skillCategory;
     }
 
     public void setEnabled(boolean enabled) {

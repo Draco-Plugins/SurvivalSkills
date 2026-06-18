@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.skills.SkillCategory;
 
 @SuppressWarnings("NullableProblems")
 public class AutoEatCommand implements CommandExecutor {
@@ -23,18 +24,18 @@ public class AutoEatCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (!(sender instanceof Player p)) return false;
         // Check for level requirements
-        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Farming", "AutoEat").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.FARMING, "AutoEat").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Auto Eat is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
         }
 
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "AutoEat").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FARMING, "AutoEat").isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force auto eat use: " + ChatColor.AQUA + "/autoeat force");
             }
             p.sendRawMessage(ChatColor.GREEN + "You need to be farming level " + ChatColor.AQUA +
-                    plugin.getSkillManager().getDefaultPlayerRewards().getReward("Farming", "AutoEat").getLevel()
+                    plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.FARMING, "AutoEat").getLevel()
                     + ChatColor.GREEN + " to use Auto Eat");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;

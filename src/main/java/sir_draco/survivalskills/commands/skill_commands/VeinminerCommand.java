@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.skills.SkillCategory;
 
 @SuppressWarnings("NullableProblems")
 public class VeinminerCommand implements CommandExecutor {
@@ -27,7 +28,7 @@ public class VeinminerCommand implements CommandExecutor {
             return false;
 
         // Check for level requirements reset and active times and radius
-        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "VeinminerI").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.MINING, "VeinminerI").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Veinminer is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
@@ -42,17 +43,17 @@ public class VeinminerCommand implements CommandExecutor {
         }
 
         // Enable veinminer
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "VeinminerI").isApplied()
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "VeinminerI").isApplied()
                 && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force veinminer use: " + ChatColor.AQUA + "/veinminer force");
             }
             p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "VeinminerI").getLevel()
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.MINING, "VeinminerI").getLevel()
                     + ChatColor.RED + " to use veinminer");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
-        } else if (plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "VeinminerII").isApplied()) {
+        } else if (plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "VeinminerII").isApplied()) {
             plugin.getMiningListener().getVeinminerTracker().put(p, 1);
         } else {
             plugin.getMiningListener().getVeinminerTracker().put(p, 0);

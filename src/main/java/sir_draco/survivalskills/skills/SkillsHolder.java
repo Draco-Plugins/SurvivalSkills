@@ -20,14 +20,14 @@ public class SkillsHolder {
     /**
      * Gets the specified skill of a player
      */
-    public Skill getSkill(String skillName) {
+    public Skill getSkill(SkillCategory skillCategory) {
         if (skills.isEmpty()) {
-            Skill skill = new Skill(0, 0, skillName);
+            Skill skill = new Skill(0, 0, skillCategory);
             skills.add(skill);
             return skill;
         }
-        for (Skill skill : skills) if (skill.getSkillName().equalsIgnoreCase(skillName)) return skill;
-        return new Skill(0, 0, skillName);
+        for (Skill skill : skills) if (skill.getSkillCategory() == skillCategory) return skill;
+        return new Skill(0, 0, skillCategory);
     }
 
     public ArrayList<Skill> getSkills() {

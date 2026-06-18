@@ -9,6 +9,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.abilities.TrailEffect;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 @SuppressWarnings("NullableProblems")
@@ -46,7 +47,7 @@ public class ToggleTrailCommand implements CommandExecutor {
 
             // Check if they have unlocked it
             String rewardName = trail + "Trail";
-            Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Main", rewardName);
+            Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MAIN, rewardName);
             if (reward == null) {
                 p.sendRawMessage(ChatColor.RED + "You have not unlocked this trail!");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.skills.SkillCategory;
 
 @SuppressWarnings("NullableProblems")
 public class EatCommand implements CommandExecutor {
@@ -25,17 +26,17 @@ public class EatCommand implements CommandExecutor {
         if (!(sender instanceof Player p)) return false;
 
         // Check for level requirements
-        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Farming", "Eat").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.FARMING, "Eat").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Eat is not enabled on this server");
             return false;
         }
 
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Farming", "Eat").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FARMING, "Eat").isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force eat use: " + ChatColor.AQUA + "/sseat force");
             }
             p.sendRawMessage(ChatColor.GREEN + "You need to be farming level " + ChatColor.AQUA +
-                    plugin.getSkillManager().getDefaultPlayerRewards().getReward("Farming", "Eat").getLevel()
+                    plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.FARMING, "Eat").getLevel()
                     + ChatColor.GREEN + " to use Eat");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;

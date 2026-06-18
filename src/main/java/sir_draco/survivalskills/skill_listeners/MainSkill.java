@@ -27,6 +27,7 @@ import org.bukkit.util.Vector;
 import sir_draco.survivalskills.abilities.DeathLocationTimer;
 import sir_draco.survivalskills.abilities.Grave;
 import sir_draco.survivalskills.rewards.PlayerRewards;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 
@@ -71,12 +72,12 @@ public class MainSkill implements Listener {
         DeathLocationTimer timer = new DeathLocationTimer(plugin, p, p.getLocation(), graveLifespan);
         timer.runTaskTimerAsynchronously(plugin, 0, 20);
 
-        if (rewards.getReward("Main", "KeepExperience").isApplied()) {
+        if (rewards.getReward(SkillCategory.MAIN, "KeepExperience").isApplied()) {
             e.setKeepLevel(true);
             e.setDroppedExp(0);
         }
         if (Boolean.TRUE.equals(e.getEntity().getWorld().getGameRuleValue(GameRule.KEEP_INVENTORY))) return;
-        if (rewards.getReward("Main", "KeepInventory").isApplied()) {
+        if (rewards.getReward(SkillCategory.MAIN, "KeepInventory").isApplied()) {
             e.setKeepInventory(true);
             e.getDrops().clear();
             return;
@@ -84,7 +85,7 @@ public class MainSkill implements Listener {
         if (e.getKeepInventory()) return;
 
         if (e.getDrops().isEmpty()) return;
-        if (!rewards.getReward("Main", "Gravestone").isApplied()) return;
+        if (!rewards.getReward(SkillCategory.MAIN, "Gravestone").isApplied()) return;
         Grave grave = new Grave(nextGraveID, p.getUniqueId(), p.getLocation(), new ArrayList<>(e.getDrops()), graveLifespan, plugin);
         graves.put(grave.getLocation(), grave);
         e.getDrops().clear();

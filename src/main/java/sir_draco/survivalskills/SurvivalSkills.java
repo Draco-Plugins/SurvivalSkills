@@ -20,7 +20,10 @@ import sir_draco.survivalskills.god_questline.*;
 import sir_draco.survivalskills.god_questline.trial.Trial;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
 import sir_draco.survivalskills.god_questline.trial.TrialUpgradeManager;
+import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.skill_listeners.*;
+import sir_draco.survivalskills.skills.Skill;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.trophy.Trophy;
 import sir_draco.survivalskills.trophy.TrophyListener;
@@ -37,7 +40,7 @@ public final class SurvivalSkills extends JavaPlugin {
 
     private static SurvivalSkills instance;
 
-    private final HashMap<UUID, Boolean> toggledScoreboard = new HashMap<>();
+    private final HashMap<UUID, Boolean> showScoreboard = new HashMap<>();
     private final HashMap<Player, Scoreboard> scoreboardTracker = new HashMap<>();
     private final HashMap<UUID, LeaderboardPlayer> leaderboardTracker = new HashMap<>();
     private final ArrayList<Material> farmingList = new ArrayList<>();
@@ -213,7 +216,7 @@ public final class SurvivalSkills extends JavaPlugin {
             abilityManager.saveToolBelt(p, miningListener.getToolBelts().get(p));
             miningListener.getToolBelts().remove(p);
         }
-        toggledScoreboard.remove(p.getUniqueId());
+        showScoreboard.remove(p.getUniqueId());
         scoreboardTracker.remove(p);
         Map<Player, TrailEffect> trailTracker = abilityManager.getTrailTracker();
         if (trailTracker.containsKey(p)) {
@@ -229,7 +232,7 @@ public final class SurvivalSkills extends JavaPlugin {
                     trial.quitTrial(p);
     }
 
-    public void playerJoin(Player p, boolean overrideNewPlayer) {
+    public void playerJoin(Player p) {
         abilityManager.getTimerTracker().put(p, new ArrayList<>());
 
         File dataFile = new File(getDataFolder(), FileUtils.PLAYERDATA_YML);
@@ -237,9 +240,6 @@ public final class SurvivalSkills extends JavaPlugin {
             saveResource(FileUtils.PLAYERDATA_YML, true);
         FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
 
-        boolean newPlayer = data.get(p.getUniqueId().toString()) == null;
-        if (overrideNewPlayer)
-            newPlayer = false;
         FileUtils.loadData(p, data);
 
         // Check if the player should activate any nearby trophies
@@ -250,14 +250,14 @@ public final class SurvivalSkills extends JavaPlugin {
             trophy.getValue().getEffects().checkForPlayers();
         }
 
-        // Make sure the main XP level is correct, load the player's rewards, add them
-        // to active leaderboard players
-        // Load their perma trash inventory, and hide any glowing blocks from other
-        // player's spelunker ability
+        // Make sure the main XP level is correct, load the player's rewards, add them to active leaderboard players
         skillManager.syncMainSkill(p);
         skillManager.loadPlayerRewards(p);
         skillManager.loadPlayerMultiplier(p, data);
-        Leaderboard.leaderboardJoin(this, p);
+        LeaderboardPlayer leaderboardPlayer = Leaderboard.initializeLeaderboardForPlayer(p);
+        PlayerRewards.handleDeathSkillEffects(p);
+        
+        // Handle abilities
         FileUtils.loadPermaTrash(p, permaTrashData);
         getMiningListener().hideGlowForPlayer(p);
         armorListener.playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
@@ -265,20 +265,26 @@ public final class SurvivalSkills extends JavaPlugin {
         abilityManager.loadSpelunker(p, data);
 
         // Handle the scoreboard
-        if (newPlayer)
-            SkillScoreboard.initializeScoreboard(this, p);
-        else if (toggledScoreboard.containsKey(p.getUniqueId())
-                && Boolean.TRUE.equals(toggledScoreboard.get(p.getUniqueId()))) {
+        if (showScoreboard.containsKey(p.getUniqueId())
+                && Boolean.FALSE.equals(showScoreboard.get(p.getUniqueId()))) {
+            // Hidden scoreboard
+            SkillScoreboard.hideScoreboard(p);
+        } else {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    SkillScoreboard.initializeScoreboard(instance, p);
+                    SkillScoreboard.initializeScoreboard(p);
+                    SkillScoreboard.updateScoreboard(p, SkillCategory.MAIN);
+
+                    int deaths = leaderboardPlayer.getScore(SkillCategory.DEATHS);
+                    SkillScoreboard.updateScoreboardDeaths(p, deaths);
+
+                    SkillScoreboard.updateNametags(p);
                 }
             }.runTaskLater(this, 20);
-        } else
-            SkillScoreboard.hideScoreboard(this, p);
+        }
 
-        if (SkillManager.getSkillLevel(p.getUniqueId(), "Main") == 100
+        if (SkillManager.getSkillLevel(p.getUniqueId(), SkillCategory.MAIN) == Skill.MAX_LEVEL
                 && !getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId())) {
             GodTrophyQuest quest = new GodTrophyQuest(p.getUniqueId());
             SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().put(p.getUniqueId(), quest);
@@ -315,8 +321,8 @@ public final class SurvivalSkills extends JavaPlugin {
         return farmingList;
     }
 
-    public Map<UUID, Boolean> getToggledScoreboard() {
-        return toggledScoreboard;
+    public Map<UUID, Boolean> getShowScoreboard() {
+        return showScoreboard;
     }
 
     public MiningSkill getMiningListener() {

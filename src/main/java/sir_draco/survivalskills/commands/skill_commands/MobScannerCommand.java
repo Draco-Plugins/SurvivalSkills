@@ -12,6 +12,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.skills.SkillCategory;
 
 import java.util.ArrayList;
 
@@ -29,18 +30,18 @@ public class MobScannerCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (!(sender instanceof Player p)) return false;
-        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Fighting", "MobScanner").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.FIGHTING, "MobScanner").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Mob Scanner is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
         }
 
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Fighting", "MobScanner").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FIGHTING, "MobScanner").isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force Mob Scanner use: " + ChatColor.AQUA + "/mobscanner force");
             }
             p.sendRawMessage(ChatColor.RED + "You need to be fighting level " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Fighting", "MobScanner").getLevel()
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.FIGHTING, "MobScanner").getLevel()
                     + ChatColor.RED + " to use Mob Scanner");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;

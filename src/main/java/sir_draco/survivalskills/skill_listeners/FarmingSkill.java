@@ -19,6 +19,7 @@ import org.bukkit.util.Vector;
 import sir_draco.survivalskills.abilities.items.HarvesterAsync;
 import sir_draco.survivalskills.abilities.items.HarvesterTimer;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.ProjectileCalculator;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
@@ -32,7 +33,6 @@ import java.util.Map;
 
 public class FarmingSkill implements Listener {
 
-    public static final String FARMING = "Farming";
     private final SurvivalSkills plugin;
     private final HashMap<Player, ArrayList<Block>> harvestedBlocks = new HashMap<>();
     private final HashMap<Player, HarvesterTimer> harvesterCooldowns = new HashMap<>();
@@ -74,7 +74,7 @@ public class FarmingSkill implements Listener {
                 doubleXP = 2;
         }
 
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP() * doubleXP, FARMING);
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP() * doubleXP, SkillCategory.FARMING);
         if (block.getType().toString().contains("LOG"))
             return;
 
@@ -108,7 +108,7 @@ public class FarmingSkill implements Listener {
             return;
         if (age.getAge() != age.getMaximumAge())
             return;
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP(), FARMING);
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP(), SkillCategory.FARMING);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -118,7 +118,7 @@ public class FarmingSkill implements Listener {
         if (!plugin.getFarmingList().contains(e.getBlock().getType()))
             return;
 
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP() * 0.5, FARMING);
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFarmingXP() * 0.5, SkillCategory.FARMING);
     }
 
     @EventHandler
@@ -131,7 +131,7 @@ public class FarmingSkill implements Listener {
         if (TrialManager.isInTrial(p))
             return;
 
-        if (plugin.getSkillManager().getPlayerRewards(p).getReward(FARMING, "NoHunger").isApplied()) {
+        if (plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FARMING, "NoHunger").isApplied()) {
             e.setCancelled(true);
             p.setFoodLevel(20);
             p.setSaturation(20);
@@ -221,9 +221,9 @@ public class FarmingSkill implements Listener {
     public void handleWateringCan(Player p, Block block) {
         if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 9))
             return;
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(FARMING, "WateringCan").isApplied()) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FARMING, "WateringCan").isApplied()) {
             p.sendRawMessage(ChatColor.RED + "Watering Can unlocks at Farming Level: " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(FARMING, "WateringCan").getLevel());
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.FARMING, "WateringCan").getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
@@ -289,9 +289,9 @@ public class FarmingSkill implements Listener {
         if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 10))
             return;
         e.setCancelled(true);
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(FARMING, "UnlimitedBoneMeal").isApplied()) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FARMING, "UnlimitedBoneMeal").isApplied()) {
             p.sendRawMessage(ChatColor.RED + "Unlimited Bonemeal unlocks at Farming Level: " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(FARMING, "UnlimitedBoneMeal")
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.FARMING, "UnlimitedBoneMeal")
                             .getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
@@ -351,10 +351,10 @@ public class FarmingSkill implements Listener {
             return;
         if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 11))
             return;
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(FARMING, "Harvester").isApplied()
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FARMING, "Harvester").isApplied()
                 && !p.hasPermission("survivalskills.op")) {
             p.sendRawMessage(ChatColor.RED + "Harvester unlocks at Farming Level: " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(FARMING, "Harvester").getLevel());
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.FARMING, "Harvester").getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }

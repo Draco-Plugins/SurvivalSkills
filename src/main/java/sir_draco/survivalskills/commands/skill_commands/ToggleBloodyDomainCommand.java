@@ -9,6 +9,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.abilities.BloodyDomain;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.Map;
@@ -25,7 +26,7 @@ public class ToggleBloodyDomainCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (!(sender instanceof Player p)) return false;
 
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Fighting", "BloodyDomain");
+        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FIGHTING, "BloodyDomain");
         if (reward == null || !reward.isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Bloody Domain is not enabled");
             p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

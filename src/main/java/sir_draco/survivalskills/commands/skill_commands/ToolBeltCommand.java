@@ -10,6 +10,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 @SuppressWarnings("NullableProblems")
@@ -28,7 +29,7 @@ public class ToolBeltCommand implements CommandExecutor {
         if (!(sender instanceof Player p)) return false;
 
         // Check if the tool belt reward
-        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "ToolBelt");
+        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "ToolBelt");
         if (reward == null) {
             p.sendRawMessage(ChatColor.RED + "Tool Belts are not enabled");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

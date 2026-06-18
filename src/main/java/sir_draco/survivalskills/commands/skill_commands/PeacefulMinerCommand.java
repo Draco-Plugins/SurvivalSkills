@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.skills.SkillCategory;
 
 @SuppressWarnings("NullableProblems")
 public class PeacefulMinerCommand implements CommandExecutor {
@@ -26,19 +27,19 @@ public class PeacefulMinerCommand implements CommandExecutor {
         if (!(sender instanceof Player p)) return false;
 
         // Check for if its enabled
-        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "PeacefulMiner").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.MINING, "PeacefulMiner").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Peaceful Miner is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
         }
 
         // Check if peaceful mining is allowed
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "PeacefulMiner").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "PeacefulMiner").isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force peaceful miner use: " + ChatColor.AQUA + "/peacefulminer force");
             }
             p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "PeacefulMiner").getLevel()
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.MINING, "PeacefulMiner").getLevel()
                     + ChatColor.RED + " to use Peaceful Miner");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;

@@ -39,6 +39,7 @@ import sir_draco.survivalskills.abilities.godItems.TeleporterAnchor;
 import sir_draco.survivalskills.abilities.items.PowerLaser;
 import sir_draco.survivalskills.abilities.items.PowerSword;
 import sir_draco.survivalskills.rewards.PlayerRewards;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.GodRecipeUI;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
@@ -257,13 +258,13 @@ public class GodListener implements Listener {
             desiredBlock.setType(Material.SPONGE);
             state.update(true);
         } else if (modelData == 47) {
-            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre")
+            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "PowerOre")
                     .isApplied()) {
                 p.sendRawMessage(
                         ChatColor.RED + "Unlock power ore to use the power swords special ability at mining level: "
                                 + ChatColor.AQUA +
                                 SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards()
-                                        .getReward("Mining", "PowerOre").getLevel());
+                                        .getReward(SkillCategory.MINING, "PowerOre").getLevel());
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
             }
@@ -275,12 +276,12 @@ public class GodListener implements Listener {
             if (powerLaserCooldowns.contains(p))
                 return;
 
-            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining", "PowerOre")
+            if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "PowerOre")
                     .isApplied()) {
                 p.sendRawMessage(
                         ChatColor.RED + "Unlock power ore to use the power laser at mining level: " + ChatColor.AQUA +
                                 SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards()
-                                        .getReward("Mining", "PowerOre").getLevel());
+                                        .getReward(SkillCategory.MINING, "PowerOre").getLevel());
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return;
             }
@@ -819,7 +820,7 @@ public class GodListener implements Listener {
         }.runTaskLaterAsynchronously(SurvivalSkills.getInstance(), 20);
 
         PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
-        if (rewards == null || !rewards.getReward("Mining", "PowerOre").isApplied())
+        if (rewards == null || !rewards.getReward(SkillCategory.MINING, "PowerOre").isApplied())
             return;
         Block block = p.getLocation().getBlock().getRelative(0, -1, 0);
         if (block.getType() != Material.OBSIDIAN)

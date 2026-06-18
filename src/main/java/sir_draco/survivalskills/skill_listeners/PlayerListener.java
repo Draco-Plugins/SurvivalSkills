@@ -18,10 +18,14 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.abilities.AbilityTimer;
+import sir_draco.survivalskills.skills.Skill;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.FileUtils;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
+import sir_draco.survivalskills.boards.Leaderboard;
 import sir_draco.survivalskills.boards.LeaderboardPlayer;
+import sir_draco.survivalskills.boards.SkillScoreboard;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -45,7 +49,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        plugin.playerJoin(p, false);
+        plugin.playerJoin(p);
     }
 
     @EventHandler
@@ -111,149 +115,149 @@ public class PlayerListener implements Listener {
 
         switch (modelData) {
             case 1:
-                if (rewards.getReward("Mining", "UnlimitedTorch").isApplied())
+                if (rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                        + rewards.getReward("Mining", "UnlimitedTorch").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 3:
-                if (rewards.getReward("Mining", "MiningArmor").isApplied())
+                if (rewards.getReward(SkillCategory.MINING, "MiningArmor").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                        + rewards.getReward("Mining", "MiningArmor").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward(SkillCategory.MINING, "MiningArmor").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 4:
-                if (rewards.getReward("Exploring", "JumpingBoots").isApplied())
+                if (rewards.getReward(SkillCategory.EXPLORING, "JumpingBoots").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "JumpingBoots").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward(SkillCategory.EXPLORING, "JumpingBoots").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 5:
-                if (rewards.getReward("Exploring", "WandererArmor").isApplied())
+                if (rewards.getReward(SkillCategory.EXPLORING, "WandererArmor").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "WandererArmor").getLevel() + ChatColor.RED
+                        + rewards.getReward(SkillCategory.EXPLORING, "WandererArmor").getLevel() + ChatColor.RED
                         + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 6:
-                if (rewards.getReward("Exploring", "CaveFinder").isApplied())
+                if (rewards.getReward(SkillCategory.EXPLORING, "CaveFinder").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "CaveFinder").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward(SkillCategory.EXPLORING, "CaveFinder").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 7:
-                if (rewards.getReward("Exploring", "TravelerArmor").isApplied())
+                if (rewards.getReward(SkillCategory.EXPLORING, "TravelerArmor").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "TravelerArmor").getLevel() + ChatColor.RED
+                        + rewards.getReward(SkillCategory.EXPLORING, "TravelerArmor").getLevel() + ChatColor.RED
                         + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 8:
-                if (rewards.getReward("Exploring", "AdventurerArmor").isApplied())
+                if (rewards.getReward(SkillCategory.EXPLORING, "AdventurerArmor").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "AdventurerArmor").getLevel() + ChatColor.RED
+                        + rewards.getReward(SkillCategory.EXPLORING, "AdventurerArmor").getLevel() + ChatColor.RED
                         + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 9:
-                if (rewards.getReward("Farming", "WateringCan").isApplied())
+                if (rewards.getReward(SkillCategory.FARMING, "WateringCan").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "WateringCan").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward(SkillCategory.EXPLORING, "WateringCan").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 10:
-                if (rewards.getReward("Farming", "UnlimitedBoneMeal").isApplied())
+                if (rewards.getReward(SkillCategory.FARMING, "UnlimitedBoneMeal").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "UnlimitedBoneMeal").getLevel() + ChatColor.RED
+                        + rewards.getReward(SkillCategory.EXPLORING, "UnlimitedBoneMeal").getLevel() + ChatColor.RED
                         + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 11:
-                if (rewards.getReward("Farming", "Harvester").isApplied())
+                if (rewards.getReward(SkillCategory.FARMING, "Harvester").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "Harvester").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward(SkillCategory.EXPLORING, "Harvester").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 12:
-                if (rewards.getReward("Fighting", "GiantSummon").isApplied())
+                if (rewards.getReward(SkillCategory.FIGHTING, "GiantSummon").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "GiantSummon").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward(SkillCategory.EXPLORING, "GiantSummon").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 13:
-                if (rewards.getReward("Fighting", "BroodMotherSummon").isApplied())
+                if (rewards.getReward(SkillCategory.FIGHTING, "BroodMotherSummon").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "BroodMotherSummon").getLevel() + ChatColor.RED
+                        + rewards.getReward(SkillCategory.EXPLORING, "BroodMotherSummon").getLevel() + ChatColor.RED
                         + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 14:
-                if (rewards.getReward("Fighting", "TheExiledOneSummon").isApplied())
+                if (rewards.getReward(SkillCategory.FIGHTING, "TheExiledOneSummon").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "TheExiledOneSummon").getLevel() + ChatColor.RED
+                        + rewards.getReward(SkillCategory.EXPLORING, "TheExiledOneSummon").getLevel() + ChatColor.RED
                         + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 break;
             case 16:
-                if (rewards.getReward("Building", "AutoSortWand").isApplied())
+                if (rewards.getReward(SkillCategory.BUILDING, "AutoSortWand").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be building level " + ChatColor.AQUA
-                        + rewards.getReward("Building", "AutoSortWand").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward(SkillCategory.BUILDING, "AutoSortWand").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 18:
-                if (rewards.getReward("Main", "FireworkCannon").isApplied())
+                if (rewards.getReward(SkillCategory.MAIN, "FireworkCannon").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be main level " + ChatColor.AQUA
-                        + rewards.getReward("Main", "FireworkCannon").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward(SkillCategory.MAIN, "FireworkCannon").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 19:
-                if (rewards.getReward("Exploring", "GillArmor").isApplied())
+                if (rewards.getReward(SkillCategory.EXPLORING, "GillArmor").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "GillArmor").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward(SkillCategory.EXPLORING, "GillArmor").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 27:
-                if (rewards.getReward("Mining", "ZapWand").isApplied())
+                if (rewards.getReward(SkillCategory.MINING, "ZapWand").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                        + rewards.getReward("Mining", "ZapWand").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward(SkillCategory.MINING, "ZapWand").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 32:
-                if (rewards.getReward("Exploring", "Magnet").isApplied())
+                if (rewards.getReward(SkillCategory.EXPLORING, "Magnet").isApplied())
                     return;
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward("Exploring", "Magnet").getLevel() + ChatColor.RED + " to craft this");
+                        + rewards.getReward(SkillCategory.EXPLORING, "Magnet").getLevel() + ChatColor.RED + " to craft this");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             case 999:
                 if (result.getType().equals(Material.WHITE_WOOL))
@@ -308,9 +312,9 @@ public class PlayerListener implements Listener {
                                 + "Champion Trophy");
                         break;
                     case GRASS_BLOCK:
-                        if (SkillManager.getSkillLevel(p.getUniqueId(), "Main") != 100) {
+                        if (SkillManager.getSkillLevel(p.getUniqueId(), SkillCategory.MAIN) != Skill.MAX_LEVEL) {
                             e.setCancelled(true);
-                            p.sendRawMessage(ChatColor.RED + "You need to be main level " + ChatColor.AQUA + "100"
+                            p.sendRawMessage(ChatColor.RED + "You need to be main level " + ChatColor.AQUA + Skill.MAX_LEVEL
                                     + ChatColor.RED + " to craft this");
                             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                             return;
@@ -419,20 +423,27 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void deathEvent(PlayerDeathEvent e) {
-        LeaderboardPlayer player = plugin.getLeaderboardTracker().get(e.getEntity().getUniqueId());
-        if (player == null)
-            return;
-        int deaths = player.getDeathScore() + 1;
-        player.setDeathScore(deaths);
+        Player p = e.getEntity();
+        LeaderboardPlayer leaderboardPlayer = plugin.getLeaderboardTracker().get(p.getUniqueId());
+        if (leaderboardPlayer == null) {
+            Bukkit.getLogger().log(Level.WARNING, "Leaderboard tracker is missing for %s. Adding trac", p.getName());
+            leaderboardPlayer = Leaderboard.initializeLeaderboardForPlayer(p);
+        }
 
-        if (deaths >= 75)
+        int deaths = leaderboardPlayer.getScore(SkillCategory.DEATHS) + 1;
+        leaderboardPlayer.setScore(SkillCategory.DEATHS, deaths);
+        SkillScoreboard.updateScoreboardDeaths(e.getEntity(), deaths);
+
+        // Death return skill
+        if (deaths >= 75) {
             deathLocations.put(e.getEntity(), e.getEntity().getLocation());
+        }
     }
 
     @EventHandler
     public void respawn(PlayerRespawnEvent e) {
         Player p = e.getPlayer();
-        int deaths = plugin.getLeaderboardTracker().get(p.getUniqueId()).getDeathScore();
+        int deaths = plugin.getLeaderboardTracker().get(p.getUniqueId()).getScore(SkillCategory.DEATHS);
 
         new BukkitRunnable() {
             @Override

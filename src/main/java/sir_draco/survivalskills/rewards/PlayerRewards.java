@@ -3,7 +3,15 @@ package sir_draco.survivalskills.rewards;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+
+import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.boards.Leaderboard;
+import sir_draco.survivalskills.boards.LeaderboardPlayer;
+import sir_draco.survivalskills.rewards.RewardEffects.RewardEffect;
 import sir_draco.survivalskills.skills.Skill;
+import sir_draco.survivalskills.skills.SkillCategory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,7 +19,7 @@ import java.util.Map;
 
 public class PlayerRewards {
 
-    private final HashMap<String, ArrayList<Reward>> rewardList = new HashMap<>();
+    private final HashMap<SkillCategory, ArrayList<Reward>> rewardList = new HashMap<>();
     // private final double exoticFishingLootChance = 0.0001;
 
     private boolean unbreakableTools = false;
@@ -35,30 +43,60 @@ public class PlayerRewards {
 
     public PlayerRewards() {}
 
-    public PlayerRewards(HashMap<String, ArrayList<Reward>> rewardList) {
-        for (Map.Entry<String, ArrayList<Reward>> skillType : rewardList.entrySet()) {
+    /**
+     * Applies the effects for the death skill
+     * Creates a LeaderboardPlayer instance if one does not exist
+     * @param p
+     */
+    public static void handleDeathSkillEffects(Player p) {
+        SurvivalSkills plugin = SurvivalSkills.getInstance();
+        LeaderboardPlayer leaderboardPlayer = plugin.getLeaderboardTracker().get(p.getUniqueId());
+        int deaths = 0;
+        if (leaderboardPlayer == null) {
+            leaderboardPlayer = Leaderboard.createLeaderboardPlayer(p);
+            plugin.getLeaderboardTracker().put(p.getUniqueId(), leaderboardPlayer);
+            deaths = Leaderboard.getLeaderboardScore(p, SkillCategory.DEATHS);
+        }
+        else {
+            // If a player was already online, then their death score is already available
+            deaths = leaderboardPlayer.getScore(SkillCategory.DEATHS);
+        }
+
+        // Handle death skill effects
+        if (deaths >= 40) {
+            p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 0, false, false, true));
+        }
+        if (deaths >= 50) {
+            PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+            rewards.setProtectionPercentage(rewards.getProtectionPercentage() + 0.1);
+            rewards.setAddedDeathResistance(true);
+        }
+    }
+
+    public PlayerRewards(HashMap<SkillCategory, ArrayList<Reward>> rewardList) {
+        for (Map.Entry<SkillCategory, ArrayList<Reward>> skillType : rewardList.entrySet()) {
             ArrayList<Reward> rewards = new ArrayList<>();
             for (Reward reward : skillType.getValue()) rewards.add(reward.copyReward());
             this.rewardList.put(skillType.getKey(), rewards);
         }
     }
 
-    public void addReward(String type, Reward reward) {
-        if (!rewardList.containsKey(type)) {
+    public void addReward(SkillCategory skillCategory, Reward reward) {
+        if (!rewardList.containsKey(skillCategory)) {
             ArrayList<Reward> rewards = new ArrayList<>();
             rewards.add(reward);
-            rewardList.put(type, rewards);
+            rewardList.put(skillCategory, rewards);
         }
-        else rewardList.get(type).add(reward);
+        else rewardList.get(skillCategory).add(reward);
     }
 
-    public Reward getLevelReward(String type, int level) {
-        for (Reward reward : rewardList.get(type)) if (reward.getLevel() == level && reward.isEnabled()) return reward;
+    public Reward getLevelReward(SkillCategory skillCategory, int level) {
+        for (Reward reward : rewardList.get(skillCategory)) if (reward.getLevel() == level && reward.isEnabled()) return reward;
         return null;
     }
 
-    public Reward getReward(String type, String name) {
-        for (Reward reward : rewardList.get(type)) if (reward.getName().equalsIgnoreCase(name)) return reward;
+    public Reward getReward(SkillCategory skillCategory, String name) {
+        for (Reward reward : rewardList.get(skillCategory)) if (reward.getName().equalsIgnoreCase(name)) return reward;
         return null;
     }
 
@@ -66,8 +104,8 @@ public class PlayerRewards {
         if (skills == null) return;
         setPlayerMaxHealth(p, 20);
         for (Skill skill : skills) {
-            if (rewardList.get(skill.getSkillName()) == null) {
-                Bukkit.getLogger().warning("Can't find the skill: " + skill.getSkillName());
+            if (rewardList.get(skill.getSkillCategory()) == null) {
+                Bukkit.getLogger().warning("Can't find the skill: " + skill.getSkillCategory());
                 continue;
             }
             enableSkillRewards(p, skill);
@@ -76,30 +114,30 @@ public class PlayerRewards {
 
     public void enableSkillRewards(Player p, Skill skill) {
         int level = skill.getLevel();
-        for (Reward reward : rewardList.get(skill.getSkillName())) {
+        for (Reward reward : rewardList.get(skill.getSkillCategory())) {
             if (reward.getLevel() <= level && reward.isEnabled()) reward.applyReward();
             else continue;
 
-            var effect = RewardEffects.getEffect(skill.getSkillName(), reward.getName());
+            var effect = RewardEffects.getEffect(skill.getSkillCategory().getDisplayName(), reward.getName());
             if (effect != null) effect.apply(this, p);
         }
     }
 
-    public void handleReward(Player p, Skill skill, String type, boolean notify) {
+    public void handleReward(Player p, Skill skill, boolean notify) {
         int level = skill.getLevel();
-        Reward reward = getLevelReward(type, level);
+        Reward reward = getLevelReward(skill.getSkillCategory(), level);
         if (reward == null) return;
         if (!reward.isEnabled()) return;
         if (reward.isApplied()) return;
 
-        if (notify) RewardNotifications.notifyPlayer(type, reward.getName(), p);
+        if (notify) RewardNotifications.notifyPlayer(skill.getSkillCategory().getDisplayName(), reward.getName(), p);
         reward.applyReward();
 
-        var effect = RewardEffects.getEffect(type, reward.getName());
+        RewardEffect effect = RewardEffects.getEffect(skill.getSkillCategory().getDisplayName(), reward.getName());
         if (effect != null) effect.apply(this, p);
     }
 
-    public HashMap<String, ArrayList<Reward>> getRewardList() {
+    public HashMap<SkillCategory, ArrayList<Reward>> getRewardList() {
         return rewardList;
     }
 

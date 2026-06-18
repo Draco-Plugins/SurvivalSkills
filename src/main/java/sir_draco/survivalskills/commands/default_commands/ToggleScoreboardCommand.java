@@ -36,7 +36,7 @@ public class ToggleScoreboardCommand implements CommandExecutor {
         if (!dataFile.exists()) plugin.saveResource("playerdata.yml", true);
         FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
 
-        if (!plugin.getToggledScoreboard().containsKey(p.getUniqueId())) {
+        if (!plugin.getShowScoreboard().containsKey(p.getUniqueId())) {
             Bukkit.getLogger().info("Player " + p.getName() + " does not have a scoreboard status");
 
             FileUtils.loadScoreboardSetting(p.getUniqueId(), data);
@@ -44,15 +44,15 @@ public class ToggleScoreboardCommand implements CommandExecutor {
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         }
-        boolean status = !plugin.getToggledScoreboard().get(p.getUniqueId());
-        plugin.getToggledScoreboard().put(p.getUniqueId(), status);
+        boolean status = !plugin.getShowScoreboard().get(p.getUniqueId());
+        plugin.getShowScoreboard().put(p.getUniqueId(), status);
         if (!status) {
-            SkillScoreboard.hideScoreboard(plugin, p);
+            SkillScoreboard.hideScoreboard(p);
             p.sendRawMessage(ChatColor.GREEN + "The scoreboard is now hidden");
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         else {
-            SkillScoreboard.initializeScoreboard(plugin, p);
+            SkillScoreboard.initializeScoreboard(p);
             p.sendRawMessage(ChatColor.GREEN + "The scoreboard is visible");
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }

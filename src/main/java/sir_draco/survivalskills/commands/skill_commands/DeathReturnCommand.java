@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.boards.LeaderboardPlayer;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 @SuppressWarnings("NullableProblems")
@@ -31,7 +32,7 @@ public class DeathReturnCommand implements CommandExecutor {
             return true;
         }
 
-        int deaths = player.getDeathScore();
+        int deaths = player.getScore(SkillCategory.DEATHS);
         if (deaths < 75) {
             p.sendRawMessage(ChatColor.RED + "You must die at least 75 times to use this command.");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

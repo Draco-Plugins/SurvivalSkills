@@ -25,6 +25,7 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.abilities.AbilityTimer;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
@@ -58,7 +59,7 @@ public class BuildingSkill implements Listener {
                 && p.getInventory().getItemInMainHand().getType().toString().contains("HOE"))
             return;
 
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getBuildingXP(), "Building");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getBuildingXP(), SkillCategory.BUILDING);
 
         // Handle block return
         if (isBannedReturn(e.getBlock().getType()))
@@ -178,7 +179,7 @@ public class BuildingSkill implements Listener {
     private boolean isValidSortAttempt(PlayerInteractEvent e, Player p) {
         if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 16))
             return true;
-        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Building", "AutoSortWand");
+        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.BUILDING, "AutoSortWand");
         if (!reward.isEnabled())
             return true;
         if (!reward.isApplied() && !p.isOp()) {

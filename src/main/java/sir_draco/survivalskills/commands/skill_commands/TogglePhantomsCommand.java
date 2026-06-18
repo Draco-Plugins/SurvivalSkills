@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 @SuppressWarnings("NullableProblems")
@@ -25,7 +26,7 @@ public class TogglePhantomsCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (!(sender instanceof Player p)) return false;
 
-        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Fighting", "TogglePhantomSpawns");
+        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FIGHTING, "TogglePhantomSpawns");
         if (reward == null || !reward.isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "That reward is not enabled");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);

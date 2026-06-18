@@ -5,9 +5,9 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 public class Skill {
-    private final int maxLevel = 100;
+    public static final int MAX_LEVEL = 100;
     private final int maxExperience = 1000000;
-    private final String skillName;
+    private final SkillCategory skillCategory;
 
     private double experience;
     private int expSoFarInLevel = 0;
@@ -15,10 +15,10 @@ public class Skill {
     private int level;
     private boolean currentMaxMessage = false;
 
-    public Skill(double experience, int level, String name) {
+    public Skill(double experience, int level, SkillCategory skillCategory) {
         this.experience = experience;
         this.level = level;
-        this.skillName = name;
+        this.skillCategory = skillCategory;
         // Store the total XP to go from the current level to the next level
         setExperienceSoFarInLevel();
         setRawExperienceForNextLevel();
@@ -36,7 +36,7 @@ public class Skill {
 
         int expectedLevel = getExpectedLevel((int) this.experience);
         if (level != expectedLevel) {
-            setLevel(Math.min(expectedLevel, maxLevel));
+            setLevel(Math.min(expectedLevel, MAX_LEVEL));
         }
     }
 
@@ -52,7 +52,7 @@ public class Skill {
      * @return True if there is a level up, false otherwise
      */
     public boolean changeExperience(double experience, int currentMaxLevel) {
-        if (level >= maxLevel) return false;
+        if (level >= MAX_LEVEL) return false;
         if (level >= currentMaxLevel) return false;
 
         if (this.experience + experience > maxExperience) this.experience = maxExperience;
@@ -77,12 +77,12 @@ public class Skill {
      * Ensures that the level is in the appropriate range and updates the experience accordingly
      */
     public void setLevel(int level) {
-        if (level > maxLevel) this.level = maxLevel;
+        if (level > MAX_LEVEL) this.level = MAX_LEVEL;
         else this.level = Math.max(level, 1);
 
         setRawExperienceForNextLevel();
 
-        int xp = SkillManager.totalExperienceForLevel(this.level, skillName);
+        int xp = SkillManager.totalExperienceForLevel(this.level, skillCategory);
         if (experience != xp) setExperience(xp);
     }
 
@@ -93,8 +93,8 @@ public class Skill {
      * @return True if the level changes, false otherwise
      */
     public boolean changeLevel(int level) {
-        if (this.level + level > maxLevel) {
-            this.level = maxLevel;
+        if (this.level + level > MAX_LEVEL) {
+            this.level = MAX_LEVEL;
             return false;
         }
         else if (this.level + level < 1) {
@@ -105,12 +105,12 @@ public class Skill {
 
         setRawExperienceForNextLevel();
 
-        if (experience < SkillManager.totalExperienceForLevel(this.level, skillName)) changeExperience(totalExperienceForNextLevel(this.level), this.level + 1);
+        if (experience < SkillManager.totalExperienceForLevel(this.level, skillCategory)) changeExperience(totalExperienceForNextLevel(this.level), this.level + 1);
         return true;
     }
 
-    public String getSkillName() {
-        return skillName;
+    public SkillCategory getSkillCategory() {
+        return skillCategory;
     }
 
     public void setRawExperienceForNextLevel() {
@@ -126,8 +126,8 @@ public class Skill {
      * the next level regardless of current XP
      */
     public int experienceForNextLevel(int currentLevel) {
-        return SkillManager.totalExperienceForLevel(currentLevel + 1, skillName)
-                - SkillManager.totalExperienceForLevel(currentLevel, skillName);
+        return SkillManager.totalExperienceForLevel(currentLevel + 1, skillCategory)
+                - SkillManager.totalExperienceForLevel(currentLevel, skillCategory);
     }
 
     /**
@@ -137,13 +137,13 @@ public class Skill {
      */
     public int totalExperienceForNextLevel(int currentLevel) {
         if (currentLevel == 1) return experienceForNextLevel(currentLevel);
-        int soFar = (int) experience - SkillManager.totalExperienceForLevel(currentLevel, skillName);
+        int soFar = (int) experience - SkillManager.totalExperienceForLevel(currentLevel, skillCategory);
         if (soFar < 0) return experienceForNextLevel(currentLevel);
         return experienceForNextLevel(currentLevel) - soFar;
     }
 
     public void setExperienceSoFarInLevel() {
-        expSoFarInLevel = (int) experience - SkillManager.totalExperienceForLevel(level, skillName);
+        expSoFarInLevel = (int) experience - SkillManager.totalExperienceForLevel(level, skillCategory);
     }
 
     public int getExperienceSoFarInLevel() {
@@ -158,17 +158,17 @@ public class Skill {
         if (exp < 1) return 1;
 
         // Use binary search for efficiency, or simple iteration
-        for (int level = 1; level <= maxLevel; level++) {
-            int xpRequiredForLevel = SkillManager.totalExperienceForLevel(level, skillName);
+        for (int level = 1; level <= MAX_LEVEL; level++) {
+            int xpRequiredForLevel = SkillManager.totalExperienceForLevel(level, skillCategory);
             if (exp < xpRequiredForLevel) {
                 return Math.max(1, level - 1);
             }
         }
-        return maxLevel;
+        return MAX_LEVEL;
     }
 
     public void printStats(Player p, boolean isPlayer) {
-        p.sendRawMessage(ChatColor.AQUA.toString() + ChatColor.BOLD + skillName + ChatColor.WHITE + ":");
+        p.sendRawMessage(ChatColor.AQUA.toString() + ChatColor.BOLD + skillCategory + ChatColor.WHITE + ":");
         p.sendRawMessage(ChatColor.WHITE + "Level: " + ChatColor.GREEN + level);
         if (!isPlayer) {
             p.sendRawMessage("");
@@ -181,7 +181,7 @@ public class Skill {
         String percentString = String.format("%.2f", (double) soFar / total * 100);
         String xp = ChatColor.YELLOW.toString() + soFar + ChatColor.WHITE + "/"
                 + ChatColor.YELLOW + total;
-        if (level == maxLevel) {
+        if (level == MAX_LEVEL) {
             p.sendRawMessage(ChatColor.WHITE + "Experience: " + ChatColor.YELLOW + "MAX");
         }
         else if (soFar == 0) {
@@ -195,12 +195,12 @@ public class Skill {
     }
 
     public void levelUpNotification(Player p) {
-        p.sendRawMessage(ChatColor.GREEN + "Skill " + ChatColor.AQUA + skillName + ChatColor.GREEN + " has leveled up to level: " + ChatColor.GOLD + level);
+        p.sendRawMessage(ChatColor.GREEN + "Skill " + ChatColor.AQUA + skillCategory + ChatColor.GREEN + " has leveled up to level: " + ChatColor.GOLD + level);
         p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
     }
 
     public int getMaxLevel() {
-        return maxLevel;
+        return MAX_LEVEL;
     }
 
     public boolean isCurrentMaxMessage() {
@@ -218,8 +218,8 @@ public class Skill {
                 ", rawExperienceForNextLevel=" + rawExperienceForNextLevel +
                 ", level=" + level +
                 ", currentMaxMessage=" + currentMaxMessage +
-                ", maxLevel=" + maxLevel +
-                ", skillName='" + skillName + '\'' +
+                ", maxLevel=" + MAX_LEVEL +
+                ", skillName='" + skillCategory.getDisplayName() + '\'' +
                 '}';
     }
 }

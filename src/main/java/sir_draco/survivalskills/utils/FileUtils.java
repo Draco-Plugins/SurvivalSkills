@@ -18,6 +18,7 @@ import sir_draco.survivalskills.commands.admin_commands.*;
 import sir_draco.survivalskills.commands.default_commands.*;
 import sir_draco.survivalskills.commands.skill_commands.*;
 import sir_draco.survivalskills.skills.Skill;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.skills.SkillsHolder;
 
@@ -203,21 +204,20 @@ public class FileUtils {
         if (section == null)
             return;
         section.getKeys(false).forEach(key -> {
+            EnumMap<SkillCategory, Integer> scores = new EnumMap<>(SkillCategory.class);
+            scores.put(SkillCategory.BUILDING, leaderboardData.getInt(key + ".Building"));
+            scores.put(SkillCategory.CRAFTING, leaderboardData.getInt(key + ".Crafting"));
+            scores.put(SkillCategory.EXPLORING, leaderboardData.getInt(key + ".Exploring"));
+            scores.put(SkillCategory.FARMING, leaderboardData.getInt(key + ".Farming"));
+            scores.put(SkillCategory.FIGHTING, leaderboardData.getInt(key + ".Fighting"));
+            scores.put(SkillCategory.FISHING, leaderboardData.getInt(key + ".Fishing"));
+            scores.put(SkillCategory.MINING, leaderboardData.getInt(key + ".Mining"));
+            scores.put(SkillCategory.MAIN, leaderboardData.getInt(key + ".Main"));
+            scores.put(SkillCategory.DEATHS, leaderboardData.getInt(key + ".Deaths"));
+            scores.put(SkillCategory.SOLO_TRIALS, leaderboardData.getInt(key + ".SoloTrials"));
+            scores.put(SkillCategory.COOP_TRIALS, leaderboardData.getInt(key + ".CoopTrials"));
             String name = leaderboardData.getString(key + ".Name");
-            int level = leaderboardData.getInt(key + ".Level");
-            int building = leaderboardData.getInt(key + ".Building");
-            int mining = leaderboardData.getInt(key + ".Mining");
-            int fishing = leaderboardData.getInt(key + ".Fishing");
-            int exploring = leaderboardData.getInt(key + ".Exploring");
-            int farming = leaderboardData.getInt(key + ".Farming");
-            int fighting = leaderboardData.getInt(key + ".Fighting");
-            int crafting = leaderboardData.getInt(key + ".Crafting");
-            int main = leaderboardData.getInt(key + ".Main");
-            int deaths = leaderboardData.getInt(key + ".Deaths");
-            int trialScore = leaderboardData.getInt(key + ".Trials");
-            int coopTrialScore = leaderboardData.getInt(key + ".CoopTrials");
-            LeaderboardPlayer leaderboard = new LeaderboardPlayer(name, level, building, mining, fishing, exploring,
-                    farming, fighting, crafting, main, deaths, trialScore, coopTrialScore);
+            LeaderboardPlayer leaderboard = new LeaderboardPlayer(name, scores);
             leaderboardTracker.put(UUID.fromString(key), leaderboard);
         });
     }
@@ -362,14 +362,14 @@ public class FileUtils {
             trophyList.put("ChampionTrophy", false);
             trophyList.put("GodTrophy", false);
 
-            skills.add(new Skill(0, 1, "Main"));
-            skills.add(new Skill(0, 1, "Building"));
-            skills.add(new Skill(0, 1, "Mining"));
-            skills.add(new Skill(0, 1, "Fishing"));
-            skills.add(new Skill(0, 1, "Exploring"));
-            skills.add(new Skill(0, 1, "Farming"));
-            skills.add(new Skill(0, 1, "Fighting"));
-            skills.add(new Skill(0, 1, "Crafting"));
+            skills.add(new Skill(0, 1, SkillCategory.MAIN));
+            skills.add(new Skill(0, 1, SkillCategory.BUILDING));
+            skills.add(new Skill(0, 1, SkillCategory.MINING));
+            skills.add(new Skill(0, 1, SkillCategory.FISHING));
+            skills.add(new Skill(0, 1, SkillCategory.EXPLORING));
+            skills.add(new Skill(0, 1, SkillCategory.FARMING));
+            skills.add(new Skill(0, 1, SkillCategory.FIGHTING));
+            skills.add(new Skill(0, 1, SkillCategory.CRAFTING));
 
             plugin.getTrophyManager().getTrophyTracker().put(p.getUniqueId(), trophyList);
             SkillsHolder holder = new SkillsHolder(skills, plugin.getSkillManager().getNewPlayerRewards());
@@ -378,7 +378,7 @@ public class FileUtils {
                 plugin.getSkillManager().getPlayerSkills().put(p.getUniqueId(), holder);
             else
                 Bukkit.getLogger().warning(PLAYER + p.getName() + " already has skills loaded");
-            plugin.getToggledScoreboard().put(p.getUniqueId(), true);
+            plugin.getShowScoreboard().put(p.getUniqueId(), true);
 
             savePlayerData(p);
             return;
@@ -387,7 +387,7 @@ public class FileUtils {
         UUID uuid = p.getUniqueId();
         if (!plugin.getSkillManager().getPlayerSkills().containsKey(uuid))
             plugin.getSkillManager().loadPlayerSkills(uuid, data);
-        if (!plugin.getToggledScoreboard().containsKey(uuid))
+        if (!plugin.getShowScoreboard().containsKey(uuid))
             loadScoreboardSetting(uuid, data);
         if (!plugin.getTrophyManager().getTrophyTracker().containsKey(uuid))
             plugin.getTrophyManager().loadPlayerTrophies(uuid, data);
@@ -486,13 +486,13 @@ public class FileUtils {
     }
 
     public static void loadScoreboardSetting(UUID uuid, FileConfiguration data) {
-        if (SurvivalSkills.getInstance().getToggledScoreboard().containsKey(uuid))
+        if (SurvivalSkills.getInstance().getShowScoreboard().containsKey(uuid))
             return;
         if (!data.contains(uuid + SCOREBOARD)) {
             // default to having the scoreboard enabled when no setting exists
-            SurvivalSkills.getInstance().getToggledScoreboard().put(uuid, true);
+            SurvivalSkills.getInstance().getShowScoreboard().put(uuid, true);
         } else {
-            SurvivalSkills.getInstance().getToggledScoreboard().put(uuid, data.getBoolean(uuid + SCOREBOARD));
+            SurvivalSkills.getInstance().getShowScoreboard().put(uuid, data.getBoolean(uuid + SCOREBOARD));
         }
     }
 
@@ -582,11 +582,11 @@ public class FileUtils {
 
         UUID uuid = p.getUniqueId();
         plugin.getTrophyManager().savePlayerTrophyData(uuid, data);
-        if (SkillManager.getSkill(uuid, "Main").getLevel() == 100)
+        if (SkillManager.getSkill(uuid, SkillCategory.MAIN).getLevel() == Skill.MAX_LEVEL)
             plugin.getTrophyManager().savePlayerGodQuestData(uuid, godQuestData);
 
-        if (plugin.getToggledScoreboard().containsKey(uuid))
-            data.set(uuid + SCOREBOARD, plugin.getToggledScoreboard().get(uuid));
+        if (plugin.getShowScoreboard().containsKey(uuid))
+            data.set(uuid + SCOREBOARD, plugin.getShowScoreboard().get(uuid));
         else
             Bukkit.getLogger().warning(PLAYER + p.getName() + " does not have a scoreboard status");
 
@@ -638,8 +638,8 @@ public class FileUtils {
 
         for (Player p : Bukkit.getOnlinePlayers()) {
             UUID uuid = p.getUniqueId();
-            if (plugin.getToggledScoreboard().containsKey(uuid))
-                data.set(uuid + SCOREBOARD, plugin.getToggledScoreboard().get(uuid));
+            if (plugin.getShowScoreboard().containsKey(uuid))
+                data.set(uuid + SCOREBOARD, plugin.getShowScoreboard().get(uuid));
             else
                 Bukkit.getLogger().warning(PLAYER + p.getName() + " does not have a scoreboard status");
 
@@ -667,25 +667,24 @@ public class FileUtils {
 
     public static void saveLeaderboard(Map<UUID, LeaderboardPlayer> leaderboardTracker,
             FileConfiguration leaderboardData, File leaderboardFile) throws IOException {
-        if (leaderboardTracker.isEmpty())
-            return;
-        if (leaderboardData == null)
-            return;
+        if (leaderboardTracker.isEmpty()) return;
+        if (leaderboardData == null) return;
 
         for (Map.Entry<UUID, LeaderboardPlayer> player : leaderboardTracker.entrySet()) {
-            leaderboardData.set(player.getKey() + ".Name", player.getValue().getName());
-            leaderboardData.set(player.getKey() + ".Level", player.getValue().getScore());
-            leaderboardData.set(player.getKey() + ".Building", player.getValue().getBuildingScore());
-            leaderboardData.set(player.getKey() + ".Mining", player.getValue().getMiningScore());
-            leaderboardData.set(player.getKey() + ".Fishing", player.getValue().getFishingScore());
-            leaderboardData.set(player.getKey() + ".Exploring", player.getValue().getExploringScore());
-            leaderboardData.set(player.getKey() + ".Farming", player.getValue().getFarmingScore());
-            leaderboardData.set(player.getKey() + ".Fighting", player.getValue().getFightingScore());
-            leaderboardData.set(player.getKey() + ".Crafting", player.getValue().getCraftingScore());
-            leaderboardData.set(player.getKey() + ".Main", player.getValue().getMainScore());
-            leaderboardData.set(player.getKey() + ".Deaths", player.getValue().getDeathScore());
-            leaderboardData.set(player.getKey() + ".SoloTrials", player.getValue().getTrialScore());
-            leaderboardData.set(player.getKey() + ".CoopTrials", player.getValue().getCoopTrialScore());
+            LeaderboardPlayer lp = player.getValue();
+            leaderboardData.set(player.getKey() + ".Name", lp.getName());
+            leaderboardData.set(player.getKey() + ".Level", lp.getScore());
+            leaderboardData.set(player.getKey() + ".Building", lp.getScore(SkillCategory.BUILDING));
+            leaderboardData.set(player.getKey() + ".Mining", lp.getScore(SkillCategory.MINING));
+            leaderboardData.set(player.getKey() + ".Fishing", lp.getScore(SkillCategory.FISHING));
+            leaderboardData.set(player.getKey() + ".Exploring", lp.getScore(SkillCategory.EXPLORING));
+            leaderboardData.set(player.getKey() + ".Farming", lp.getScore(SkillCategory.FARMING));
+            leaderboardData.set(player.getKey() + ".Fighting", lp.getScore(SkillCategory.FIGHTING));
+            leaderboardData.set(player.getKey() + ".Crafting", lp.getScore(SkillCategory.CRAFTING));
+            leaderboardData.set(player.getKey() + ".Main", lp.getScore(SkillCategory.MAIN));
+            leaderboardData.set(player.getKey() + ".Deaths", lp.getScore(SkillCategory.DEATHS));
+            leaderboardData.set(player.getKey() + ".SoloTrials", lp.getScore(SkillCategory.SOLO_TRIALS));
+            leaderboardData.set(player.getKey() + ".CoopTrials", lp.getScore(SkillCategory.COOP_TRIALS));
         }
 
         try {

@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.abilities.AbilityTimer;
 import sir_draco.survivalskills.abilities.SpelunkerAbilitySync;
 import sir_draco.survivalskills.rewards.RewardNotifications;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 @SuppressWarnings("NullableProblems")
@@ -27,7 +28,7 @@ public class SpelunkerCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (!(sender instanceof Player p)) return false;
         // Check for level requirements reset and active times and radius
-        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "SpelunkerI").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.MINING, "SpelunkerI").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Spelunker is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
@@ -46,22 +47,22 @@ public class SpelunkerCommand implements CommandExecutor {
         int resetTime;
         int activeTime;
         int radius;
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "SpelunkerI").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "SpelunkerI").isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force spelunker use: " + ChatColor.AQUA + "/spelunker force");
             }
             p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "SpelunkerI").getLevel()
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.MINING, "SpelunkerI").getLevel()
                     + ChatColor.RED + " to use Spelunker");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         }
-        else if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "SpelunkerII").isApplied()) {
+        else if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "SpelunkerII").isApplied()) {
             resetTime = 3600; // 60 minutes
             activeTime = 300; // 5 minutes
             radius = 5;
         }
-        else if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "SpelunkerIII").isApplied()) {
+        else if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "SpelunkerIII").isApplied()) {
             resetTime = 1800; // 30 minutes
             activeTime = 900; // 15 minutes
             radius = 10;

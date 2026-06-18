@@ -67,7 +67,7 @@ public class Utils {
     public static void loadOnlinePlayers(SurvivalSkills plugin) {
         if (!Bukkit.getServer().getOnlinePlayers().isEmpty()) {
             for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-                plugin.playerJoin(p, true);
+                plugin.playerJoin(p);
                 TrialManager.loadCompletedTrials(p);
             }
             // Try to fix boss bars

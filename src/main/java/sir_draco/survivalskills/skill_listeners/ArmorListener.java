@@ -24,6 +24,7 @@ import sir_draco.survivalskills.abilities.armor.*;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -77,7 +78,7 @@ public class ArmorListener implements Listener {
         }
 
         // Check if they have the keep inventory skill
-        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Main", "KeepInventory");
+        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MAIN, "KeepInventory");
         if (reward.isApplied())
             return;
 
@@ -309,7 +310,7 @@ public class ArmorListener implements Listener {
         if (playersWearingJumpingBoots.contains(p.getUniqueId()))
             return;
 
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Exploring",
+        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING,
                 "JumpingBoots");
         if (!reward.isApplied())
             return;
@@ -327,7 +328,7 @@ public class ArmorListener implements Listener {
         if (playersWearingWandererArmor.contains(p.getUniqueId()))
             return;
 
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Exploring",
+        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING,
                 "WandererArmor");
         if (!reward.isApplied())
             return;
@@ -345,7 +346,7 @@ public class ArmorListener implements Listener {
         if (playersWearingTravelerArmor.contains(p.getUniqueId()))
             return;
 
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Exploring",
+        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING,
                 "TravelerArmor");
         if (!reward.isApplied())
             return;
@@ -363,7 +364,7 @@ public class ArmorListener implements Listener {
         if (playersWearingGillArmor.contains(p.getUniqueId()))
             return;
 
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Exploring",
+        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING,
                 "GillArmor");
         if (!reward.isApplied())
             return;
@@ -381,7 +382,7 @@ public class ArmorListener implements Listener {
         if (playersWearingAdventurerArmor.contains(p.getUniqueId()))
             return;
 
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Exploring",
+        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING,
                 "AdventurerArmor");
         if (!reward.isApplied())
             return;
@@ -399,7 +400,7 @@ public class ArmorListener implements Listener {
         if (playersWearingBeaconArmor.contains(p.getUniqueId()))
             return;
 
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining",
+        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING,
                 "BeaconArmor");
         if (!reward.isApplied())
             return;
@@ -418,7 +419,7 @@ public class ArmorListener implements Listener {
             return;
         }
 
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward("Mining",
+        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING,
                 "PowerOre");
         if (!reward.isApplied())
             return;
@@ -460,7 +461,7 @@ public class ArmorListener implements Listener {
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
         if (rewards == null)
             return;
-        if (!rewards.getReward("Exploring", "HealthRegen").isApplied())
+        if (!rewards.getReward(SkillCategory.EXPLORING, "HealthRegen").isApplied())
             return;
 
         new BukkitRunnable() {

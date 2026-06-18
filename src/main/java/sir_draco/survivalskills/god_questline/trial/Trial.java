@@ -16,6 +16,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.boards.SkillScoreboard;
 import sir_draco.survivalskills.god_questline.trial_mobs.WaveMob;
 import sir_draco.survivalskills.rewards.RewardNotifications;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.TrialUtils;
 
@@ -460,7 +461,7 @@ public class Trial extends BukkitRunnable {
             SurvivalSkills.getInstance().getFishingListener().getDisabledAutoTrash().remove(p);
             p.getInventory().clear();
             TrialManager.getTrialScoreboards().remove(p);
-            SkillScoreboard.updateScoreboard(SurvivalSkills.getInstance(), p);
+            SkillScoreboard.updateScoreboard(p);
         }
     }
 
@@ -500,7 +501,7 @@ public class Trial extends BukkitRunnable {
         p.sendRawMessage(ChatColor.RED + "You have left the trial");
         p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         TrialManager.getTrialScoreboards().remove(p);
-        SkillScoreboard.updateScoreboard(SurvivalSkills.getInstance(), p);
+        SkillScoreboard.updateScoreboard(p);
     }
 
     public void completeTrial() {
@@ -523,7 +524,7 @@ public class Trial extends BukkitRunnable {
         for (Player p : players) {
             p.getInventory().clear();
             TrialManager.getTrialScoreboards().remove(p);
-            SkillScoreboard.updateScoreboard(SurvivalSkills.getInstance(), p);
+            SkillScoreboard.updateScoreboard(p);
         }
 
         int timeBonus = (3600 * difficulty) - timeSpent;
@@ -554,19 +555,19 @@ public class Trial extends BukkitRunnable {
 
             boolean newHighScore;
             if (solo) {
-                if (SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId()).getTrialScore() < score
+                if (SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId()).getScore(SkillCategory.SOLO_TRIALS) < score
                         / playerCount) {
                     newHighScore = true;
                     SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId())
-                            .setTrialScore(score / playerCount);
+                            .setScore(SkillCategory.SOLO_TRIALS, score / playerCount);
                 } else
                     newHighScore = false;
             } else {
                 if (SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId())
-                        .getCoopTrialScore() < score / playerCount) {
+                        .getScore(SkillCategory.COOP_TRIALS) < score / playerCount) {
                     newHighScore = true;
                     SurvivalSkills.getInstance().getLeaderboardTracker().get(p.getUniqueId())
-                            .setCoopTrialScore(score / playerCount);
+                            .setScore(SkillCategory.COOP_TRIALS, score / playerCount);
                 } else
                     newHighScore = false;
             }

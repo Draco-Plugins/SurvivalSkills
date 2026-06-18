@@ -9,6 +9,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.abilities.AutoTrash;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 @SuppressWarnings("NullableProblems")
@@ -27,14 +28,14 @@ public class PermaTrashCommand implements CommandExecutor {
         if (!(sender instanceof Player p)) return false;
 
         boolean big = false;
-        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "PermaTrashI");
+        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FISHING, "PermaTrashI");
         if ((!reward.isEnabled() || !reward.isApplied()) && !plugin.isForced(p, strings)) {
             p.sendRawMessage(ChatColor.RED + "You have to be fishing level " + ChatColor.AQUA + reward.getLevel() + ChatColor.RED + " to use this ability");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         }
 
-        Reward bigReward = plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "PermaTrashII");
+        Reward bigReward = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FISHING, "PermaTrashII");
         if (bigReward.isEnabled() && bigReward.isApplied()) big = true;
 
         AutoTrash trash;

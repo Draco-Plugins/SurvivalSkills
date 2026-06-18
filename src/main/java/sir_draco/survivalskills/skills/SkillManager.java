@@ -65,42 +65,39 @@ public class SkillManager {
         runSkillAutoSave();
     }
 
-    public static void experienceEvent(SurvivalSkills plugin, Player p, double xp, String skillName) {
+    public static void experienceEvent(SurvivalSkills plugin, Player p, double xp, SkillCategory skillCategory) {
         // Handle multipliers
         xp *= plugin.getSkillManager().getMultiplier();
         if (plugin.getAbilityManager().getAbility(p, "XPVoucher") != null)
             xp *= plugin.getSkillManager().getPlayerMultiplier(p);
 
         UUID uuid = p.getUniqueId();
-        Skill skill = SkillManager.getSkill(uuid, skillName);
+        Skill skill = SkillManager.getSkill(uuid, skillCategory);
         if (skill == null) {
-            Bukkit.getLogger().log(Level.WARNING, "Skill not found for player " + p.getName() + ": " + skillName);
+            Bukkit.getLogger().log(Level.WARNING, "Skill not found for player " + p.getName() + ": " + skillCategory);
             return;
         }
 
         if (skill.getLevel() >= plugin.getTrophyManager().playerMaxSkillLevel(uuid)) {
-            SkillScoreboard.updateScoreboard(plugin, p, skillName);
-            if (skill.getLevel() == 100 || skill.isCurrentMaxMessage())
-                return;
-            if (!plugin.getSkillManager().isMaxSkillMessageEnabled(p))
-                return;
-            p.sendRawMessage(
-                    ChatColor.DARK_BLUE + "You have reached your current max level for: " + ChatColor.AQUA + skillName);
+            SkillScoreboard.updateScoreboard(p, skillCategory);
+            if (skill.getLevel() == Skill.MAX_LEVEL || skill.isCurrentMaxMessage()) return;
+            if (!plugin.getSkillManager().isMaxSkillMessageEnabled(p)) return;
+            p.sendRawMessage(ChatColor.DARK_BLUE + "You have reached your current max level for: " + ChatColor.AQUA + skillCategory);
             p.playSound(p, Sound.BLOCK_NOTE_BLOCK_BASS, 1, 1);
             skill.setCurrentMaxMessage(true);
             return;
         }
 
-        if (skill.getLevel() >= 100) {
-            SkillScoreboard.updateScoreboard(plugin, p);
+        if (skill.getLevel() >= Skill.MAX_LEVEL) {
+            SkillScoreboard.updateScoreboard(p);
             return;
         }
-        xp = checkXPCap(skill.getExperience(), xp, plugin.getTrophyManager().playerMaxSkillLevel(uuid), skillName);
+        xp = checkXPCap(skill.getExperience(), xp, plugin.getTrophyManager().playerMaxSkillLevel(uuid), skillCategory);
 
-        if (plugin.getToggledScoreboard().containsKey(p.getUniqueId())
-                && plugin.getToggledScoreboard().get(p.getUniqueId())
+        if (plugin.getShowScoreboard().containsKey(p.getUniqueId())
+                && plugin.getShowScoreboard().get(p.getUniqueId())
                 && xp != 0)
-            sendActionBarMessage(p, ChatColor.GRAY + skillName + ChatColor.YELLOW + " (+" + xp + ")");
+            sendActionBarMessage(p, ChatColor.GRAY + skillCategory.getDisplayName() + ChatColor.YELLOW + " (+" + xp + ")");
         if (skill.changeExperience(xp, plugin.getTrophyManager().playerMaxSkillLevel(uuid))) {
             skill.levelUpNotification(p);
 
@@ -111,29 +108,31 @@ public class SkillManager {
                 return;
             }
 
-            rewards.handleReward(p, skill, skillName, true);
+            rewards.handleReward(p, skill, true);
             if (plugin.getLeaderboardTracker().containsKey(p.getUniqueId())) {
                 LeaderboardPlayer player = plugin.getLeaderboardTracker().get(p.getUniqueId());
-                setScore(player, p, plugin, skill.getSkillName());
+                setScore(player, p, plugin, skill.getSkillCategory());
                 plugin.getLeaderboardTracker().put(p.getUniqueId(), player);
             } else {
-                plugin.getLeaderboardTracker().put(p.getUniqueId(), Leaderboard.createLeaderboardPlayer(plugin, p));
-                setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, skill.getSkillName());
+                plugin.getLeaderboardTracker().put(p.getUniqueId(), Leaderboard.createLeaderboardPlayer(p));
+                setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, skill.getSkillCategory());
+            }
+
+            if (skill.getSkillCategory() == SkillCategory.MAIN) {
+                SkillScoreboard.updateNametags(p);
             }
         }
 
         // Check the main skill
         plugin.getSkillManager().syncMainSkill(p);
-        SkillScoreboard.updateScoreboard(plugin, p, skillName);
-        // Removed recursive zero-xp call; main skill is now always recalculated
-        // deterministically
+        SkillScoreboard.updateScoreboard(p, skillCategory);
     }
 
     /**
      * Ensures that the XP cap is not exceeded
      */
-    public static double checkXPCap(double totalXP, double xp, int levelCap, String skillName) {
-        double xpForLevel = totalExperienceForLevel(levelCap, skillName);
+    public static double checkXPCap(double totalXP, double xp, int levelCap, SkillCategory skillCategory) {
+        double xpForLevel = totalExperienceForLevel(levelCap, skillCategory);
         if (totalXP > xpForLevel)
             return 0;
         if (totalXP + xp > xpForLevel)
@@ -145,48 +144,16 @@ public class SkillManager {
         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(message));
     }
 
-    public static void setScore(LeaderboardPlayer player, Player p, SurvivalSkills plugin, String skillName) {
-        player.setScore(Leaderboard.getLeaderboardScore(plugin, p, "All"));
-        int skillScore = Leaderboard.getLeaderboardScore(plugin, p, skillName);
-        switch (skillName) {
-            case "Building":
-                player.setBuildingScore(skillScore);
-                break;
-            case "Mining":
-                player.setMiningScore(skillScore);
-                break;
-            case "Farming":
-                player.setFarmingScore(skillScore);
-                break;
-            case "Fighting":
-                player.setFightingScore(skillScore);
-                break;
-            case "Fishing":
-                player.setFishingScore(skillScore);
-                break;
-            case "Crafting":
-                player.setCraftingScore(skillScore);
-                break;
-            case "Exploring":
-                player.setExploringScore(skillScore);
-                break;
-            case "Main":
-                player.setMainScore(skillScore);
-                break;
-            case "Death":
-                player.setDeathScore(skillScore);
-                break;
-            case "TrialScore":
-                player.setTrialScore(skillScore);
-                break;
-        }
+    public static void setScore(LeaderboardPlayer player, Player p, SurvivalSkills plugin, SkillCategory skillCategory) {
+        player.setScore(SkillCategory.ALL, Leaderboard.getLeaderboardScore(p, SkillCategory.ALL));
+        player.setScore(skillCategory, Leaderboard.getLeaderboardScore(p, skillCategory));
     }
 
     /**
      * Returns the amount of XP needed for all levels up to
      * and including the level inputted
      */
-    public static int totalExperienceForLevel(int level, String skillName) {
+    public static int totalExperienceForLevel(int level, SkillCategory skillCategory) {
         double sum = 0;
         if (SurvivalSkills.getInstance().isExponentialXP()) {
             for (int i = 1; i <= level; i++)
@@ -196,12 +163,10 @@ public class SkillManager {
                 sum += Math.log(i) * scalar;
         }
         // Clamp any curve so that level 100 never exceeds the hard max experience.
-        if (level >= 100) {
+        if (level >= Skill.MAX_LEVEL) {
             // Main skill historically forced to exactly 1,000,000 at level 100
-            if (skillName.equals("Main"))
-                return MAX_EXPERIENCE;
-            if (sum > MAX_EXPERIENCE)
-                return MAX_EXPERIENCE;
+            if (skillCategory == SkillCategory.MAIN) return MAX_EXPERIENCE;
+            if (sum > MAX_EXPERIENCE) return MAX_EXPERIENCE;
         }
         return (int) Math.floor(Math.min(sum, MAX_EXPERIENCE));
     }
@@ -255,21 +220,9 @@ public class SkillManager {
             return;
 
         ArrayList<Skill> skills = new ArrayList<>();
-        skills.add(new Skill(data.getDouble(uuid + ".Main.Experience"), data.getInt(uuid + ".Main.Level"), "Main"));
-        skills.add(new Skill(data.getDouble(uuid + ".Building.Experience"), data.getInt(uuid + ".Building.Level"),
-                "Building"));
-        skills.add(
-                new Skill(data.getDouble(uuid + ".Mining.Experience"), data.getInt(uuid + ".Mining.Level"), "Mining"));
-        skills.add(new Skill(data.getDouble(uuid + ".Fishing.Experience"), data.getInt(uuid + ".Fishing.Level"),
-                "Fishing"));
-        skills.add(new Skill(data.getDouble(uuid + ".Exploring.Experience"), data.getInt(uuid + ".Exploring.Level"),
-                "Exploring"));
-        skills.add(new Skill(data.getDouble(uuid + ".Farming.Experience"), data.getInt(uuid + ".Farming.Level"),
-                "Farming"));
-        skills.add(new Skill(data.getDouble(uuid + ".Fighting.Experience"), data.getInt(uuid + ".Fighting.Level"),
-                "Fighting"));
-        skills.add(new Skill(data.getDouble(uuid + ".Crafting.Experience"), data.getInt(uuid + ".Crafting.Level"),
-                "Crafting"));
+        for (SkillCategory skillCategory : SkillCategory.mainSkills()) {
+            skills.add(new Skill(data.getDouble(uuid + "." + skillCategory.getDisplayName() + ".Experience"), data.getInt(uuid + "." + skillCategory.getDisplayName() + ".Level"), skillCategory));
+        }
 
         SkillsHolder holder = new SkillsHolder(skills, getNewPlayerRewards());
         playerSkills.put(uuid, holder);
@@ -284,7 +237,7 @@ public class SkillManager {
             boolean enabled = config.getBoolean(type + "." + key + ".Enabled");
             int level = config.getInt(type + "." + key + ".Level");
             String rewardType = config.getString(type + "." + key + ".Type");
-            defaultPlayerRewards.addReward(type, new Reward(type, key, rewardType, level, enabled));
+            defaultPlayerRewards.addReward(SkillCategory.fromString(type), new Reward(SkillCategory.fromString(type), key, rewardType, level, enabled));
         });
     }
 
@@ -315,8 +268,8 @@ public class SkillManager {
         for (Map.Entry<UUID, SkillsHolder> player : playerSkills.entrySet()) {
             UUID uuid = player.getKey();
             for (Skill skill : player.getValue().getSkills()) {
-                data.set(uuid + "." + skill.getSkillName() + ".Level", skill.getLevel());
-                data.set(uuid + "." + skill.getSkillName() + ".Experience", skill.getExperience());
+                data.set(uuid + "." + skill.getSkillCategory() + ".Level", skill.getLevel());
+                data.set(uuid + "." + skill.getSkillCategory() + ".Experience", skill.getExperience());
             }
         }
     }
@@ -324,8 +277,8 @@ public class SkillManager {
     public void savePlayerSkillData(UUID uuid, FileConfiguration data) {
         if (playerSkills.containsKey(uuid)) {
             for (Skill skill : playerSkills.get(uuid).getSkills()) {
-                data.set(uuid + "." + skill.getSkillName() + ".Level", skill.getLevel());
-                data.set(uuid + "." + skill.getSkillName() + ".Experience", skill.getExperience());
+                data.set(uuid + "." + skill.getSkillCategory() + ".Level", skill.getLevel());
+                data.set(uuid + "." + skill.getSkillCategory() + ".Experience", skill.getExperience());
             }
         } else
             Bukkit.getLogger().warning("UUID " + uuid + " does not have any skills");
@@ -348,7 +301,7 @@ public class SkillManager {
     }
 
     public void updateExploringStats(UUID uuid) {
-        Skill exploring = getSkill(uuid, "Exploring");
+        Skill exploring = getSkill(uuid, SkillCategory.EXPLORING);
         exploring.changeExperience(plugin.getExploringListener().getPlayerSteps(uuid) * exploringXP,
                 plugin.getTrophyManager().playerMaxSkillLevel(uuid));
     }
@@ -363,18 +316,16 @@ public class SkillManager {
         if (!playerSkills.containsKey(p.getUniqueId()))
             return;
         UUID uuid = p.getUniqueId();
-        Skill main = getSkill(uuid, "Main");
+        Skill main = getSkill(uuid, SkillCategory.MAIN);
 
         int levelCap = plugin.getTrophyManager().playerMaxSkillLevel(uuid);
         double totalXP = 0.0;
         int contributingSkills = 0;
         for (Skill skill : playerSkills.get(uuid).getSkills()) {
-            if (skill.getSkillName().equalsIgnoreCase("Main"))
+            if (skill.getSkillCategory() == SkillCategory.MAIN)
                 continue;
             // Cap each skill's experience at MAX_EXPERIENCE to ensure the main skill
             // calculation does not exceed allowed limits,
-            // as required by the skill system design to prevent overflow and maintain
-            // consistency.
             totalXP += Math.min(skill.getExperience(), MAX_EXPERIENCE);
             contributingSkills++;
         }
@@ -396,10 +347,11 @@ public class SkillManager {
         // Level-up notification & rewards
         main.levelUpNotification(p);
         PlayerRewards rewards = getPlayerRewards(p);
-        if (rewards != null)
-            rewards.handleReward(p, main, "Main", true);
+        if (rewards != null) {
+            rewards.handleReward(p, main, true);
+        }
 
-        if (main.getLevel() == 100) {
+        if (main.getLevel() == Skill.MAX_LEVEL) {
             // TODO: Convert to method
             HashMap<String, Boolean> trophies = plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId());
             if (trophies != null) {
@@ -423,11 +375,11 @@ public class SkillManager {
         // Update leaderboard scores for Main
         if (plugin.getLeaderboardTracker().containsKey(p.getUniqueId())) {
             LeaderboardPlayer player = plugin.getLeaderboardTracker().get(p.getUniqueId());
-            setScore(player, p, plugin, main.getSkillName());
+            setScore(player, p, plugin, main.getSkillCategory());
             plugin.getLeaderboardTracker().put(p.getUniqueId(), player);
         } else {
-            plugin.getLeaderboardTracker().put(p.getUniqueId(), Leaderboard.createLeaderboardPlayer(plugin, p));
-            setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, main.getSkillName());
+            plugin.getLeaderboardTracker().put(p.getUniqueId(), Leaderboard.createLeaderboardPlayer(p));
+            setScore(plugin.getLeaderboardTracker().get(p.getUniqueId()), p, plugin, main.getSkillCategory());
         }
     }
 
@@ -475,15 +427,15 @@ public class SkillManager {
         return playerSkills.get(p.getUniqueId()).getSkillMultiplier();
     }
 
-    public static Skill getSkill(UUID uuid, String skillName) {
+    public static Skill getSkill(UUID uuid, SkillCategory skillCategory) {
         if (!playerSkills.containsKey(uuid)) {
-            return new Skill(0, 0, skillName);
+            return new Skill(0, 0, skillCategory);
         }
-        return playerSkills.get(uuid).getSkill(skillName);
+        return playerSkills.get(uuid).getSkill(skillCategory);
     }
 
-    public static int getSkillLevel(UUID uuid, String skillName) {
-        Skill skill = getSkill(uuid, skillName);
+    public static int getSkillLevel(UUID uuid, SkillCategory skillCategory) {
+        Skill skill = getSkill(uuid, skillCategory);
         return skill.getLevel();
     }
 

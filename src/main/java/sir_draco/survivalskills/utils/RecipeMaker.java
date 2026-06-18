@@ -6,7 +6,7 @@ import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MusicInstrumentMeta;
 import org.bukkit.scheduler.BukkitRunnable;
-import sir_draco.survivalskills.commands.default_commands.SkillStatsCommand;
+import sir_draco.survivalskills.commands.default_commands.SkillsCommand;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.*;
@@ -850,7 +850,7 @@ public class RecipeMaker {
                         @Override
                         public void run() {
                                 if (recipeStack.isEmpty()) {
-                                        new SkillStatsCommand(SurvivalSkills.getInstance());
+                                        new SkillsCommand(SurvivalSkills.getInstance());
                                         cancel();
                                         return;
                                 }

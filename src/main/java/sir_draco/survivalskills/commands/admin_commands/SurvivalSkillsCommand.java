@@ -12,13 +12,13 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.skills.Skill;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.UUID;
 
 @SuppressWarnings("NullableProblems")
 public class SurvivalSkillsCommand implements CommandExecutor {
@@ -72,12 +72,12 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
-            if (isNotSkill(p.getUniqueId(), strings[2])) {
+            if (!SkillCategory.isMainSkill(strings[2])) {
                 p.sendRawMessage(ChatColor.RED + "Skill not found.");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
-            Skill skill = SkillManager.getSkill(target.getUniqueId(), strings[2]);
+            Skill skill = SkillManager.getSkill(target.getUniqueId(), SkillCategory.fromString(strings[2]));
             handleXP(p, target, skill, strings);
             updateRewards(target, skill);
             return true;
@@ -102,12 +102,12 @@ public class SurvivalSkillsCommand implements CommandExecutor {
                 }
                 return true;
             }
-            if (isNotSkill(p.getUniqueId(), strings[2])) {
+            if (!SkillCategory.isMainSkill(strings[2])) {
                 p.sendRawMessage(ChatColor.RED + "Skill not found.");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
-            Skill skill = SkillManager.getSkill(target.getUniqueId(), strings[2]);
+            Skill skill = SkillManager.getSkill(target.getUniqueId(), SkillCategory.fromString(strings[2]));
             handleLevel(p, target, skill, strings);
             updateRewards(target, skill);
             return true;
@@ -272,7 +272,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
             try {
                 level = Integer.parseInt(strings[2]);
                 if (level < 1) level = Math.abs(level);
-                if (level > 100) level = 100;
+                if (level > Skill.MAX_LEVEL) level = Skill.MAX_LEVEL;
             } catch (NumberFormatException e) {
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 p.sendMessage(ChatColor.RED + "Please enter a valid number.");
@@ -287,13 +287,6 @@ public class SurvivalSkillsCommand implements CommandExecutor {
 
         p.sendRawMessage(ChatColor.RED + "Correct usage: " + ChatColor.GRAY + "/survivalskills help/level/xp");
         p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-        return true;
-    }
-
-    public boolean isNotSkill(UUID uuid, String skill) {
-        for (Skill s : plugin.getSkillManager().getPlayerSkills().get(uuid).getSkills()) {
-            if (s.getSkillName().equalsIgnoreCase(skill)) return false;
-        }
         return true;
     }
 
@@ -316,25 +309,25 @@ public class SurvivalSkillsCommand implements CommandExecutor {
 
         if (strings[3].equalsIgnoreCase("add")) {
             skill.changeExperience(amount, skill.getMaxLevel());
-            target.sendMessage(ChatColor.GREEN + "Added " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP to " + ChatColor.GRAY + skill.getSkillName());
+            target.sendMessage(ChatColor.GREEN + "Added " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP to " + ChatColor.GRAY + skill.getSkillCategory());
             target.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
             p.sendRawMessage(ChatColor.GREEN + "Added " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP to "
-                    + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
+                    + ChatColor.GRAY + skill.getSkillCategory() + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         else if (strings[3].equalsIgnoreCase("remove")) {
             skill.changeExperience(-amount, skill.getMaxLevel());
-            target.sendMessage(ChatColor.GREEN + "Removed " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP from " + ChatColor.GRAY + skill.getSkillName());
+            target.sendMessage(ChatColor.GREEN + "Removed " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP from " + ChatColor.GRAY + skill.getSkillCategory());
             target.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
             p.sendRawMessage(ChatColor.GREEN + "Removed " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP from "
-                    + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
+                    + ChatColor.GRAY + skill.getSkillCategory() + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         else if (strings[3].equalsIgnoreCase("set")) {
             skill.setExperience(amount);
-            target.sendMessage(ChatColor.GREEN + "Set " + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN + " XP to " + ChatColor.GRAY + amount);
+            target.sendMessage(ChatColor.GREEN + "Set " + ChatColor.GRAY + skill.getSkillCategory() + ChatColor.GREEN + " XP to " + ChatColor.GRAY + amount);
             target.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-            p.sendRawMessage(ChatColor.GREEN + "Set " + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN
+            p.sendRawMessage(ChatColor.GREEN + "Set " + ChatColor.GRAY + skill.getSkillCategory() + ChatColor.GREEN
                     + " XP to " + ChatColor.GRAY + amount + " for " + ChatColor.GREEN + target.getName());
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
@@ -362,25 +355,25 @@ public class SurvivalSkillsCommand implements CommandExecutor {
 
         if (strings[3].equalsIgnoreCase("add")) {
             skill.changeLevel(amount);
-            target.sendMessage(ChatColor.GREEN + "Added " + ChatColor.GRAY + amount + ChatColor.GREEN + " levels to " + ChatColor.GRAY + skill.getSkillName());
+            target.sendMessage(ChatColor.GREEN + "Added " + ChatColor.GRAY + amount + ChatColor.GREEN + " levels to " + ChatColor.GRAY + skill.getSkillCategory());
             target.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
             p.sendRawMessage(ChatColor.GREEN + "Added " + ChatColor.GRAY + amount + ChatColor.GREEN + " levels to "
-                    + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
+                    + ChatColor.GRAY + skill.getSkillCategory() + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         else if (strings[3].equalsIgnoreCase("remove")) {
             skill.changeLevel(-amount);
-            target.sendMessage(ChatColor.GREEN + "Removed " + ChatColor.GRAY + amount + ChatColor.GREEN + " levels from " + ChatColor.GRAY + skill.getSkillName());
+            target.sendMessage(ChatColor.GREEN + "Removed " + ChatColor.GRAY + amount + ChatColor.GREEN + " levels from " + ChatColor.GRAY + skill.getSkillCategory());
             target.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
             p.sendRawMessage(ChatColor.GREEN + "Removed " + ChatColor.GRAY + amount + ChatColor.GREEN + " levels from "
-                    + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
+                    + ChatColor.GRAY + skill.getSkillCategory() + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
         else if (strings[3].equalsIgnoreCase("set")) {
             skill.setLevel(amount);
-            target.sendMessage(ChatColor.GREEN + "Set " + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN + " level to " + ChatColor.GRAY + amount);
+            target.sendMessage(ChatColor.GREEN + "Set " + ChatColor.GRAY + skill.getSkillCategory() + ChatColor.GREEN + " level to " + ChatColor.GRAY + amount);
             target.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-            p.sendRawMessage(ChatColor.GREEN + "Set " + ChatColor.GRAY + skill.getSkillName() + ChatColor.GREEN
+            p.sendRawMessage(ChatColor.GREEN + "Set " + ChatColor.GRAY + skill.getSkillCategory() + ChatColor.GREEN
                     + " level to " + ChatColor.GRAY + amount + " for " + ChatColor.GREEN + target.getName());
             p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
@@ -391,7 +384,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
     }
 
     public void updateRewards(Player p, Skill skill) {
-        for (Reward reward : plugin.getSkillManager().getPlayerRewards(p).getRewardList().get(skill.getSkillName())) {
+        for (Reward reward : plugin.getSkillManager().getPlayerRewards(p).getRewardList().get(skill.getSkillCategory())) {
             if (skill.getLevel() >= reward.getLevel() && !reward.isApplied() && reward.isEnabled()) {
                 p.sendMessage(ChatColor.GREEN + "You have unlocked a new reward: " + ChatColor.GRAY + reward.getName());
             }
@@ -400,7 +393,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
     }
 
     public Reward findReward(String rewardName) {
-        for (Map.Entry<String, ArrayList<Reward>> skill : plugin.getSkillManager().getDefaultPlayerRewards().getRewardList().entrySet()) {
+        for (Map.Entry<SkillCategory, ArrayList<Reward>> skill : plugin.getSkillManager().getDefaultPlayerRewards().getRewardList().entrySet()) {
             for (Reward reward : skill.getValue()) {
                 if (!reward.getName().equalsIgnoreCase(rewardName)) continue;
                 return reward;
@@ -413,7 +406,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
         reward.setEnabled(!reward.isEnabled());
         File configFile = new File(plugin.getDataFolder(), "config.yml");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-        config.set(reward.getSkillType() + "." + reward.getName() + ".Enabled", reward.isEnabled());
+        config.set(reward.getSkillCategory() + "." + reward.getName() + ".Enabled", reward.isEnabled());
         try {
             config.save(configFile);
         } catch (Exception e) {
@@ -422,7 +415,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
 
         for (Player p : Bukkit.getOnlinePlayers()) {
             PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
-            rewards.getReward(reward.getSkillType(), reward.getName()).setEnabled(reward.isEnabled());
+            rewards.getReward(reward.getSkillCategory(), reward.getName()).setEnabled(reward.isEnabled());
         }
     }
 
@@ -430,7 +423,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
         reward.setLevel(level);
         File configFile = new File(plugin.getDataFolder(), "config.yml");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-        config.set(reward.getSkillType() + "." + reward.getName() + ".Level", level);
+        config.set(reward.getSkillCategory() + "." + reward.getName() + ".Level", level);
         try {
             config.save(configFile);
         } catch (Exception e) {
@@ -439,7 +432,7 @@ public class SurvivalSkillsCommand implements CommandExecutor {
 
         for (Player p : Bukkit.getOnlinePlayers()) {
             PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
-            rewards.getReward(reward.getSkillType(), reward.getName()).setLevel(level);
+            rewards.getReward(reward.getSkillCategory(), reward.getName()).setLevel(level);
         }
     }
 }

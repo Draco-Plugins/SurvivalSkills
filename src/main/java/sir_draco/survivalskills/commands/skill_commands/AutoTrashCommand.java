@@ -10,6 +10,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.abilities.AutoTrash;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 @SuppressWarnings("NullableProblems")
@@ -28,25 +29,25 @@ public class AutoTrashCommand implements CommandExecutor {
         if (!(sender instanceof Player p)) return false;
 
         boolean big = false;
-        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "AutoTrashI");
-        if (reward == null) {
+        Reward autoTrash = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FISHING, "AutoTrashI");
+        if (autoTrash == null) {
             Bukkit.getLogger().warning("AutoTrashI reward not found for player " + p.getName());
             p.sendRawMessage(ChatColor.RED + "An error occurred while trying to use this ability");
             return true;
         }
-        if ((!reward.isEnabled() || !reward.isApplied()) && !plugin.isForced(p, strings)) {
-            p.sendRawMessage(ChatColor.RED + "You have to be fishing level " + ChatColor.AQUA + reward.getLevel() + ChatColor.RED + " to use this ability");
+        if ((!autoTrash.isEnabled() || !autoTrash.isApplied()) && !plugin.isForced(p, strings)) {
+            p.sendRawMessage(ChatColor.RED + "You have to be fishing level " + ChatColor.AQUA + autoTrash.getLevel() + ChatColor.RED + " to use this ability");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         }
 
-        Reward reward2 = plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "AutoTrashII");
-        if (reward2 == null) {
+        Reward autoTrashII = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FISHING, "AutoTrashII");
+        if (autoTrashII == null) {
             Bukkit.getLogger().warning("AutoTrashII reward not found for player " + p.getName());
             p.sendRawMessage(ChatColor.RED + "An error occurred while trying to use this ability");
             return true;
         }
-        if (reward2.isEnabled() && reward2.isApplied()) big = true;
+        if (autoTrashII.isEnabled() && autoTrashII.isApplied()) big = true;
 
         if (!plugin.getFishingListener().getTrashInventories().containsKey(p)) {
             AutoTrash trash = new AutoTrash(big, false);

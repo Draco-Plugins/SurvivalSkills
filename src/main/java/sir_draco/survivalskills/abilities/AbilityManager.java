@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
@@ -226,9 +227,9 @@ public class AbilityManager {
             radius = activeSpelunker.getRadius();
         } else {
             // Determine radius based on player's spelunker level if no active spelunker
-            if (plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "SpelunkerIII").isApplied()) {
+            if (plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "SpelunkerIII").isApplied()) {
                 radius = 15;
-            } else if (plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "SpelunkerII").isApplied()) {
+            } else if (plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "SpelunkerII").isApplied()) {
                 radius = 10;
             }
         }
@@ -239,7 +240,7 @@ public class AbilityManager {
      * Begin tracking Bloody Domain for a player if they own the reward.
      */
     public void startBloodyDomain(Player p) {
-        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward("Fighting", "BloodyDomain");
+        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FIGHTING, "BloodyDomain");
         if (reward == null || !reward.isApplied()) return;
 
         BloodyDomain domain = new BloodyDomain(p);

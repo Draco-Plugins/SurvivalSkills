@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.abilities.AbilityTimer;
 import sir_draco.survivalskills.abilities.FlyingTimer;
 import sir_draco.survivalskills.rewards.RewardNotifications;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.HashMap;
@@ -18,7 +19,6 @@ import java.util.Map;
 @SuppressWarnings("NullableProblems")
 public class FlightCommand implements CommandExecutor {
 
-    public static final String BUILDING = "Building";
     public static final String FLIGHT_I = "FlightI";
     public static final String FLIGHT_IV = "FlightIV";
     private final SurvivalSkills plugin;
@@ -35,14 +35,14 @@ public class FlightCommand implements CommandExecutor {
         if (!(sender instanceof Player p)) return false;
 
         // Check if the player can use the command
-        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(BUILDING, FLIGHT_I).isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.BUILDING, FLIGHT_I).isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Flight is not enabled on this server");
             return false;
         }
 
         // Check if the player has a cooldown
         AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "Flight");
-        if (timer != null && !plugin.getSkillManager().getPlayerRewards(p).getReward(BUILDING, FLIGHT_IV).isApplied()) {
+        if (timer != null && !plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.BUILDING, FLIGHT_IV).isApplied()) {
             return checkForActiveTimer(strings, p, timer);
         }
         else if (p.getAllowFlight()) {
@@ -60,20 +60,20 @@ public class FlightCommand implements CommandExecutor {
         float baseSpeed = 0.025f;
         if (canUseFlight(p)) return true;
 
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(BUILDING, "FlightII").isEnabled()
-                || !plugin.getSkillManager().getPlayerRewards(p).getReward(BUILDING, "FlightII").isApplied()) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.BUILDING, "FlightII").isEnabled()
+                || !plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.BUILDING, "FlightII").isApplied()) {
             resetTime = 3600; // 60 minutes
             activeTime = 300; // 5 minutes
             speed = 1;
         }
-        else if (!plugin.getSkillManager().getPlayerRewards(p).getReward(BUILDING, "FlightIII").isEnabled() ||
-                !plugin.getSkillManager().getPlayerRewards(p).getReward(BUILDING, "FlightIII").isApplied()) {
+        else if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.BUILDING, "FlightIII").isEnabled() ||
+                !plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.BUILDING, "FlightIII").isApplied()) {
             resetTime = 1800; // 30 minutes
             activeTime = 900; // 15 minutes
             speed = 2;
         }
-        else if (!plugin.getSkillManager().getPlayerRewards(p).getReward(BUILDING, FLIGHT_IV).isEnabled() ||
-                !plugin.getSkillManager().getPlayerRewards(p).getReward(BUILDING, FLIGHT_IV).isApplied()){
+        else if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.BUILDING, FLIGHT_IV).isEnabled() ||
+                !plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.BUILDING, FLIGHT_IV).isApplied()){
             resetTime = 1800; // 30 minutes
             activeTime = 1800; // 30 minutes
             speed = 3;
@@ -109,10 +109,10 @@ public class FlightCommand implements CommandExecutor {
     }
 
     private boolean canUseFlight(Player p) {
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(BUILDING, FLIGHT_I).isEnabled()
-            || !plugin.getSkillManager().getPlayerRewards(p).getReward(BUILDING, FLIGHT_I).isApplied()) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.BUILDING, FLIGHT_I).isEnabled()
+            || !plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.BUILDING, FLIGHT_I).isApplied()) {
             p.sendRawMessage(ChatColor.RED + "You need to be building level " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(BUILDING, FLIGHT_I).getLevel()
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.BUILDING, FLIGHT_I).getLevel()
                     + ChatColor.RED + " to use Flight");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;

@@ -7,6 +7,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.SurvivalSkills;
 
@@ -29,12 +30,12 @@ public class ToggleSpeedCommand implements CommandExecutor {
 
         if (disabledPlayers.contains(p)) {
             PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
-            int level = SkillManager.getSkill(p.getUniqueId(), "Exploring").getLevel();
+            int level = SkillManager.getSkill(p.getUniqueId(), SkillCategory.EXPLORING).getLevel();
 
             // Get the player's walk and swim speed based on the exploring level
             float walkSpeed = 0.2f;
             double swimSpeed = 0.0;
-            for (Reward reward : rewards.getRewardList().get("Exploring")) {
+            for (Reward reward : rewards.getRewardList().get(SkillCategory.EXPLORING)) {
                 if (reward.getLevel() > level || !reward.isEnabled() || !reward.isApplied()) continue;
                 switch (reward.getName()) {
                     case "SwimI":

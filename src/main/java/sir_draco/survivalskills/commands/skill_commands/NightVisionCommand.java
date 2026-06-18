@@ -11,6 +11,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import sir_draco.survivalskills.abilities.AbilityTimer;
 import sir_draco.survivalskills.rewards.RewardNotifications;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 @SuppressWarnings("NullableProblems")
@@ -28,7 +29,7 @@ public class NightVisionCommand implements CommandExecutor {
         if (!(sender instanceof Player p)) return false;
 
         // Check for level requirements reset and active times and radius
-        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "NightVisionI").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.MINING, "NightVisionI").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Night Vision is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
@@ -50,17 +51,17 @@ public class NightVisionCommand implements CommandExecutor {
         }
 
         // Enable night vision
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "NightVisionI").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "NightVisionI").isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force nightvision use: " + ChatColor.AQUA + "/ssnv force");
             }
             p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Mining", "NightVisionI").getLevel()
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.MINING, "NightVisionI").getLevel()
                     + ChatColor.RED + " to use Night Vision");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         }
-        else if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "NightVisionII").isApplied()) {
+        else if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "NightVisionII").isApplied()) {
             timer = new AbilityTimer(plugin, "NightVision", p, 900, 900);
             timer.runTaskTimerAsynchronously(plugin, 0, 20);
             p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 18000, 0, false, false, false));

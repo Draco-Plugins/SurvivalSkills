@@ -22,6 +22,7 @@ import org.bukkit.util.Vector;
 
 import sir_draco.survivalskills.abilities.items.CaveFinderAsync;
 import sir_draco.survivalskills.abilities.items.Magnet;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.rewards.PlayerRewards;
@@ -79,7 +80,7 @@ public class ExploringSkill implements Listener {
         } else
             stepCounter.put(p.getUniqueId(), steps - 100);
 
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getExploringXP() * 100, "Exploring");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getExploringXP() * 100, SkillCategory.EXPLORING);
         stepCounter.put(uuid, 0);
     }
 
@@ -116,7 +117,7 @@ public class ExploringSkill implements Listener {
         } else
             stepCounter.put(p.getUniqueId(), steps - 100);
 
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getExploringXP() * 100, "Exploring");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getExploringXP() * 100, SkillCategory.EXPLORING);
         stepCounter.put(uuid, 0);
     }
 
@@ -126,7 +127,7 @@ public class ExploringSkill implements Listener {
         if (p.isSwimming())
             setSwimSpeed(p);
         if (!p.hasPotionEffect(PotionEffectType.REGENERATION)) {
-            if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "HealthRegen").isApplied())
+            if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING, "HealthRegen").isApplied())
                 return;
             p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, Integer.MAX_VALUE, 0, true, false));
         }
@@ -148,9 +149,9 @@ public class ExploringSkill implements Listener {
             return;
         }
 
-        if (!rewards.getReward("Exploring", "FallI").isApplied())
+        if (!rewards.getReward(SkillCategory.EXPLORING, "FallI").isApplied())
             return;
-        if (rewards.getReward("Exploring", "FallII").isApplied())
+        if (rewards.getReward(SkillCategory.EXPLORING, "FallII").isApplied())
             e.setDamage(e.getDamage() / 2);
         else
             e.setDamage(e.getDamage() / 4);
@@ -165,9 +166,9 @@ public class ExploringSkill implements Listener {
         if (!ItemStackGenerator.isCustomItem(inv.getItemInMainHand(), 6)
                 && !ItemStackGenerator.isCustomItem(inv.getItemInOffHand(), 6))
             return;
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "CaveFinder").isApplied()) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING, "CaveFinder").isApplied()) {
             p.sendRawMessage(ChatColor.RED + "You must be exploring level" + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Exploring", "CaveFinder")
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.EXPLORING, "CaveFinder")
                             .getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
@@ -188,9 +189,9 @@ public class ExploringSkill implements Listener {
         if (activeMagnets.contains(p))
             return;
 
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Exploring", "Magnet").isApplied()) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING, "Magnet").isApplied()) {
             p.sendRawMessage(ChatColor.RED + "You must be exploring level" + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Exploring", "Magnet").getLevel());
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.EXPLORING, "Magnet").getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }

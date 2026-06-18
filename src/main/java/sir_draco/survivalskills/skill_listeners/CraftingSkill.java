@@ -9,6 +9,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.ItemStack;
+
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -39,12 +41,12 @@ public class CraftingSkill implements Listener {
             for (ItemStack item : e.getClickedInventory().getContents())
                 if (item.getAmount() < smallestStack && item.getAmount() != 0 && !item.getType().equals(e.getRecipe().getResult().getType())) smallestStack = item.getAmount();
 
-            SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getCraftingXP() * smallestStack, "Crafting");
+            SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getCraftingXP() * smallestStack, SkillCategory.CRAFTING);
             handleCraftingSkills(p, e.getClickedInventory().getContents(), smallestStack, e.getRecipe().getResult());
             return;
         }
 
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getCraftingXP(), "Crafting");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getCraftingXP(), SkillCategory.CRAFTING);
         if (cannotGetResult(e.getCursor(), e.getRecipe().getResult(), e.getClick())) return;
         handleCraftingSkills(p, e.getClickedInventory().getContents(), 1, e.getRecipe().getResult());
     }

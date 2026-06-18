@@ -30,6 +30,7 @@ import org.bukkit.potion.PotionEffectType;
 import sir_draco.survivalskills.abilities.SpelunkerAbilitySync;
 import sir_draco.survivalskills.abilities.VeinMinerAsync;
 import sir_draco.survivalskills.rewards.PlayerRewards;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -85,7 +86,7 @@ public class MiningSkill implements Listener {
         double multiplier = getMultiplier(e.getBlock().getType());
         double xpAmount = plugin.getSkillManager().getMiningXP() * multiplier;
 
-        SkillManager.experienceEvent(plugin, p, xpAmount, "Mining");
+        SkillManager.experienceEvent(plugin, p, xpAmount, SkillCategory.MINING);
 
         // Handle double ore chance
         doubleOre(p, e);
@@ -106,12 +107,12 @@ public class MiningSkill implements Listener {
             return;
         }
 
-        if (!rewards.getReward("Mining", "UnlimitedTorch").isApplied()) {
+        if (!rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").isApplied()) {
             if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 1)
                     || ItemStackGenerator.isCustomItem(p.getInventory().getItemInOffHand(), 1)) {
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "Unlimited Torch unlocks at mining level "
-                        + ChatColor.AQUA + rewards.getReward("Mining", "UnlimitedTorch").getLevel());
+                        + ChatColor.AQUA + rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").getLevel());
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             }
             return;
@@ -166,10 +167,10 @@ public class MiningSkill implements Listener {
         ItemStack hand = p.getInventory().getItemInMainHand();
         if (!ItemStackGenerator.isCustomItem(hand, 27))
             return;
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "ZapWand").isApplied()) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "ZapWand").isApplied()) {
             e.setCancelled(true);
             p.sendRawMessage(ChatColor.RED + "Zap Wand unlocks at mining level " + ChatColor.AQUA +
-                    plugin.getSkillManager().getPlayerRewards(p).getReward("Mining", "ZapWand").getLevel());
+                    plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "ZapWand").getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }

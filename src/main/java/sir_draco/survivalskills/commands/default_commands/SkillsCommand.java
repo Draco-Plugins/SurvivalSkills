@@ -16,27 +16,25 @@ import sir_draco.survivalskills.rewards.RewardItemInfo;
 import sir_draco.survivalskills.rewards.RewardNotifications;
 import sir_draco.survivalskills.boards.Leaderboard;
 import sir_draco.survivalskills.skills.Skill;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.RecipeMaker;
 
 import java.util.*;
 
-@SuppressWarnings("NullableProblems")
-public class SkillStatsCommand implements CommandExecutor {
+public class SkillsCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
     private final ArrayList<Inventory> recipeInventories = new ArrayList<>();
     private final ArrayList<RewardItemInfo> recipeLevelInformation = new ArrayList<>();
-    private final ArrayList<String> acceptableSkillList = new ArrayList<>();
 
-    public SkillStatsCommand(SurvivalSkills plugin) {
+    public SkillsCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
         PluginCommand command = plugin.getCommand("skills");
         if (command == null) return;
         command.setExecutor(this);
         createItemLevelInfo();
         createRecipeInventories();
-        createAcceptableSkillList();
     }
 
     @Override
@@ -51,56 +49,54 @@ public class SkillStatsCommand implements CommandExecutor {
 
         if (strings[0].equalsIgnoreCase("tree")) {
             if (strings.length == 1) {
-                p.sendRawMessage(ChatColor.RED + "Please specify a skill tree to view.");
+                p.sendRawMessage(ChatColor.RED + "Correct usage: " + ChatColor.GRAY  + "/skills tree <skill>");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
 
-
-            for (String skill : acceptableSkillList) {
-                if (!skill.equalsIgnoreCase(strings[1])) continue;
-
-                if (skill.equalsIgnoreCase("Deaths")) {
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            Inventory inventory = Bukkit.createInventory(null, 9);
-                            int deaths = Leaderboard.getLeaderboardScore(plugin, p, "Deaths");
-                            createDeathTree(inventory, deaths);
-                            ArrayList<Inventory> inventories = new ArrayList<>();
-                            inventories.add(inventory);
-                            if (inventory.isEmpty()) return;
-                            plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    p.openInventory(inventory);
-                                }
-                            }.runTask(plugin);
-                        }
-                    }.runTaskAsynchronously(plugin);
-                }
-                else {
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            ArrayList<Inventory> inventories = createSkillTree(p, skill);
-                            if (inventories == null || inventories.isEmpty()) return;
-                            plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    p.openInventory(inventories.getFirst());
-                                }
-                            }.runTask(plugin);
-                        }
-                    }.runTaskAsynchronously(plugin);
-                }
+            if (!SkillCategory.isSkillTreeSkill(strings[1])) {
+                p.sendRawMessage(ChatColor.RED + "Skill does not have skill tree: " + ChatColor.YELLOW + strings[1]);
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
 
-            p.sendRawMessage(ChatColor.RED + "Invalid skill tree: " + ChatColor.YELLOW + strings[1]);
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            SkillCategory skillCategory = SkillCategory.fromString(strings[1]);
+            if (skillCategory == SkillCategory.DEATHS) {
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        Inventory inventory = Bukkit.createInventory(null, 9);
+                        int deaths = Leaderboard.getLeaderboardScore(p, SkillCategory.DEATHS);
+                        createDeathTree(inventory, deaths);
+                        ArrayList<Inventory> inventories = new ArrayList<>();
+                        inventories.add(inventory);
+                        if (inventory.isEmpty()) return;
+                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                p.openInventory(inventory);
+                            }
+                        }.runTask(plugin);
+                    }
+                }.runTaskAsynchronously(plugin);
+            }
+            else {
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        ArrayList<Inventory> inventories = createSkillTree(p, skillCategory);
+                        if (inventories == null || inventories.isEmpty()) return;
+                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                p.openInventory(inventories.getFirst());
+                            }
+                        }.runTask(plugin);
+                    }
+                }.runTaskAsynchronously(plugin);
+            }
             return true;
         }
 
@@ -155,7 +151,7 @@ public class SkillStatsCommand implements CommandExecutor {
 
         if (strings[0].equalsIgnoreCase("player")) {
             if (strings.length < 2) {
-                p.sendRawMessage(ChatColor.RED + "Correct Usage: /skills player <name>");
+                p.sendRawMessage(ChatColor.RED + "Correct usage: /skills player <name>");
                 p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
@@ -185,9 +181,16 @@ public class SkillStatsCommand implements CommandExecutor {
 
             // No parameters default to the top 10 players with the highest total skill score
             if (strings.length == 1) {
-                ArrayList<String> leaderboard = Leaderboard.getTopTen(plugin);
+                ArrayList<String> leaderboard = Leaderboard.sortLeaderboard(SkillCategory.ALL, 10);
                 for (String line : leaderboard) p.sendRawMessage(line);
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                return true;
+            }
+
+            // Check if the string is an actual skill
+            if (!SkillCategory.isSkill(strings[1])) {
+                p.sendRawMessage(ChatColor.RED + "Invalid skill: " + ChatColor.YELLOW + strings[1]);
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                 return true;
             }
 
@@ -195,33 +198,25 @@ public class SkillStatsCommand implements CommandExecutor {
             double size = Math.ceil((double) plugin.getLeaderboardTracker().size() / 10);
             int maxPage = Math.max(1, (int) Math.ceil(size));
 
-            for (String skill : acceptableSkillList) {
-                if (!skill.equalsIgnoreCase(strings[1]) && !strings[1].equalsIgnoreCase("trials")) continue;
-
-                // If they don't specify a page number print the first page
-                if (strings.length != 3) {
-                    Leaderboard.printLeaderboard(plugin, p, skill, 1, maxPage);
-                    return true;
-                }
-
-                // Otherwise print the specified page
-                try {
-                    int page = Integer.parseInt(strings[2]);
-                    if (page < 1 || page > maxPage) {
-                        p.sendRawMessage(ChatColor.RED + "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                        return true;
-                    }
-                    Leaderboard.printLeaderboard(plugin, p, skill, page, maxPage);
-                } catch (NumberFormatException e) {
-                    p.sendRawMessage(ChatColor.RED + "Invalid page number.");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                }
+            // If they don't specify a page number print the first page
+            if (strings.length != 3) {
+                Leaderboard.printLeaderboard(p, SkillCategory.fromString(strings[1]), 1, maxPage);
                 return true;
             }
 
-            p.sendRawMessage(ChatColor.RED + "Invalid skill: " + ChatColor.YELLOW + strings[1]);
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            // Otherwise print the specified page
+            try {
+                int page = Integer.parseInt(strings[2]);
+                if (page < 1 || page > maxPage) {
+                    p.sendRawMessage(ChatColor.RED + "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
+                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    return true;
+                }
+                Leaderboard.printLeaderboard(p, SkillCategory.fromString(strings[1]), page, maxPage);
+            } catch (NumberFormatException e) {
+                p.sendRawMessage(ChatColor.RED + "Invalid page number.");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            }
             return true;
         }
         return true;
@@ -323,27 +318,16 @@ public class SkillStatsCommand implements CommandExecutor {
         }
     }
 
-    public ArrayList<Inventory> createSkillTree(Player p, String skill) {
-        ArrayList<Inventory> inventories = new ArrayList<>();
-        int playerLevel = SkillManager.getSkill(p.getUniqueId(), skill).getLevel();
-        HashMap<String, ArrayList<Reward>> allSkills = plugin.getSkillManager().getDefaultPlayerRewards().getRewardList();
-        ArrayList<Reward> rewards = switch (skill) {
-            case SkillManager.MINING -> allSkills.get("Mining");
-            case SkillManager.FARMING -> allSkills.get("Farming");
-            case SkillManager.FIGHTING -> allSkills.get("Fighting");
-            case SkillManager.CRAFTING -> allSkills.get("Crafting");
-            case SkillManager.MAIN -> allSkills.get("Main");
-            case SkillManager.BUILDING -> allSkills.get("Building");
-            case SkillManager.FISHING -> allSkills.get("Fishing");
-            case SkillManager.EXPLORING -> allSkills.get("Exploring");
-            default -> null;
-        };
-        if (rewards == null) return null;
+    public ArrayList<Inventory> createSkillTree(Player p, SkillCategory skillCategory) {
+        Map<SkillCategory, ArrayList<Reward>> allSkills = plugin.getSkillManager().getDefaultPlayerRewards().getRewardList();
+        ArrayList<Reward> rewards = allSkills.get(skillCategory);
+        Objects.requireNonNull(rewards, String.format("[Survival Skills] No reward list found for skill %s", skillCategory.getDisplayName()));
 
-        int i = 1;
-        for (int a = 0; a < 5; a++) {
-            i = createSkillInventory(i, playerLevel, rewards, inventories);
-            if (i >= 100) break;
+        ArrayList<Inventory> inventories = new ArrayList<Inventory>();
+        int playerLevel = SkillManager.getSkill(p.getUniqueId(), skillCategory).getLevel();
+        int startLevel = 1;
+        for (int page = 0; page < 5 && startLevel <= Skill.MAX_LEVEL; page++) {
+            startLevel = createSkillInventory(startLevel, playerLevel, rewards, inventories);
         }
         return inventories;
     }
@@ -363,7 +347,7 @@ public class SkillStatsCommand implements CommandExecutor {
                     ItemMeta meta = item.getItemMeta();
                     if (meta == null) continue;
                     meta.setDisplayName("(" + ChatColor.GREEN + i + ChatColor.WHITE + ") " + ChatColor.GREEN + addSpaces(reward.getName()));
-                    meta.setLore(RewardNotifications.getLore(RewardNotifications.getRewardDescription(reward.getSkillType(), reward.getName())));
+                    meta.setLore(RewardNotifications.getLore(RewardNotifications.getRewardDescription(reward.getSkillCategory().getDisplayName(), reward.getName())));
                     item.setItemMeta(meta);
                 }
                 else {
@@ -371,7 +355,7 @@ public class SkillStatsCommand implements CommandExecutor {
                     ItemMeta meta = item.getItemMeta();
                     if (meta == null) continue;
                     meta.setDisplayName("(" + ChatColor.RED + i + ChatColor.WHITE + ") " + ChatColor.RED + addSpaces(reward.getName()));
-                    meta.setLore(RewardNotifications.getLore(RewardNotifications.getRewardDescription(reward.getSkillType(), reward.getName())));
+                    meta.setLore(RewardNotifications.getLore(RewardNotifications.getRewardDescription(reward.getSkillCategory().getDisplayName(), reward.getName())));
                     item.setItemMeta(meta);
                 }
                 inv.setItem(slot, item);
@@ -392,7 +376,7 @@ public class SkillStatsCommand implements CommandExecutor {
             else if (slot == 27) slot = 36; // down
             else if (slot >= 36) slot++; // right
 
-            if (i >= 100) break;
+            if (i >= Skill.MAX_LEVEL) break;
         }
 
         addBarriers(inv);
@@ -598,50 +582,50 @@ public class SkillStatsCommand implements CommandExecutor {
         }
     }
 
-    public RewardItemInfo getRewardItemInfo(ItemStack item, String skillName, String rewardName) {
-        return new RewardItemInfo(item, skillName, plugin.getTrophyManager().getRewardLevel(skillName, rewardName));
+    public RewardItemInfo getRewardItemInfo(ItemStack item, SkillCategory skillCategory, String rewardName) {
+        return new RewardItemInfo(item, skillCategory, plugin.getTrophyManager().getRewardLevel(skillCategory, rewardName));
     }
 
     public void createItemLevelInfo() {
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getUnlimitedTorch(), "Mining", "UnlimitedTorch"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getZapWand(), "Mining", "ZapWand"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningHelmet(), "Mining", "MiningArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningChestplate(), "Mining", "MiningArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningLeggings(), "Mining", "MiningArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningBoots(), "Mining", "MiningArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconHelmet(), "Mining", "BeaconArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconChestplate(), "Mining", "BeaconArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconLeggings(), "Mining", "BeaconArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconBoots(), "Mining", "BeaconArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getJumpingBoots(), "Exploring", "JumpingBoots"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererHelmet(), "Exploring", "WandererArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererChestplate(), "Exploring", "WandererArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererLeggings(), "Exploring", "WandererArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererBoots(), "Exploring", "WandererArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerHelmet(), "Exploring", "TravelerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerChestplate(), "Exploring", "TravelerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerLeggings(), "Exploring", "TravelerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerBoots(), "Exploring", "TravelerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillHelmet(), "Exploring", "GillArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillChestplate(), "Exploring", "GillArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillLeggings(), "Exploring", "GillArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillBoots(), "Exploring", "GillArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerHelmet(), "Exploring", "AdventurerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerChestplate(), "Exploring", "AdventurerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerLeggings(), "Exploring", "AdventurerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerBoots(), "Exploring", "AdventurerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getCaveFinder(), "Exploring", "CaveFinder"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWateringCan(), "Farming", "WateringCan"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getUnlimitedBoneMeal(), "Farming", "UnlimitedBonemeal"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getHarvester(), "Farming", "Harvester"));
-        recipeLevelInformation.add(getRewardItemInfo(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), "Crafting", "EnchantedGapple"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getFireworkCannon(), "Main", "FireworkCannon"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getSortWand(), "Building", "AutoSortWand"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGiantSummoner(), "Fighting", "GiantSummon"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getFishingBossItem(), "Fighting", "FishingKing"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBroodMotherSummoner(), "Fighting", "BroodMotherSummon"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getVillagerSummoner(), "Fighting", "TheExiledOneSummon"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMagnet(), "Exploring", "Magnet"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getUnlimitedTorch(), SkillCategory.MINING, "UnlimitedTorch"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getZapWand(), SkillCategory.MINING, "ZapWand"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningHelmet(), SkillCategory.MINING, "MiningArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningChestplate(), SkillCategory.MINING, "MiningArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningLeggings(), SkillCategory.MINING, "MiningArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningBoots(), SkillCategory.MINING, "MiningArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconHelmet(), SkillCategory.MINING, "BeaconArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconChestplate(), SkillCategory.MINING, "BeaconArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconLeggings(), SkillCategory.MINING, "BeaconArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconBoots(), SkillCategory.MINING, "BeaconArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getJumpingBoots(), SkillCategory.EXPLORING, "JumpingBoots"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererHelmet(), SkillCategory.EXPLORING, "WandererArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererChestplate(), SkillCategory.EXPLORING, "WandererArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererLeggings(), SkillCategory.EXPLORING, "WandererArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererBoots(), SkillCategory.EXPLORING, "WandererArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerHelmet(), SkillCategory.EXPLORING, "TravelerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerChestplate(), SkillCategory.EXPLORING, "TravelerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerLeggings(), SkillCategory.EXPLORING, "TravelerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerBoots(), SkillCategory.EXPLORING, "TravelerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillHelmet(), SkillCategory.EXPLORING, "GillArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillChestplate(), SkillCategory.EXPLORING, "GillArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillLeggings(), SkillCategory.EXPLORING, "GillArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillBoots(), SkillCategory.EXPLORING, "GillArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerHelmet(), SkillCategory.EXPLORING, "AdventurerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerChestplate(), SkillCategory.EXPLORING, "AdventurerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerLeggings(), SkillCategory.EXPLORING, "AdventurerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerBoots(), SkillCategory.EXPLORING, "AdventurerArmor"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getCaveFinder(), SkillCategory.EXPLORING, "CaveFinder"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWateringCan(), SkillCategory.FARMING, "WateringCan"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getUnlimitedBoneMeal(), SkillCategory.FARMING, "UnlimitedBonemeal"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getHarvester(), SkillCategory.FARMING, "Harvester"));
+        recipeLevelInformation.add(getRewardItemInfo(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), SkillCategory.CRAFTING, "EnchantedGapple"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getFireworkCannon(), SkillCategory.MAIN, "FireworkCannon"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getSortWand(), SkillCategory.BUILDING, "AutoSortWand"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGiantSummoner(), SkillCategory.FIGHTING, "GiantSummon"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getFishingBossItem(), SkillCategory.FIGHTING, "FishingKing"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBroodMotherSummoner(), SkillCategory.FIGHTING, "BroodMotherSummon"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getVillagerSummoner(), SkillCategory.FIGHTING, "TheExiledOneSummon"));
+        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMagnet(), SkillCategory.EXPLORING, "Magnet"));
     }
 
     public ItemStack getResult(ItemStack item) {
@@ -651,7 +635,7 @@ public class SkillStatsCommand implements CommandExecutor {
             ItemMeta meta = result.getItemMeta();
             if (meta == null) return item;
             List<String> lore = meta.getLore();
-            String infoString = ChatColor.GRAY + "Unlocked when " + ChatColor.AQUA + info.skillName() + ChatColor.GRAY
+            String infoString = ChatColor.GRAY + "Unlocked when " + ChatColor.AQUA + info.skillCategory() + ChatColor.GRAY
                     + " reaches level " + ChatColor.AQUA + info.level();
             if (lore == null) {
                 lore = new ArrayList<>();
@@ -676,18 +660,5 @@ public class SkillStatsCommand implements CommandExecutor {
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
-    }
-
-    public void createAcceptableSkillList() {
-        acceptableSkillList.add("All");
-        acceptableSkillList.add("Building");
-        acceptableSkillList.add("Crafting");
-        acceptableSkillList.add("Exploring");
-        acceptableSkillList.add("Farming");
-        acceptableSkillList.add("Fighting");
-        acceptableSkillList.add("Fishing");
-        acceptableSkillList.add("Mining");
-        acceptableSkillList.add("Main");
-        acceptableSkillList.add("Deaths");
     }
 }

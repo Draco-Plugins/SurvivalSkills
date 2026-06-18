@@ -10,6 +10,7 @@ import sir_draco.survivalskills.god_questline.trial.Trial;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public class TabCompleter implements Listener {
 
     public TabCompleter(SurvivalSkills plugin) {
         this.plugin = plugin;
-        createSkillNames(plugin);
+        createSkillNames();
     }
 
     @EventHandler
@@ -294,18 +295,18 @@ public class TabCompleter implements Listener {
         ArrayList<String> words = new ArrayList<>();
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
 
-        if (rewards.getReward("Main", "DustTrail").isApplied()) words.add("dust");
-        if (rewards.getReward("Main", "WaterTrail").isApplied()) words.add("water");
-        if (rewards.getReward("Main", "HappyTrail").isApplied()) words.add("happy");
-        if (rewards.getReward("Main", "DragonTrail").isApplied()) words.add("dragon");
-        if (rewards.getReward("Main", "ElectricTrail").isApplied()) words.add("electric");
-        if (rewards.getReward("Main", "EnchantmentTrail").isApplied()) words.add("enchantment");
-        if (rewards.getReward("Main", "OminousTrail").isApplied()) words.add("ominous");
-        if (rewards.getReward("Main", "LoveTrail").isApplied()) words.add("love");
-        if (rewards.getReward("Main", "FlameTrail").isApplied()) words.add("flame");
-        if (rewards.getReward("Main", "BlueFlameTrail").isApplied()) words.add("blueflame");
-        if (rewards.getReward("Main", "CherryTrail").isApplied()) words.add("cherry");
-        if (rewards.getReward("Main", "RainbowTrail").isApplied()) words.add("rainbow");
+        if (rewards.getReward(SkillCategory.MAIN, "DustTrail").isApplied()) words.add("dust");
+        if (rewards.getReward(SkillCategory.MAIN, "WaterTrail").isApplied()) words.add("water");
+        if (rewards.getReward(SkillCategory.MAIN, "HappyTrail").isApplied()) words.add("happy");
+        if (rewards.getReward(SkillCategory.MAIN, "DragonTrail").isApplied()) words.add("dragon");
+        if (rewards.getReward(SkillCategory.MAIN, "ElectricTrail").isApplied()) words.add("electric");
+        if (rewards.getReward(SkillCategory.MAIN, "EnchantmentTrail").isApplied()) words.add("enchantment");
+        if (rewards.getReward(SkillCategory.MAIN, "OminousTrail").isApplied()) words.add("ominous");
+        if (rewards.getReward(SkillCategory.MAIN, "LoveTrail").isApplied()) words.add("love");
+        if (rewards.getReward(SkillCategory.MAIN, "FlameTrail").isApplied()) words.add("flame");
+        if (rewards.getReward(SkillCategory.MAIN, "BlueFlameTrail").isApplied()) words.add("blueflame");
+        if (rewards.getReward(SkillCategory.MAIN, "CherryTrail").isApplied()) words.add("cherry");
+        if (rewards.getReward(SkillCategory.MAIN, "RainbowTrail").isApplied()) words.add("rainbow");
         e.setCompletions(getCompletions(buffer, words));
     }
 
@@ -392,8 +393,8 @@ public class TabCompleter implements Listener {
         return true;
     }
 
-    public void createSkillNames(SurvivalSkills plugin) {
-        for (Map.Entry<String, ArrayList<Reward>> rewards : plugin.getSkillManager().getDefaultPlayerRewards().getRewardList().entrySet()) {
+    public void createSkillNames() {
+        for (Map.Entry<SkillCategory, ArrayList<Reward>> rewards : SurvivalSkills.getInstance().getSkillManager().getDefaultPlayerRewards().getRewardList().entrySet()) {
             for (Reward reward : rewards.getValue()) skillNames.add(reward.getName());
         }
     }

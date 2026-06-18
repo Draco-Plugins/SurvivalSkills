@@ -27,6 +27,7 @@ import sir_draco.survivalskills.bosses.*;
 import sir_draco.survivalskills.bosses.Boss;
 import sir_draco.survivalskills.god_questline.trial.ProtectedArea;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.ExiledBossMusic;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
@@ -641,7 +642,7 @@ public class FightingSkill implements Listener {
     }
 
     public void killExperience(Player p, double experience) {
-        SkillManager.experienceEvent(plugin, p, experience, "Fighting");
+        SkillManager.experienceEvent(plugin, p, experience, SkillCategory.FIGHTING);
     }
 
     public void createMobXPMapping() {
@@ -711,28 +712,28 @@ public class FightingSkill implements Listener {
         PlayerRewards reward = plugin.getSkillManager().getPlayerRewards(p);
         int activeTime;
         int resetTime;
-        if (!reward.getReward("Fighting", "BerserkerI").isApplied()) {
+        if (!reward.getReward(SkillCategory.FIGHTING, "BerserkerI").isApplied()) {
             p.sendRawMessage(ChatColor.RED + "Berserker is unlocked at level: " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Fighting", "BerserkerI")
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.FIGHTING, "BerserkerI")
                             .getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
-        } else if (!reward.getReward("Fighting", "BerserkerII").isApplied()) {
+        } else if (!reward.getReward(SkillCategory.FIGHTING, "BerserkerII").isApplied()) {
             resetTime = 120;
             activeTime = 3;
-        } else if (!reward.getReward("Fighting", "BerserkerIII").isApplied()) {
+        } else if (!reward.getReward(SkillCategory.FIGHTING, "BerserkerIII").isApplied()) {
             resetTime = 90;
             activeTime = 5;
-        } else if (!reward.getReward("Fighting", "BerserkerIV").isApplied()) {
+        } else if (!reward.getReward(SkillCategory.FIGHTING, "BerserkerIV").isApplied()) {
             resetTime = 60;
             activeTime = 5;
-        } else if (!reward.getReward("Fighting", "BerserkerV").isApplied()) {
+        } else if (!reward.getReward(SkillCategory.FIGHTING, "BerserkerV").isApplied()) {
             resetTime = 45;
             activeTime = 5;
-        } else if (!reward.getReward("Fighting", "BerserkerVI").isApplied()) {
+        } else if (!reward.getReward(SkillCategory.FIGHTING, "BerserkerVI").isApplied()) {
             resetTime = 45;
             activeTime = 8;
-        } else if (!reward.getReward("Fighting", "BerserkerVII").isApplied()) {
+        } else if (!reward.getReward(SkillCategory.FIGHTING, "BerserkerVII").isApplied()) {
             resetTime = 30;
             activeTime = 8;
         } else {

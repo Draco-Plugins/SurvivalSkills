@@ -28,6 +28,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.abilities.AutoTrash;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.ProjectileCalculator;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
@@ -130,7 +131,7 @@ public class FishingSkill implements Listener {
 
                         handleFishingExperience(p);
                         handleDurability(p, rod);
-                        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), "Fishing");
+                        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), SkillCategory.FISHING);
                         hook.remove();
                         rainFishers.remove(p);
                     }
@@ -149,7 +150,7 @@ public class FishingSkill implements Listener {
         Player p = e.getPlayer();
 
         // Check if the player is above fighting level 50 and try to spawn fishing boss
-        if (plugin.getSkillManager().getPlayerRewards(p).getReward("Fighting", "FishingKing").isApplied()) {
+        if (plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FIGHTING, "FishingKing").isApplied()) {
             // TODO: Extract to a function and allow the boss to be spawned regardless of whether the fishing trophy has been made or not
             double chance = Math.random();
 
@@ -197,7 +198,7 @@ public class FishingSkill implements Listener {
             for (ItemStack item : items)
                 world.dropItem(loc, item).setVelocity(velocity);
 
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), "Fishing");
+        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getFishingXP(), SkillCategory.FISHING);
     }
 
     @EventHandler
@@ -212,7 +213,7 @@ public class FishingSkill implements Listener {
         Player p = e.getPlayer();
         if (!p.isSwimming() && !p.isInWater())
             return;
-        if (plugin.getSkillManager().getPlayerRewards(p).getReward("Fishing", "WaterBreathingIII").isApplied()) {
+        if (plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FISHING, "WaterBreathingIII").isApplied()) {
             p.setRemainingAir(300);
             return;
         }
@@ -549,15 +550,15 @@ public class FishingSkill implements Listener {
 
     public int getFishingLineNumber(Player p) {
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
-        if (rewards.getReward("Fishing", "FishingLineV").isApplied())
+        if (rewards.getReward(SkillCategory.FISHING, "FishingLineV").isApplied())
             return 10;
-        if (rewards.getReward("Fishing", "FishingLineIV").isApplied())
+        if (rewards.getReward(SkillCategory.FISHING, "FishingLineIV").isApplied())
             return 7;
-        if (rewards.getReward("Fishing", "FishingLineIII").isApplied())
+        if (rewards.getReward(SkillCategory.FISHING, "FishingLineIII").isApplied())
             return 5;
-        if (rewards.getReward("Fishing", "FishingLineII").isApplied())
+        if (rewards.getReward(SkillCategory.FISHING, "FishingLineII").isApplied())
             return 3;
-        if (rewards.getReward("Fishing", "FishingLineI").isApplied())
+        if (rewards.getReward(SkillCategory.FISHING, "FishingLineI").isApplied())
             return 2;
         return 1;
     }

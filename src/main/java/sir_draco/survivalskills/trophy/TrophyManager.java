@@ -6,6 +6,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.external.providers.CitizensRegistryProvider;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
@@ -212,8 +213,8 @@ public class TrophyManager {
         trophyData.set("" + trophy.getID(), null);
     }
 
-    public int getRewardLevel(String type, String reward) {
-        for (Reward r : plugin.getSkillManager().getDefaultPlayerRewards().getRewardList().get(type)) {
+    public int getRewardLevel(SkillCategory skillCategory, String reward) {
+        for (Reward r : plugin.getSkillManager().getDefaultPlayerRewards().getRewardList().get(skillCategory)) {
             if (r.getName().equalsIgnoreCase(reward)) return r.getLevel();
         }
         return 0;

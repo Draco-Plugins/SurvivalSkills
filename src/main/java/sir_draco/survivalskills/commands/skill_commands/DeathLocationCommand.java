@@ -8,6 +8,7 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.skills.SkillCategory;
 
 @SuppressWarnings("NullableProblems")
 public class DeathLocationCommand implements CommandExecutor {
@@ -24,18 +25,18 @@ public class DeathLocationCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (!(sender instanceof Player p)) return false;
 
-        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward("Main", "DeathLocationTracker").isEnabled()) {
+        if (!plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.MAIN, "DeathLocationTracker").isEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Death Location Tracking is not enabled on this server");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return false;
         }
 
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward("Main", "DeathLocationTracker").isApplied() && !plugin.isForced(p, strings)) {
+        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MAIN, "DeathLocationTracker").isApplied() && !plugin.isForced(p, strings)) {
             if (p.hasPermission("survivalskills.op")) {
                 p.sendRawMessage(ChatColor.RED + "To force death location tracking use: " + ChatColor.AQUA + "/deathlocation force");
             }
             p.sendRawMessage(ChatColor.RED + "You need to be level " + ChatColor.AQUA
-                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward("Main", "DeathLocationTracker").getLevel()
+                    + plugin.getSkillManager().getDefaultPlayerRewards().getReward(SkillCategory.MAIN, "DeathLocationTracker").getLevel()
                     + ChatColor.RED + " to use the Death Location Tracker");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
