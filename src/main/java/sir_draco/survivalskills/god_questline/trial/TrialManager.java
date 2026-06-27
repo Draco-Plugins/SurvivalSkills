@@ -720,10 +720,10 @@ public class TrialManager implements Listener {
     public void onEntityTransform(EntityTransformEvent e) {
         if (e.getEntity().hasMetadata("trialmob"))
             e.setCancelled(true);
+        else return;
         // Preserve the held item
         LivingEntity entity = (LivingEntity) e.getEntity();
-        if (entity.getEquipment() == null)
-            return;
+        if (entity.getEquipment() == null) return;
         ItemStack mainHandItem = entity.getEquipment().getItemInMainHand();
 
         new BukkitRunnable() {

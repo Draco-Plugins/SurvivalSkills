@@ -138,6 +138,10 @@ commands:
         description: Cancels all ability cooldowns
         permission: survivalskills.op
 
+    parabolatest:
+        description: Allows for testing projectile parabolas
+        permission: survivalskills.op
+
 permissions:
     survivalskills.default:
         description: Default permissions

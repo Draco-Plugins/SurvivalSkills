@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
 
 @SuppressWarnings("deprecation")
 public class FishingSkill implements Listener {
@@ -121,7 +122,8 @@ public class FishingSkill implements Listener {
                         // Get the velocity of the entity that was caught and then remove the entity
                         Location loc = e.getHook().getLocation();
                         World world = e.getHook().getWorld();
-                        Vector velocity = ProjectileCalculator.getVector(loc, p.getLocation(), 0.5);
+                        Vector velocity = ProjectileCalculator.getItemProjectileVector(loc, p.getLocation(), 0.5);
+                        Bukkit.getLogger().log(Level.INFO, "Vector: " + velocity.getX() + ", " + velocity.getY() + ", " + velocity.getZ());
 
                         // Set the velocity of all the items in the list to the velocity of the entity
                         // that was caught
@@ -158,7 +160,8 @@ public class FishingSkill implements Listener {
                 if (chance <= 0.01) {
                     Location loc = e.getHook().getLocation();
                     World world = e.getHook().getWorld();
-                    Vector velocity = ProjectileCalculator.getVector(loc, p.getLocation(), 1);
+                    Vector velocity = ProjectileCalculator.getLivingEntityProjectileVector(loc, p.getLocation(), 1, true);
+
                     e.getCaught().remove();
 
                     // Spawn fishing boss
@@ -169,7 +172,7 @@ public class FishingSkill implements Listener {
                 if (chance <= 0.004) {
                     Location loc = e.getHook().getLocation();
                     World world = e.getHook().getWorld();
-                    Vector velocity = ProjectileCalculator.getVector(loc, p.getLocation(), 1);
+                    Vector velocity = ProjectileCalculator.getLivingEntityProjectileVector(loc, p.getLocation(), 1, true);
                     e.getCaught().remove();
 
                     // Spawn fishing boss
@@ -189,7 +192,8 @@ public class FishingSkill implements Listener {
         // Get the velocity of the entity that was caught and then remove the entity
         Location loc = e.getHook().getLocation();
         World world = e.getHook().getWorld();
-        Vector velocity = ProjectileCalculator.getVector(loc, p.getLocation(), 0.5);
+        Vector velocity = ProjectileCalculator.getItemProjectileVector(loc, p.getLocation(), 0.5);
+        Bukkit.getLogger().log(Level.INFO, "Vector: " + velocity.getX() + ", " + velocity.getY() + ", " + velocity.getZ());
         e.getCaught().remove();
 
         // Set the velocity of all the items in the list to the velocity of the entity

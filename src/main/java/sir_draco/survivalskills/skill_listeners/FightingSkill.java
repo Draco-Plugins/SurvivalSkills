@@ -81,7 +81,7 @@ public class FightingSkill implements Listener {
                         }
                     }
 
-                    boss.despawnBoss();
+                    boss.cleanup();
                     Bukkit.broadcastMessage(
                             ChatColor.LIGHT_PURPLE + p.getDisplayName() + ChatColor.RED + ChatColor.BOLD +
                                     " was bested by " + ChatColor.DARK_PURPLE + ChatColor.BOLD + boss.getName());
@@ -445,8 +445,7 @@ public class FightingSkill implements Listener {
 
     @EventHandler
     public void bossDamageByCorrectPlayer(EntityDamageByEntityEvent e) {
-        if (!isBoss(e.getEntity()))
-            return;
+        if (!isBoss(e.getEntity())) return;
         Player p = null;
         if (e.getDamager() instanceof Arrow arrow) {
             if (!(arrow.getShooter() instanceof Player)) {
@@ -460,8 +459,9 @@ public class FightingSkill implements Listener {
                 return;
             }
             p = (Player) trident.getShooter();
-        } else if (e.getDamager() instanceof Player)
+        } else if (e.getDamager() instanceof Player) {
             p = (Player) e.getDamager();
+        }
 
         if (p == null) {
             e.setCancelled(true);
@@ -476,32 +476,28 @@ public class FightingSkill implements Listener {
                     e.setCancelled(true);
                     return;
                 }
-                if (!boss.getBoss().equals(e.getEntity()))
-                    e.setCancelled(true);
-            } else
-                e.setCancelled(true);
+                if (!boss.getBoss().equals(e.getEntity())) e.setCancelled(true);
+            } 
+            else e.setCancelled(true);
         } else if (e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
-            if (dragonBoss == null)
-                return;
-            if (!dragonBoss.getBoss().equals(e.getEntity()))
-                e.setCancelled(true);
-            if (!dragonBoss.isRespawn())
-                return;
-            if (dragonBoss.getPlayers().contains(p))
-                return;
+            if (dragonBoss == null) return;
+            if (!dragonBoss.getBoss().equals(e.getEntity())) e.setCancelled(true);
+            if (!dragonBoss.isRespawn()) return;
+            if (dragonBoss.getPlayers().contains(p)) return;
             e.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void teleportToEnd(PlayerTeleportEvent e) {
-        if (!e.getCause().equals(PlayerTeleportEvent.TeleportCause.END_PORTAL))
-            return;
+        if (!e.getCause().equals(PlayerTeleportEvent.TeleportCause.END_PORTAL)) return;
         if (dragonBoss != null) {
-            if (dragonBoss.isRespawn()) {
-                if (dragonBoss.getPlayers().isEmpty())
-                    dragonBoss.addCanAttackPlayer(e.getPlayer());
-            } else {
+            if (dragonBoss.isRespawn() && dragonBoss.getPlayers().isEmpty()) {
+                dragonBoss.addPlayer(e.getPlayer());
+            } else if (!dragonBoss.isRespawn() && !dragonBoss.getPlayers().contains(e.getPlayer())) {
+                dragonBoss.addPlayer(e.getPlayer());
+            }
+            else {
                 e.getPlayer().sendRawMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
                         + ChatColor.RESET + ChatColor.DARK_AQUA + "So you wish to die again " + e.getPlayer().getName()
                         + "?");
@@ -511,17 +507,14 @@ public class FightingSkill implements Listener {
         }
 
         // Get the ender dragon if it is alive
-        if (e.getTo() == null)
-            return;
+        if (e.getTo() == null) return;
         World world = e.getTo().getWorld();
-        if (world == null)
-            return;
-        if (world.getEnvironment().equals(World.Environment.NORMAL))
+        if (world == null) return;
+        if (world.getEnvironment().equals(World.Environment.NORMAL)) {
             world = Bukkit.getWorld(world.getName() + "_the_end");
-        if (world == null)
-            return;
-        if (world.hasMetadata("killedfirstdragon"))
-            return;
+        }
+        if (world == null) return;
+        if (world.hasMetadata("killedfirstdragon")) return;
 
         World finalWorld = world;
         new BukkitRunnable() {
@@ -529,13 +522,11 @@ public class FightingSkill implements Listener {
             public void run() {
                 boolean found = false;
                 for (Entity entity : finalWorld.getEntities()) {
-                    if (!entity.getType().equals(EntityType.ENDER_DRAGON))
-                        continue;
+                    if (!entity.getType().equals(EntityType.ENDER_DRAGON)) continue;
                     found = true;
                     LivingEntity ent = (LivingEntity) entity;
-                    dragonBoss = new DragonBoss("dragon", 0, 0,
-                            250 * Bukkit.getOnlinePlayers().size(), 0, 0, 0, entity.getType(),
-                            entity.getLocation(), ent);
+                    dragonBoss = DragonBoss.attachToDragon("dragon", 0, 0,
+                            250 * Bukkit.getOnlinePlayers().size(), 0, 0, 0, ent);
                     dragonBoss.runTaskTimer(plugin, 0, 1);
                     break;
                 }
@@ -575,34 +566,28 @@ public class FightingSkill implements Listener {
 
     @EventHandler
     public void dragonSpawnEvent(EntitySpawnEvent e) {
-        if (!e.getEntity().getType().equals(EntityType.ENDER_DRAGON))
-            return;
+        // Check if this is a dragon re-spawn
+        if (!e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) return;
         World world = e.getLocation().getWorld();
-        if (world == null)
-            return;
-        if (!world.getEnvironment().equals(World.Environment.THE_END))
-            return;
-        if (!world.hasMetadata("killedfirstdragon"))
-            return;
+        if (world == null) return;
+        if (!world.getEnvironment().equals(World.Environment.THE_END)) return;
+        if (!world.hasMetadata("killedfirstdragon")) return;
 
         // Spawn the dragon
         // Get the players in the end to determine dragon health
         ArrayList<Player> players = new ArrayList<>();
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!player.getWorld().getEnvironment().equals(World.Environment.THE_END))
-                continue;
+            if (!player.getWorld().getEnvironment().equals(World.Environment.THE_END)) continue;
             players.add(player);
         }
         int health;
-        if (players.isEmpty())
-            health = 250;
-        else
-            health = 250 * players.size();
+        if (players.isEmpty()) health = 250;
+        else health = 250 * players.size();
 
-        dragonBoss = new DragonBoss("dragon", 0, 0, health, 0, 0, 0,
-                e.getEntity().getType(), e.getLocation(), (LivingEntity) e.getEntity());
+        dragonBoss = DragonBoss.attachToDragon("dragon", 0, 0, health, 0, 0, 0,
+                (LivingEntity) e.getEntity());
         dragonBoss.runTaskTimer(plugin, 0, 1);
-        dragonBoss.setCanAttackPlayers(players);
+        dragonBoss.respawnDragonInitPlayers(players);
     }
 
     @EventHandler
@@ -773,8 +758,8 @@ public class FightingSkill implements Listener {
                     p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     return;
                 }
-                GiantBoss giant = new GiantBoss(loc);
-                if (!giant.isSpawnSuccess()) {
+                GiantBoss giant = GiantBoss.create(loc);
+                if (giant == null) {
                     p.sendRawMessage(ChatColor.RED + "Not enough space to spawn the Giant");
                     p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     return;
@@ -787,8 +772,8 @@ public class FightingSkill implements Listener {
                     mainHand.setAmount(mainHand.getAmount() - 1);
                 break;
             case "BroodMother":
-                BroodMotherBoss broodMother = new BroodMotherBoss(loc);
-                if (!broodMother.isSpawnSuccess()) {
+                BroodMotherBoss broodMother = BroodMotherBoss.create(loc);
+                if (broodMother == null) {
                     p.sendRawMessage(ChatColor.RED + "Not enough space to spawn the BroodMother");
                     p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     return;
@@ -801,8 +786,8 @@ public class FightingSkill implements Listener {
                     mainHand.setAmount(mainHand.getAmount() - 1);
                 break;
             case "The Exiled One":
-                VillagerBoss villager = new VillagerBoss(loc, p, noBossMusic.contains(p));
-                if (!villager.isSpawnSuccess()) {
+                VillagerBoss villager = VillagerBoss.create(loc, p, noBossMusic.contains(p));
+                if (villager == null) {
                     p.sendRawMessage(ChatColor.RED + "Not enough space to spawn the exiled one");
                     p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
                     return;

@@ -3,7 +3,6 @@ package sir_draco.survivalskills.bosses;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
@@ -15,29 +14,40 @@ import sir_draco.survivalskills.utils.ProjectileCalculator;
 import java.util.ArrayList;
 
 public class GiantBoss extends Boss {
+    private static final double GIANT_SCALE = 4;
+    private static final double HAND_HEIGHT = GIANT_SCALE * 1.625;
+    private static final double HAND_OFFSET = GIANT_SCALE * 0.75;
+    private static final int ATTACK_COOLDOWN_STAGE_1 = 20 * 10;
+    private static final int ATTACK_COOLDOWN_STAGE_2 = 20 * 5;
+    private static final int ATTACK_COOLDOWN_STAGE_3 = 20 * 2;
+    private static final int ROCK_THROW_MAX_DISTANCE = 50;
+    private static final double ROCK_THROW_SPEED = 1.5;
 
     private Zombie giant;
-    private int attackCooldownDefault = 20 * 10;
-    private int attackCooldown = attackCooldownDefault;
+    private int attackCooldown = ATTACK_COOLDOWN_STAGE_1;
     private int targetCooldown = 20;
     private boolean activeStompJump = false;
-    private boolean loadingJump = false;
 
-    public GiantBoss(Location loc) {
-        super("Giant", 4, 15, 150, 10, 5, 0.2, EntityType.ZOMBIE, loc, 3);
-        if (isSpawnSuccess()) {
-            giant = (Zombie) getBoss();
-            giant.setGravity(true);
-            EntityEquipment helmet = giant.getEquipment();
-            if (helmet != null) helmet.setHelmet(new ItemStack(Material.LEATHER_HELMET));
-            AttributeInstance size = giant.getAttribute(Attribute.SCALE);
-            if (size != null) size.setBaseValue(4);
-        }
+    private GiantBoss() {
+        super("Giant", 4, 15, 150, 10, 5, 0.2, 3);
+    }
+
+    public static GiantBoss create(Location loc) {
+        GiantBoss boss = new GiantBoss();
+        if (!boss.spawnBoss(EntityType.ZOMBIE, loc)) return null;
+        boss.giant = (Zombie) boss.getBoss();
+        boss.giant.setGravity(true);
+        EntityEquipment helmet = boss.giant.getEquipment();
+        if (helmet != null) helmet.setHelmet(new ItemStack(Material.LEATHER_HELMET));
+        AttributeInstance size = boss.giant.getAttribute(Attribute.SCALE);
+        if (size != null) size.setBaseValue(GIANT_SCALE);
+        boss.setTargetRange(100, 50);
+        return boss;
     }
 
     @Override
     public void run() {
-        if (!isSpawnSuccess() || giant.isDead()) {
+        if (boss == null || giant.isDead()) {
             cancel();
             return;
         }
@@ -55,15 +65,8 @@ public class GiantBoss extends Boss {
 
         if (attackCooldown > 0) attackCooldown--;
         else {
-            attackCooldown = attackCooldownDefault;
+            attackCooldown = getCooldownForStage(getStage());
             attack();
-        }
-
-        if (activeStompJump && giant.isOnGround()) stomp();
-
-        if (giant.getTarget() != null && !activeStompJump && !loadingJump) {
-            faceLocation(giant.getTarget().getLocation());
-            attackNearbyPlayers();
         }
     }
 
@@ -71,23 +74,9 @@ public class GiantBoss extends Boss {
     public void attack() {
         if (getStage() == 1) startStomp();
         else if (getStage() == 2) {
-            if (attackCooldownDefault != 20 * 5) attackCooldownDefault = 20 * 5;
             double rand = Math.random();
             if (rand < 0.5) startStomp();
-            else {
-                new BukkitRunnable() {
-                    private int counter = 0;
-                    @Override
-                    public void run() {
-                        if (counter == 3) {
-                            cancel();
-                            return;
-                        }
-                        rockThrow();
-                        counter++;
-                    }
-                }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 10);
-            }
+            else startRockThrowVolley();
 
             if (rand < 0.25) {
                 new BukkitRunnable() {
@@ -99,23 +88,9 @@ public class GiantBoss extends Boss {
             }
         }
         else {
-            if (attackCooldownDefault != 20 * 2) attackCooldownDefault = 20 * 2;
             double rand = Math.random();
             if (rand < 0.33) startStomp();
-            else if (rand < 0.66) {
-                new BukkitRunnable() {
-                    private int counter = 0;
-                    @Override
-                    public void run() {
-                        if (counter == 3) {
-                            cancel();
-                            return;
-                        }
-                        rockThrow();
-                        counter++;
-                    }
-                }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 10);
-            }
+            else if (rand < 0.66) startRockThrowVolley();
             else roar();
 
             if (rand < 0.25) {
@@ -129,22 +104,26 @@ public class GiantBoss extends Boss {
         }
     }
 
+    
     // Method for giant death animation
     @Override
     public void deathAnimation() {
         // Turn the ground beneath the giant into mycelium with the highest density being right below where he died
         Location deathLoc = giant.getLocation().getBlock().getLocation();
         if (deathLoc.getWorld() == null) return;
-        for (int x = -5; x <= 5; x++) {
-            for (int z = -5; z <= 5; z++) {
-                for (int y = -1; y <= 5; y++) {
-                    Location blockLoc = deathLoc.clone().add(x, y, z);
-                    if (blockLoc.distance(deathLoc) > 5) continue;
+        World world = deathLoc.getWorld();
+        int radius = 5;
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                for (int y = -1; y <= radius; y++) {
+                    Location blockLoc = world.getBlockAt(x, y, z).getLocation();
+                    if (blockLoc.distanceSquared(deathLoc) > 25) continue;
                     if (blockLoc.getBlock().getType() == Material.AIR) continue;
-                    if (blockLoc.clone().add(0, 1, 0).getBlock().getType() != Material.AIR) continue;
+                    if (world.getBlockAt(x, y + 1, z).getType() != Material.AIR) continue;
                     // Increase density close to death location
                     if (Math.random() > (double) 1 / blockLoc.distance(deathLoc)) continue;
                     blockLoc.getBlock().setType(Material.MYCELIUM);
+                    break;
                 }
             }
         }
@@ -162,33 +141,29 @@ public class GiantBoss extends Boss {
         }
     }
 
-    // Method for giant stomp attack
+
     public void startStomp() {
-        // Make the giant jump into the air and land on the ground
-        if (activeStompJump || loadingJump) {
-            Bukkit.getLogger().info("Giant is already jumping");
-            return;
-        }
+        if (activeStompJump) return;
         if (giant.getTarget() == null) return;
-        loadingJump = true;
-        giant.teleport(giant.getLocation().clone().add(0, 0.3, 0));
+
+        // Launch the giant into the air
+        activeStompJump = true;
+        Location targetLoc = giant.getTarget().getLocation();
+        giant.setVelocity(ProjectileCalculator.getLivingEntityProjectileVector(giant.getLocation(), targetLoc, 1, true));
+
+        // Damage the players when it lands
         new BukkitRunnable() {
             @Override
             public void run() {
-                Location targetLoc = giant.getTarget().getLocation();
-                Vector velocity = ProjectileCalculator.getVector(giant.getLocation(), targetLoc, 1);
-                giant.setVelocity(velocity.multiply(1.5));
+                if (activeStompJump && giant.isOnGround()) {
+                    stomp();
+                    cancel();
+                }
             }
-        }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 1);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                activeStompJump = true;
-                loadingJump = false;
-            }
-        }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 10);
+        }.runTaskTimer(SurvivalSkills.getInstance(), 5, 1);
     }
 
+    
     public void stomp() {
         // Create a shockwave effect
         new BukkitRunnable() {
@@ -238,18 +213,30 @@ public class GiantBoss extends Boss {
         activeStompJump = false;
     }
 
+
+    private void startRockThrowVolley() {
+        new BukkitRunnable() {
+            private int counter = 0;
+            @Override
+            public void run() {
+                if (counter == 3) {
+                    cancel();
+                    return;
+                }
+                rockThrow();
+                counter++;
+            }
+        }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 10);
+    }
+
     // Method for rock throw attack
     public void rockThrow() {
         // Get a random target player within a 20 block radius
-        // Gravity is -0.08 blocks per tick squared
-        Player target = null;
-        for (Entity entity : giant.getNearbyEntities(20, 20, 20)) {
-            if (!(entity instanceof Player)) continue;
-            if (!giant.hasLineOfSight(entity)) continue;
-            target = (Player) entity;
-            break;
-        }
-        if (target == null) return;
+        LivingEntity giantTarget = giant.getTarget();
+        if (giantTarget == null) return;
+        if (!(giantTarget instanceof Player)) return;
+        Player target = (Player) giantTarget;
+        if (giant.getLocation().distance(target.getLocation()) > ROCK_THROW_MAX_DISTANCE) return;
 
         // Spawn a passable block at the hand of the giant
         Location handLoc = getGiantHandLocation(target.getLocation());
@@ -261,7 +248,7 @@ public class GiantBoss extends Boss {
         stone.setGravity(false);
 
         // Set the velocity of the stone to fly towards the target player
-        Vector velocity = ProjectileCalculator.getNoGravityVector(handLoc, target.getLocation().clone().add(0, 1, 0), 1.5);
+        Vector velocity = ProjectileCalculator.getNoGravityVector(handLoc, target.getLocation().clone().add(0, 1, 0), ROCK_THROW_SPEED);
         stone.setVelocity(velocity);
 
         // Create a bukkit runnable that constantly checks if the stone is near a player and if so, deal damage
@@ -281,7 +268,7 @@ public class GiantBoss extends Boss {
                     cancel();
                 }
             }
-        }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 1);
+        }.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
     }
 
     // Method for giant roar attack
@@ -355,91 +342,24 @@ public class GiantBoss extends Boss {
         }
     }
 
-    public ArrayList<Location> findNearbyValidSpawnPoints(int count) {
-        ArrayList<Location> validSpawnPoints = new ArrayList<>();
-        ArrayList<Block> blockList = new ArrayList<>();
-        Location giantLoc = giant.getLocation().getBlock().getLocation();
-        for (int i = 0; i < count; i++) {
-            if (blockList.size() >= count) break;
-            for (int x = -5; x <= 5; x++) {
-                if (blockList.size() >= count) break;
-                for (int z = -5; z <= 5; z++) {
-                    if (blockList.size() >= count) break;
-                    for (int y = 0; y <= 5; y++) {
-                        if (blockList.size() >= count) break;
-                        Location blockLoc = giantLoc.clone().add(x, y, z);
-                        if (blockList.contains(blockLoc.getBlock())) continue;
-                        if (blockLoc.distance(giant.getLocation()) > 5) continue;
-                        if (blockLoc.getBlock().getType() == Material.AIR) continue;
-                        if (blockLoc.clone().add(0, 1, 0).getBlock().getType() != Material.AIR) continue;
-                        if (blockLoc.clone().add(0, 2, 0).getBlock().getType() != Material.AIR) continue;
-                        blockList.add(blockLoc.getBlock());
-                        validSpawnPoints.add(blockLoc.clone().add(0.5, 1, 0.5));
-                    }
-                }
-            }
-        }
-        return validSpawnPoints;
-    }
 
-    // Method for targeting a player
-    public void setNearestPlayerAsTarget() {
-        Player nearestPlayer = null;
-        double nearestDistance = Double.MAX_VALUE;
-
-        for (Entity entity : giant.getNearbyEntities(100, 50, 100)) {
-            if (!(entity instanceof Player)) continue;
-
-            double distance = entity.getLocation().distance(giant.getLocation());
-            if (distance < nearestDistance) {
-                nearestPlayer = (Player) entity;
-                nearestDistance = distance;
-            }
-        }
-
-        if (nearestPlayer != null) giant.setTarget(nearestPlayer);
-    }
-
-    public Location getGiantHandLocation(Location target) {
+    private Location getGiantHandLocation(Location target) {
         // Normalize the direction vector to make its length 1
         Vector unitVector = ProjectileCalculator.getDirectionVector(giant.getLocation(), target);
         // Calculate the vector that is orthogonal to the direction vector
-        Vector orthogonalVector;
-        if (unitVector.getX() > 0 && unitVector.getZ() > 0) orthogonalVector = new Vector(-unitVector.getZ(), 0, unitVector.getX());
-        else if (unitVector.getX() > 0 && unitVector.getZ() < 0) orthogonalVector = new Vector(unitVector.getZ(), 0, -unitVector.getX());
-        else if (unitVector.getX() < 0 && unitVector.getZ() > 0) orthogonalVector = new Vector(-unitVector.getZ(), 0, unitVector.getX());
-        else orthogonalVector = new Vector(unitVector.getZ(), 0, -unitVector.getX());
-        orthogonalVector = orthogonalVector.multiply(2d);
-
-        return giant.getLocation().clone().add(orthogonalVector.getX(), 7.5, orthogonalVector.getZ());
+        return giant.getLocation().clone().add(-unitVector.getZ() * HAND_OFFSET, HAND_HEIGHT, unitVector.getZ() * HAND_OFFSET);
     }
 
-    public void faceLocation(Location loc) {
-        Vector direction = loc.toVector().subtract(giant.getLocation().toVector()).normalize();
-        Location target = giant.getLocation().clone();
-        target.setYaw((float) Math.toDegrees(Math.atan2(-direction.getX(), direction.getZ())));
-        target.setPitch(90 - (float) Math.toDegrees(Math.acos(-direction.getY())));
-        giant.teleport(target);
-    }
-
-    public void attackNearbyPlayers() {
-        if (attackCooldown % 20 != 0) {
-            if (attackCooldown % 4 != 0) return;
-            // Make the giant move towards its target player
-            if (giant.getTarget() == null) return;
-            Vector direction = ProjectileCalculator.getDirectionVector(giant.getLocation(), giant.getTarget().getLocation());
-            if (!giant.isOnGround()) direction.setY(0);
-            giant.setVelocity(direction.multiply(0.1));
-            return;
+    private int getCooldownForStage(int stage) {
+        switch (stage) {
+            case 1:
+                return ATTACK_COOLDOWN_STAGE_1;
+            case 2:
+                return ATTACK_COOLDOWN_STAGE_2;
+            case 3:
+                return ATTACK_COOLDOWN_STAGE_3;
+            default:
+                return 0;
         }
-        ArrayList<Player> nearbyPlayers = new ArrayList<>();
-        for (Entity entity : giant.getNearbyEntities(3, 12, 3)) {
-            if (!(entity instanceof Player)) continue;
-            nearbyPlayers.add((Player) entity);
-        }
-        if (nearbyPlayers.isEmpty()) return;
-        for (Player p : nearbyPlayers) p.damage(5);
-        giant.swingMainHand();
-        giant.swingOffHand();
     }
 }

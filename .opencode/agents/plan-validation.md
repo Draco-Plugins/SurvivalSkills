@@ -2,7 +2,6 @@
 name: plan-validation
 description: Critically evaluates an implementation plan for completeness, correctness, and potential issues before starting implementation
 mode: all
-model: deepseek/deepseek-v4-pro
 temperature: 0.25
 color: "#ff545d"
 permission:

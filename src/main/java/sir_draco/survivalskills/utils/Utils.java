@@ -1,12 +1,18 @@
 package sir_draco.survivalskills.utils;
 
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.boss.KeyedBossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -16,9 +22,12 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
 
 import java.util.Iterator;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public class Utils {
+    public static final UUID DEFAULT_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+
     private Utils() {
         // Prevent instantiation
     }
@@ -76,5 +85,17 @@ public class Utils {
                 bar.removeAll();
             }
         }
+    }
+
+    public static void sendActionBarMessage(Player p, String message) {
+        p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacy(message));
+    }
+
+    public static void updateEntityAttributeInstance(LivingEntity entity, Attribute attribute, double value) {
+        AttributeInstance instance = entity.getAttribute(attribute);
+        if (instance == null) {
+            throw new IllegalStateException("[Survival Skills] Updating attribute instance for " + entity.toString() + " failed");
+        }
+        instance.setBaseValue(value);
     }
 }

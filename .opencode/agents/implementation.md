@@ -2,7 +2,6 @@
 name: implementation
 description: Execute a plan file by implementing the code changes specified in the plan
 mode: all
-model: deepseek/deepseek-v4-flash
 color: "#ba00db"
 permission:
     edit: allow

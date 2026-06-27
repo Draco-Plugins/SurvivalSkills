@@ -57,14 +57,13 @@ public class BossCommand implements CommandExecutor {
                 }
 
                 despawnOthers("giant");
-                giantBoss = new GiantBoss(p.getLocation());
-                giantBoss.runTaskTimer(plugin, 0, 1);
-                if (!giantBoss.isSpawnSuccess()) {
+                giantBoss = GiantBoss.create(p.getLocation());
+                if (giantBoss == null) {
                     p.sendRawMessage(ChatColor.RED + "Giant Boss failed to spawn!");
                     p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    giantBoss = null;
                     return true;
                 }
+                giantBoss.runTaskTimer(plugin, 0, 1);
                 p.sendRawMessage(ChatColor.GREEN + "Giant Boss spawned!");
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 plugin.getFightingListener().addBoss(p, giantBoss);
@@ -79,14 +78,13 @@ public class BossCommand implements CommandExecutor {
                 }
 
                 despawnOthers("broodmother");
-                broodMotherBoss = new BroodMotherBoss(p.getLocation());
-                broodMotherBoss.runTaskTimer(plugin, 0, 1);
-                if (!broodMotherBoss.isSpawnSuccess()) {
+                broodMotherBoss = BroodMotherBoss.create(p.getLocation());
+                if (broodMotherBoss == null) {
                     p.sendRawMessage(ChatColor.RED + "BroodMother Boss failed to spawn!");
                     p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    broodMotherBoss = null;
                     return true;
                 }
+                broodMotherBoss.runTaskTimer(plugin, 0, 1);
                 p.sendRawMessage(ChatColor.GREEN + "BroodMother Boss spawned!");
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 plugin.getFightingListener().addBoss(p, broodMotherBoss);
@@ -101,14 +99,13 @@ public class BossCommand implements CommandExecutor {
                 }
 
                 despawnOthers("villager");
-                villagerBoss = new VillagerBoss(p.getLocation(), p, plugin.getFightingListener().getNoBossMusic().contains(p));
-                villagerBoss.runTaskTimer(plugin, 0, 1);
-                if (!villagerBoss.isSpawnSuccess()) {
+                villagerBoss = VillagerBoss.create(p.getLocation(), p, plugin.getFightingListener().getNoBossMusic().contains(p));
+                if (villagerBoss == null) {
                     p.sendRawMessage(ChatColor.RED + "Villager Boss failed to spawn!");
                     p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    villagerBoss = null;
                     return true;
                 }
+                villagerBoss.runTaskTimer(plugin, 0, 1);
                 p.sendRawMessage(ChatColor.GREEN + "Villager Boss spawned!");
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 plugin.getFightingListener().addBoss(p, villagerBoss);
@@ -172,6 +169,54 @@ public class BossCommand implements CommandExecutor {
                 p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
                 return true;
             }
+        }
+
+        if (strings[0].equalsIgnoreCase("remove")) {
+            if (giantBoss != null) {
+                if (giantBoss.getBoss().isDead()) {
+                    p.sendRawMessage(ChatColor.RED + "Giant Boss died unnaturally!");
+                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    giantBoss = null;
+                    return true;
+                }
+
+                giantBoss.cleanup();
+                giantBoss = null;
+                p.sendRawMessage(ChatColor.GREEN + "Giant Boss Removed!");
+                p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                return true;
+            }
+            else if (broodMotherBoss != null) {
+                if (broodMotherBoss.getBoss().isDead()) {
+                    p.sendRawMessage(ChatColor.RED + "BroodMother Boss died unnaturally!");
+                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    broodMotherBoss = null;
+                    return true;
+                }
+
+                broodMotherBoss.cleanup();
+                broodMotherBoss = null;
+                p.sendRawMessage(ChatColor.GREEN + "BroodMother Boss Removed!");
+                p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                return true;
+            }
+            else if (villagerBoss != null) {
+                if (villagerBoss.getBoss().isDead()) {
+                    p.sendRawMessage(ChatColor.RED + "Villager Boss died unnaturally!");
+                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    villagerBoss = null;
+                    return true;
+                }
+
+                villagerBoss.cleanup();
+                villagerBoss = null;
+                p.sendRawMessage(ChatColor.GREEN + "Villager Boss Removed!");
+                p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+                return true;
+            }
+
+            p.sendRawMessage(ChatColor.RED + "No boss found!");
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
         }
 
         if (strings[0].equalsIgnoreCase("kill")) {

@@ -2,20 +2,19 @@
 name: requirements
 description: Converts issue + research into exact requirements through a user conversation
 mode: all
-model: deepseek/deepseek-v4-pro
 temperature: 0.1
 color: "#0012db"
 permission:
-  edit:
-    "*": deny
-    "docs/requirements/*": allow
-  read: allow
-  glob: allow
-  list: allow
-  bash: deny
-  webfetch: ask
-  lsp: allow
-  question: allow
+    edit:
+        "*": deny
+        "docs/requirements/*": allow
+    read: allow
+    glob: allow
+    list: allow
+    bash: deny
+    webfetch: ask
+    lsp: allow
+    question: allow
 ---
 
 ## Overview

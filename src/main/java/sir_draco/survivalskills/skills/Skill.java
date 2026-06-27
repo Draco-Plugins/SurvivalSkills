@@ -195,7 +195,7 @@ public class Skill {
     }
 
     public void levelUpNotification(Player p) {
-        p.sendRawMessage(ChatColor.GREEN + "Skill " + ChatColor.AQUA + skillCategory + ChatColor.GREEN + " has leveled up to level: " + ChatColor.GOLD + level);
+        p.sendRawMessage(ChatColor.GREEN + "Skill " + ChatColor.AQUA + skillCategory.getDisplayName() + ChatColor.GREEN + " has leveled up to level: " + ChatColor.GOLD + level);
         p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
     }
 

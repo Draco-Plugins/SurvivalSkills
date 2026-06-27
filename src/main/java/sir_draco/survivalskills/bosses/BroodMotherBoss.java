@@ -3,7 +3,6 @@ package sir_draco.survivalskills.bosses;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
-import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
@@ -14,25 +13,32 @@ import java.util.ArrayList;
 
 public class BroodMotherBoss extends Boss {
 
-    private final int minionMax = 15;
+    private static final int ATTACK_COOLDOWN_STAGE_1 = 20 * 10;
+    private static final int ATTACK_COOLDOWN_STAGE_2 = 20 * 5;
+    private static final int ATTACK_COOLDOWN_STAGE_3 = 20 * 3;
+    private static final int TARGETING_COOLDOWN_MAX = 20;
+    private static final int MINION_MAX = 15;
 
     private Spider spider;
-    private int attackCooldownDefault = 20 * 10;
-    private int attackCooldown = attackCooldownDefault;
-    private int targetCooldown = 20;
+    private int attackCooldown = ATTACK_COOLDOWN_STAGE_1;
+    private int targetCooldown = TARGETING_COOLDOWN_MAX;
 
-    public BroodMotherBoss(Location loc) {
-        super("BroodMother", 3, 3, 300, 15, 2, 0.25, EntityType.SPIDER, loc, 3);
-        if (isSpawnSuccess()) {
-            spider = (Spider) getBoss();
-            AttributeInstance size = spider.getAttribute(Attribute.SCALE);
-            if (size != null) size.setBaseValue(3);
-        }
+    private BroodMotherBoss() {
+        super("BroodMother", 3, 3, 300, 15, 2, 0.25, 3);
+    }
+
+    public static BroodMotherBoss create(Location loc) {
+        BroodMotherBoss boss = new BroodMotherBoss();
+        if (!boss.spawnBoss(EntityType.SPIDER, loc)) return null;
+        boss.spider = (Spider) boss.getBoss();
+        AttributeInstance size = boss.spider.getAttribute(Attribute.SCALE);
+        if (size != null) size.setBaseValue(3);
+        return boss;
     }
 
     @Override
     public void run() {
-        if (!isSpawnSuccess() || spider.isDead()) {
+        if (boss == null || spider.isDead()) {
             cancel();
             return;
         }
@@ -43,52 +49,32 @@ public class BroodMotherBoss extends Boss {
         if (isDisableAttack()) return;
         if (targetCooldown > 0) targetCooldown--;
         else {
-            targetCooldown = 20;
+            targetCooldown = TARGETING_COOLDOWN_MAX;
             setNearestPlayerAsTarget();
         }
 
         if (attackCooldown > 0) attackCooldown--;
         else {
-            attackCooldown = attackCooldownDefault;
+            attackCooldown = getCooldownForStage(getStage());
             attack();
         }
     }
 
     @Override
     public void attack() {
-        if (getStage() == 2) attackCooldownDefault = 20 * 5;
-        if (getStage() == 3) attackCooldownDefault = 20 * 3;
-
         // Handle web spray attack
-        double chance = Math.random();
         boolean spraySuccess = false;
-        if (chance > getHealthPercentage()) {
+        if (Math.random() > getHealthPercentage()) {
             spraySuccess = true;
-            for (int i = 0; i < 20; i++) {
-                Location loc = spider.getLocation().clone().add(0, 1, 0);
-                Vector velocity = new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize();
-                FallingBlock cobweb = spider.getWorld().spawnFallingBlock(loc, Material.COBWEB.createBlockData());
-                cobweb.setDropItem(true);
-                cobweb.setHurtEntities(false);
-                cobweb.setVelocity(velocity);
-            }
-            spider.getWorld().playSound(spider.getLocation(), Sound.ENTITY_EGG_THROW, 1, 1);
+            spawnCobwebSpray(20, 0.5);
         }
 
         // Handle minion spawn attack
-        chance = Math.random();
-        if (chance > getHealthPercentage() && getHealthPercentage() < 0.5) spawnMinions(spider.getTarget(), Math.max(1, (int) (1 - getHealthPercentage()) * minionMax));
+        if (getHealthPercentage() < 0.5 && Math.random() > getHealthPercentage()) spawnMinions(spider.getTarget(), Math.max(1, (int) ((1 - getHealthPercentage()) * MINION_MAX)));
 
-        // Handle lunge attack
+        // Handle lunge attack, don't lunge if it already sprayed
         if (spraySuccess) return;
-        if (spider.getTarget() == null) {
-            setNearestPlayerAsTarget();
-            return;
-        }
-        Location targetLoc = spider.getTarget().getLocation();
-        Vector direction = ProjectileCalculator.getVector(spider.getLocation(), targetLoc, 1.5);
-        spider.setVelocity(direction);
-        spider.getWorld().playSound(spider.getLocation(), Sound.ENTITY_SPIDER_DEATH, 1, 1);
+        lungeAttack();
     }
 
     @Override
@@ -103,26 +89,21 @@ public class BroodMotherBoss extends Boss {
             @Override
             public void run() {
                 // Spawn cobweb projectiles
-                for (int i = 0; i < 10; i++) {
-                    Location loc = dummy.getLocation().clone().add(0, 1, 0);
-                    Vector velocity = new Vector(Math.random() - 0.5, 0.5, Math.random() - 0.5).normalize().multiply(0.5);
-                    FallingBlock cobweb = dummy.getWorld().spawnFallingBlock(loc, Material.COBWEB.createBlockData());
-                    cobweb.setVelocity(velocity);
-                }
+                spawnCobwebSpray(10, 1.5);
                 dummy.remove();
             }
         }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), 80);
     }
 
     // Method for spawning minions
-    public void spawnMinions(LivingEntity target, int count) {
+    private void spawnMinions(LivingEntity target, int count) {
         // If there are already 10 cave spiders near the boss, don't spawn more
         int nearbyCaveSpiderCount = 0;
         for (Entity entity : spider.getNearbyEntities(10, 10, 10)) {
             if (entity instanceof CaveSpider) nearbyCaveSpiderCount++;
         }
-        if (nearbyCaveSpiderCount >= minionMax) return;
-        else count = Math.min(minionMax - nearbyCaveSpiderCount, count);
+        if (nearbyCaveSpiderCount >= MINION_MAX) return;
+        else count = Math.min(MINION_MAX - nearbyCaveSpiderCount, count);
 
         ArrayList<Location> spawnPoints = findNearbyValidSpawnPoints(count);
         for (Location loc : spawnPoints) {
@@ -136,44 +117,42 @@ public class BroodMotherBoss extends Boss {
         }
     }
 
-    public ArrayList<Location> findNearbyValidSpawnPoints(int count) {
-        ArrayList<Location> validSpawnPoints = new ArrayList<>();
-        ArrayList<Block> blockList = new ArrayList<>();
-        Location giantLoc = spider.getLocation().getBlock().getLocation();
-        for (int i = 0; i < count; i++) {
-            for (int x = -5; x <= 5; x++) {
-                for (int z = -5; z <= 5; z++) {
-                    for (int y = 0; y <= 5; y++) {
-                        Location blockLoc = giantLoc.clone().add(x, y, z);
-                        if (blockList.contains(blockLoc.getBlock())) continue;
-                        if (blockLoc.distance(spider.getLocation()) > 5) continue;
-                        if (blockLoc.getBlock().getType() == Material.AIR) continue;
-                        if (blockLoc.clone().add(0, 1, 0).getBlock().getType() != Material.AIR) continue;
-                        if (blockLoc.clone().add(0, 2, 0).getBlock().getType() != Material.AIR) continue;
-                        blockList.add(blockLoc.getBlock());
-                        validSpawnPoints.add(blockLoc.clone().add(0.5, 1, 0.5));
-                    }
-                }
-            }
+
+    private void spawnCobwebSpray(int count, double speedMultiplier) {
+        for (int i = 0; i < 20; i++) {
+            Location loc = spider.getLocation().clone().add(0, 1, 0);
+            Vector velocity = new Vector(Math.random() - speedMultiplier, speedMultiplier, Math.random() - speedMultiplier).normalize();
+            FallingBlock cobweb = spider.getWorld().spawnFallingBlock(loc, Material.COBWEB.createBlockData());
+            cobweb.setDropItem(true);
+            cobweb.setHurtEntities(false);
+            cobweb.setVelocity(velocity);
         }
-        return validSpawnPoints;
+        spider.getWorld().playSound(spider.getLocation(), Sound.ENTITY_EGG_THROW, 1, 1);
     }
 
-    // Method for targeting a player
-    public void setNearestPlayerAsTarget() {
-        Player nearestPlayer = null;
-        double nearestDistance = Double.MAX_VALUE;
 
-        for (Entity entity : spider.getNearbyEntities(50, 50, 50)) {
-            if (!(entity instanceof Player)) continue;
-
-            double distance = entity.getLocation().distance(spider.getLocation());
-            if (distance < nearestDistance) {
-                nearestPlayer = (Player) entity;
-                nearestDistance = distance;
-            }
+    private void lungeAttack() {
+        if (spider.getTarget() == null) {
+            setNearestPlayerAsTarget();
+            return;
         }
+        Location targetLoc = spider.getTarget().getLocation();
+        Vector direction = ProjectileCalculator.getLivingEntityProjectileVector(spider.getLocation(), targetLoc, 1.5, false);
+        spider.setVelocity(direction);
+        spider.getWorld().playSound(spider.getLocation(), Sound.ENTITY_SPIDER_DEATH, 1, 1);
+    }
 
-        if (nearestPlayer != null) spider.setTarget(nearestPlayer);
+
+    private int getCooldownForStage(int stage) {
+        switch (stage) {
+            case 1:
+                return ATTACK_COOLDOWN_STAGE_1;
+            case 2:
+                return ATTACK_COOLDOWN_STAGE_2;
+            case 3:
+                return ATTACK_COOLDOWN_STAGE_3;
+            default:
+                return 0;
+        }
     }
 }

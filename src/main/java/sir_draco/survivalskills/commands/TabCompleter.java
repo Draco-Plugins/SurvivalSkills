@@ -168,6 +168,7 @@ public class TabCompleter implements Listener {
         words.add("kill");
         words.add("toggleai");
         words.add("attack");
+        words.add("remove");
         e.setCompletions(getCompletions(buffer, words));
     }
 

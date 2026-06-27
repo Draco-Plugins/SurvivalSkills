@@ -2,7 +2,6 @@
 name: plan-architect
 description: Creates a detailed plan for implementing a task or fixing a bug based on the relevant codebase context
 mode: all
-model: deepseek/deepseek-v4-pro
 color: "#00dbaf"
 permission:
     edit: allow
