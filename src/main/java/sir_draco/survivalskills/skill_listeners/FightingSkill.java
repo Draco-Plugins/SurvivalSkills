@@ -847,6 +847,16 @@ public class FightingSkill implements Listener {
         }
     }
 
+    public void removeBoss(Boss boss) {
+        if (boss instanceof GiantBoss g) {
+            giants.remove(g);
+        } else if (boss instanceof BroodMotherBoss b) {
+            broodMothers.remove(b);
+        } else if (boss instanceof VillagerBoss v) {
+            villagers.remove(v);
+        }
+    }
+
     public ArrayList<GiantBoss> getGiants() {
         return giants;
     }
