@@ -63,6 +63,7 @@ Refactor the code first. Then, when you present a refactor, you must follow this
 
 - Lines of Code (LOC): -15 lines.
 - Cognitive Load: Significantly Reduced.
+- New Complexity Score: (New score)
 
 ## Important Guidelines
 
