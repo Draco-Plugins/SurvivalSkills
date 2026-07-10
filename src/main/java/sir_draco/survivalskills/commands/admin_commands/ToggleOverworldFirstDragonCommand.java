@@ -9,12 +9,11 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.metadata.FixedMetadataValue;
 import sir_draco.survivalskills.SurvivalSkills;
 
-@SuppressWarnings("NullableProblems")
-public class ToggleOverworldFirstDragon implements CommandExecutor {
+public class ToggleOverworldFirstDragonCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
 
-    public ToggleOverworldFirstDragon(SurvivalSkills plugin) {
+    public ToggleOverworldFirstDragonCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
         PluginCommand command = plugin.getCommand("toggleoverworldfirstdragon");
         if (command != null) command.setExecutor(this);

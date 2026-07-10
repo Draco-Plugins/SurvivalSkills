@@ -6,7 +6,6 @@ import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.god_questline.GodRecipeUI;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
@@ -14,69 +13,58 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-@SuppressWarnings("NullableProblems")
 public class GodQuestCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
 
     public GodQuestCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
-        PluginCommand command = plugin.getCommand("godquest");
-        if (command != null)
-            command.setExecutor(this);
+        Objects.requireNonNull(plugin.getCommand("godquest")).setExecutor(this);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
-        if (!(sender instanceof Player p))
-            return false;
-
-        // Check if the player has an active god quest
-        if (!plugin.getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId())) {
-            p.sendRawMessage(ChatColor.RED + "You have not started the god quest yet");
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+        if (!(sender instanceof Player p)) {
+            sender.sendMessage(ChatColor.RED + "This command can only be used by a player.");
             return true;
         }
 
         GodTrophyQuest quest = plugin.getTrophyManager().getPlayerGodQuestData().get(p.getUniqueId());
         if (quest == null) {
-            p.sendRawMessage(ChatColor.RED + "You have not started the god quest yet");
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            sendQuestError(p);
             return true;
         }
 
-        // Check what stage they are in
-        // TODO: Find a better way so that this is not hardcoded
-        int stage;
-        if (quest.getPhase() >= 22 && quest.getPhase() <= 26)
-            stage = 1;
-        else if (quest.getPhase() >= 27 && quest.getPhase() <= 44)
-            stage = 2;
-        else if (quest.getPhase() == 45 || quest.getPhase() == 46)
-            stage = 3;
-        else if (quest.getPhase() == 48)
-            stage = 4;
-        else {
-            p.sendRawMessage(ChatColor.RED + "There are no recipes for this stage of the God Quest");
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+        Optional<Integer> stage = quest.getStage();
+        if (stage.isEmpty()) {
+            sendNoRecipeError(p);
             return true;
         }
 
-        // Build the Recipe UI and open it
-        GodRecipeUI ui = new GodRecipeUI(getRecipeList(stage));
+        GodRecipeUI ui = new GodRecipeUI(getRecipeList(stage.get()));
         plugin.getGodListener().getOpenGodRecipeUI().put(p, ui);
         ui.open(p);
         return true;
     }
 
-    public ArrayList<NamespacedKey> getRecipeList(int stage) {
-        ArrayList<NamespacedKey> list = new ArrayList<>();
-        for (Map.Entry<NamespacedKey, Integer> recipe : plugin.getGodRecipeKeys().entrySet()) {
-            if (recipe.getValue() != stage)
-                continue;
-            list.add(recipe.getKey());
-        }
-        return list;
+    private ArrayList<NamespacedKey> getRecipeList(int stage) {
+        return plugin.getGodRecipeKeys().entrySet().stream()
+                .filter(e -> e.getValue() == stage)
+                .map((Map.Entry<NamespacedKey, Integer> entry) -> entry.getKey())
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private void sendQuestError(Player p) {
+        p.sendRawMessage(ChatColor.RED + "You have not started the god quest yet");
+        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+    }
+
+    private void sendNoRecipeError(Player p) {
+        p.sendRawMessage(ChatColor.RED + "There are no recipes for this stage of the God Quest");
+        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
     }
 }

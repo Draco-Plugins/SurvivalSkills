@@ -1,1 +1,6 @@
 BossCommand
+SkillsMultiplierCommand
+SurvivalSkillsCommand
+SkillsCommand
+FlightCommand
+GodTrialCommand

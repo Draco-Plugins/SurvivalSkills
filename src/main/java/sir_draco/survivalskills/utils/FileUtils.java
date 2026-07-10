@@ -225,7 +225,7 @@ public class FileUtils {
     public static void loadCommands() {
         SurvivalSkills plugin = SurvivalSkills.getInstance();
         // Default Player Commands
-        plugin.setFlightCommand(new FlightCommand(plugin));
+        new FlightCommand(plugin);
         new AutoEatCommand(plugin);
         new AutoTrashCommand(plugin);
         new DeathLocationCommand(plugin);
@@ -257,11 +257,11 @@ public class FileUtils {
         new BossMusicCommand(plugin);
         new CaveFinderCommand(plugin);
         new GetTrophyCommand(plugin);
-        new ResetFirstDragon(plugin);
+        new ResetFirstDragonCommand(plugin);
         new SkillsMultiplierCommand(plugin);
         new SurvivalSkillsCommand(plugin);
         new SurvivalSkillsGetCommand(plugin);
-        new ToggleOverworldFirstDragon(plugin);
+        new ToggleOverworldFirstDragonCommand(plugin);
         new DragonStatusCommand();
         new ToggleGodQuestCommand(plugin);
         new ResetAllCommand(plugin);

@@ -10,7 +10,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import sir_draco.survivalskills.SurvivalSkills;
 
-@SuppressWarnings("NullableProblems")
 public class GetTrophyCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

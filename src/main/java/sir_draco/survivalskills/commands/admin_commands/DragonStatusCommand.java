@@ -12,7 +12,6 @@ import org.bukkit.entity.EnderDragon;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
 
-@SuppressWarnings("NullableProblems")
 public class DragonStatusCommand implements CommandExecutor {
 
     public DragonStatusCommand() {

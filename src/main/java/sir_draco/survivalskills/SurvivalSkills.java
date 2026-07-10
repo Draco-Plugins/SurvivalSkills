@@ -13,7 +13,6 @@ import sir_draco.survivalskills.commands.*;
 import sir_draco.survivalskills.boards.Leaderboard;
 import sir_draco.survivalskills.boards.LeaderboardPlayer;
 import sir_draco.survivalskills.boards.SkillScoreboard;
-import sir_draco.survivalskills.commands.skill_commands.*;
 import sir_draco.survivalskills.external.listeners.CitizensTrophyListener;
 import sir_draco.survivalskills.external.providers.WorldGuardProvider;
 import sir_draco.survivalskills.god_questline.*;
@@ -62,7 +61,6 @@ public final class SurvivalSkills extends JavaPlugin {
     private PlayerListener playerListener;
     private ArmorListener armorListener;
     private GodListener godListener;
-    private FlightCommand flightCommand;
 
     // Configs
     private FileConfiguration config;
@@ -420,10 +418,6 @@ public final class SurvivalSkills extends JavaPlugin {
         this.worldGuardEnabled = worldGuardEnabled;
     }
 
-    public void setFlightCommand(FlightCommand flightCommand) {
-        this.flightCommand = flightCommand;
-    }
-
     public boolean isWorldGuardEnabled() {
         return worldGuardEnabled;
     }
@@ -466,10 +460,6 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public void setSkillManager(SkillManager skillManager) {
         this.skillManager = skillManager;
-    }
-
-    public FlightCommand getFlightCommand() {
-        return flightCommand;
     }
 
     public boolean isCitizensEnabled() {

@@ -9,7 +9,6 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
 
-@SuppressWarnings("NullableProblems")
 public class ToggleGodQuestCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

@@ -13,7 +13,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 
-@SuppressWarnings("NullableProblems")
+
 public class ToggleSpeedCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

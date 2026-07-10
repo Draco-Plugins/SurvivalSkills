@@ -7,6 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.abilities.AbilityTimer;
@@ -19,6 +20,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.FileUtils;
 import sir_draco.survivalskills.utils.ItemStackGenerator;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -188,6 +190,18 @@ public class SkillManager {
             multiplier = config.getDouble("SkillXPMultiplier");
         if (config.get("ExponentialXP") != null)
             plugin.setExponentialXP(config.getBoolean("ExponentialXP"));
+    }
+
+    public void saveGlobalMultiplier(double multiplier) {
+        this.multiplier = multiplier;
+        File file = new File(plugin.getDataFolder(), FileUtils.CONFIG_YML);
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+        config.set("SkillXPMultiplier", multiplier);
+        try {
+            config.save(file);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save config file", e);
+        }
     }
 
     /**

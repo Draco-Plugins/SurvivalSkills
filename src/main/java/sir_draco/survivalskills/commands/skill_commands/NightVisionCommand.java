@@ -14,7 +14,7 @@ import sir_draco.survivalskills.rewards.RewardNotifications;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
-@SuppressWarnings("NullableProblems")
+
 public class NightVisionCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

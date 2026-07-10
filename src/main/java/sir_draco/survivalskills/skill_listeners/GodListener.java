@@ -58,7 +58,6 @@ import java.util.logging.Level;
 public class GodListener implements Listener {
 
     public static final NamespacedKey potionBagKey = new NamespacedKey(SurvivalSkills.getInstance(), "potion_bag");
-    public static int previousPotionBagID = 0;
 
     private final HashMap<EntityType, ItemStack> godItems = new HashMap<>();
     private final HashMap<Integer, Inventory> potionBags = new HashMap<>();
@@ -126,14 +125,13 @@ public class GodListener implements Listener {
 
         if (type.equals(EntityType.WITCH)) {
             e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
-            e.getDrops().add(ItemStackGenerator.getPotionBag(previousPotionBagID++));
+            e.getDrops().add(ItemStackGenerator.getNewPotionBag());
         } else {
             e.getDrops().add(godItems.get(type));
             e.getEntity().getWorld().playSound(e.getEntity().getLocation(), Sound.BLOCK_NOTE_BLOCK_GUITAR, 1, 1);
         }
     }
 
-    @SuppressWarnings("deprecation")
     @EventHandler
     public void onUseGodItem(PlayerInteractEvent e) {
         Player p = e.getPlayer();
@@ -147,25 +145,20 @@ public class GodListener implements Listener {
         ItemMeta meta = mainHand.getItemMeta();
         if (meta == null)
             return;
-        if (!meta.hasCustomModelData())
-            return;
-
-        int modelData = meta.getCustomModelData();
-
-        if (modelData == 33) {
+        if (ItemStackGenerator.hasCustomModelData(meta, 33)) {
             Vector velocity = p.getLocation().getDirection().multiply(2);
             FallingBlock cobweb = p.getWorld().spawnFallingBlock(p.getLocation().clone().add(0, 1, 0),
                     Material.COBWEB.createBlockData());
             cobweb.setHurtEntities(false);
             cobweb.setVelocity(velocity);
             p.getWorld().playSound(p.getLocation(), Sound.ENTITY_EGG_THROW, 1, 1);
-        } else if (modelData == 36) {
+        } else if (ItemStackGenerator.hasCustomModelData(meta, 36)) {
             e.setCancelled(true);
             Location loc = p.getLocation().clone().add(p.getLocation().getDirection().multiply(5));
             new EnderEssence(p, loc).runTaskAsynchronously(SurvivalSkills.getInstance());
-        } else if (modelData == 37) {
+        } else if (ItemStackGenerator.hasCustomModelData(meta, 37)) {
             p.getWorld().createExplosion(p.getLocation(), 5, false, true, p);
-        } else if (modelData == 38) {
+        } else if (ItemStackGenerator.hasCustomModelData(meta, 38)) {
             int id = getPotionBagID(mainHand);
 
             if (potionBags.containsKey(id)) {
@@ -190,13 +183,13 @@ public class GodListener implements Listener {
             potionBags.put(id, potionBag);
             openPotionBags.add(potionBag);
             p.openInventory(potionBag);
-        } else if (modelData == 39) {
+        } else if (ItemStackGenerator.hasCustomModelData(meta, 39)) {
             e.setCancelled(true);
             p.launchProjectile(WindCharge.class, p.getLocation().getDirection().multiply(2));
-        } else if (modelData == 40) {
+        } else if (ItemStackGenerator.hasCustomModelData(meta, 40)) {
             e.setCancelled(true);
             p.launchProjectile(DragonFireball.class, p.getLocation().getDirection().multiply(2));
-        } else if (modelData == 41) {
+        } else if (ItemStackGenerator.hasCustomModelData(meta, 41)) {
             e.setCancelled(true);
             if (e.getHand() == null)
                 return;
@@ -224,12 +217,12 @@ public class GodListener implements Listener {
             state.setType(Material.WITHER_ROSE);
             desiredBlock.setType(Material.WITHER_ROSE);
             state.update(true);
-        } else if (modelData == 43) {
+        } else if (ItemStackGenerator.hasCustomModelData(meta, 43)) {
             // Handle trident launcher
             e.setCancelled(true);
             Trident trident = p.launchProjectile(Trident.class, p.getLocation().getDirection().multiply(2));
             trident.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
-        } else if (modelData == 46) {
+        } else if (ItemStackGenerator.hasCustomModelData(meta, 46)) {
             e.setCancelled(true);
             if (e.getHand() == null)
                 return;
@@ -257,7 +250,7 @@ public class GodListener implements Listener {
             state.setType(Material.SPONGE);
             desiredBlock.setType(Material.SPONGE);
             state.update(true);
-        } else if (modelData == 47) {
+        } else if (ItemStackGenerator.hasCustomModelData(meta, 47)) {
             if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "PowerOre")
                     .isApplied()) {
                 p.sendRawMessage(
@@ -271,7 +264,7 @@ public class GodListener implements Listener {
             // Spinning dash attack like when flying with a trident
             e.setCancelled(true);
             PowerSword.activate(p);
-        } else if (modelData == 50) {
+        } else if (ItemStackGenerator.hasCustomModelData(meta, 50)) {
             e.setCancelled(true);
             if (powerLaserCooldowns.contains(p))
                 return;
@@ -758,7 +751,7 @@ public class GodListener implements Listener {
             return 0;
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        int id = container.getOrDefault(potionBagKey, PersistentDataType.INTEGER, previousPotionBagID++);
+        int id = container.getOrDefault(potionBagKey, PersistentDataType.INTEGER, ItemStackGenerator.nextPotionBagId());
         item.setItemMeta(meta);
 
         return id;
@@ -858,7 +851,7 @@ public class GodListener implements Listener {
         godItems.put(EntityType.ZOMBIE, ItemStackGenerator.getVillagerRevivalArtifact());
         godItems.put(EntityType.ENDERMAN, ItemStackGenerator.getEnderEssence());
         godItems.put(EntityType.CREEPER, ItemStackGenerator.getCreeperEssence());
-        godItems.put(EntityType.WITCH, ItemStackGenerator.getPotionBag(previousPotionBagID++));
+        godItems.put(EntityType.WITCH, ItemStackGenerator.getNewPotionBag());
         godItems.put(EntityType.DROWNED, ItemStackGenerator.getTridentLauncher());
         godItems.put(EntityType.BREEZE, ItemStackGenerator.getMagicBagOfWind());
         godItems.put(EntityType.ENDER_DRAGON, ItemStackGenerator.getDragonBreathCannon());

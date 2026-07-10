@@ -9,10 +9,10 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.utils.ExiledBossMusic;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.utils.Utils;
 
 import java.util.HashMap;
 
-@SuppressWarnings("NullableProblems")
 public class BossMusicCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
@@ -45,17 +45,13 @@ public class BossMusicCommand implements CommandExecutor {
         String song = strings[0];
         Player songPlayer = null;
         if (strings.length > 1) {
-            String player = strings[1];
-            try {
-                songPlayer = plugin.getServer().getPlayer(player);
-                if (exiledMusic.containsKey(songPlayer)) {
-                    exiledMusic.get(songPlayer).setDead(true);
-                    exiledMusic.remove(songPlayer);
-                }
-            } catch (Exception e) {
-                p.sendRawMessage(ChatColor.RED + "Player not found.");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return true;
+            // Look up the named player (case-insensitive). A missing player falls
+            // through to the sender fallback below, matching the original behaviour
+            // where getPlayer() returned null instead of throwing.
+            songPlayer = Utils.findPlayer(strings[1]).orElse(null);
+            if (exiledMusic.containsKey(songPlayer)) {
+                exiledMusic.get(songPlayer).setDead(true);
+                exiledMusic.remove(songPlayer);
             }
         }
         if (songPlayer == null) songPlayer = p;

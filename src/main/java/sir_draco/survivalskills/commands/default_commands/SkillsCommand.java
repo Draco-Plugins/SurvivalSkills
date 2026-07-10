@@ -21,12 +21,33 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.RecipeMaker;
 
 import java.util.*;
+import java.util.Locale;
 
 public class SkillsCommand implements CommandExecutor {
 
+    private record DeathTier(int threshold, String displaySuffix, List<String> lore) {}
+
+    private static final List<DeathTier> DEATH_TIERS = List.of(
+            new DeathTier(10, " Temporary Speed Boost After Death", List.of()),
+            new DeathTier(20, " Temporary Strength Boost After Death", List.of()),
+            new DeathTier(30, " Temporary Regeneration Boost After Death", List.of()),
+            new DeathTier(40, " Fire Resistance", List.of()),
+            new DeathTier(50, " 10% Less Damage", List.of()),
+            new DeathTier(75, " Teleport To Death Location",
+                    List.of(ChatColor.GRAY + "Use the command " + ChatColor.AQUA + "/deathreturn "
+                            + ChatColor.GRAY + "to teleport to your death location"))
+    );
+
+    private static final int[] SKILL_TREE_SLOTS = {
+             0,  1,  2,  3,  4,  5,  6,  7,  8,
+            17, 26, 25, 24, 23, 22, 21, 20, 19,
+            18, 27, 36, 37, 38, 39, 40, 41, 42,
+            43, 44, 45
+    };
+
     private final SurvivalSkills plugin;
-    private final ArrayList<Inventory> recipeInventories = new ArrayList<>();
-    private final ArrayList<RewardItemInfo> recipeLevelInformation = new ArrayList<>();
+    private final List<Inventory> recipeInventories = new ArrayList<>();
+    private final Map<ItemStack, RewardItemInfo> recipeLevelInformation = new HashMap<>();
 
     public SkillsCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
@@ -42,288 +63,291 @@ public class SkillsCommand implements CommandExecutor {
         if (!(sender instanceof Player p)) return false;
 
         if (strings.length == 0) {
-            for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId()).getSkills())
-                skill.printStats(p, true);
+            handleStats(p);
             return true;
         }
 
-        if (strings[0].equalsIgnoreCase("tree")) {
-            if (strings.length == 1) {
-                p.sendRawMessage(ChatColor.RED + "Correct usage: " + ChatColor.GRAY  + "/skills tree <skill>");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return true;
+        switch (strings[0].toLowerCase(Locale.ROOT)) {
+            case "tree" -> handleTree(p, strings);
+            case "recipes" -> handleRecipes(p);
+            case "commands" -> handleCommands(p);
+            case "trophies" -> handleTrophies(p);
+            case "player" -> handlePlayer(p, strings);
+            case "leaderboard" -> handleLeaderboard(p, strings);
+            default -> {
+                sendError(p, "Unknown subcommand: " + strings[0]);
             }
-
-            if (!SkillCategory.isSkillTreeSkill(strings[1])) {
-                p.sendRawMessage(ChatColor.RED + "Skill does not have skill tree: " + ChatColor.YELLOW + strings[1]);
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return true;
-            }
-
-            SkillCategory skillCategory = SkillCategory.fromString(strings[1]);
-            if (skillCategory == SkillCategory.DEATHS) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        Inventory inventory = Bukkit.createInventory(null, 9);
-                        int deaths = Leaderboard.getLeaderboardScore(p, SkillCategory.DEATHS);
-                        createDeathTree(inventory, deaths);
-                        ArrayList<Inventory> inventories = new ArrayList<>();
-                        inventories.add(inventory);
-                        if (inventory.isEmpty()) return;
-                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                p.openInventory(inventory);
-                            }
-                        }.runTask(plugin);
-                    }
-                }.runTaskAsynchronously(plugin);
-            }
-            else {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        ArrayList<Inventory> inventories = createSkillTree(p, skillCategory);
-                        if (inventories == null || inventories.isEmpty()) return;
-                        plugin.getPlayerListener().getCustomInventories().put(p, inventories);
-                        new BukkitRunnable() {
-                            @Override
-                            public void run() {
-                                p.openInventory(inventories.getFirst());
-                            }
-                        }.runTask(plugin);
-                    }
-                }.runTaskAsynchronously(plugin);
-            }
-            return true;
-        }
-
-        if (strings[0].equalsIgnoreCase("recipes")) {
-            plugin.getPlayerListener().getCustomInventories().put(p, recipeInventories);
-            p.openInventory(recipeInventories.getFirst());
-        }
-
-        if (strings[0].equalsIgnoreCase("commands")) {
-            p.sendRawMessage(ChatColor.AQUA + "Commands:");
-            p.sendRawMessage(ChatColor.GRAY + "/skills - View your skill stats");
-            p.sendRawMessage(ChatColor.GRAY + "/skills tree <skill> - View the skill tree for a specific skill");
-            p.sendRawMessage(ChatColor.GRAY + "/skills recipes - View all skill recipes");
-            p.sendRawMessage(ChatColor.GRAY + "/skills trophies - Explains how the trophy system works");
-            p.sendRawMessage(ChatColor.GRAY + "/skills player <name> - Gets the skill stats of another player");
-            p.sendRawMessage(ChatColor.GRAY + "/spelunker - tells you where ores are, unlocked through mining skill");
-            p.sendRawMessage(ChatColor.GRAY + "/veinminer - unlocked through mining skill");
-            p.sendRawMessage(ChatColor.GRAY + "/toolbelt - an inventory to store tools, unlocked through mining skill");
-            p.sendRawMessage(ChatColor.GRAY + "/ssnv - night vision, unlocked through mining skill");
-            p.sendRawMessage(ChatColor.GRAY + "/peacefulminer - mobs won't spawn while mining, unlocked through mining skill");
-            p.sendRawMessage(ChatColor.GRAY + "/autoeat - automatically eat food from your inventory, unlocked through farming skill");
-            p.sendRawMessage(ChatColor.GRAY + "/sseat - feeds you without needing food, unlocked through farming skill");
-            p.sendRawMessage(ChatColor.GRAY + "/flight - unlocked through building skill");
-            p.sendRawMessage(ChatColor.GRAY + "/mobscanner - shows nearby mobs, unlocked through fighting skill");
-            p.sendRawMessage(ChatColor.GRAY + "/togglephantoms - disables phantom spawns nearby, unlocked through fighting skill");
-            p.sendRawMessage(ChatColor.GRAY + "/togglebloodydomain - kill all nearby mobs automatically, unlocked through fighting skill");
-            p.sendRawMessage(ChatColor.GRAY + "/waterbreathing - unlocked through fishing skill");
-            p.sendRawMessage(ChatColor.GRAY + "/autotrash - unlocked through fishing skill");
-            p.sendRawMessage(ChatColor.GRAY + "/toggletrash - disables auto trash and perma trash, unlocked through fishing skill");
-            p.sendRawMessage(ChatColor.GRAY + "/permatrash - unlocked through fishing skill");
-            p.sendRawMessage(ChatColor.GRAY + "/deathlocation - shows your death location, unlocked through main skill");
-            p.sendRawMessage(ChatColor.GRAY + "/togglescorboard - Enable or disable the scoreboard");
-            p.sendRawMessage(ChatColor.GRAY + "/toggletrail <trail> - enables or disables a particle trail, unlocked through main skill");
-            p.sendRawMessage(ChatColor.GRAY + "/togglemaxskillmessage - toggles the message that appears when you reach the max level of a skill");
-            p.sendRawMessage(ChatColor.GRAY + "/togglespeed - Allows you to toggle exploring speed boosts");
-            p.sendRawMessage(ChatColor.GRAY + "/deathreturn - returns you to your death location, unlocked through death skill");
-            p.sendRawMessage(ChatColor.GRAY + "/godquest - Unlocked while in the god quest");
-        }
-
-        if (strings[0].equalsIgnoreCase("trophies")) {
-            p.sendRawMessage(ChatColor.AQUA + "Trophy Information:");
-            p.sendRawMessage(ChatColor.GRAY + "Trophies are crafted using items gathered throughout the game");
-            p.sendRawMessage(ChatColor.GRAY + "Trophies increase the level cap of all skills by 10 (level cap starts at 10)");
-            p.sendRawMessage(ChatColor.GRAY + "By crafting all trophies you can reach level 100 in all skills");
-            p.sendRawMessage(ChatColor.GRAY + "Trophies have animations when placed but once crafted you no longer need the physical trophy");
-            p.sendRawMessage(ChatColor.GRAY + "The easiest trophies to craft are the cave, farm, and forest trophies");
-            p.sendRawMessage(ChatColor.RED + "Making the same trophy multiple times does not increase the cap");
-            p.sendRawMessage(ChatColor.GOLD + "See trophy recipes by using " + ChatColor.AQUA + "/skills recipes");
-            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-            return true;
-        }
-
-        if (strings[0].equalsIgnoreCase("player")) {
-            if (strings.length < 2) {
-                p.sendRawMessage(ChatColor.RED + "Correct usage: /skills player <name>");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return true;
-            }
-
-            Player play = null;
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (!player.getName().equals(strings[1])) continue;
-                play = player;
-            }
-            if (play == null) {
-                p.sendRawMessage(ChatColor.RED + "Player: " + ChatColor.YELLOW + strings[1] + ChatColor.RED + " not found");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return true;
-            }
-
-            for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(play.getUniqueId()).getSkills())
-                skill.printStats(p, false);
-            return true;
-        }
-
-        if (strings[0].equalsIgnoreCase("leaderboard")) {
-            if (plugin.getLeaderboardTracker().isEmpty()) {
-                p.sendRawMessage(ChatColor.RED + "Leaderboard is empty, level up a skill first!");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return true;
-            }
-
-            // No parameters default to the top 10 players with the highest total skill score
-            if (strings.length == 1) {
-                ArrayList<String> leaderboard = Leaderboard.sortLeaderboard(SkillCategory.ALL, 10);
-                for (String line : leaderboard) p.sendRawMessage(line);
-                p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-                return true;
-            }
-
-            // Check if the string is an actual skill
-            if (!SkillCategory.isSkill(strings[1])) {
-                p.sendRawMessage(ChatColor.RED + "Invalid skill: " + ChatColor.YELLOW + strings[1]);
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return true;
-            }
-
-            // Calculate the total number of pages required to display all players
-            double size = Math.ceil((double) plugin.getLeaderboardTracker().size() / 10);
-            int maxPage = Math.max(1, (int) Math.ceil(size));
-
-            // If they don't specify a page number print the first page
-            if (strings.length != 3) {
-                Leaderboard.printLeaderboard(p, SkillCategory.fromString(strings[1]), 1, maxPage);
-                return true;
-            }
-
-            // Otherwise print the specified page
-            try {
-                int page = Integer.parseInt(strings[2]);
-                if (page < 1 || page > maxPage) {
-                    p.sendRawMessage(ChatColor.RED + "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                    return true;
-                }
-                Leaderboard.printLeaderboard(p, SkillCategory.fromString(strings[1]), page, maxPage);
-            } catch (NumberFormatException e) {
-                p.sendRawMessage(ChatColor.RED + "Invalid page number.");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            }
-            return true;
         }
         return true;
     }
 
+    private static void sendError(Player p, String message) {
+        p.sendRawMessage(ChatColor.RED + message);
+        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+    }
+
+    private void handleStats(Player p) {
+        for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId()).getSkills())
+            skill.printStats(p, true);
+    }
+
+    private void handleTree(Player p, String[] strings) {
+        if (strings.length == 1) {
+            sendError(p, "Correct usage: " + ChatColor.GRAY + "/skills tree <skill>");
+            return;
+        }
+
+        if (!SkillCategory.isSkillTreeSkill(strings[1])) {
+            sendError(p, "Skill does not have skill tree: " + ChatColor.YELLOW + strings[1]);
+            return;
+        }
+
+        SkillCategory skillCategory = SkillCategory.fromString(strings[1]);
+        if (skillCategory == SkillCategory.DEATHS) {
+            showDeathTree(p);
+        } else {
+            showSkillTree(p, skillCategory);
+        }
+    }
+
+    private void showDeathTree(Player p) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                Inventory inventory = Bukkit.createInventory(null, 9);
+                int deaths = Leaderboard.getLeaderboardScore(p, SkillCategory.DEATHS);
+                createDeathTree(inventory, deaths);
+                List<Inventory> inventories = new ArrayList<>();
+                inventories.add(inventory);
+                if (inventory.isEmpty()) return;
+                plugin.getPlayerListener().getCustomInventories().put(p, inventories);
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        p.openInventory(inventory);
+                    }
+                }.runTask(plugin);
+            }
+        }.runTaskAsynchronously(plugin);
+    }
+
+    private void showSkillTree(Player p, SkillCategory skillCategory) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                List<Inventory> inventories = createSkillTree(p, skillCategory);
+                if (inventories == null || inventories.isEmpty()) return;
+                plugin.getPlayerListener().getCustomInventories().put(p, inventories);
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        p.openInventory(inventories.getFirst());
+                    }
+                }.runTask(plugin);
+            }
+        }.runTaskAsynchronously(plugin);
+    }
+
+    private void handleRecipes(Player p) {
+        plugin.getPlayerListener().getCustomInventories().put(p, recipeInventories);
+        p.openInventory(recipeInventories.getFirst());
+    }
+
+    private void handleCommands(Player p) {
+        p.sendRawMessage(ChatColor.AQUA + "Commands:");
+        p.sendRawMessage(ChatColor.GRAY + "/skills - View your skill stats");
+        p.sendRawMessage(ChatColor.GRAY + "/skills tree <skill> - View the skill tree for a specific skill");
+        p.sendRawMessage(ChatColor.GRAY + "/skills recipes - View all skill recipes");
+        p.sendRawMessage(ChatColor.GRAY + "/skills trophies - Explains how the trophy system works");
+        p.sendRawMessage(ChatColor.GRAY + "/skills player <name> - Gets the skill stats of another player");
+        p.sendRawMessage(ChatColor.GRAY + "/spelunker - tells you where ores are, unlocked through mining skill");
+        p.sendRawMessage(ChatColor.GRAY + "/veinminer - unlocked through mining skill");
+        p.sendRawMessage(ChatColor.GRAY + "/toolbelt - an inventory to store tools, unlocked through mining skill");
+        p.sendRawMessage(ChatColor.GRAY + "/ssnv - night vision, unlocked through mining skill");
+        p.sendRawMessage(ChatColor.GRAY + "/peacefulminer - mobs won't spawn while mining, unlocked through mining skill");
+        p.sendRawMessage(ChatColor.GRAY + "/autoeat - automatically eat food from your inventory, unlocked through farming skill");
+        p.sendRawMessage(ChatColor.GRAY + "/sseat - feeds you without needing food, unlocked through farming skill");
+        p.sendRawMessage(ChatColor.GRAY + "/flight - unlocked through building skill");
+        p.sendRawMessage(ChatColor.GRAY + "/mobscanner - shows nearby mobs, unlocked through fighting skill");
+        p.sendRawMessage(ChatColor.GRAY + "/togglephantoms - disables phantom spawns nearby, unlocked through fighting skill");
+        p.sendRawMessage(ChatColor.GRAY + "/togglebloodydomain - kill all nearby mobs automatically, unlocked through fighting skill");
+        p.sendRawMessage(ChatColor.GRAY + "/waterbreathing - unlocked through fishing skill");
+        p.sendRawMessage(ChatColor.GRAY + "/autotrash - unlocked through fishing skill");
+        p.sendRawMessage(ChatColor.GRAY + "/toggletrash - disables auto trash and perma trash, unlocked through fishing skill");
+        p.sendRawMessage(ChatColor.GRAY + "/permatrash - unlocked through fishing skill");
+        p.sendRawMessage(ChatColor.GRAY + "/deathlocation - shows your death location, unlocked through main skill");
+        p.sendRawMessage(ChatColor.GRAY + "/togglescorboard - Enable or disable the scoreboard");
+        p.sendRawMessage(ChatColor.GRAY + "/toggletrail <trail> - enables or disables a particle trail, unlocked through main skill");
+        p.sendRawMessage(ChatColor.GRAY + "/togglemaxskillmessage - toggles the message that appears when you reach the max level of a skill");
+        p.sendRawMessage(ChatColor.GRAY + "/togglespeed - Allows you to toggle exploring speed boosts");
+        p.sendRawMessage(ChatColor.GRAY + "/deathreturn - returns you to your death location, unlocked through death skill");
+        p.sendRawMessage(ChatColor.GRAY + "/godquest - Unlocked while in the god quest");
+    }
+
+    private void handleTrophies(Player p) {
+        p.sendRawMessage(ChatColor.AQUA + "Trophy Information:");
+        p.sendRawMessage(ChatColor.GRAY + "Trophies are crafted using items gathered throughout the game");
+        p.sendRawMessage(ChatColor.GRAY + "Trophies increase the level cap of all skills by 10 (level cap starts at 10)");
+        p.sendRawMessage(ChatColor.GRAY + "By crafting all trophies you can reach level 100 in all skills");
+        p.sendRawMessage(ChatColor.GRAY + "Trophies have animations when placed but once crafted you no longer need the physical trophy");
+        p.sendRawMessage(ChatColor.GRAY + "The easiest trophies to craft are the cave, farm, and forest trophies");
+        p.sendRawMessage(ChatColor.RED + "Making the same trophy multiple times does not increase the cap");
+        p.sendRawMessage(ChatColor.GOLD + "See trophy recipes by using " + ChatColor.AQUA + "/skills recipes");
+        p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+    }
+
+    private void handlePlayer(Player p, String[] strings) {
+        if (strings.length < 2) {
+            sendError(p, "Correct usage: /skills player <name>");
+            return;
+        }
+
+        Player play = Bukkit.getPlayerExact(strings[1]);
+        if (play == null) {
+            sendError(p, "Player: " + ChatColor.YELLOW + strings[1] + ChatColor.RED + " not found");
+            return;
+        }
+
+        for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(play.getUniqueId()).getSkills())
+            skill.printStats(p, false);
+    }
+
+    private void handleLeaderboard(Player p, String[] strings) {
+        if (plugin.getLeaderboardTracker().isEmpty()) {
+            sendError(p, "Leaderboard is empty, level up a skill first!");
+            return;
+        }
+
+        // No parameters default to the top 10 players with the highest total skill score
+        if (strings.length == 1) {
+            List<String> leaderboard = Leaderboard.sortLeaderboard(SkillCategory.ALL, 10);
+            for (String line : leaderboard) p.sendRawMessage(line);
+            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            return;
+        }
+
+        // Check if the string is an actual skill
+        if (!SkillCategory.isSkill(strings[1])) {
+            sendError(p, "Invalid skill: " + ChatColor.YELLOW + strings[1]);
+            return;
+        }
+
+        // Calculate the total number of pages required to display all players
+        double size = Math.ceil((double) plugin.getLeaderboardTracker().size() / 10);
+        int maxPage = Math.max(1, (int) Math.ceil(size));
+
+        // If they don't specify a page number print the first page
+        if (strings.length != 3) {
+            Leaderboard.printLeaderboard(p, SkillCategory.fromString(strings[1]), 1, maxPage);
+            return;
+        }
+
+        // Otherwise print the specified page
+        try {
+            int page = Integer.parseInt(strings[2]);
+            if (page < 1 || page > maxPage) {
+                sendError(p, "Invalid page number. Max page number is: " + ChatColor.AQUA + maxPage);
+                return;
+            }
+            Leaderboard.printLeaderboard(p, SkillCategory.fromString(strings[1]), page, maxPage);
+        } catch (NumberFormatException e) {
+            sendError(p, "Invalid page number.");
+        }
+    }
+
     private static ItemStack getItemStack(int playerLevel, int i) {
-        ItemStack item;
-        if (playerLevel >= i) {
-            item = new ItemStack(Material.GREEN_STAINED_GLASS_PANE);
-            ItemMeta meta = item.getItemMeta();
-            if (meta == null) return item;
-            meta.setDisplayName("(" + ChatColor.GREEN + i + ChatColor.WHITE + ")");
-            item.setItemMeta(meta);
-        }
-        else {
-            item = new ItemStack(Material.RED_STAINED_GLASS_PANE);
-            ItemMeta meta = item.getItemMeta();
-            if (meta == null) return item;
-            meta.setDisplayName("(" + ChatColor.RED + i + ChatColor.WHITE + ")");
-            item.setItemMeta(meta);
-        }
+        boolean unlocked = playerLevel >= i;
+        ItemStack item = new ItemStack(unlocked ? Material.GREEN_STAINED_GLASS_PANE : Material.RED_STAINED_GLASS_PANE);
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+        ChatColor color = unlocked ? ChatColor.GREEN : ChatColor.RED;
+        meta.setDisplayName("(" + color + i + ChatColor.WHITE + ")");
+        item.setItemMeta(meta);
         return item;
     }
 
     public void createRecipeInventories() {
-        int recipeCounter = 1;
-        int totalPages = plugin.getRecipeKeys().size() / 2 + 1;
-        for (;recipeCounter <= plugin.getRecipeKeys().size(); recipeCounter++) {
+        int totalRecipes = plugin.getRecipeKeys().size();
+        int totalPages = totalRecipes / 2 + 1;
+        for (int recipeCounter = 1; recipeCounter <= totalRecipes; recipeCounter++) {
+            boolean startsNewPage = recipeCounter % 2 == 1;
             Inventory inv;
-            if (recipeCounter % 2 == 1) {
+            if (startsNewPage) {
                 int pageNumber = (recipeCounter + 1) / 2;
                 inv = Bukkit.createInventory(null, 36, "Skill Recipes " + pageNumber + "/" + totalPages);
-                addSSRecipe(recipeCounter, inv);
                 recipeInventories.add(inv);
-                if (recipeCounter == plugin.getRecipeKeys().size()) addBarriers(inv);
-            }
-            else {
+            } else {
                 inv = recipeInventories.getLast();
-                addSSRecipe(recipeCounter, inv);
-                addBarriers(inv);
             }
+            addSSRecipe(recipeCounter, inv);
+            // Finalize a page once both recipe slots are filled, or when the last recipe lands on an odd slot
+            if (!startsNewPage || recipeCounter == totalRecipes) addBarriers(inv);
         }
-
-        if (recipeCounter % 2 == 1) addBarriers(recipeInventories.getLast());
     }
 
-    @SuppressWarnings("deprecation")
     public void addSSRecipe(int recipeCounter, Inventory inv) {
         NamespacedKey key = plugin.getRecipeKeys().get(recipeCounter - 1);
         if (key == null) return;
         List<Integer> slots = RecipeMaker.getRecipePositions(recipeCounter);
         Recipe recipe = Bukkit.getRecipe(key);
-        switch (recipe) {
-            case ShapedRecipe shapedRecipe -> {
-                String[] shape = shapedRecipe.getShape();
-                Map<Character, ItemStack> ingredients = shapedRecipe.getIngredientMap();
-                Map<Character, RecipeChoice> recipeChoices = shapedRecipe.getChoiceMap();
-                for (int i = 0; i < shape.length * 3; i++) {
-                    int slot = i % 3;
-                    String layer;
-                    if (i <= 2) layer = shape[0];
-                    else if (i <= 5) layer = shape[1];
-                    else layer = shape[2];
-                    if (slot >= layer.length()) continue;
-                    char c = layer.charAt(slot);
-                    if (c == ' ' || c == 'D') continue;
-
-                    // Check if it is the fishing king item
-                    ItemStack ingredient = ingredients.get(c);
-                    if (ingredient != null && ingredient.getType().equals(Material.PRISMARINE_SHARD)
-                            && ingredient.getItemMeta() != null && ingredient.getItemMeta().hasCustomModelData()) {
-                        inv.setItem(slots.get(i), getResult(ingredient));
-                        continue;
-                    }
-
-                    if (ingredients.containsKey(c)) inv.setItem(slots.get(i), ingredients.get(c));
-                    else if (recipeChoices.containsKey(c)) {
-                        RecipeChoice.ExactChoice choice = (RecipeChoice.ExactChoice) recipeChoices.get(c);
-                        inv.setItem(slots.get(i), choice.getItemStack());
-                    }
-                }
-                ItemStack result = getResult(shapedRecipe.getResult());
-                inv.setItem(slots.get(9), result);
-            }
-            case ShapelessRecipe shapelessRecipe -> {
-                List<ItemStack> ingredients = shapelessRecipe.getIngredientList();
-                int slot = 0;
-                if (!ingredients.isEmpty()) {
-                    for (ItemStack ingredient : ingredients) {
-                        inv.setItem(slots.get(slot), ingredient);
-                        slot++;
-                    }
-                }
-
-                ItemStack result = getResult(shapelessRecipe.getResult());
-                inv.setItem(slots.get(9), result);
-            }
-            case null, default -> {}
-        }
+        if (recipe instanceof ShapedRecipe shaped) addShapedRecipe(shaped, slots, inv);
+        else if (recipe instanceof ShapelessRecipe shapeless) addShapelessRecipe(shapeless, slots, inv);
     }
 
-    public ArrayList<Inventory> createSkillTree(Player p, SkillCategory skillCategory) {
+    private void addShapedRecipe(ShapedRecipe recipe, List<Integer> slots, Inventory inv) {
+        String[] shape = recipe.getShape();
+        Map<Character, ItemStack> ingredients = recipe.getIngredientMap();
+        Map<Character, RecipeChoice> choices = recipe.getChoiceMap();
+        for (int i = 0; i < shape.length * 3; i++) {
+            String layer = shape[i / 3];
+            int pos = i % 3;
+            if (pos >= layer.length()) continue;
+            char c = layer.charAt(pos);
+            if (c == ' ' || c == 'D') continue;
+
+            ItemStack ingredient = ingredients.get(c);
+            if (isFishingKingItem(ingredient)) {
+                inv.setItem(slots.get(i), getResult(ingredient));
+            } else if (ingredients.containsKey(c)) {
+                inv.setItem(slots.get(i), ingredient);
+            } else if (choices.containsKey(c)) {
+                ItemStack choiceItem = choiceToItem(choices.get(c));
+                if (choiceItem != null) inv.setItem(slots.get(i), choiceItem);
+            }
+        }
+        inv.setItem(slots.get(9), getResult(recipe.getResult()));
+    }
+
+    private void addShapelessRecipe(ShapelessRecipe recipe, List<Integer> slots, Inventory inv) {
+        List<ItemStack> ingredients = recipe.getIngredientList();
+        int slot = 0;
+        for (ItemStack ingredient : ingredients) {
+            inv.setItem(slots.get(slot), ingredient);
+            slot++;
+        }
+        inv.setItem(slots.get(9), getResult(recipe.getResult()));
+    }
+
+    private static boolean isFishingKingItem(ItemStack ingredient) {
+        return ingredient != null && ingredient.getType() == Material.PRISMARINE_SHARD
+                && ingredient.getItemMeta() != null
+                && ItemStackGenerator.hasCustomModelData(ingredient.getItemMeta());
+    }
+
+    private static ItemStack choiceToItem(RecipeChoice choice) {
+        if (choice instanceof RecipeChoice.ExactChoice exact) return exact.getItemStack();
+        if (choice instanceof RecipeChoice.MaterialChoice material && !material.getChoices().isEmpty()) {
+            return new ItemStack(material.getChoices().get(0));
+        }
+        return null;
+    }
+
+    public List<Inventory> createSkillTree(Player p, SkillCategory skillCategory) {
         Map<SkillCategory, ArrayList<Reward>> allSkills = plugin.getSkillManager().getDefaultPlayerRewards().getRewardList();
-        ArrayList<Reward> rewards = allSkills.get(skillCategory);
+        List<Reward> rewards = allSkills.get(skillCategory);
         Objects.requireNonNull(rewards, String.format("[Survival Skills] No reward list found for skill %s", skillCategory.getDisplayName()));
 
-        ArrayList<Inventory> inventories = new ArrayList<Inventory>();
+        List<Inventory> inventories = new ArrayList<>();
         int playerLevel = SkillManager.getSkill(p.getUniqueId(), skillCategory).getLevel();
         int startLevel = 1;
         for (int page = 0; page < 5 && startLevel <= Skill.MAX_LEVEL; page++) {
@@ -332,59 +356,42 @@ public class SkillsCommand implements CommandExecutor {
         return inventories;
     }
 
-    public int createSkillInventory(int start, int playerLevel, ArrayList<Reward> rewards, ArrayList<Inventory> inventories) {
+    public int createSkillInventory(int start, int playerLevel, List<Reward> rewards, List<Inventory> inventories) {
         Inventory inv = Bukkit.createInventory(null, 54, "Skill Tree");
-        int i = start;
-        int slot = 0;
-        for (;i <= start + 29; i++) {
+        int level = start;
+        for (int slotIdx = 0; slotIdx < SKILL_TREE_SLOTS.length && level <= start + 29; slotIdx++, level++) {
+            int slot = SKILL_TREE_SLOTS[slotIdx];
             boolean foundReward = false;
             for (Reward reward : rewards) {
-                if (reward.getLevel() != i) continue;
-                if (!reward.isEnabled()) continue;
-                ItemStack item;
-                if (playerLevel >= i) {
-                    item = new ItemStack(Material.EMERALD_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) continue;
-                    meta.setDisplayName("(" + ChatColor.GREEN + i + ChatColor.WHITE + ") " + ChatColor.GREEN + addSpaces(reward.getName()));
-                    meta.setLore(RewardNotifications.getLore(RewardNotifications.getRewardDescription(reward.getSkillCategory().getDisplayName(), reward.getName())));
-                    item.setItemMeta(meta);
-                }
-                else {
-                    item = new ItemStack(Material.REDSTONE_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) continue;
-                    meta.setDisplayName("(" + ChatColor.RED + i + ChatColor.WHITE + ") " + ChatColor.RED + addSpaces(reward.getName()));
-                    meta.setLore(RewardNotifications.getLore(RewardNotifications.getRewardDescription(reward.getSkillCategory().getDisplayName(), reward.getName())));
-                    item.setItemMeta(meta);
-                }
+                if (reward.getLevel() != level || !reward.isEnabled()) continue;
+                ItemStack item = buildRewardItem(reward, level, playerLevel >= level);
+                if (item == null) continue;
                 inv.setItem(slot, item);
                 foundReward = true;
                 break;
             }
-            
-            if (!foundReward) {
-                ItemStack item = getItemStack(playerLevel, i);
-                inv.setItem(slot, item);
-            }
 
-            if (slot < 8) slot++; // right
-            else if (slot == 8) slot = 17; // down
-            else if (slot == 17) slot = 26; // down
-            else if (slot > 18 && slot <= 26) slot--; // left
-            else if (slot == 18) slot = 27; // down
-            else if (slot == 27) slot = 36; // down
-            else if (slot >= 36) slot++; // right
-
-            if (i >= Skill.MAX_LEVEL) break;
+            if (!foundReward) inv.setItem(slot, getItemStack(playerLevel, level));
+            if (level >= Skill.MAX_LEVEL) break;
         }
 
         addBarriers(inv);
         inventories.add(inv);
-        return i - 1;
+        return level - 1;
     }
 
-    @SuppressWarnings("deprecation")
+    private ItemStack buildRewardItem(Reward reward, int level, boolean unlocked) {
+        ItemStack item = new ItemStack(unlocked ? Material.EMERALD_BLOCK : Material.REDSTONE_BLOCK);
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return null;
+        ChatColor color = unlocked ? ChatColor.GREEN : ChatColor.RED;
+        meta.setDisplayName("(" + color + level + ChatColor.WHITE + ") " + color + addSpaces(reward.getName()));
+        meta.setLore(RewardNotifications.getLore(RewardNotifications.getRewardDescription(
+                reward.getSkillCategory().getDisplayName(), reward.getName())));
+        item.setItemMeta(meta);
+        return item;
+    }
+
     private void addBarriers(Inventory inv) {
         ItemStack item = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
 
@@ -398,7 +405,7 @@ public class SkillsCommand implements CommandExecutor {
         meta = front.getItemMeta();
         if (meta == null) return;
         meta.setDisplayName(ChatColor.BLUE + "Next");
-        meta.setCustomModelData(1);
+        ItemStackGenerator.setCustomModelData(meta, 1);
         front.setItemMeta(meta);
 
         if (inv.getSize() >= 53) {
@@ -425,160 +432,50 @@ public class SkillsCommand implements CommandExecutor {
         }
     }
 
+    private static final Set<Character> ROMAN_NUMERAL_CHARS = Set.of('I', 'V', 'X');
+
     public String addSpaces(String input) {
         StringBuilder result = new StringBuilder();
         boolean firstRoman = true;
         for (int i = 0; i < input.length(); i++) {
             char c = input.charAt(i);
-            if (i == 0) {
-                result.append(c);
-                continue;
-            }
-            if (Character.isUpperCase(c) && i+1 < input.length() && Character.isLowerCase(input.charAt(i+1))) {
-                result.append(" ");
-                result.append(c);
-                continue;
-            }
-            if (Character.isUpperCase(c) && c != 'I' && c != 'V' && c!='X') result.append(" ");
-            if (c == 'I' || c == 'V' || c == 'X') {
-                if (firstRoman) {
-                    firstRoman = false;
-                    result.append(" ");
-                }
+            if (i > 0) result.append(spaceBefore(c, i, input, firstRoman));
+            // The leading uppercase of a roman-numeral run (e.g. the first "I" in "SpeedII") gets one
+            // separating space; subsequent roman chars are packed against it. The very first char is skipped.
+            if (i > 0 && ROMAN_NUMERAL_CHARS.contains(c) && firstRoman && !isFollowedByLower(input, i)) {
+                firstRoman = false;
             }
             result.append(c);
         }
         return result.toString();
     }
 
+    private static String spaceBefore(char c, int i, String input, boolean firstRoman) {
+        if (Character.isUpperCase(c) && isFollowedByLower(input, i)) return " ";
+        if (Character.isUpperCase(c) && !ROMAN_NUMERAL_CHARS.contains(c)) return " ";
+        if (ROMAN_NUMERAL_CHARS.contains(c) && firstRoman) return " ";
+        return "";
+    }
+
+    private static boolean isFollowedByLower(String input, int i) {
+        return i + 1 < input.length() && Character.isLowerCase(input.charAt(i + 1));
+    }
+
     public void createDeathTree(Inventory inv, int deaths) {
-        for (int i = 0; i < 6; i++) {
-            if (i == 0) {
-                ItemStack item;
-                if (deaths >= 10) {
-                    item = new ItemStack(Material.EMERALD_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) return;
-                    meta.setDisplayName(ChatColor.WHITE + "(" + ChatColor.GREEN + "10 Deaths" + ChatColor.WHITE + ")"
-                            + ChatColor.GREEN + " Temporary Speed Boost After Death");
-                    item.setItemMeta(meta);
-                }
-                else {
-                    item = new ItemStack(Material.REDSTONE_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) return;
-                    meta.setDisplayName(ChatColor.WHITE + "(" + ChatColor.RED + "10 Deaths" + ChatColor.WHITE + ")"
-                            + ChatColor.RED + " Temporary Speed Boost After Death");
-                    item.setItemMeta(meta);
-                }
-                inv.setItem(i, item);
-            }
-            else if (i == 1) {
-                ItemStack item;
-                if (deaths >= 20) {
-                    item = new ItemStack(Material.EMERALD_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) return;
-                    meta.setDisplayName(ChatColor.WHITE + "(" + ChatColor.GREEN + "20 Deaths" + ChatColor.WHITE + ")"
-                            + ChatColor.GREEN + " Temporary Strength Boost After Death");
-                    item.setItemMeta(meta);
-                }
-                else {
-                    item = new ItemStack(Material.REDSTONE_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) return;
-                    meta.setDisplayName(ChatColor.WHITE + "(" + ChatColor.RED + "20 Deaths" + ChatColor.WHITE + ")"
-                            + ChatColor.RED + " Temporary Strength Boost After Death");
-                    item.setItemMeta(meta);
-                }
-                inv.setItem(i, item);
-            }
-            else if (i == 2) {
-                ItemStack item;
-                if (deaths >= 30) {
-                    item = new ItemStack(Material.EMERALD_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) return;
-                    meta.setDisplayName(ChatColor.WHITE + "(" + ChatColor.GREEN + "30 Deaths" + ChatColor.WHITE + ")"
-                            + ChatColor.GREEN + " Temporary Regeneration Boost After Death");
-                    item.setItemMeta(meta);
-                }
-                else {
-                    item = new ItemStack(Material.REDSTONE_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) return;
-                    meta.setDisplayName(ChatColor.WHITE + "(" + ChatColor.RED + "30 Deaths" + ChatColor.WHITE + ")"
-                            + ChatColor.RED + " Temporary Regeneration Boost After Death");
-                    item.setItemMeta(meta);
-                }
-                inv.setItem(i, item);
-            }
-            else if (i == 3) {
-                ItemStack item;
-                if (deaths >= 40) {
-                    item = new ItemStack(Material.EMERALD_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) return;
-                    meta.setDisplayName(ChatColor.WHITE + "(" + ChatColor.GREEN + "40 Deaths" + ChatColor.WHITE + ")"
-                            + ChatColor.GREEN + " Fire Resistance");
-                    item.setItemMeta(meta);
-                }
-                else {
-                    item = new ItemStack(Material.REDSTONE_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) return;
-                    meta.setDisplayName(ChatColor.WHITE + "(" + ChatColor.RED + "40 Deaths" + ChatColor.WHITE + ")"
-                            + ChatColor.RED + " Fire Resistance");
-                    item.setItemMeta(meta);
-                }
-                inv.setItem(i, item);
-            }
-            else if (i == 4) {
-                ItemStack item;
-                if (deaths >= 50) {
-                    item = new ItemStack(Material.EMERALD_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) return;
-                    meta.setDisplayName(ChatColor.WHITE + "(" + ChatColor.GREEN + "50 Deaths" + ChatColor.WHITE + ")"
-                            + ChatColor.GREEN + " 10% Less Damage");
-                    item.setItemMeta(meta);
-                }
-                else {
-                    item = new ItemStack(Material.REDSTONE_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) return;
-                    meta.setDisplayName(ChatColor.WHITE + "(" + ChatColor.RED + "50 Deaths" + ChatColor.WHITE + ")"
-                            + ChatColor.RED + " 10% Less Damage");
-                    item.setItemMeta(meta);
-                }
-                inv.setItem(i, item);
-            }
-            else {
-                ItemStack item;
-                if (deaths >= 75) {
-                    item = new ItemStack(Material.EMERALD_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) return;
-                    meta.setDisplayName(ChatColor.WHITE + "(" + ChatColor.GREEN + "75 Deaths" + ChatColor.WHITE + ")"
-                            + ChatColor.GREEN + " Teleport To Death Location");
-                    ArrayList<String> lore = new ArrayList<>();
-                    lore.add(ChatColor.GRAY + "Use the command " + ChatColor.AQUA + "/deathreturn " + ChatColor.GRAY + "to teleport to your death location");
-                    meta.setLore(lore);
-                    item.setItemMeta(meta);
-                }
-                else {
-                    item = new ItemStack(Material.REDSTONE_BLOCK);
-                    ItemMeta meta = item.getItemMeta();
-                    if (meta == null) return;
-                    meta.setDisplayName(ChatColor.WHITE + "(" + ChatColor.RED + "75 Deaths" + ChatColor.WHITE + ")"
-                            + ChatColor.RED + " Teleport To Death Location");
-                    ArrayList<String> lore = new ArrayList<>();
-                    lore.add(ChatColor.GRAY + "Use the command " + ChatColor.AQUA + "/deathreturn " + ChatColor.GRAY + "to teleport to your death location");
-                    meta.setLore(lore);
-                    item.setItemMeta(meta);
-                }
-                inv.setItem(i, item);
-            }
+        for (int i = 0; i < DEATH_TIERS.size(); i++) {
+            DeathTier tier = DEATH_TIERS.get(i);
+            boolean unlocked = deaths >= tier.threshold;
+            ChatColor color = unlocked ? ChatColor.GREEN : ChatColor.RED;
+
+            ItemStack item = new ItemStack(unlocked ? Material.EMERALD_BLOCK : Material.REDSTONE_BLOCK);
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) return;
+
+            meta.setDisplayName(ChatColor.WHITE + "(" + color + tier.threshold + " Deaths" + ChatColor.WHITE + ")"
+                    + color + tier.displaySuffix);
+            if (!tier.lore.isEmpty()) meta.setLore(new ArrayList<>(tier.lore));
+            item.setItemMeta(meta);
+            inv.setItem(i, item);
         }
     }
 
@@ -586,71 +483,87 @@ public class SkillsCommand implements CommandExecutor {
         return new RewardItemInfo(item, skillCategory, plugin.getTrophyManager().getRewardLevel(skillCategory, rewardName));
     }
 
+    private void addSingleReward(ItemStack item, SkillCategory category, String rewardName) {
+        recipeLevelInformation.putIfAbsent(levelInfoKey(item), getRewardItemInfo(item, category, rewardName));
+    }
+
+    private void addArmorSet(SkillCategory category, String rewardName,
+                              ItemStack helmet, ItemStack chestplate, ItemStack leggings, ItemStack boots) {
+        recipeLevelInformation.putIfAbsent(levelInfoKey(helmet), getRewardItemInfo(helmet, category, rewardName));
+        recipeLevelInformation.putIfAbsent(levelInfoKey(chestplate), getRewardItemInfo(chestplate, category, rewardName));
+        recipeLevelInformation.putIfAbsent(levelInfoKey(leggings), getRewardItemInfo(leggings, category, rewardName));
+        recipeLevelInformation.putIfAbsent(levelInfoKey(boots), getRewardItemInfo(boots, category, rewardName));
+    }
+
     public void createItemLevelInfo() {
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getUnlimitedTorch(), SkillCategory.MINING, "UnlimitedTorch"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getZapWand(), SkillCategory.MINING, "ZapWand"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningHelmet(), SkillCategory.MINING, "MiningArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningChestplate(), SkillCategory.MINING, "MiningArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningLeggings(), SkillCategory.MINING, "MiningArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMiningBoots(), SkillCategory.MINING, "MiningArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconHelmet(), SkillCategory.MINING, "BeaconArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconChestplate(), SkillCategory.MINING, "BeaconArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconLeggings(), SkillCategory.MINING, "BeaconArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBeaconBoots(), SkillCategory.MINING, "BeaconArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getJumpingBoots(), SkillCategory.EXPLORING, "JumpingBoots"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererHelmet(), SkillCategory.EXPLORING, "WandererArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererChestplate(), SkillCategory.EXPLORING, "WandererArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererLeggings(), SkillCategory.EXPLORING, "WandererArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWandererBoots(), SkillCategory.EXPLORING, "WandererArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerHelmet(), SkillCategory.EXPLORING, "TravelerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerChestplate(), SkillCategory.EXPLORING, "TravelerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerLeggings(), SkillCategory.EXPLORING, "TravelerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getTravelerBoots(), SkillCategory.EXPLORING, "TravelerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillHelmet(), SkillCategory.EXPLORING, "GillArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillChestplate(), SkillCategory.EXPLORING, "GillArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillLeggings(), SkillCategory.EXPLORING, "GillArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGillBoots(), SkillCategory.EXPLORING, "GillArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerHelmet(), SkillCategory.EXPLORING, "AdventurerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerChestplate(), SkillCategory.EXPLORING, "AdventurerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerLeggings(), SkillCategory.EXPLORING, "AdventurerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getAdventurerBoots(), SkillCategory.EXPLORING, "AdventurerArmor"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getCaveFinder(), SkillCategory.EXPLORING, "CaveFinder"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getWateringCan(), SkillCategory.FARMING, "WateringCan"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getUnlimitedBoneMeal(), SkillCategory.FARMING, "UnlimitedBonemeal"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getHarvester(), SkillCategory.FARMING, "Harvester"));
-        recipeLevelInformation.add(getRewardItemInfo(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), SkillCategory.CRAFTING, "EnchantedGapple"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getFireworkCannon(), SkillCategory.MAIN, "FireworkCannon"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getSortWand(), SkillCategory.BUILDING, "AutoSortWand"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getGiantSummoner(), SkillCategory.FIGHTING, "GiantSummon"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getFishingBossItem(), SkillCategory.FIGHTING, "FishingKing"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getBroodMotherSummoner(), SkillCategory.FIGHTING, "BroodMotherSummon"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getVillagerSummoner(), SkillCategory.FIGHTING, "TheExiledOneSummon"));
-        recipeLevelInformation.add(getRewardItemInfo(ItemStackGenerator.getMagnet(), SkillCategory.EXPLORING, "Magnet"));
+        addSingleReward(ItemStackGenerator.getUnlimitedTorch(), SkillCategory.MINING, "UnlimitedTorch");
+        addSingleReward(ItemStackGenerator.getZapWand(), SkillCategory.MINING, "ZapWand");
+        addArmorSet(SkillCategory.MINING, "MiningArmor",
+                ItemStackGenerator.getMiningHelmet(), ItemStackGenerator.getMiningChestplate(),
+                ItemStackGenerator.getMiningLeggings(), ItemStackGenerator.getMiningBoots());
+        addArmorSet(SkillCategory.MINING, "BeaconArmor",
+                ItemStackGenerator.getBeaconHelmet(), ItemStackGenerator.getBeaconChestplate(),
+                ItemStackGenerator.getBeaconLeggings(), ItemStackGenerator.getBeaconBoots());
+        addSingleReward(ItemStackGenerator.getJumpingBoots(), SkillCategory.EXPLORING, "JumpingBoots");
+        addArmorSet(SkillCategory.EXPLORING, "WandererArmor",
+                ItemStackGenerator.getWandererHelmet(), ItemStackGenerator.getWandererChestplate(),
+                ItemStackGenerator.getWandererLeggings(), ItemStackGenerator.getWandererBoots());
+        addArmorSet(SkillCategory.EXPLORING, "TravelerArmor",
+                ItemStackGenerator.getTravelerHelmet(), ItemStackGenerator.getTravelerChestplate(),
+                ItemStackGenerator.getTravelerLeggings(), ItemStackGenerator.getTravelerBoots());
+        addArmorSet(SkillCategory.EXPLORING, "GillArmor",
+                ItemStackGenerator.getGillHelmet(), ItemStackGenerator.getGillChestplate(),
+                ItemStackGenerator.getGillLeggings(), ItemStackGenerator.getGillBoots());
+        addArmorSet(SkillCategory.EXPLORING, "AdventurerArmor",
+                ItemStackGenerator.getAdventurerHelmet(), ItemStackGenerator.getAdventurerChestplate(),
+                ItemStackGenerator.getAdventurerLeggings(), ItemStackGenerator.getAdventurerBoots());
+        addSingleReward(ItemStackGenerator.getCaveFinder(), SkillCategory.EXPLORING, "CaveFinder");
+        addSingleReward(ItemStackGenerator.getWateringCan(), SkillCategory.FARMING, "WateringCan");
+        addSingleReward(ItemStackGenerator.getUnlimitedBoneMeal(), SkillCategory.FARMING, "UnlimitedBonemeal");
+        addSingleReward(ItemStackGenerator.getHarvester(), SkillCategory.FARMING, "Harvester");
+        addSingleReward(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), SkillCategory.CRAFTING, "EnchantedGapple");
+        addSingleReward(ItemStackGenerator.getFireworkCannon(), SkillCategory.MAIN, "FireworkCannon");
+        addSingleReward(ItemStackGenerator.getSortWand(), SkillCategory.BUILDING, "AutoSortWand");
+        addSingleReward(ItemStackGenerator.getGiantSummoner(), SkillCategory.FIGHTING, "GiantSummon");
+        addSingleReward(ItemStackGenerator.getFishingBossItem(), SkillCategory.FIGHTING, "FishingKing");
+        addSingleReward(ItemStackGenerator.getBroodMotherSummoner(), SkillCategory.FIGHTING, "BroodMotherSummon");
+        addSingleReward(ItemStackGenerator.getVillagerSummoner(), SkillCategory.FIGHTING, "TheExiledOneSummon");
+        addSingleReward(ItemStackGenerator.getMagnet(), SkillCategory.EXPLORING, "Magnet");
     }
 
     public ItemStack getResult(ItemStack item) {
-        for (RewardItemInfo info : recipeLevelInformation) {
-            if (!info.isItem(item)) continue;
-            ItemStack result = new ItemStack(info.item());
-            ItemMeta meta = result.getItemMeta();
-            if (meta == null) return item;
-            List<String> lore = meta.getLore();
-            String infoString = ChatColor.GRAY + "Unlocked when " + ChatColor.AQUA + info.skillCategory() + ChatColor.GRAY
-                    + " reaches level " + ChatColor.AQUA + info.level();
-            if (lore == null) {
-                lore = new ArrayList<>();
-                lore.add(infoString);
-                meta.setLore(lore);
-                result.setItemMeta(meta);
-                return result;
-            }
-            lore.add("");
-            lore.add(infoString);
-            meta.setLore(lore);
-            result.setItemMeta(meta);
-            return result;
-        }
+        return enrichWithLevelInfo(item).orElseGet(() -> addNoRequirementsFallback(item));
+    }
 
+    private Optional<ItemStack> enrichWithLevelInfo(ItemStack item) {
+        RewardItemInfo info = recipeLevelInformation.get(levelInfoKey(item));
+        if (info == null) return Optional.empty();
+        return Optional.of(applyLevelLore(item, info));
+    }
+
+    private ItemStack applyLevelLore(ItemStack input, RewardItemInfo info) {
+        ItemStack result = new ItemStack(info.item());
+        ItemMeta meta = result.getItemMeta();
+        if (meta == null) return input;
+        String infoString = ChatColor.GRAY + "Unlocked when " + ChatColor.AQUA + info.skillCategory() + ChatColor.GRAY
+                + " reaches level " + ChatColor.AQUA + info.level();
+        List<String> lore = meta.getLore();
+        if (lore == null) lore = new ArrayList<>();
+        else lore.add("");
+        lore.add(infoString);
+        meta.setLore(lore);
+        result.setItemMeta(meta);
+        return result;
+    }
+
+    // isSimilar ignores stack size, so normalize the amount to use an ItemStack as a stable hash key.
+    private static ItemStack levelInfoKey(ItemStack item) {
+        ItemStack key = item.clone();
+        key.setAmount(1);
+        return key;
+    }
+
+    private ItemStack addNoRequirementsFallback(ItemStack item) {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
         List<String> lore = meta.getLore();

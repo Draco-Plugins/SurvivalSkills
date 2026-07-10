@@ -18,8 +18,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.*;
+import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
+import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.utils.Utils;
 
 import java.util.Map;
@@ -60,12 +62,10 @@ public class TrophyListener implements Listener {
             return;
         if (!e.getHand().equals(EquipmentSlot.HAND))
             return;
-        if (hand.getItemMeta() == null)
+        ItemMeta meta = hand.getItemMeta();
+        if (meta == null)
             return;
-        if (!hand.getItemMeta().hasCustomModelData())
-            return;
-
-        if (hand.getItemMeta().getCustomModelData() == 999)
+        if (ItemStackGenerator.hasCustomModelData(meta, 999))
             e.setCancelled(true);
         else
             return;

@@ -9,6 +9,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
+import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.utils.RecipeMaker;
 
 import java.util.ArrayList;
@@ -33,7 +34,6 @@ public class GodRecipeUI {
         p.openInventory(inventories.get(currentInv));
     }
 
-    @SuppressWarnings("deprecation")
     public void handleClick(InventoryClickEvent e) {
         if (e.getClickedInventory() == null) return;
         if (e.getCurrentItem() == null) return;
@@ -47,7 +47,7 @@ public class GodRecipeUI {
 
         Player p = (Player) e.getWhoClicked();
 
-        if (meta.hasCustomModelData()) {
+        if (ItemStackGenerator.hasCustomModelData(meta)) {
             if (currentInv + 1 >= inventories.size()) currentInv = -1;
             currentInv += 1;
             Inventory inv = inventories.get(currentInv);
@@ -61,7 +61,6 @@ public class GodRecipeUI {
         }
     }
 
-    @SuppressWarnings("deprecation")
     public void handleDrag(InventoryDragEvent e) {
         e.setCancelled(true);
         ItemStack arrow = e.getOldCursor();
@@ -72,7 +71,7 @@ public class GodRecipeUI {
 
         Player p = (Player) e.getWhoClicked();
 
-        if (meta.hasCustomModelData()) {
+        if (ItemStackGenerator.hasCustomModelData(meta)) {
             if (currentInv + 1 >= inventories.size()) currentInv = -1;
             currentInv += 1;
             Inventory inv = inventories.get(currentInv);
@@ -86,7 +85,6 @@ public class GodRecipeUI {
         }
     }
 
-    @SuppressWarnings("deprecation")
     public void createInventories(ArrayList<NamespacedKey> list) {
         ItemStack bottom = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
 
@@ -100,7 +98,7 @@ public class GodRecipeUI {
         meta = front.getItemMeta();
         if (meta == null) return;
         meta.setDisplayName(ChatColor.BLUE + "Next");
-        meta.setCustomModelData(1);
+        ItemStackGenerator.setCustomModelData(meta, 1);
         front.setItemMeta(meta);
 
         int totalPages = (int) Math.ceil((double) list.size() / 2);

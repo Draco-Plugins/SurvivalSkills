@@ -10,7 +10,7 @@ import org.bukkit.util.Vector;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.skills.SkillCategory;
 
-@SuppressWarnings("NullableProblems")
+
 public class DeathLocationCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

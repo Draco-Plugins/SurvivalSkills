@@ -1,5 +1,6 @@
 package sir_draco.survivalskills.commands.admin_commands;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -14,10 +15,20 @@ import sir_draco.survivalskills.abilities.Grave;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
 
-@SuppressWarnings("NullableProblems")
 public class ResetAllCommand implements CommandExecutor {
+
+    private static final String TROPHY_DATA_FILE = "trophydata.yml";
+    private static final String LEADERBOARD_FILE = "leaderboard.yml";
+    private static final String PERMA_TRASH_FILE = "permatrash.yml";
+    private static final String TOOL_BELT_FILE = "toolbelt.yml";
+    private static final String GOD_QUEST_FILE = "godquests.yml";
+    private static final String GRAVES_FILE = "graves.yml";
+    private static final String POTION_BAGS_FILE = "potionbags.yml";
+    private static final String PLAYER_DATA_FILE = "playerdata.yml";
 
     private final SurvivalSkills plugin;
 
@@ -32,86 +43,41 @@ public class ResetAllCommand implements CommandExecutor {
         if (!(sender instanceof Player p)) return false;
         if (!p.isOp()) return false;
 
-        // Reset all player data
+        resetDataFiles();
+        resetInMemoryState();
 
-        // Reset files
-        File trophyFile = new File(plugin.getDataFolder(), "trophydata.yml");
-        if (!trophyFile.exists()) plugin.saveResource("trophydata.yml", true);
-        plugin.getTrophyData().set("", null);
-        try {
-            plugin.getTrophyData().save(trophyFile);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        p.sendRawMessage(ChatColor.AQUA + "All player data has been reset!");
+        p.sendRawMessage(ChatColor.RED + "Please reset the server to apply changes.");
+        p.playSound(p, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
+        return true;
+    }
 
-        File leaderboardFile = new File(plugin.getDataFolder(), "leaderboard.yml");
-        if (!leaderboardFile.exists()) plugin.saveResource("leaderboard.yml", true);
-        plugin.getLeaderboardData().set("", null);
-        try {
-            plugin.getLeaderboardData().save(leaderboardFile);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    private void resetDataFiles() {
+        resetDataFile(TROPHY_DATA_FILE, false, plugin.getTrophyData());
+        resetDataFile(LEADERBOARD_FILE, false, plugin.getLeaderboardData());
+        resetDataFile(PERMA_TRASH_FILE, false, plugin.getPermaTrashData());
+        resetDataFile(TOOL_BELT_FILE, false, plugin.getToolBeltData());
+        resetDataFile(GOD_QUEST_FILE, true, null);
+        resetDataFile(GRAVES_FILE, true, null);
+        resetDataFile(POTION_BAGS_FILE, true, null);
+        resetDataFile(PLAYER_DATA_FILE, true, null);
+    }
 
-        File permaTrashFile = new File(plugin.getDataFolder(), "permatrash.yml");
-        if (!permaTrashFile.exists()) plugin.saveResource("permatrash.yml", true);
-        plugin.getPermaTrashData().set("", null);
-        try {
-            plugin.getPermaTrashData().save(permaTrashFile);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    private void resetDataFile(String fileName, boolean shouldLoadFresh, FileConfiguration existingData) {
+        File file = new File(plugin.getDataFolder(), fileName);
+        if (!file.exists()) plugin.saveResource(fileName, true);
 
-        File toolBeltFile = new File(plugin.getDataFolder(), "toolbelt.yml");
-        if (!toolBeltFile.exists()) plugin.saveResource("toolbelt.yml", true);
-        plugin.getToolBeltData().set("", null);
-        try {
-            plugin.getToolBeltData().save(toolBeltFile);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        File godQuestFile = new File(plugin.getDataFolder(), "godquests.yml");
-        if (!godQuestFile.exists()) plugin.saveResource("godquests.yml", true);
-        FileConfiguration godQuestData = YamlConfiguration.loadConfiguration(godQuestFile);
-        godQuestData.set("", null);
-        try {
-            godQuestData.save(godQuestFile);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        File gravesFile = new File(plugin.getDataFolder(), "graves.yml");
-        if (!gravesFile.exists()) plugin.saveResource("graves.yml", true);
-        FileConfiguration gravesData = YamlConfiguration.loadConfiguration(gravesFile);
-        gravesData.set("", null);
-        try {
-            gravesData.save(gravesFile);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        File potionBagsFile = new File(plugin.getDataFolder(), "potionbags.yml");
-        if (!potionBagsFile.exists()) plugin.saveResource("potionbags.yml", true);
-        FileConfiguration potionBagsData = YamlConfiguration.loadConfiguration(potionBagsFile);
-        potionBagsData.set("", null);
-        try {
-            potionBagsData.save(potionBagsFile);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        File dataFile = new File(plugin.getDataFolder(), "playerdata.yml");
-        if (!dataFile.exists()) plugin.saveResource("playerdata.yml", true);
-        FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
+        FileConfiguration data = shouldLoadFresh ? YamlConfiguration.loadConfiguration(file) : existingData;
         data.set("", null);
         try {
-            data.save(dataFile);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            data.save(file);
+        } catch (IOException e) {
+            Bukkit.getLogger().log(Level.WARNING,
+                    String.format("[SurvivalSkills] Failed to reset %s", fileName), e);
         }
+    }
 
-        // Reset trackers
+    private void resetInMemoryState() {
         plugin.getLeaderboardTracker().clear();
         plugin.getScoreboardTracker().clear();
         plugin.getSkillManager().getPlayerSkills().clear();
@@ -126,10 +92,5 @@ public class ResetAllCommand implements CommandExecutor {
         plugin.getMainListener().getGraves().clear();
         plugin.getGodListener().getPotionBags().clear();
         plugin.getFishingListener().getPermaTrash().clear();
-
-        p.sendRawMessage(ChatColor.AQUA + "All player data has been reset!");
-        p.sendRawMessage(ChatColor.RED + "Please reset the server to apply changes.");
-        p.playSound(p, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
-        return true;
     }
 }

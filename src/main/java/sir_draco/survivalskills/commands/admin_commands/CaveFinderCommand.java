@@ -9,7 +9,6 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.abilities.items.CaveFinderAsync;
 
-@SuppressWarnings("NullableProblems")
 public class CaveFinderCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

@@ -12,7 +12,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.utils.LocationUtils;
 
-@SuppressWarnings("NullableProblems")
+
 public class UpCommand implements CommandExecutor {
 
     public static final String UP_COMMAND = "UpCommand";

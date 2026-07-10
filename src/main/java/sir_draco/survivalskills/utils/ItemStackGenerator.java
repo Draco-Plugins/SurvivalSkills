@@ -8,6 +8,7 @@ import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionType;
 
@@ -20,6 +21,9 @@ public class ItemStackGenerator {
 
     public static NamespacedKey skillsItemKey = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class),
             "SurvivalSkills");
+
+    // Running counter used to assign unique IDs to each Potion Bag.
+    private static int potionBagIdCounter = 0;
 
     /**
      * Creates a custom item based on the parameters
@@ -34,7 +38,6 @@ public class ItemStackGenerator {
      *                     the item
      * @return The Item Stack
      */
-    @SuppressWarnings("deprecation")
     public static ItemStack createCustomItem(Material material, int amount, String name, ChatColor nameColor,
             String lore, ArrayList<String> loreList, int modelData, boolean hideEnchants,
             Map<Enchantment, Integer> enchants) {
@@ -53,7 +56,7 @@ public class ItemStackGenerator {
         if (loreList != null)
             meta.setLore(loreList);
         if (modelData != 0)
-            meta.setCustomModelData(modelData);
+            setCustomModelData(meta, modelData);
         meta.getPersistentDataContainer().set(skillsItemKey, PersistentDataType.BOOLEAN, true);
         if (enchants != null)
             for (Map.Entry<Enchantment, Integer> enchant : enchants.entrySet())
@@ -64,30 +67,42 @@ public class ItemStackGenerator {
         return item;
     }
 
-    @SuppressWarnings("deprecation")
     public static boolean isCustomItem(ItemStack item, int modelData) {
         if (item == null)
             return false;
         if (item.getItemMeta() == null)
             return false;
         ItemMeta meta = item.getItemMeta();
-        if (!meta.hasCustomModelData())
-            return false;
         if (!meta.getPersistentDataContainer().has(skillsItemKey, PersistentDataType.BOOLEAN))
             return false;
-        return meta.getCustomModelData() == modelData;
+        return hasCustomModelData(meta, modelData);
     }
 
-    @SuppressWarnings("deprecation")
     public static boolean isCustomItem(ItemStack item) {
         if (item == null)
             return false;
         if (item.getItemMeta() == null)
             return false;
         ItemMeta meta = item.getItemMeta();
-        if (!meta.hasCustomModelData())
+        if (!hasCustomModelData(meta))
             return false;
         return meta.getPersistentDataContainer().has(skillsItemKey, PersistentDataType.BOOLEAN);
+    }
+
+    public static void setCustomModelData(ItemMeta meta, int modelData) {
+        CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
+        customModelData.setFloats(List.of((float) modelData));
+        meta.setCustomModelDataComponent(customModelData);
+    }
+
+    public static boolean hasCustomModelData(ItemMeta meta) {
+        return meta.hasCustomModelDataComponent()
+                && !meta.getCustomModelDataComponent().getFloats().isEmpty();
+    }
+
+    public static boolean hasCustomModelData(ItemMeta meta, int modelData) {
+        return hasCustomModelData(meta)
+                && meta.getCustomModelDataComponent().getFloats().contains((float) modelData);
     }
 
     // Mining Items
@@ -1097,6 +1112,16 @@ public class ItemStackGenerator {
                 PersistentDataType.INTEGER, id);
         bag.setItemMeta(meta);
         return bag;
+    }
+
+    // Returns the next unique Potion Bag ID, incrementing the internal counter.
+    public static int nextPotionBagId() {
+        return potionBagIdCounter++;
+    }
+
+    // Convenience factory that builds a Potion Bag with a fresh unique ID.
+    public static ItemStack getNewPotionBag() {
+        return getPotionBag(nextPotionBagId());
     }
 
     public static ItemStack getMagicBagOfWind() {

@@ -16,7 +16,7 @@ import sir_draco.survivalskills.skills.SkillCategory;
 
 import java.util.ArrayList;
 
-@SuppressWarnings("NullableProblems")
+
 public class MobScannerCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

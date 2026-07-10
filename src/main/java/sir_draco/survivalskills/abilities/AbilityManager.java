@@ -10,6 +10,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import sir_draco.survivalskills.commands.skill_commands.FlightCommand;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -93,17 +94,15 @@ public class AbilityManager {
         if (cooldownTime == 0 && activeTime <= 0) return; // ability fully reset while offline
 
         AbilityTimer timer = new AbilityTimer(plugin, "Flight", p, activeTime, cooldownTime);
-        timer.runTaskTimerAsynchronously(plugin, 0, 20);
         timer.setFlightSpeed(speed);
+        FlightCommand.configureFlightTimer(timer);
+        timer.runTaskTimerAsynchronously(plugin, 0, 20);
         addAbility(p, timer);
 
         if (activeTime <= 0) return;
         p.setAllowFlight(true);
         p.setFlying(true);
         p.setFlySpeed(speed);
-        FlyingTimer flyingTimer = new FlyingTimer(p, activeTime);
-        plugin.getFlightCommand().getFlyingTimers().put(p, flyingTimer);
-        flyingTimer.runTaskTimerAsynchronously(plugin, 0, 20);
         int minutes = activeTime / 60;
         int seconds = activeTime % 60;
         p.sendRawMessage(ChatColor.GREEN + "Your flight will end in " + ChatColor.AQUA + minutes +

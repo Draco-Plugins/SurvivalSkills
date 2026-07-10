@@ -17,7 +17,7 @@ import sir_draco.survivalskills.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
 
-@SuppressWarnings("NullableProblems")
+
 public class ToggleScoreboardCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

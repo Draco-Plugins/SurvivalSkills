@@ -22,6 +22,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
 
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -85,6 +86,15 @@ public class Utils {
                 bar.removeAll();
             }
         }
+    }
+
+    /**
+     * Finds an online player by name (case-insensitive match), mirroring
+     * Bukkit.getPlayer(String) but null-safe.
+     */
+    public static Optional<Player> findPlayer(String name) {
+        if (name == null) return Optional.empty();
+        return Optional.ofNullable(Bukkit.getPlayer(name));
     }
 
     public static void sendActionBarMessage(Player p, String message) {

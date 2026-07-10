@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.skills.SkillCategory;
 
-@SuppressWarnings("NullableProblems")
+
 public class EatCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

@@ -35,7 +35,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-@SuppressWarnings("deprecation")
 public class MainSkill implements Listener {
 
     private final SurvivalSkills plugin;
@@ -146,8 +145,8 @@ public class MainSkill implements Listener {
         if (!ItemStackGenerator.isCustomItem(e.getItemInHand())) return;
         ItemMeta meta = e.getItemInHand().getItemMeta();
         if (meta == null) return;
-        if (!meta.hasCustomModelData()) return;
-        if (!List.of(15, 32).contains(meta.getCustomModelData())) return;
+        if (!ItemStackGenerator.hasCustomModelData(meta, 15)
+                && !ItemStackGenerator.hasCustomModelData(meta, 32)) return;
         e.setCancelled(true);
     }
 
@@ -159,8 +158,7 @@ public class MainSkill implements Listener {
         if (hand == null) return;
         ItemMeta meta = hand.getItemMeta();
         if (meta == null) return;
-        if (!meta.hasCustomModelData()) return;
-        if (meta.getCustomModelData() != 18) return;
+        if (!ItemStackGenerator.hasCustomModelData(meta, 18)) return;
         e.setCancelled(true);
         Color color = Color.fromRGB((int) (Math.random() * 255), (int) (Math.random() * 255), (int) (Math.random() * 255));
         Vector vector = e.getPlayer().getLocation().getDirection();

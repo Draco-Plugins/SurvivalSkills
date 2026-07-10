@@ -10,7 +10,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.Objects;
 
-@SuppressWarnings("NullableProblems")
+
 public class ToggleBossMusic implements CommandExecutor {
 
     public ToggleBossMusic() {

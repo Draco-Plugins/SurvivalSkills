@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 
-@SuppressWarnings("deprecation")
 public class FishingSkill implements Listener {
 
     private final SurvivalSkills plugin;
@@ -373,7 +372,7 @@ public class FishingSkill implements Listener {
             return;
 
         ItemStack item = e.getItem().getItemStack();
-        if (item.getItemMeta() != null && item.getItemMeta().hasCustomModelData())
+        if (item.getItemMeta() != null && ItemStackGenerator.hasCustomModelData(item.getItemMeta()))
             return;
         if (item.getItemMeta() != null
                 && item.getItemMeta().getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey))

@@ -164,7 +164,6 @@ public class FarmingSkill implements Listener {
         }.runTaskLater(plugin, 1);
     }
 
-    @SuppressWarnings("deprecation")
     private ArrayList<ItemStack> findEdibleItems(Player p) {
         ArrayList<ItemStack> edibleItems = new ArrayList<>();
         for (ItemStack item : p.getInventory().getContents()) {
@@ -175,7 +174,7 @@ public class FarmingSkill implements Listener {
             if (item.getType().equals(Material.ROTTEN_FLESH) || item.getType().equals(Material.POISONOUS_POTATO)
                     || item.getType().equals(Material.SPIDER_EYE))
                 continue; // skip negative food
-            if (item.getItemMeta() != null && item.getItemMeta().hasCustomModelData())
+            if (item.getItemMeta() != null && ItemStackGenerator.hasCustomModelData(item.getItemMeta()))
                 continue; // skip custom items (likely special tools)
 
             edibleItems.add(item);

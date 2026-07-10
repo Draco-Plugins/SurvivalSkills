@@ -45,8 +45,8 @@ public class RewardEffects {
         var m = new HashMap<String, RewardEffect>();
 
         // -- Mining --
-        tieredDouble(m, "Mining", "Fortune", map(1, 0.2, 2, 0.4, 3, 0.5), PlayerRewards::setFortuneChance);
-        tieredDouble(m, "Mining", "Armor", map(1, 0.05, 2, 0.10, 3, 0.15, 4, 0.20), PlayerRewards::setProtectionPercentage);
+        tieredDouble(m, "Mining", "Fortune", map(1, 0.2, 2, 0.4, 3, 0.5), (pr, val) -> pr.setFortuneChance(val));
+        tieredDouble(m, "Mining", "Armor", map(1, 0.05, 2, 0.10, 3, 0.15, 4, 0.20), (pr, val) -> pr.setProtectionPercentage(val));
         put(m, "Mining", "UnbreakableTools", (pr, p) -> pr.setUnbreakableTools(true));
         put(m, "Mining", "VeinMinerII", (pr, p) -> {
             SurvivalSkills.getInstance().getMiningListener().getVeinminerTracker().put(p, 1);
@@ -58,7 +58,7 @@ public class RewardEffects {
         linearWalkSpeed(m, "Exploring", "Speed", 5, 0.22f, 0.02f);
 
         // -- Farming --
-        tieredDouble(m, "Farming", "DoubleCrops", map(1, 0.25, 2, 0.5, 3, 0.75, 4, 1.0), PlayerRewards::setCropDoubleChance);
+        tieredDouble(m, "Farming", "DoubleCrops", map(1, 0.25, 2, 0.5, 3, 0.75, 4, 1.0), (pr, val) -> pr.setCropDoubleChance(val));
         linearHealth(m, "Farming", "Health", 10, 11);
         put(m, "Farming", "Timberman", (pr, p) -> {
             if (p.hasPermission("timberman.use")) return;
@@ -66,23 +66,23 @@ public class RewardEffects {
         });
 
         // -- Building --
-        linearDouble(m, "Building", "BlockReturn", 10, 0.05, 0.05, PlayerRewards::setBlockBlackChance);
+        linearDouble(m, "Building", "BlockReturn", 10, 0.05, 0.05, (pr, val) -> pr.setBlockBlackChance(val));
         put(m, "Building", "ExtendedReach", (pr, p) -> {
             AttributeInstance reach = p.getAttribute(Attribute.BLOCK_INTERACTION_RANGE);
             if (reach != null) reach.setBaseValue(6);
         });
 
         // -- Fighting --
-        tieredDouble(m, "Fighting", "Lifesteal", map(1, 0.05, 2, 0.10, 3, 0.15, 4, 0.20, 5, 0.25), PlayerRewards::setLifesteal);
-        tieredDouble(m, "Fighting", "Critical", map(1, 0.10, 2, 0.20), PlayerRewards::setCriticalChance);
+        tieredDouble(m, "Fighting", "Lifesteal", map(1, 0.05, 2, 0.10, 3, 0.15, 4, 0.20, 5, 0.25), (pr, val) -> pr.setLifesteal(val));
+        tieredDouble(m, "Fighting", "Critical", map(1, 0.10, 2, 0.20), (pr, val) -> pr.setCriticalChance(val));
         put(m, "Fighting", "BloodyDomain", (pr, p) -> SurvivalSkills.getInstance().getAbilityManager().startBloodyDomain(p));
 
         // -- Fishing --
-        tieredDouble(m, "Fishing", "CommonLoot", map(1, 0.25, 2, 0.40, 3, 0.55, 4, 0.65, 5, 0.75), PlayerRewards::setCommonFishingLootChance);
-        tieredDouble(m, "Fishing", "RareLoot", map(1, 0.10, 2, 0.20, 3, 0.30, 4, 0.35, 5, 0.40), PlayerRewards::setRareFishingLootChance);
-        tieredDouble(m, "Fishing", "EpicLoot", map(1, 0.02, 2, 0.03, 3, 0.04, 4, 0.045, 5, 0.05), PlayerRewards::setEpicFishingLootChance);
-        tieredDouble(m, "Fishing", "LegendaryLoot", map(1, 0.005, 2, 0.0075, 3, 0.01), PlayerRewards::setLegendaryFishingLootChance);
-        linearDouble(m, "Fishing", "Experience", 10, 1.1, 0.1, PlayerRewards::setExperienceMultiplier);
+        tieredDouble(m, "Fishing", "CommonLoot", map(1, 0.25, 2, 0.40, 3, 0.55, 4, 0.65, 5, 0.75), (pr, val) -> pr.setCommonFishingLootChance(val));
+        tieredDouble(m, "Fishing", "RareLoot", map(1, 0.10, 2, 0.20, 3, 0.30, 4, 0.35, 5, 0.40), (pr, val) -> pr.setRareFishingLootChance(val));
+        tieredDouble(m, "Fishing", "EpicLoot", map(1, 0.02, 2, 0.03, 3, 0.04, 4, 0.045, 5, 0.05), (pr, val) -> pr.setEpicFishingLootChance(val));
+        tieredDouble(m, "Fishing", "LegendaryLoot", map(1, 0.005, 2, 0.0075, 3, 0.01), (pr, val) -> pr.setLegendaryFishingLootChance(val));
+        linearDouble(m, "Fishing", "Experience", 10, 1.1, 0.1, (pr, val) -> pr.setExperienceMultiplier(val));
         fasterFishingEffects(m);
         put(m, "Fishing", "AutoTrashII", (pr, p) -> {
             var trash = SurvivalSkills.getInstance().getFishingListener().getTrashInventories().get(p);
@@ -90,8 +90,8 @@ public class RewardEffects {
         });
 
         // -- Crafting --
-        linearDouble(m, "Crafting", "ExtraOutput", 10, 0.05, 0.05, PlayerRewards::setExtraOutput);
-        linearDouble(m, "Crafting", "MaterialsBack", 5, 0.10, 0.10, PlayerRewards::setMaterialsBack);
+        linearDouble(m, "Crafting", "ExtraOutput", 10, 0.05, 0.05, (pr, val) -> pr.setExtraOutput(val));
+        linearDouble(m, "Crafting", "MaterialsBack", 5, 0.10, 0.10, (pr, val) -> pr.setMaterialsBack(val));
 
         // -- Main --
         setHomePermissions(m);

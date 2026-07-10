@@ -11,7 +11,7 @@ import sir_draco.survivalskills.boards.LeaderboardPlayer;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
-@SuppressWarnings("NullableProblems")
+
 public class DeathReturnCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

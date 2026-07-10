@@ -11,12 +11,11 @@ import org.bukkit.entity.*;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
 
-@SuppressWarnings("NullableProblems")
-public class ResetFirstDragon implements CommandExecutor {
+public class ResetFirstDragonCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
 
-    public ResetFirstDragon(SurvivalSkills plugin) {
+    public ResetFirstDragonCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
         PluginCommand command = plugin.getCommand("resetfirstdragon");
         if (command != null) command.setExecutor(this);
@@ -77,6 +76,7 @@ public class ResetFirstDragon implements CommandExecutor {
                     }
                     respawnConditions(loc);
 
+                    // Delay to allow crystal entities to exist in the world
                     new BukkitRunnable() {
                         @Override
                         public void run() {

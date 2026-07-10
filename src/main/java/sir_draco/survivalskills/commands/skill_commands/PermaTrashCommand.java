@@ -12,7 +12,7 @@ import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 
-@SuppressWarnings("NullableProblems")
+
 public class PermaTrashCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;

@@ -14,6 +14,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.components.CustomModelDataComponent;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -30,15 +31,15 @@ import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.RewardNotifications;
 import sir_draco.survivalskills.SurvivalSkills;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
-@SuppressWarnings("deprecation")
 public class PlayerListener implements Listener {
 
     private final SurvivalSkills plugin;
-    private final HashMap<Player, ArrayList<Inventory>> customInventories = new HashMap<>();
+    private final Map<Player, List<Inventory>> customInventories = new HashMap<>();
     private final HashMap<Player, Inventory> openInventory = new HashMap<>();
     private final HashMap<Player, Location> deathLocations = new HashMap<>();
 
@@ -67,11 +68,10 @@ public class PlayerListener implements Listener {
         if (!e.getHand().equals(EquipmentSlot.HAND))
             return;
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if (hand.getItemMeta() == null)
+        ItemMeta meta = hand.getItemMeta();
+        if (meta == null)
             return;
-        if (!hand.getItemMeta().hasCustomModelData())
-            return;
-        if (hand.getItemMeta().getCustomModelData() == 17) {
+        if (ItemStackGenerator.hasCustomModelData(meta, 17)) {
             e.setCancelled(true);
 
             // Spawn a tropical fish
@@ -103,7 +103,14 @@ public class PlayerListener implements Listener {
             return;
 
         Player p = (Player) e.getWhoClicked();
-        int modelData = meta.getCustomModelData();
+        if (!meta.hasCustomModelDataComponent())
+            return;
+        CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
+        int modelData = customModelData.getFloats().stream()
+                .filter(modelDataValue -> modelDataValue == Math.round(modelDataValue))
+                .map((Float modelDataValue) -> Math.round(modelDataValue))
+                .findFirst()
+                .orElse(0);
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
         if (rewards == null) {
             e.setCancelled(true);
@@ -359,7 +366,7 @@ public class PlayerListener implements Listener {
             currentInv = i;
             break;
         }
-        if (meta.hasCustomModelData()) {
+        if (ItemStackGenerator.hasCustomModelData(meta)) {
             if (currentInv + 1 >= customInventories.get(p).size())
                 currentInv = -1;
             Inventory inv = customInventories.get(p).get(currentInv + 1);
@@ -397,7 +404,7 @@ public class PlayerListener implements Listener {
             currentInv = i;
             break;
         }
-        if (meta.hasCustomModelData()) {
+        if (ItemStackGenerator.hasCustomModelData(meta)) {
             if (currentInv + 1 >= customInventories.get(p).size())
                 currentInv = -1;
             Inventory inv = customInventories.get(p).get(currentInv + 1);
@@ -527,7 +534,7 @@ public class PlayerListener implements Listener {
         return trophies;
     }
 
-    public HashMap<Player, ArrayList<Inventory>> getCustomInventories() {
+    public Map<Player, List<Inventory>> getCustomInventories() {
         return customInventories;
     }
 

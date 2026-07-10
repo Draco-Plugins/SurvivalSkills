@@ -14,7 +14,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.Map;
 
-@SuppressWarnings("NullableProblems")
+
 public class ToggleBloodyDomainCommand implements CommandExecutor {
 
     public ToggleBloodyDomainCommand() {

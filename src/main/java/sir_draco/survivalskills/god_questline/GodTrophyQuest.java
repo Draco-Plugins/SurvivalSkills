@@ -20,6 +20,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class GodTrophyQuest {
@@ -506,7 +507,6 @@ public class GodTrophyQuest {
         return messages9;
     }
 
-    @SuppressWarnings("deprecation")
     public int removeMaterialsFromInventory(int currentProgress, int max, Inventory inv, Material mat) {
         int total = 0;
         for (ItemStack item : inv.getContents()) {
@@ -518,7 +518,7 @@ public class GodTrophyQuest {
                 continue;
             if (!item.getType().equals(mat))
                 continue;
-            if (item.getItemMeta() != null && item.getItemMeta().hasCustomModelData())
+            if (item.getItemMeta() != null && ItemStackGenerator.hasCustomModelData(item.getItemMeta()))
                 continue;
 
             // Handle the item in the inventory
@@ -591,6 +591,18 @@ public class GodTrophyQuest {
 
     public int getPhase() {
         return phase;
+    }
+
+    public Optional<Integer> getStage() {
+        if (phase >= 22 && phase <= 26)
+            return Optional.of(1);
+        if (phase >= 27 && phase <= 44)
+            return Optional.of(2);
+        if (phase == 45 || phase == 46)
+            return Optional.of(3);
+        if (phase == 48)
+            return Optional.of(4);
+        return Optional.empty();
     }
 
     public int getMaxPhase() {

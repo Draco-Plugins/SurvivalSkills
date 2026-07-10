@@ -14,7 +14,6 @@ import sir_draco.survivalskills.SurvivalSkills;
 import java.util.ArrayList;
 import java.util.Map;
 
-@SuppressWarnings("NullableProblems")
 public class CancelAbilityCooldownsCommand implements CommandExecutor {
 
     public CancelAbilityCooldownsCommand(SurvivalSkills plugin) {

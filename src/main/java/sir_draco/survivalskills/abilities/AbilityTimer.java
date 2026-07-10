@@ -6,6 +6,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
 
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
 public class AbilityTimer extends BukkitRunnable {
 
     private final SurvivalSkills plugin;
@@ -16,6 +19,11 @@ public class AbilityTimer extends BukkitRunnable {
     private int activeTimeLeft;
     private int timeTillReset;
     private float flightSpeed;
+
+    // Optional hooks so concrete abilities (e.g. Flight) can react to the
+    // countdown without spawning a separate BukkitRunnable.
+    private Consumer<Player> onExpire;
+    private BiConsumer<Player, Integer> onActiveTick;
 
     public AbilityTimer(SurvivalSkills plugin, String name, Player p, int activeTimeLeft, int timeTillReset) {
         this.plugin = plugin;
@@ -32,13 +40,22 @@ public class AbilityTimer extends BukkitRunnable {
             return;
         }
 
-        if (active) activeTimeLeft--;
-        else timeTillReset--;
-
-        if (activeTimeLeft == 0) {
-            active = false;
+        // While the ability is active, count down the active window and fire
+        // the optional per-second hook (only while time remains). The expire
+        // hook is invoked at the exact organic transition to cooldown, so it
+        // is never re-triggered by a manual endAbility() (which sets active=false).
+        if (active) {
             activeTimeLeft--;
+            if (activeTimeLeft > 0 && onActiveTick != null) onActiveTick.accept(p, activeTimeLeft);
+            if (activeTimeLeft == 0) {
+                if (onExpire != null) onExpire.accept(p);
+                active = false;
+                activeTimeLeft--;
+            }
+        } else {
+            timeTillReset--;
         }
+
         if (!active && timeTillReset == 0) {
             if (p.isOnline()) {
                 if (name.equals("XPVoucher")) {
@@ -88,5 +105,15 @@ public class AbilityTimer extends BukkitRunnable {
 
     public float getFlightSpeed() {
         return flightSpeed;
+    }
+
+    /** Runs when the active window organically reaches zero (player may be offline). */
+    public void setOnExpire(Consumer<Player> onExpire) {
+        this.onExpire = onExpire;
+    }
+
+    /** Runs once per second while active, supplying the seconds remaining (always > 0). */
+    public void setOnActiveTick(BiConsumer<Player, Integer> onActiveTick) {
+        this.onActiveTick = onActiveTick;
     }
 }

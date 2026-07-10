@@ -292,7 +292,7 @@ public class BuildingSkill implements Listener {
         }
 
         ItemMeta meta = itemToAdd.getItemMeta();
-        if (meta != null && meta.hasCustomModelData()) {
+        if (meta != null && ItemStackGenerator.hasCustomModelData(meta)) {
             items.add(itemToAdd);
             return items;
         }
@@ -332,14 +332,11 @@ public class BuildingSkill implements Listener {
     }
 
     private String buildEnchantmentSortKey(ItemStack book) {
-        if (book == null)
-            return "";
+        if (book == null) return "";
         ItemMeta meta = book.getItemMeta();
-        if (!(meta instanceof EnchantmentStorageMeta enchantmentMeta))
-            return "";
+        if (!(meta instanceof EnchantmentStorageMeta enchantmentMeta)) return "";
         Map<Enchantment, Integer> enchants = enchantmentMeta.getStoredEnchants();
-        if (enchants.isEmpty())
-            return "";
+        if (enchants.isEmpty()) return "";
         return enchants.entrySet().stream()
                 .sorted(java.util.Comparator.comparing(e -> e.getKey().getKey().toString()))
                 .map(e -> e.getKey().getKey() + ":" + e.getValue())
@@ -347,12 +344,12 @@ public class BuildingSkill implements Listener {
     }
 
     private int getTotalEnchantmentLevels(ItemStack book) {
-        if (book == null)
-            return 0;
+        if (book == null) return 0;
         ItemMeta meta = book.getItemMeta();
-        if (!(meta instanceof EnchantmentStorageMeta enchantmentMeta))
-            return 0;
-        return enchantmentMeta.getStoredEnchants().values().stream().mapToInt(Integer::intValue).sum();
+        if (!(meta instanceof EnchantmentStorageMeta enchantmentMeta)) return 0;
+        return enchantmentMeta.getStoredEnchants().values().stream()
+                .mapToInt((Integer level) -> level)
+                .sum();
     }
 
     public boolean isBannedReturn(Material material) {
