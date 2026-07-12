@@ -18,6 +18,7 @@ import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.RecipeSlotLayout;
+import sir_draco.survivalskills.utils.SkillDisplay;
 import sir_draco.survivalskills.utils.items.ItemStackGenerator;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
@@ -89,7 +90,7 @@ public class SkillsCommand implements CommandExecutor {
 
     private void handleStats(Player p) {
         for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId()).getSkills())
-            skill.printStats(p, true);
+            SkillDisplay.printStats(p, skill, true);
     }
 
     private void handleTree(Player p, String[] strings) {
@@ -210,7 +211,7 @@ public class SkillsCommand implements CommandExecutor {
         }
 
         for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(play.getUniqueId()).getSkills())
-            skill.printStats(p, false);
+            SkillDisplay.printStats(p, skill, false);
     }
 
     private void handleLeaderboard(Player p, String[] strings) {

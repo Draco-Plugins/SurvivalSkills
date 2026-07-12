@@ -275,6 +275,16 @@ public class AbilityManager {
         return null;
     }
 
+    public boolean saveAbilityTimerState(Player p, String ability, FileConfiguration data, String configPath) {
+        AbilityTimer timer = getAbility(p, ability);
+        if (timer == null) {
+            data.set(configPath, null);
+            return false;
+        }
+        data.set(configPath, timer.getActiveTimeLeft());
+        return true;
+    }
+
     /** Add entities to the current scanned list (used for glow highlighting). */
     public void addScannedMobs(List<Entity> entities) {
         if (entities == null || entities.isEmpty()) return;

@@ -231,13 +231,13 @@ public class SurvivalSkillsCommand implements CommandExecutor {
         String op = args[3];
         SkillCategory category = skill.getSkillCategory();
         if (op.equalsIgnoreCase("add")) {
-            skill.changeExperience(amount, skill.getMaxLevel());
+            skill.changeExperience(amount, Skill.MAX_LEVEL);
             notifyBoth(admin, target,
                     ChatColor.GREEN + "Added " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP to " + ChatColor.GRAY + category,
                     ChatColor.GREEN + "Added " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP to "
                             + ChatColor.GRAY + category + ChatColor.GREEN + " for " + ChatColor.GRAY + target.getName());
         } else if (op.equalsIgnoreCase("remove")) {
-            skill.changeExperience(-amount, skill.getMaxLevel());
+            skill.changeExperience(-amount, Skill.MAX_LEVEL);
             notifyBoth(admin, target,
                     ChatColor.GREEN + "Removed " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP from " + ChatColor.GRAY + category,
                     ChatColor.GREEN + "Removed " + ChatColor.GRAY + amount + ChatColor.GREEN + " XP from "
