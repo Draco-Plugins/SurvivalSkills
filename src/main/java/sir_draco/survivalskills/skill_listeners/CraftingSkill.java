@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ public class CraftingSkill implements Listener {
     }
 
     public void handleMaterialsBack(Player p, ItemStack[] items, int smallestStack, ItemStack result) {
-        if (ItemStackGenerator.isCustomItem(result)) return;
+        if (ItemStackGeneratorUtils.isCustomItem(result)) return;
         for (ItemStack item : items) {
             if (item == null) continue;
             if (item.getType().equals(Material.SHULKER_BOX)) return;
@@ -86,7 +86,7 @@ public class CraftingSkill implements Listener {
     }
 
     public void handleExtraOutput(Player p, ItemStack result, int smallestStack) {
-        if (ItemStackGenerator.isCustomItem(result)) return;
+        if (ItemStackGeneratorUtils.isCustomItem(result)) return;
         double chance = plugin.getSkillManager().getPlayerRewards(p).getExtraOutput();
         if (chance == 0) return;
         if (disallowedCraftingSkillMaterials.contains(result.getType())) return;

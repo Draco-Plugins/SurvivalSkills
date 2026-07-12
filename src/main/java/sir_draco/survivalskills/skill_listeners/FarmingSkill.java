@@ -22,9 +22,9 @@ import sir_draco.survivalskills.god_questline.trial.TrialManager;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.ProjectileCalculator;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.Utils;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -174,7 +174,7 @@ public class FarmingSkill implements Listener {
             if (item.getType().equals(Material.ROTTEN_FLESH) || item.getType().equals(Material.POISONOUS_POTATO)
                     || item.getType().equals(Material.SPIDER_EYE))
                 continue; // skip negative food
-            if (item.getItemMeta() != null && ItemStackGenerator.hasCustomModelData(item.getItemMeta()))
+            if (item.getItemMeta() != null && ItemStackGeneratorUtils.hasCustomModelData(item.getItemMeta()))
                 continue; // skip custom items (likely special tools)
 
             edibleItems.add(item);
@@ -218,7 +218,7 @@ public class FarmingSkill implements Listener {
     }
 
     public void handleWateringCan(Player p, Block block) {
-        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 9))
+        if (!ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), 9))
             return;
         if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FARMING, "WateringCan").isApplied()) {
             p.sendRawMessage(ChatColor.RED + "Watering Can unlocks at Farming Level: " + ChatColor.AQUA
@@ -285,7 +285,7 @@ public class FarmingSkill implements Listener {
     }
 
     public void handleUnlimitedBoneMeal(Player p, Block block, PlayerInteractEvent e) {
-        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 10))
+        if (!ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), 10))
             return;
         e.setCancelled(true);
         if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FARMING, "UnlimitedBoneMeal").isApplied()) {
@@ -348,7 +348,7 @@ public class FarmingSkill implements Listener {
     public void handleHarvester(Player p, Block block, boolean isHarvested, Material type, BlockBreakEvent e) {
         if (isHarvested)
             return;
-        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 11))
+        if (!ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), 11))
             return;
         if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FARMING, "Harvester").isApplied()
                 && !p.hasPermission("survivalskills.op")) {

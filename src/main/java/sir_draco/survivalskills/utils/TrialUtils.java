@@ -25,19 +25,37 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class TrialUtils {
 
-    public static ArrayList<RelativeBlock> trialBuildingBlocks = new ArrayList<>();
+    private static final String TRIAL_DATA_FILE = "trialdata.yml";
+    private static final String TRIAL_BUILDING_FILE = "trialbuilding.yml";
+    private static final int TRIAL_AREA_RADIUS = 25;
+    private static final int TRIAL_AREA_HEIGHT = 30;
+    private static final int TRIAL_AREA_Y_OFFSET = -1;
+    private static final int TRIAL_MAX_DISTANCE = 100;
     private static final long COOLDOWN = 5 * 60 * 1000L;
+    private static final int COOLDOWN_MINUTES = (int) (COOLDOWN / (60 * 1000));
+    private static final Sound ERROR_SOUND = Sound.ENTITY_ENDERMAN_TELEPORT;
+
+    // Cached trial building blocks; loaded once from config and copied per trial.
+    private static List<RelativeBlock> cachedBuildingBlocks = null;
+
+    // --- Block collection helpers ---
 
     public static ArrayList<Block> getBlocks(Location location, int x, int y, int z) {
         ArrayList<Block> blocks = new ArrayList<>();
-        for (int i = -(x/2); i <= x/2; i++) {
-            for (int j = -1; j < y; j++) {
-                for (int k = -(z/2); k <= z/2; k++) {
-                    Block block = location.clone().add(i, j, k).getBlock();
+        World world = location.getWorld();
+        int baseX = location.getBlockX();
+        int baseY = location.getBlockY();
+        int baseZ = location.getBlockZ();
+        for (int i = -(x / 2); i <= x / 2; i++) {
+            for (int j = TRIAL_AREA_Y_OFFSET; j < y; j++) {
+                for (int k = -(z / 2); k <= z / 2; k++) {
+                    Block block = world.getBlockAt(baseX + i, baseY + j, baseZ + k);
                     if (block.getType().isAir()) continue;
                     blocks.add(block);
                 }
@@ -46,85 +64,86 @@ public class TrialUtils {
         return blocks;
     }
 
+    // --- Trial building persistence ---
+
     public static void storeTrialBuilding(Location relativeLocation, ArrayList<Block> blocks) {
-        // Store blocks in config
-        File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialbuilding.yml");
-        if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialbuilding.yml", true);
-        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+        FileConfiguration config = loadConfigFile(TRIAL_BUILDING_FILE);
         config.set("Blocks", null);
 
         int i = 1;
         for (Block block : blocks) {
             Location loc = block.getLocation();
             // Locations relative to the player
-            config.set("Blocks." + i + ".X", loc.getBlockX() - relativeLocation.getBlockX());
-            config.set("Blocks." + i + ".Y", loc.getBlockY() - relativeLocation.getBlockY());
-            config.set("Blocks." + i + ".Z", loc.getBlockZ() - relativeLocation.getBlockZ());
-            config.set("Blocks." + i + ".Type", block.getType().name());
-            config.set("Blocks." + i + ".Data", block.getBlockData().getAsString());
+            String path = "Blocks." + i + ".";
+            config.set(path + "X", loc.getBlockX() - relativeLocation.getBlockX());
+            config.set(path + "Y", loc.getBlockY() - relativeLocation.getBlockY());
+            config.set(path + "Z", loc.getBlockZ() - relativeLocation.getBlockZ());
+            config.set(path + "Type", block.getType().name());
+            config.set(path + "Data", block.getBlockData().getAsString());
             i++;
         }
 
-        try {
-            config.save(file);
-        } catch (Exception e) {
-            Bukkit.getLogger().warning("Failed to save trial building to trialbuilding.yml");
-        }
+        saveConfig(config, TRIAL_BUILDING_FILE, "Failed to save trial building to " + TRIAL_BUILDING_FILE);
     }
 
     public static ArrayList<RelativeBlock> loadTrialBuilding(FileConfiguration config) {
-        if (!trialBuildingBlocks.isEmpty()) return trialBuildingBlocks;
+        // Return a fresh copy of the cache so consumers can mutate it freely
+        if (cachedBuildingBlocks != null) return new ArrayList<>(cachedBuildingBlocks);
 
         ArrayList<RelativeBlock> blocks = new ArrayList<>();
         ConfigurationSection section = config.getConfigurationSection("Blocks");
         if (section == null) return blocks;
         if (section.getKeys(false).isEmpty()) {
-            Bukkit.getLogger().warning("No trial building saved in trialbuilding.yml");
+            Bukkit.getLogger().warning("No trial building saved in " + TRIAL_BUILDING_FILE);
             return blocks;
         }
 
         for (String key : section.getKeys(false)) {
-            int x = config.getInt("Blocks." + key + ".X");
-            int y = config.getInt("Blocks." + key + ".Y");
-            int z = config.getInt("Blocks." + key + ".Z");
-            Material material = Material.valueOf(config.getString("Blocks." + key + ".Type"));
-            String blockDataString = config.getString("Blocks." + key + ".Data");
+            String path = "Blocks." + key + ".";
+            int x = config.getInt(path + "X");
+            int y = config.getInt(path + "Y");
+            int z = config.getInt(path + "Z");
+            Material material = Material.valueOf(config.getString(path + "Type"));
+            String blockDataString = config.getString(path + "Data");
             if (blockDataString == null) continue;
             BlockData data = Bukkit.createBlockData(blockDataString);
             blocks.add(new RelativeBlock(x, y, z, data, material));
         }
 
         if (blocks.isEmpty()) {
-            Bukkit.getLogger().warning("No trial building blocks found in trialbuilding.yml");
+            Bukkit.getLogger().warning("No trial building blocks found in " + TRIAL_BUILDING_FILE);
         } else {
-            Bukkit.getLogger().info("Loaded " + blocks.size() + " trial building blocks from trialbuilding.yml");
-            trialBuildingBlocks.addAll(blocks);
+            Bukkit.getLogger().info(String.format("Loaded %d trial building blocks from %s", blocks.size(), TRIAL_BUILDING_FILE));
+            cachedBuildingBlocks = List.copyOf(blocks);
         }
 
-        return trialBuildingBlocks;
+        return blocks;
     }
 
     // Takes a block, finds the new relative location for the block, and copies the data into the new block
     public static void convertBlockToRelative(RelativeBlock block, Location location) {
-        Location loc = new Location(location.getWorld(),
-                location.getBlockX() + block.x(), location.getBlockY() + block.y(), location.getBlockZ() + block.z());
-        Block relativeBlock = loc.getBlock();
+        Block relativeBlock = new Location(location.getWorld(),
+                location.getBlockX() + block.x(), location.getBlockY() + block.y(), location.getBlockZ() + block.z()).getBlock();
         relativeBlock.setType(block.material());
         relativeBlock.setBlockData(block.data());
         relativeBlock.getState().update();
     }
 
-    public static RelativeBlock getRandomBlock(ArrayList<RelativeBlock> building) {
+    public static RelativeBlock popRandomBlock(ArrayList<RelativeBlock> building) {
         RelativeBlock block = building.get((int) (Math.random() * building.size()));
         building.remove(block);
         return block;
     }
 
     public static void clearTrialBuilding(Location centerLocation) {
-        for (int i = -25; i <= 25; i++) {
-            for (int j = -1; j <= 30; j++) {
-                for (int k = -25; k <= 25; k++) {
-                    Block block = centerLocation.clone().add(i, j, k).getBlock();
+        World world = centerLocation.getWorld();
+        int baseX = centerLocation.getBlockX();
+        int baseY = centerLocation.getBlockY();
+        int baseZ = centerLocation.getBlockZ();
+        for (int i = -TRIAL_AREA_RADIUS; i <= TRIAL_AREA_RADIUS; i++) {
+            for (int j = TRIAL_AREA_Y_OFFSET; j <= TRIAL_AREA_HEIGHT; j++) {
+                for (int k = -TRIAL_AREA_RADIUS; k <= TRIAL_AREA_RADIUS; k++) {
+                    Block block = world.getBlockAt(baseX + i, baseY + j, baseZ + k);
                     if (block.getType().isAir()) continue;
                     block.setType(Material.AIR);
                 }
@@ -136,13 +155,12 @@ public class TrialUtils {
         World world = protectedArea.world();
         BoundingBox box = protectedArea.boundingBox();
 
-        // Calculate the chunk coordinates that need to be loaded
+        // Load the chunks that contain blocks in the protected area before removing them
         int minChunkX = (int) Math.floor(box.getMinX()) >> 4;
         int maxChunkX = (int) Math.floor(box.getMaxX()) >> 4;
         int minChunkZ = (int) Math.floor(box.getMinZ()) >> 4;
         int maxChunkZ = (int) Math.floor(box.getMaxZ()) >> 4;
 
-        // Load all chunks that contain blocks in the protected area
         for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
             for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
                 if (!world.isChunkLoaded(chunkX, chunkZ)) {
@@ -155,7 +173,7 @@ public class TrialUtils {
         for (int i = (int) box.getMinX() - 1; i <= box.getMaxX(); i++) {
             for (int j = (int) box.getMinY(); j <= box.getMaxY(); j++) {
                 for (int k = (int) box.getMinZ() - 1; k <= box.getMaxZ(); k++) {
-                    Block block = new Location(world, i, j, k).getBlock();
+                    Block block = world.getBlockAt(i, j, k);
                     if (block.getType().isAir()) continue;
                     block.setType(Material.AIR);
                 }
@@ -167,72 +185,50 @@ public class TrialUtils {
         new BukkitRunnable() {
             @Override
             public void run() {
-                File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
-                if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
-                FileConfiguration data = YamlConfiguration.loadConfiguration(file);
-
+                FileConfiguration data = loadConfigFile(TRIAL_DATA_FILE);
                 data.set(uuid.toString() + ".ProtectedArea", null);
-
-                try {
-                    data.save(file);
-                } catch (Exception e) {
-                    SurvivalSkills.getInstance().getLogger().warning("Failed to save protected areas to trialdata.yml");
-                }
+                saveConfig(data, TRIAL_DATA_FILE, "Failed to save protected areas to " + TRIAL_DATA_FILE);
             }
         }.runTaskAsynchronously(SurvivalSkills.getInstance());
     }
 
     public static void removeGroundItemsInProtectedArea(ProtectedArea protectedArea) {
-        // Get all entities in the protected area
-        protectedArea.world().getNearbyEntities(protectedArea.boundingBox(), entity -> true).forEach(entity -> {
-            if (entity instanceof Item) {
-                if (isTrialItem((Item) entity)) entity.remove();
-            }
-        });
+        protectedArea.world().getNearbyEntities(protectedArea.boundingBox(), Item.class::isInstance)
+                .stream()
+                .map(Item.class::cast)
+                .filter(TrialUtils::isTrialItem)
+                .forEach(item -> Objects.requireNonNull(item, "item").remove());
     }
+
+    // --- Completed trial persistence ---
 
     public static void saveCompletedTrials(Player p, FileConfiguration data, boolean disabling) {
         if (disabling) {
-            File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
-            if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
-
-            ArrayList<Integer> completedTrials = TrialManager.getPlayerGamemodesBeaten().get(p);
-            if (completedTrials == null) return;
-            if (completedTrials.isEmpty()) return;
-            data.set(p.getUniqueId() + ".CompletedTrials", completedTrials);
-            try {
-                data.save(file);
-            } catch (Exception e) {
-                SurvivalSkills.getInstance().getLogger().warning("Failed to save completed trials for " + p.getName());
-            }
+            saveCompletedTrialsSync(p, data);
             return;
         }
-
         new BukkitRunnable() {
             @Override
             public void run() {
-                File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trialdata.yml");
-                if (!file.exists()) SurvivalSkills.getInstance().saveResource("trialdata.yml", true);
-
-                ArrayList<Integer> completedTrials = TrialManager.getPlayerGamemodesBeaten().get(p);
-                if (completedTrials == null) return;
-                if (completedTrials.isEmpty()) return;
-                data.set(p.getUniqueId() + ".CompletedTrials", completedTrials);
-                try {
-                    data.save(file);
-                } catch (Exception e) {
-                    SurvivalSkills.getInstance().getLogger().warning("Failed to save completed trials for " + p.getName());
-                }
+                saveCompletedTrialsSync(p, data);
             }
         }.runTaskAsynchronously(SurvivalSkills.getInstance());
     }
 
+    private static void saveCompletedTrialsSync(Player p, FileConfiguration data) {
+        ArrayList<Integer> completedTrials = TrialManager.getPlayerGamemodesBeaten().get(p);
+        if (completedTrials == null || completedTrials.isEmpty()) return;
+        data.set(p.getUniqueId() + ".CompletedTrials", completedTrials);
+        saveConfig(data, TRIAL_DATA_FILE, "Failed to save completed trials for " + p.getName());
+    }
+
     public static boolean isTrialItem(Item item) {
-        ItemStack itemStack = item.getItemStack();
-        ItemMeta meta = itemStack.getItemMeta();
+        ItemMeta meta = item.getItemStack().getItemMeta();
         if (meta == null) return false;
         return meta.getPersistentDataContainer().has(TrialManager.getTrialObjectKey(), PersistentDataType.STRING);
     }
+
+    // --- Spectator management ---
 
     public static boolean addTrialSpectator(Player p, Player target) {
         for (Trial trial : TrialManager.getTrials()) {
@@ -256,54 +252,55 @@ public class TrialUtils {
     }
 
     public static void removeTrialSpectator(Player p, Player target) {
-        if (TrialManager.getSpectatingPlayers().containsKey(p)) {
-            // Show the spectator to the player
-            if (target != null) target.showPlayer(SurvivalSkills.getInstance(), p);
-            if (p.getGameMode().equals(GameMode.SPECTATOR))
-                p.setSpectatorTarget(null);
-            p.teleport(TrialManager.getSpectatingPlayers().get(p));
-            TrialManager.getSpectatingPlayers().remove(p);
-            TrialManager.getSpectatorTargets().remove(p);
-            p.setGameMode(GameMode.SURVIVAL);
-            p.sendRawMessage(ChatColor.GREEN + "You are no longer spectating");
-            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+        if (!TrialManager.getSpectatingPlayers().containsKey(p)) return;
 
-            for (Trial trial : TrialManager.getTrials()) {
-                if (target != null && !trial.getPlayers().contains(target)) continue;
-                trial.removeSpectator(p);
-            }
+        // Show the spectator to the player
+        if (target != null) target.showPlayer(SurvivalSkills.getInstance(), p);
+        if (p.getGameMode().equals(GameMode.SPECTATOR)) p.setSpectatorTarget(null);
+        p.teleport(TrialManager.getSpectatingPlayers().get(p));
+        TrialManager.getSpectatingPlayers().remove(p);
+        TrialManager.getSpectatorTargets().remove(p);
+        p.setGameMode(GameMode.SURVIVAL);
+        p.sendMessage(ChatColor.GREEN + "You are no longer spectating");
+        p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+
+        for (Trial trial : TrialManager.getTrials()) {
+            if (target != null && !trial.getPlayers().contains(target)) continue;
+            trial.removeSpectator(p);
         }
     }
+
+    // --- Trial initialization ---
 
     public static void initializeTrial(Player p, Location pLocation) {
         // Check if the player has a pre-existing structure
         if (previousStructure(p, pLocation)) return;
 
-        // Check if the player has an empty 50x50x30 area around them
-        if (emptyArea(p, pLocation)) return;
+        // Check if the player has an empty area around them
+        if (trialSpaceConflict(p, pLocation)) return;
 
         // Check if the player can create a new building
         if (!TrialManager.getProtectedAreas().containsKey(p.getUniqueId())) {
-            if (TrialManager.getTrialBuildingCreationCooldownList().containsKey(p.getUniqueId())) {
-                long timeSinceLastCreation = System.currentTimeMillis() - TrialManager.getTrialBuildingCreationCooldownList().get(p.getUniqueId());
-                if (timeSinceLastCreation < COOLDOWN) { // 5 minutes
+            Long lastCreation = TrialManager.getTrialBuildingCreationCooldownList().get(p.getUniqueId());
+            if (lastCreation != null) {
+                long timeSinceLastCreation = System.currentTimeMillis() - lastCreation;
+                if (timeSinceLastCreation < COOLDOWN) {
                     long timeLeft = (COOLDOWN - timeSinceLastCreation) / 1000;
                     int minutesLeft = (int) (timeLeft / 60);
                     int secondsLeft = (int) (timeLeft % 60);
-                    p.sendRawMessage(ChatColor.RED + "You can only create a new trial building every 5 minutes");
-                    p.sendRawMessage(ChatColor.YELLOW + "Time left: " + minutesLeft + " minutes and " + secondsLeft + " seconds");
-                    p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    p.sendMessage(ChatColor.RED + "You can only create a new trial building every " + COOLDOWN_MINUTES + " minutes");
+                    p.sendMessage(ChatColor.YELLOW + String.format("Time left: %d minutes and %d seconds", minutesLeft, secondsLeft));
+                    p.playSound(p, ERROR_SOUND, 1, 1);
                     return;
                 }
-            }
-            else {
+            } else {
                 // Store the time that a new trial building is created
                 TrialManager.getTrialBuildingCreationCooldownList().put(p.getUniqueId(), System.currentTimeMillis());
             }
         }
 
         // Load the default trial building
-        ArrayList<RelativeBlock> blocks = TrialUtils.loadTrialBuilding(TrialManager.getTrialBuildingConfig());
+        ArrayList<RelativeBlock> blocks = loadTrialBuilding(TrialManager.getTrialBuildingConfig());
 
         // Create bounding box around the trial building
         ProtectedArea protectedArea = createProtectedArea(pLocation);
@@ -312,9 +309,7 @@ public class TrialUtils {
         // Get pending trial
         PendingTrial trial = TrialManager.getPendingTrials().get(p);
         if (trial == null) {
-            p.sendRawMessage(ChatColor.RED + "You do not have a pending trial");
-            p.sendRawMessage(ChatColor.YELLOW + "Use /trial to start a trial");
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            sendError(p, "You do not have a pending trial", "Use /trial to start a trial");
             return;
         }
 
@@ -323,70 +318,67 @@ public class TrialUtils {
     }
 
     public static boolean previousStructure(Player p, Location pLocation) {
-        if (TrialManager.getProtectedAreas().containsKey(p.getUniqueId())) {
-            // Get the center block of the trial building from the protected area
-            ProtectedArea area = TrialManager.getProtectedAreas().get(p.getUniqueId());
-            if (!p.getWorld().equals(area.world())) {
-                p.sendRawMessage(ChatColor.RED + "You are in the wrong world to start the trial");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return true;
-            }
+        if (!TrialManager.getProtectedAreas().containsKey(p.getUniqueId())) return false;
 
-            BoundingBox box = area.boundingBox();
-            Location centerLocation = new Location(pLocation.getWorld(), box.getCenterX(), box.getMinY() + 1, box.getCenterZ());
-
-            // Check if the player is within 100 blocks of the center of the trial building
-            if (pLocation.distance(centerLocation) > 100) {
-                p.sendRawMessage(ChatColor.RED + "You are too far away from the trial building");
-                p.sendRawMessage(ChatColor.YELLOW + "Stand within 100 blocks of the trial building to start the trial");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return true;
-            }
-
-            // Get pending trial
-            PendingTrial trial = TrialManager.getPendingTrials().get(p);
-            if (trial == null) {
-                p.sendRawMessage(ChatColor.RED + "You do not have a pending trial");
-                p.sendRawMessage(ChatColor.YELLOW + "Use /trial to start a trial");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return true;
-            }
-
-            // Create the Trial
-            createTrial(trial, null, area, centerLocation);
+        // Get the center block of the trial building from the protected area
+        ProtectedArea area = TrialManager.getProtectedAreas().get(p.getUniqueId());
+        if (!p.getWorld().equals(area.world())) {
+            sendError(p, "You are in the wrong world to start the trial");
             return true;
         }
-        return false;
+
+        BoundingBox box = area.boundingBox();
+        Location centerLocation = new Location(pLocation.getWorld(), box.getCenterX(), box.getMinY() + 1, box.getCenterZ());
+
+        // Check if the player is within range of the center of the trial building
+        if (pLocation.distance(centerLocation) > TRIAL_MAX_DISTANCE) {
+            sendError(p, "You are too far away from the trial building",
+                    "Stand within " + TRIAL_MAX_DISTANCE + " blocks of the trial building to start the trial");
+            return true;
+        }
+
+        // Get pending trial
+        PendingTrial trial = TrialManager.getPendingTrials().get(p);
+        if (trial == null) {
+            sendError(p, "You do not have a pending trial", "Use /trial to start a trial");
+            return true;
+        }
+
+        // Create the Trial
+        createTrial(trial, null, area, centerLocation);
+        return true;
     }
 
-    public static boolean emptyArea(Player p, Location pLocation) {
-        for (int i = -25; i <= 25; i++) {
-            for (int j = 0; j <= 30; j++) {
-                for (int k = -25; k <= 25; k++) {
-                    if (!pLocation.clone().add(i, j, k).getBlock().getType().isAir()) {
-                        p.sendRawMessage(ChatColor.RED + "You do not have enough space to start the trial");
-                        p.sendRawMessage(ChatColor.YELLOW + "Stand in the middle of an empty 50x50 area with sky " +
-                                                 "access");
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+    public static boolean trialSpaceConflict(Player p, Location pLocation) {
+        World world = pLocation.getWorld();
+        int baseX = pLocation.getBlockX();
+        int baseY = pLocation.getBlockY();
+        int baseZ = pLocation.getBlockZ();
+        boolean griefPreventionEnabled = SurvivalSkills.getInstance().isGriefPreventionEnabled();
+
+        for (int i = -TRIAL_AREA_RADIUS; i <= TRIAL_AREA_RADIUS; i++) {
+            for (int j = 0; j <= TRIAL_AREA_HEIGHT; j++) {
+                for (int k = -TRIAL_AREA_RADIUS; k <= TRIAL_AREA_RADIUS; k++) {
+                    Block block = world.getBlockAt(baseX + i, baseY + j, baseZ + k);
+
+                    // The area must be empty
+                    if (!block.getType().isAir()) {
+                        sendError(p, "You do not have enough space to start the trial",
+                                "Stand in the middle of an empty 50x50 area with sky access");
                         return true;
                     }
 
-                    // Check if there are any existing claims nearby
-                    if (SurvivalSkills.getInstance().isGriefPreventionEnabled()
-                            && Utils.checkForClaim(p, pLocation.clone().add(i, j, k))) {
-                        p.sendRawMessage(ChatColor.RED + "You are in a claim");
-                        p.sendRawMessage(ChatColor.YELLOW + "Stand in an unclaimed area to start the trial");
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    // The area must not overlap a claim
+                    if (griefPreventionEnabled && Utils.checkForClaim(p, block.getLocation())) {
+                        sendError(p, "You are in a claim", "Stand in an unclaimed area to start the trial");
                         p.closeInventory();
                         return true;
                     }
 
-                    // Check if the block has sky access
-                    Block block = pLocation.clone().add(i, j, k).getBlock();
-                    if (block.getType().isAir() && block.getLightFromSky() == 0) {
-                        p.sendRawMessage(ChatColor.RED + "You do not have enough space to start the trial");
-                        p.sendRawMessage(ChatColor.YELLOW + "Stand in the middle of an empty 50x50 area with sky access");
-                        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                    // The block must have sky access
+                    if (block.getLightFromSky() == 0) {
+                        sendError(p, "You do not have enough space to start the trial",
+                                "Stand in the middle of an empty 50x50 area with sky access");
                         return true;
                     }
                 }
@@ -398,8 +390,8 @@ public class TrialUtils {
 
     public static ProtectedArea createProtectedArea(Location pLocation) {
         BoundingBox box = new BoundingBox();
-        box.resize(pLocation.getX() - 25, pLocation.getY() - 1, pLocation.getZ() - 25,
-                pLocation.getX() + 26, pLocation.getY() + 29, pLocation.getZ() + 26);
+        box.resize(pLocation.getX() - TRIAL_AREA_RADIUS, pLocation.getY() + TRIAL_AREA_Y_OFFSET, pLocation.getZ() - TRIAL_AREA_RADIUS,
+                pLocation.getX() + TRIAL_AREA_RADIUS + 1, pLocation.getY() + TRIAL_AREA_Y_OFFSET + TRIAL_AREA_HEIGHT, pLocation.getZ() + TRIAL_AREA_RADIUS + 1);
         return new ProtectedArea(box, pLocation.getWorld());
     }
 
@@ -412,8 +404,7 @@ public class TrialUtils {
         TrialManager.registerTrialBuilding(pendingTrial.getTrialMaster().getUniqueId(), centerLocation);
 
         if (pendingTrial.getPlayers().isEmpty()) {
-            pendingTrial.getTrialMaster().sendRawMessage(ChatColor.RED + "You must have at least one player in your trial");
-            pendingTrial.getTrialMaster().playSound(pendingTrial.getTrialMaster(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            sendError(pendingTrial.getTrialMaster(), "You must have at least one player in your trial");
             TrialManager.getPendingTrials().remove(pendingTrial.getTrialMaster());
             pendingTrial.getTrialMaster().closeInventory();
             return;
@@ -435,49 +426,34 @@ public class TrialUtils {
 
     public static boolean completedGodQuest(Player p) {
         // Check if the player has an active god quest
-        GodTrophyQuest quest = null;
-        if (SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId()))
-            quest = SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().get(p.getUniqueId());
-        else if (!p.hasPermission("survivalskills.op")){
-            p.sendRawMessage(ChatColor.RED + "You do not have an active god quest");
-            p.sendRawMessage(ChatColor.YELLOW + "Complete the god questline to unlock the god trial");
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+        GodTrophyQuest quest = SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().get(p.getUniqueId());
+        if (quest == null && !p.hasPermission("survivalskills.op")) {
+            sendError(p, "You do not have an active god quest", "Complete the god questline to unlock the god trial");
             return false;
         }
 
         if (quest == null) {
-            p.sendRawMessage(ChatColor.RED + "You do not have an active god quest");
-            p.sendRawMessage(ChatColor.YELLOW + "Reach main level " + ChatColor.AQUA + 100 + ChatColor.YELLOW
-                    + " and craft the god trophy to start the god quest");
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            sendError(p, "You do not have an active god quest",
+                    "Reach main level " + ChatColor.AQUA + 100 + ChatColor.YELLOW + " and craft the god trophy to start the god quest");
             return false;
         }
 
         // Check if they have unlocked the god trial
         if (!p.hasPermission("survivalskills.op") && quest.getPhase() != quest.getMaxPhase()) {
-            p.sendRawMessage(ChatColor.RED + "You have not unlocked the god trial");
-            p.sendRawMessage(ChatColor.YELLOW + "Complete the god questline to unlock the god trial");
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            sendError(p, "You have not unlocked the god trial", "Complete the god questline to unlock the god trial");
             return false;
         }
         return true;
     }
 
+    // --- Inventory UIs ---
+
     public static void openPartyTypeSelection(Player p) {
         Inventory inv = Bukkit.createInventory(null, 9, "Party Type Selection");
-
-        ItemStack newChoice = new ItemStack(Material.OAK_SAPLING);
-        ItemMeta newMeta = newChoice.getItemMeta();
-        if (newMeta == null) return;
-        newMeta.setDisplayName(ChatColor.GREEN + "New");
-        newChoice.setItemMeta(newMeta);
-
-        ItemStack existingChoice = new ItemStack(Material.OAK_LOG);
-        ItemMeta existingMeta = existingChoice.getItemMeta();
-        if (existingMeta == null) return;
-        existingMeta.setDisplayName(ChatColor.YELLOW + "Existing");
-        existingChoice.setItemMeta(existingMeta);
-
+        ItemStack newChoice = createMenuItem(Material.OAK_SAPLING, ChatColor.GREEN + "New");
+        if (newChoice == null) return;
+        ItemStack existingChoice = createMenuItem(Material.OAK_LOG, ChatColor.YELLOW + "Existing");
+        if (existingChoice == null) return;
         ItemStack filler = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
 
         inv.setItem(0, filler);
@@ -489,25 +465,15 @@ public class TrialUtils {
         inv.setItem(6, filler);
         inv.setItem(7, filler);
         inv.setItem(8, filler);
-        TrialManager.getTrialSelectionInventories().add(inv);
-        p.openInventory(inv);
+        registerAndOpen(p, inv);
     }
 
     public static void openTrialTypeSelection(Player p) {
         Inventory inv = Bukkit.createInventory(null, 9, "Party Selection");
-
-        ItemStack solo = new ItemStack(Material.DIAMOND_SWORD);
-        ItemMeta soloMeta = solo.getItemMeta();
-        if (soloMeta == null) return;
-        soloMeta.setDisplayName(ChatColor.GREEN + "Solo");
-        solo.setItemMeta(soloMeta);
-
-        ItemStack coop = new ItemStack(Material.PLAYER_HEAD);
-        ItemMeta coopMeta = coop.getItemMeta();
-        if (coopMeta == null) return;
-        coopMeta.setDisplayName(ChatColor.GREEN + "Co-op");
-        coop.setItemMeta(coopMeta);
-
+        ItemStack solo = createMenuItem(Material.DIAMOND_SWORD, ChatColor.GREEN + "Solo");
+        if (solo == null) return;
+        ItemStack coop = createMenuItem(Material.PLAYER_HEAD, ChatColor.GREEN + "Co-op");
+        if (coop == null) return;
         ItemStack filler = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
 
         inv.setItem(0, filler);
@@ -519,97 +485,83 @@ public class TrialUtils {
         inv.setItem(6, filler);
         inv.setItem(7, filler);
         inv.setItem(8, filler);
-        TrialManager.getTrialSelectionInventories().add(inv);
-        p.openInventory(inv);
+        registerAndOpen(p, inv);
     }
 
     public static void openPartySelection(Player p) {
         Inventory inv = Bukkit.createInventory(null, 9, "Party Selection");
-
-        // Get all available parties where the difficulty has been chosen and
-        ArrayList<ItemStack> availableParties = new ArrayList<>();
+        // Get all available parties where the difficulty has been chosen
+        int slot = 0;
         for (PendingTrial trial : TrialManager.getPendingTrials().values()) {
-            if (trial.isSolo()) continue;
-            if (!trial.isChosenDifficulty()) continue;
-            ItemStack item = new ItemStack(Material.PLAYER_HEAD);
-            ItemMeta meta = item.getItemMeta();
-            if (meta == null) return;
-            meta.setDisplayName(ChatColor.GREEN + trial.getTrialMaster().getName());
-            item.setItemMeta(meta);
-            availableParties.add(item);
+            if (trial.isSolo() || !trial.isChosenDifficulty()) continue;
+            ItemStack item = createMenuItem(Material.PLAYER_HEAD, ChatColor.GREEN + trial.getTrialMaster().getName());
+            if (item == null) return;
+            inv.setItem(slot++, item);
         }
         ItemStack filler = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+        for (int j = slot; j < 9; j++) inv.setItem(j, filler);
 
-        // Set the inventory
-        int i = 0;
-        for (ItemStack item : availableParties) {
-            inv.setItem(i, item);
-            i++;
-        }
-        for (int j = i; j < 9; j++) inv.setItem(j, filler);
-
-        TrialManager.getTrialSelectionInventories().add(inv);
-        p.openInventory(inv);
+        registerAndOpen(p, inv);
     }
 
     public static void openDifficultySelection(Player p) {
         Inventory inv = Bukkit.createInventory(null, 9, "Difficulty Selection");
-
-        ItemStack easy = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
-        ItemMeta easyMeta = easy.getItemMeta();
-        if (easyMeta == null) return;
-        easyMeta.setDisplayName(ChatColor.GREEN + "Easy");
-        easy.setItemMeta(easyMeta);
-
-        ItemStack medium = new ItemStack(Material.YELLOW_STAINED_GLASS_PANE);
-        ItemMeta mediumMeta = medium.getItemMeta();
-        if (mediumMeta == null) return;
-        mediumMeta.setDisplayName(ChatColor.YELLOW + "Medium");
-        medium.setItemMeta(mediumMeta);
-
-        ItemStack hard = new ItemStack(Material.RED_STAINED_GLASS_PANE);
-        ItemMeta hardMeta = hard.getItemMeta();
-        if (hardMeta == null) return;
-        hardMeta.setDisplayName(ChatColor.RED + "Hard");
-        hard.setItemMeta(hardMeta);
-
-        ItemStack god = new ItemStack(Material.GOLD_BLOCK);
-        ItemMeta godMeta = god.getItemMeta();
-        if (godMeta == null) return;
-        godMeta.setDisplayName(ChatColor.GOLD.toString() + ChatColor.BOLD + "God");
-        god.setItemMeta(godMeta);
-
-        ItemStack death = new ItemStack(Material.BARRIER);
-        ItemMeta deathMeta = death.getItemMeta();
-        if (deathMeta == null) return;
-        deathMeta.setDisplayName(ChatColor.MAGIC.toString() + ChatColor.RED + "Death");
-        death.setItemMeta(deathMeta);
-
+        ItemStack easy = createMenuItem(Material.LIME_STAINED_GLASS_PANE, ChatColor.GREEN + "Easy");
+        if (easy == null) return;
+        ItemStack medium = createMenuItem(Material.YELLOW_STAINED_GLASS_PANE, ChatColor.YELLOW + "Medium");
+        if (medium == null) return;
+        ItemStack hard = createMenuItem(Material.RED_STAINED_GLASS_PANE, ChatColor.RED + "Hard");
+        if (hard == null) return;
+        ItemStack god = createMenuItem(Material.GOLD_BLOCK, ChatColor.GOLD.toString() + ChatColor.BOLD + "God");
+        if (god == null) return;
+        ItemStack death = createMenuItem(Material.BARRIER, ChatColor.MAGIC.toString() + ChatColor.RED + "Death");
+        if (death == null) return;
         ItemStack filler = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
 
         inv.setItem(0, filler);
         inv.setItem(1, easy);
         inv.setItem(2, filler);
 
-        if (TrialManager.getPlayerGamemodesBeaten().containsKey(p)) {
-            if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(1)) inv.setItem(3, medium);
-            else inv.setItem(3, filler);
-
+        ArrayList<Integer> beaten = TrialManager.getPlayerGamemodesBeaten().get(p);
+        if (beaten != null) {
+            inv.setItem(3, beaten.contains(1) ? medium : filler);
             inv.setItem(4, filler);
-
-            if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(3)) inv.setItem(5, hard);
-            else inv.setItem(5, filler);
-
+            inv.setItem(5, beaten.contains(3) ? hard : filler);
             inv.setItem(6, filler);
-
-            if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(5)) inv.setItem(7, god);
-            else inv.setItem(7, filler);
-
-            if (TrialManager.getPlayerGamemodesBeaten().get(p).contains(7)) inv.setItem(8, death);
-            else inv.setItem(8, filler);
+            inv.setItem(7, beaten.contains(5) ? god : filler);
+            inv.setItem(8, beaten.contains(7) ? death : filler);
         }
-        TrialManager.getTrialSelectionInventories().add(inv);
-        p.openInventory(inv);
+        registerAndOpen(p, inv);
+    }
+
+    // --- Trial selection click handling ---
+
+    public static void handleTrialSelectionClick(Inventory inv, Player p, ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) return;
+        if (item.getItemMeta() == null) return;
+        TrialManager.getTrialSelectionInventories().remove(inv);
+        String name = item.getItemMeta().getDisplayName();
+        Material type = item.getType();
+
+        if (type == Material.PLAYER_HEAD) {
+            handlePartyMemberClick(inv, p, item, name);
+            return;
+        }
+
+        if (name.equals(ChatColor.GREEN + "Solo")) {
+            startSoloTrial(p);
+        } else if (name.equals(ChatColor.GREEN + "Co-op")) {
+            openPartyTypeSelection(p);
+        } else if (name.equals(ChatColor.GREEN + "New")) {
+            startNewCoopTrial(p);
+        } else if (name.equals(ChatColor.YELLOW + "Existing")) {
+            openPartySelection(p);
+        } else if (name.equalsIgnoreCase(ChatColor.GREEN + "Confirm Party")) {
+            confirmParty(p);
+        } else {
+            int difficulty = getDifficultyFromName(name);
+            if (difficulty > 0) partyDifficulty(p, difficulty);
+        }
     }
 
     public static void partyDifficulty(Player p, int difficulty) {
@@ -621,26 +573,25 @@ public class TrialUtils {
         // If co-op, check if they have beaten the solo version of this difficulty
         if (!trial.isSolo()) {
             if (!TrialManager.getPlayerGamemodesBeaten().containsKey(p)) {
-                p.sendRawMessage(ChatColor.RED + "You have not beaten any solo mode trials");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                sendError(p, "You have not beaten any solo mode trials");
                 return;
             }
             int difficultyToBeat = (trueDifficulty + 1) / 2;
             ArrayList<Integer> gamemodesBeaten = TrialManager.getPlayerGamemodesBeaten().get(p);
             if (!gamemodesBeaten.contains(difficultyToBeat)) {
-                p.sendRawMessage(ChatColor.RED + "You have not beaten solo mode on this difficulty: " + WaveGenerator.getDifficultyName(difficultyToBeat));
+                p.sendMessage(ChatColor.RED + String.format("You have not beaten solo mode on this difficulty: %s",
+                        WaveGenerator.getDifficultyName(difficultyToBeat)));
                 p.sendMessage(ChatColor.YELLOW + "You have beaten:");
                 for (int beaten : gamemodesBeaten)
                     p.sendMessage(ChatColor.GRAY + "- " + WaveGenerator.getDifficultyName(beaten));
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                p.playSound(p, ERROR_SOUND, 1, 1);
                 return;
             }
         }
 
         if (trial.isSolo() && trueDifficulty != 1 && TrialManager.getPlayerGamemodesBeaten().containsKey(p)
                 && !TrialManager.getPlayerGamemodesBeaten().get(p).contains(trueDifficulty - 2)) {
-            p.sendRawMessage(ChatColor.RED + "You have not beaten the previous difficulty");
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            sendError(p, "You have not beaten the previous difficulty");
             return;
         }
 
@@ -650,98 +601,127 @@ public class TrialUtils {
         if (trial.isSolo()) {
             p.closeInventory();
             initializeTrial(p, p.getLocation());
+        } else {
+            trial.updatePlayerManager();
         }
-        else trial.updatePlayerManager();
     }
 
-    public static void handleTrialSelectionClick(Inventory inv, Player p, ItemStack item) {
-        if (item == null || item.getType().equals(Material.AIR)) return;
-        if (item.getItemMeta() == null) return;
-        TrialManager.getTrialSelectionInventories().remove(inv);
-        String name = item.getItemMeta().getDisplayName();
-        Material type = item.getType();
+    // --- Internal helpers ---
 
-        if (name.equals(ChatColor.GREEN + "Solo")) {
-            PendingTrial trial = new PendingTrial(p);
-            TrialManager.getPendingTrials().put(p, trial);
-            openDifficultySelection(p);
-        } else if (name.equals(ChatColor.GREEN + "Co-op")) {
-            openPartyTypeSelection(p);
-        } else if (name.equals(ChatColor.GREEN + "New")) {
-            PendingTrial trial = new PendingTrial(p);
-            trial.setSolo(false);
-            TrialManager.getPendingTrials().put(p, trial);
-            openDifficultySelection(p);
-        } else if (name.equals(ChatColor.YELLOW + "Existing")) {
-            openPartySelection(p);
-        } else if (name.equalsIgnoreCase(ChatColor.GREEN + "Confirm Party")) {
+    private static File getOrCreateFile(String filename) {
+        File file = new File(SurvivalSkills.getInstance().getDataFolder(), filename);
+        if (!file.exists()) SurvivalSkills.getInstance().saveResource(filename, true);
+        return file;
+    }
+
+    private static FileConfiguration loadConfigFile(String filename) {
+        return YamlConfiguration.loadConfiguration(getOrCreateFile(filename));
+    }
+
+    private static void saveConfig(FileConfiguration config, String filename, String errorMessage) {
+        try {
+            config.save(getOrCreateFile(filename));
+        } catch (Exception e) {
+            Bukkit.getLogger().warning(errorMessage);
+        }
+    }
+
+    private static ItemStack createMenuItem(Material material, String displayName) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return null;
+        meta.setDisplayName(displayName);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static void registerAndOpen(Player p, Inventory inv) {
+        TrialManager.getTrialSelectionInventories().add(inv);
+        p.openInventory(inv);
+    }
+
+    private static void sendError(Player p, String message) {
+        p.sendMessage(ChatColor.RED + message);
+        p.playSound(p, ERROR_SOUND, 1, 1);
+    }
+
+    private static void sendError(Player p, String message, String guidance) {
+        p.sendMessage(ChatColor.RED + message);
+        p.sendMessage(ChatColor.YELLOW + guidance);
+        p.playSound(p, ERROR_SOUND, 1, 1);
+    }
+
+    private static void startSoloTrial(Player p) {
+        TrialManager.getPendingTrials().put(p, new PendingTrial(p));
+        openDifficultySelection(p);
+    }
+
+    private static void startNewCoopTrial(Player p) {
+        PendingTrial trial = new PendingTrial(p);
+        trial.setSolo(false);
+        TrialManager.getPendingTrials().put(p, trial);
+        openDifficultySelection(p);
+    }
+
+    private static void confirmParty(Player p) {
+        PendingTrial trial = TrialManager.getPendingTrials().get(p);
+        Bukkit.getLogger().info("Starting trial for " + p.getName());
+        if (trial == null) {
+            sendError(p, "You do not have a pending trial anymore");
+            return;
+        }
+        trial.setSuccess(true);
+        initializeTrial(p, p.getLocation());
+    }
+
+    private static int getDifficultyFromName(String name) {
+        if (name.equalsIgnoreCase(ChatColor.GREEN + "Easy")) return 1;
+        if (name.equalsIgnoreCase(ChatColor.YELLOW + "Medium")) return 2;
+        if (name.equalsIgnoreCase(ChatColor.RED + "Hard")) return 3;
+        if (name.equalsIgnoreCase(ChatColor.GOLD.toString() + ChatColor.BOLD + "God")) return 4;
+        if (name.equalsIgnoreCase(ChatColor.MAGIC.toString() + ChatColor.RED + "Death")) return 5;
+        return 0;
+    }
+
+    private static void handlePartyMemberClick(Inventory inv, Player p, ItemStack item, String name) {
+        // If the clicking player is a party manager, they are blocking/removing a member
+        if (TrialManager.getPendingTrials().containsKey(p)) {
             PendingTrial trial = TrialManager.getPendingTrials().get(p);
-            Bukkit.getLogger().info("Starting trial for " + p.getName());
-            if (trial == null) {
-                p.sendRawMessage(ChatColor.RED + "You do not have a pending trial anymore");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return;
-            }
-
-            trial.setSuccess(true);
-            initializeTrial(p, p.getLocation());
-        }
-        else if (name.equalsIgnoreCase(ChatColor.GREEN + "Easy")) {
-            partyDifficulty(p, 1);
-        } else if (name.equalsIgnoreCase(ChatColor.YELLOW + "Medium")) {
-            partyDifficulty(p, 2);
-        } else if (name.equalsIgnoreCase(ChatColor.RED + "Hard")) {
-            partyDifficulty(p, 3);
-        } else if (name.equalsIgnoreCase(ChatColor.GOLD.toString() + ChatColor.BOLD + "God")) {
-            partyDifficulty(p, 4);
-        } else if (name.equalsIgnoreCase(ChatColor.MAGIC.toString() + ChatColor.RED + "Death")) {
-            partyDifficulty(p, 5);
-        }
-        else if (type.equals(Material.PLAYER_HEAD)) {
-            // Check if they are the Party Manager
-            if (TrialManager.getPendingTrials().containsKey(p)) {
-                PendingTrial trial = TrialManager.getPendingTrials().get(p);
-
-                // Block the player selected from joining this party
-                Player target = Bukkit.getPlayer(ChatColor.stripColor(name));
-                if (target == null) {
-                    trial.handleOfflinePlayerRemoval(p);
-                    return;
-                }
-
-                // Block the player
-                trial.handleBlockPartyMember(target);
-                return;
-            }
-
-            // Check if the player can join the party
             Player target = Bukkit.getPlayer(ChatColor.stripColor(name));
-            PendingTrial trial = TrialManager.getPendingTrials().get(target);
-            if (trial == null) {
-                p.sendRawMessage(ChatColor.RED + "The party leader does not have a pending trial anymore");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                inv.remove(item);
-                p.closeInventory();
-                openPartySelection(p);
+            if (target == null) {
+                trial.handleOfflinePlayerRemoval(p);
                 return;
             }
-
-            // Check if the player is blocked from joining the party
-            if (trial.getBlockedPlayers().contains(p)) {
-                p.sendRawMessage(ChatColor.RED + "You are blocked from joining this party");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return;
-            }
-
-            // Check if they have beaten solo mode on this difficulty
-            if (!TrialManager.getPlayerGamemodesBeaten().get(p).contains((trial.getTrialDifficulty() + 1) / 2)) {
-                p.sendRawMessage(ChatColor.RED + "You have not beaten solo mode on this difficulty and can't join this party");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                return;
-            }
-
-            // Add the player to the selected party
-            trial.handleNewPartyMember(p);
+            trial.handleBlockPartyMember(target);
+            return;
         }
+        joinParty(inv, p, item, name);
+    }
+
+    private static void joinParty(Inventory inv, Player p, ItemStack item, String name) {
+        Player target = Bukkit.getPlayer(ChatColor.stripColor(name));
+        PendingTrial trial = TrialManager.getPendingTrials().get(target);
+        if (trial == null) {
+            sendError(p, "The party leader does not have a pending trial anymore");
+            inv.remove(item);
+            p.closeInventory();
+            openPartySelection(p);
+            return;
+        }
+
+        // Check if the player is blocked from joining the party
+        if (trial.getBlockedPlayers().contains(p)) {
+            sendError(p, "You are blocked from joining this party");
+            return;
+        }
+
+        // Check if they have beaten solo mode on this difficulty
+        if (!TrialManager.getPlayerGamemodesBeaten().get(p).contains((trial.getTrialDifficulty() + 1) / 2)) {
+            sendError(p, "You have not beaten solo mode on this difficulty and can't join this party");
+            return;
+        }
+
+        // Add the player to the selected party
+        trial.handleNewPartyMember(p);
     }
 }

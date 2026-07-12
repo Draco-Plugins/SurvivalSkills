@@ -4,8 +4,9 @@
 - **Pattern Matching**: Utilize pattern matching for `instanceof` and `switch` expression to simplify conditional logic and type casting.
 - **Type Declaration**: Always use the exact type declaration required (i.e. SkillCategory...)
 - **Immutability**: Favor immutable objects. Make classes and fields `final` where possible. Use collections from `List.of()`/`Map.of()` for fixed data. Use `Stream.toList()` to create immutable lists.
-- **Streams and Lambdas**: Use the Streams API and lambda expressions for collection processing. Employ method references (e.g., `stream.map(Foo::toBar)`).
+- **Streams and Lambdas**: Use the Streams API and lambda expressions for collection processing. Employ method references (e.g., `stream.map(Foo::toBar)`) only when they do not produce null-type-safety warnings.
 - **Null Handling**: Avoid returning or accepting `null`. Use `Optional<T>` for possibly-absent values and `Objects` utility methods like `equals()` and `requireNonNull()`.
+- **Null-Safe Functional Expressions**: Do not use an unbound instance method reference such as `Type::method` when Eclipse null analysis requires its receiver to be `@Nonnull` but the functional interface parameter has unspecified nullness. Use an explicitly typed lambda instead (e.g., `(TrophyType trophyType) -> trophyType.getName()` or `(TrophyEffects trophyEffects) -> trophyEffects.checkForPlayers()`). Apply this rule to stream collectors, `Optional.ifPresent`, and other generic functional APIs whenever the method reference would require an unchecked null conversion.
 
 ### Naming Conventions
 

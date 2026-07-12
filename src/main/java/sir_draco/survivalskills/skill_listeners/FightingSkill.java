@@ -29,8 +29,9 @@ import sir_draco.survivalskills.god_questline.trial.ProtectedArea;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
-import sir_draco.survivalskills.utils.ExiledBossMusic;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
+import sir_draco.survivalskills.utils.music.ExiledBossMusic;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.SurvivalSkills;
 
@@ -738,11 +739,11 @@ public class FightingSkill implements Listener {
     }
 
     public boolean isSummoningBoss(ItemStack item) {
-        if (ItemStackGenerator.isCustomItem(item, 12))
+        if (ItemStackGeneratorUtils.isCustomItem(item, 12))
             return true;
-        if (ItemStackGenerator.isCustomItem(item, 13))
+        if (ItemStackGeneratorUtils.isCustomItem(item, 13))
             return true;
-        return ItemStackGenerator.isCustomItem(item, 14);
+        return ItemStackGeneratorUtils.isCustomItem(item, 14);
     }
 
     public void spawnBoss(String boss, Location loc, Player p, ItemStack mainHand) {

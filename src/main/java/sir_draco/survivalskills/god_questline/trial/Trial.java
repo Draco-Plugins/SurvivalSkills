@@ -209,7 +209,7 @@ public class Trial extends BukkitRunnable {
                 for (int i = 0; i < amount; i++) {
                     if (building.isEmpty())
                         continue;
-                    RelativeBlock block = TrialUtils.getRandomBlock(building);
+                    RelativeBlock block = TrialUtils.popRandomBlock(building);
                     TrialUtils.convertBlockToRelative(block, centerLocation);
                 }
             }

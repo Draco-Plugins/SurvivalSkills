@@ -10,7 +10,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import sir_draco.survivalskills.utils.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import static sir_draco.survivalskills.skill_listeners.ArmorListener.beaconEffects;
 import static sir_draco.survivalskills.skill_listeners.ArmorListener.playersWearingBeaconArmor;
@@ -46,7 +46,7 @@ public class BeaconArmor extends BukkitRunnable {
     }
 
     private void setArmor(PlayerInventory inv, Color color) {
-        if (inv.getBoots() == null || !ItemStackGenerator.isCustomItem(inv.getBoots(), 29)) {
+        if (inv.getBoots() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getBoots(), 29)) {
             playersWearingBeaconArmor.remove(p.getUniqueId());
             cancel();
             return;
@@ -54,7 +54,7 @@ public class BeaconArmor extends BukkitRunnable {
         ItemStack boots = colorArmor(inv.getBoots(), color);
         p.sendEquipmentChange(p, EquipmentSlot.FEET, boots);
 
-        if (inv.getLeggings() == null || !ItemStackGenerator.isCustomItem(inv.getLeggings(), 29)) {
+        if (inv.getLeggings() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getLeggings(), 29)) {
             playersWearingBeaconArmor.remove(p.getUniqueId());
             cancel();
             return;
@@ -62,7 +62,7 @@ public class BeaconArmor extends BukkitRunnable {
         ItemStack leggings = colorArmor(inv.getLeggings(), color);
         p.sendEquipmentChange(p, EquipmentSlot.LEGS, leggings);
 
-        if (inv.getChestplate() == null || !ItemStackGenerator.isCustomItem(inv.getChestplate(), 29)) {
+        if (inv.getChestplate() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getChestplate(), 29)) {
             playersWearingBeaconArmor.remove(p.getUniqueId());
             cancel();
             return;
@@ -70,7 +70,7 @@ public class BeaconArmor extends BukkitRunnable {
         ItemStack chestplate = colorArmor(inv.getChestplate(), color);
         p.sendEquipmentChange(p, EquipmentSlot.CHEST, chestplate);
 
-        if (inv.getHelmet() == null || !ItemStackGenerator.isCustomItem(inv.getHelmet(), 29)) {
+        if (inv.getHelmet() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getHelmet(), 29)) {
             playersWearingBeaconArmor.remove(p.getUniqueId());
             cancel();
             return;

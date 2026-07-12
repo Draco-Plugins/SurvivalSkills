@@ -27,8 +27,8 @@ import sir_draco.survivalskills.abilities.AbilityTimer;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -177,7 +177,7 @@ public class BuildingSkill implements Listener {
     }
 
     private boolean isValidSortAttempt(PlayerInteractEvent e, Player p) {
-        if (!ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 16))
+        if (!ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), 16))
             return true;
         Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.BUILDING, "AutoSortWand");
         if (!reward.isEnabled())
@@ -292,7 +292,7 @@ public class BuildingSkill implements Listener {
         }
 
         ItemMeta meta = itemToAdd.getItemMeta();
-        if (meta != null && ItemStackGenerator.hasCustomModelData(meta)) {
+        if (meta != null && ItemStackGeneratorUtils.hasCustomModelData(meta)) {
             items.add(itemToAdd);
             return items;
         }

@@ -12,9 +12,9 @@ import sir_draco.survivalskills.bosses.Attacks.CowCannon;
 import sir_draco.survivalskills.bosses.Attacks.EmeraldAttack;
 import sir_draco.survivalskills.bosses.Attacks.Meteor;
 import sir_draco.survivalskills.bosses.Attacks.PoisonProjectile;
-import sir_draco.survivalskills.utils.ExiledBossMusic;
 import sir_draco.survivalskills.utils.ProjectileCalculator;
 import sir_draco.survivalskills.utils.Utils;
+import sir_draco.survivalskills.utils.music.ExiledBossMusic;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -488,8 +488,7 @@ public class VillagerBoss extends Boss {
     }
 
     public void dragonAnimation(EnderDragon dragon) {
-        // Delay to ensure that dragon entity exists
-        // TODO: test dragon animation
+        // Delay to ensure that dragon entity exists 
         new BukkitRunnable() {
             @Override
             public void run() {

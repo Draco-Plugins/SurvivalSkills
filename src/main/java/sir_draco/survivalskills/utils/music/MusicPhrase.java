@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.utils;
+package sir_draco.survivalskills.utils.music;
 
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;

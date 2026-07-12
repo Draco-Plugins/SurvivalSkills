@@ -10,7 +10,6 @@ import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.skills.SkillManager;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.rewards.RewardItemInfo;
 import sir_draco.survivalskills.rewards.RewardNotifications;
@@ -18,7 +17,9 @@ import sir_draco.survivalskills.boards.Leaderboard;
 import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.utils.RecipeMaker;
+import sir_draco.survivalskills.utils.RecipeSlotLayout;
+import sir_draco.survivalskills.utils.items.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.*;
 import java.util.Locale;
@@ -227,7 +228,8 @@ public class SkillsCommand implements CommandExecutor {
         }
 
         // Check if the string is an actual skill
-        if (!SkillCategory.isSkill(strings[1])) {
+        if (!SkillCategory.isSkill(strings[1])
+                && !SkillCategory.DEATHS.name().equalsIgnoreCase(strings[1])) {
             sendError(p, "Invalid skill: " + ChatColor.YELLOW + strings[1]);
             return;
         }
@@ -288,7 +290,7 @@ public class SkillsCommand implements CommandExecutor {
     public void addSSRecipe(int recipeCounter, Inventory inv) {
         NamespacedKey key = plugin.getRecipeKeys().get(recipeCounter - 1);
         if (key == null) return;
-        List<Integer> slots = RecipeMaker.getRecipePositions(recipeCounter);
+        List<Integer> slots = RecipeSlotLayout.getRecipePositions(recipeCounter);
         Recipe recipe = Bukkit.getRecipe(key);
         if (recipe instanceof ShapedRecipe shaped) addShapedRecipe(shaped, slots, inv);
         else if (recipe instanceof ShapelessRecipe shapeless) addShapelessRecipe(shapeless, slots, inv);
@@ -331,7 +333,7 @@ public class SkillsCommand implements CommandExecutor {
     private static boolean isFishingKingItem(ItemStack ingredient) {
         return ingredient != null && ingredient.getType() == Material.PRISMARINE_SHARD
                 && ingredient.getItemMeta() != null
-                && ItemStackGenerator.hasCustomModelData(ingredient.getItemMeta());
+                && ItemStackGeneratorUtils.hasCustomModelData(ingredient.getItemMeta());
     }
 
     private static ItemStack choiceToItem(RecipeChoice choice) {
@@ -405,7 +407,7 @@ public class SkillsCommand implements CommandExecutor {
         meta = front.getItemMeta();
         if (meta == null) return;
         meta.setDisplayName(ChatColor.BLUE + "Next");
-        ItemStackGenerator.setCustomModelData(meta, 1);
+        ItemStackGeneratorUtils.setCustomModelData(meta, 1);
         front.setItemMeta(meta);
 
         if (inv.getSize() >= 53) {

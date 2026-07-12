@@ -45,10 +45,11 @@ import sir_draco.survivalskills.god_questline.GodRecipeUI;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.god_questline.powerore.PowerOreChallenge;
 import sir_draco.survivalskills.utils.FileUtils;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.god_questline.powerore.PowerOreSimonSaysTask;
 import sir_draco.survivalskills.god_questline.powerore.PowerOreScavengerHuntTask;
 import sir_draco.survivalskills.utils.Utils;
+import sir_draco.survivalskills.utils.items.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -136,7 +137,7 @@ public class GodListener implements Listener {
     public void onUseGodItem(PlayerInteractEvent e) {
         Player p = e.getPlayer();
         ItemStack mainHand = p.getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(mainHand))
+        if (!ItemStackGeneratorUtils.isCustomItem(mainHand))
             return;
         if (e.getHand() == null || !e.getHand().equals(EquipmentSlot.HAND))
             return;
@@ -145,20 +146,20 @@ public class GodListener implements Listener {
         ItemMeta meta = mainHand.getItemMeta();
         if (meta == null)
             return;
-        if (ItemStackGenerator.hasCustomModelData(meta, 33)) {
+        if (ItemStackGeneratorUtils.hasCustomModelData(meta, 33)) {
             Vector velocity = p.getLocation().getDirection().multiply(2);
             FallingBlock cobweb = p.getWorld().spawnFallingBlock(p.getLocation().clone().add(0, 1, 0),
                     Material.COBWEB.createBlockData());
             cobweb.setHurtEntities(false);
             cobweb.setVelocity(velocity);
             p.getWorld().playSound(p.getLocation(), Sound.ENTITY_EGG_THROW, 1, 1);
-        } else if (ItemStackGenerator.hasCustomModelData(meta, 36)) {
+        } else if (ItemStackGeneratorUtils.hasCustomModelData(meta, 36)) {
             e.setCancelled(true);
             Location loc = p.getLocation().clone().add(p.getLocation().getDirection().multiply(5));
             new EnderEssence(p, loc).runTaskAsynchronously(SurvivalSkills.getInstance());
-        } else if (ItemStackGenerator.hasCustomModelData(meta, 37)) {
+        } else if (ItemStackGeneratorUtils.hasCustomModelData(meta, 37)) {
             p.getWorld().createExplosion(p.getLocation(), 5, false, true, p);
-        } else if (ItemStackGenerator.hasCustomModelData(meta, 38)) {
+        } else if (ItemStackGeneratorUtils.hasCustomModelData(meta, 38)) {
             int id = getPotionBagID(mainHand);
 
             if (potionBags.containsKey(id)) {
@@ -183,13 +184,13 @@ public class GodListener implements Listener {
             potionBags.put(id, potionBag);
             openPotionBags.add(potionBag);
             p.openInventory(potionBag);
-        } else if (ItemStackGenerator.hasCustomModelData(meta, 39)) {
+        } else if (ItemStackGeneratorUtils.hasCustomModelData(meta, 39)) {
             e.setCancelled(true);
             p.launchProjectile(WindCharge.class, p.getLocation().getDirection().multiply(2));
-        } else if (ItemStackGenerator.hasCustomModelData(meta, 40)) {
+        } else if (ItemStackGeneratorUtils.hasCustomModelData(meta, 40)) {
             e.setCancelled(true);
             p.launchProjectile(DragonFireball.class, p.getLocation().getDirection().multiply(2));
-        } else if (ItemStackGenerator.hasCustomModelData(meta, 41)) {
+        } else if (ItemStackGeneratorUtils.hasCustomModelData(meta, 41)) {
             e.setCancelled(true);
             if (e.getHand() == null)
                 return;
@@ -217,12 +218,12 @@ public class GodListener implements Listener {
             state.setType(Material.WITHER_ROSE);
             desiredBlock.setType(Material.WITHER_ROSE);
             state.update(true);
-        } else if (ItemStackGenerator.hasCustomModelData(meta, 43)) {
+        } else if (ItemStackGeneratorUtils.hasCustomModelData(meta, 43)) {
             // Handle trident launcher
             e.setCancelled(true);
             Trident trident = p.launchProjectile(Trident.class, p.getLocation().getDirection().multiply(2));
             trident.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
-        } else if (ItemStackGenerator.hasCustomModelData(meta, 46)) {
+        } else if (ItemStackGeneratorUtils.hasCustomModelData(meta, 46)) {
             e.setCancelled(true);
             if (e.getHand() == null)
                 return;
@@ -250,7 +251,7 @@ public class GodListener implements Listener {
             state.setType(Material.SPONGE);
             desiredBlock.setType(Material.SPONGE);
             state.update(true);
-        } else if (ItemStackGenerator.hasCustomModelData(meta, 47)) {
+        } else if (ItemStackGeneratorUtils.hasCustomModelData(meta, 47)) {
             if (!SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "PowerOre")
                     .isApplied()) {
                 p.sendRawMessage(
@@ -264,7 +265,7 @@ public class GodListener implements Listener {
             // Spinning dash attack like when flying with a trident
             e.setCancelled(true);
             PowerSword.activate(p);
-        } else if (ItemStackGenerator.hasCustomModelData(meta, 50)) {
+        } else if (ItemStackGeneratorUtils.hasCustomModelData(meta, 50)) {
             e.setCancelled(true);
             if (powerLaserCooldowns.contains(p))
                 return;
@@ -294,7 +295,7 @@ public class GodListener implements Listener {
         Player p = e.getPlayer();
         ItemStack mainHand = p.getInventory().getItemInMainHand();
 
-        if (ItemStackGenerator.isCustomItem(mainHand, 35)) {
+        if (ItemStackGeneratorUtils.isCustomItem(mainHand, 35)) {
             ZombieVillager zombie = (ZombieVillager) e.getRightClicked();
             zombie.setConversionTime(40);
             Location loc = e.getRightClicked().getLocation();
@@ -310,7 +311,7 @@ public class GodListener implements Listener {
         if (!(e.getEntity() instanceof Player p))
             return;
         ItemStack arrow = e.getConsumable();
-        if (!ItemStackGenerator.isCustomItem(arrow, 34))
+        if (!ItemStackGeneratorUtils.isCustomItem(arrow, 34))
             return;
 
         Arrow oldArrow = (Arrow) e.getProjectile();
@@ -327,7 +328,7 @@ public class GodListener implements Listener {
         if (!(e.getEntity() instanceof Player p))
             return;
 
-        if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 37)) {
+        if (ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), 37)) {
             if (!e.getCause().equals(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) &&
                     !e.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION))
                 return;
@@ -376,7 +377,7 @@ public class GodListener implements Listener {
     public void onPotionBagDestroy(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Item item))
             return;
-        if (!ItemStackGenerator.isCustomItem(item.getItemStack(), 38))
+        if (!ItemStackGeneratorUtils.isCustomItem(item.getItemStack(), 38))
             return;
 
         int id = getPotionBagID(item.getItemStack());
@@ -498,7 +499,7 @@ public class GodListener implements Listener {
         ItemStack item = e.getItemInHand();
 
         // Handle teleport anchor placement
-        if (ItemStackGenerator.isCustomItem(item, 55)) {
+        if (ItemStackGeneratorUtils.isCustomItem(item, 55)) {
             // Check if it is in a claim
             if (SurvivalSkills.getInstance().isGriefPreventionEnabled()
                     && Utils.checkForClaim(p, e.getBlock().getLocation())) {
@@ -528,7 +529,7 @@ public class GodListener implements Listener {
                     .runTaskLater(SurvivalSkills.getInstance(), () -> promptForAnchorName(p, placementLoc), 1L);
         }
 
-        else if (ItemStackGenerator.isCustomItem(item, 44)) {
+        else if (ItemStackGeneratorUtils.isCustomItem(item, 44)) {
             // Prevent power ore from being placed
             e.setCancelled(true);
         }
@@ -751,7 +752,7 @@ public class GodListener implements Listener {
             return 0;
 
         PersistentDataContainer container = meta.getPersistentDataContainer();
-        int id = container.getOrDefault(potionBagKey, PersistentDataType.INTEGER, ItemStackGenerator.nextPotionBagId());
+        int id = container.getOrDefault(potionBagKey, PersistentDataType.INTEGER, ItemStackGeneratorUtils.nextPotionBagId());
         item.setItemMeta(meta);
 
         return id;

@@ -1,5 +1,7 @@
 package sir_draco.survivalskills.commands.skill_commands;
 
+import java.util.Objects;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -175,7 +177,7 @@ public class FlightCommand implements CommandExecutor {
     /**
      * Wires the flight-specific countdown warnings and expiry behavior onto a generic
      * {@link AbilityTimer}, so no separate {@code FlyingTimer} task is required. Shared with
-     * {@link sir_draco.survivalskills.abilities.AbilityManager} for offline-restored flight.
+     * {@link AbilityManager} for offline-restored flight.
      */
     public static void configureFlightTimer(AbilityTimer timer) {
         timer.setOnActiveTick(FlightCommand::onFlightTick);
@@ -183,17 +185,18 @@ public class FlightCommand implements CommandExecutor {
     }
 
     /** Per-second warnings while flight is still active (mirrors the old FlyingTimer thresholds). */
-    private static void onFlightTick(Player p, int secondsLeft) {
+    private static void onFlightTick(Player p, Integer secondsLeft) {
+        int remainingSeconds = Objects.requireNonNull(secondsLeft, "secondsLeft");
         if (!p.isOnline()) return;
-        if (secondsLeft == 60) {
+        if (remainingSeconds == 60) {
             p.sendRawMessage(ChatColor.YELLOW + "You have 1 minute left of flight time!");
             p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1, 1);
-        } else if (secondsLeft == 30) {
+        } else if (remainingSeconds == 30) {
             p.sendRawMessage(ChatColor.YELLOW + "You have 30 seconds left of flight time!");
             p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1, 0);
-        } else if (secondsLeft == 10) {
+        } else if (remainingSeconds == 10) {
             p.sendRawMessage(ChatColor.YELLOW + "You have 10 seconds left of flight time!");
-        } else if (secondsLeft <= 3) {
+        } else if (remainingSeconds <= 3) {
             p.playSound(p, Sound.BLOCK_NOTE_BLOCK_IRON_XYLOPHONE, 1, 1);
         }
     }

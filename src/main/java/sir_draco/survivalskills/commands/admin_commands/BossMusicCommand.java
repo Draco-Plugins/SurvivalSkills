@@ -7,9 +7,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
-import sir_draco.survivalskills.utils.ExiledBossMusic;
+
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.Utils;
+import sir_draco.survivalskills.utils.music.ExiledBossMusic;
 
 import java.util.HashMap;
 

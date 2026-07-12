@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackBuilder;
 
 import java.util.*;
 
@@ -216,8 +216,8 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
      * @return The created navigation button
      */
     private static ItemStack createNavigationButton(Material material, String name, List<String> lore, String action) {
-        ItemStack button = ItemStackGenerator.createCustomItem(material, 1, name, null, null, new ArrayList<>(lore), 0,
-                false, null);
+        ItemStack button = new ItemStackBuilder(material, 1, name)
+                .lore(new ArrayList<>(lore)).build();
 
         // Store action in persistent data for identification
         ItemMeta meta = button.getItemMeta();
@@ -248,8 +248,8 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
         lore.add("");
         lore.add(ChatColor.GREEN + "Click to teleport!");
 
-        return ItemStackGenerator.createCustomItem(Material.END_PORTAL_FRAME, 1, anchor.name, ChatColor.GOLD, null,
-                lore, 0, false, null);
+        return new ItemStackBuilder(Material.END_PORTAL_FRAME, 1, ChatColor.GOLD + anchor.name)
+                .lore(lore).build();
     }
 
     /**

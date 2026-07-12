@@ -21,10 +21,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.abilities.armor.*;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.skills.SkillCategory;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -96,49 +96,49 @@ public class ArmorListener implements Listener {
 
         playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
 
-        if (ItemStackGenerator.isCustomItem(hand, 4)) {
+        if (ItemStackGeneratorUtils.isCustomItem(hand, 4)) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     playerWearingJumpingBoots(p, p.getInventory().getArmorContents());
                 }
             }.runTaskLater(plugin, 1);
-        } else if (ItemStackGenerator.isCustomItem(hand, 5)) {
+        } else if (ItemStackGeneratorUtils.isCustomItem(hand, 5)) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     playerWearingWandererArmor(p, p.getInventory().getArmorContents());
                 }
             }.runTaskLater(plugin, 1);
-        } else if (ItemStackGenerator.isCustomItem(hand, 7)) {
+        } else if (ItemStackGeneratorUtils.isCustomItem(hand, 7)) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     playerWearingTravelerArmor(p, p.getInventory().getArmorContents());
                 }
             }.runTaskLater(plugin, 1);
-        } else if (ItemStackGenerator.isCustomItem(hand, 19)) {
+        } else if (ItemStackGeneratorUtils.isCustomItem(hand, 19)) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     playerWearingGillArmor(p, p.getInventory().getArmorContents());
                 }
             }.runTaskLater(plugin, 1);
-        } else if (ItemStackGenerator.isCustomItem(hand, 8)) {
+        } else if (ItemStackGeneratorUtils.isCustomItem(hand, 8)) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     playerWearingAdventurerArmor(p, p.getInventory().getArmorContents());
                 }
             }.runTaskLater(plugin, 1);
-        } else if (ItemStackGenerator.isCustomItem(hand, 29)) {
+        } else if (ItemStackGeneratorUtils.isCustomItem(hand, 29)) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
                 }
             }.runTaskLater(plugin, 1);
-        } else if (ItemStackGenerator.isCustomItem(hand, 51)) {
+        } else if (ItemStackGeneratorUtils.isCustomItem(hand, 51)) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -179,49 +179,49 @@ public class ArmorListener implements Listener {
             if (currentItem == null)
                 return;
 
-            if (ItemStackGenerator.isCustomItem(currentItem, 4)) {
+            if (ItemStackGeneratorUtils.isCustomItem(currentItem, 4)) {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
                         playerWearingJumpingBoots(p, p.getInventory().getArmorContents());
                     }
                 }.runTaskLater(plugin, 1);
-            } else if (ItemStackGenerator.isCustomItem(currentItem, 5)) {
+            } else if (ItemStackGeneratorUtils.isCustomItem(currentItem, 5)) {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
                         playerWearingWandererArmor(p, p.getInventory().getArmorContents());
                     }
                 }.runTaskLater(plugin, 1);
-            } else if (ItemStackGenerator.isCustomItem(currentItem, 7)) {
+            } else if (ItemStackGeneratorUtils.isCustomItem(currentItem, 7)) {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
                         playerWearingTravelerArmor(p, p.getInventory().getArmorContents());
                     }
                 }.runTaskLater(plugin, 1);
-            } else if (ItemStackGenerator.isCustomItem(currentItem, 19)) {
+            } else if (ItemStackGeneratorUtils.isCustomItem(currentItem, 19)) {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
                         playerWearingGillArmor(p, p.getInventory().getArmorContents());
                     }
                 }.runTaskLater(plugin, 1);
-            } else if (ItemStackGenerator.isCustomItem(currentItem, 8)) {
+            } else if (ItemStackGeneratorUtils.isCustomItem(currentItem, 8)) {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
                         playerWearingAdventurerArmor(p, p.getInventory().getArmorContents());
                     }
                 }.runTaskLater(plugin, 1);
-            } else if (ItemStackGenerator.isCustomItem(currentItem, 29)) {
+            } else if (ItemStackGeneratorUtils.isCustomItem(currentItem, 29)) {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
                         playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
                     }
                 }.runTaskLater(plugin, 1);
-            } else if (ItemStackGenerator.isCustomItem(currentItem, 51)) {
+            } else if (ItemStackGeneratorUtils.isCustomItem(currentItem, 51)) {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
@@ -298,7 +298,7 @@ public class ArmorListener implements Listener {
     public void playerWearingJumpingBoots(Player p, ItemStack[] armor) {
         boolean found = false;
         for (ItemStack item : armor) {
-            if (!ItemStackGenerator.isCustomItem(item, 4))
+            if (!ItemStackGeneratorUtils.isCustomItem(item, 4))
                 continue;
             found = true;
         }
@@ -320,7 +320,7 @@ public class ArmorListener implements Listener {
 
     public void playerWearingWandererArmor(Player p, ItemStack[] armor) {
         for (ItemStack item : armor) {
-            if (ItemStackGenerator.isCustomItem(item, 5))
+            if (ItemStackGeneratorUtils.isCustomItem(item, 5))
                 continue;
             playersWearingWandererArmor.remove(p.getUniqueId());
             return;
@@ -338,7 +338,7 @@ public class ArmorListener implements Listener {
 
     public void playerWearingTravelerArmor(Player p, ItemStack[] armor) {
         for (ItemStack item : armor) {
-            if (ItemStackGenerator.isCustomItem(item, 7))
+            if (ItemStackGeneratorUtils.isCustomItem(item, 7))
                 continue;
             playersWearingTravelerArmor.remove(p.getUniqueId());
             return;
@@ -356,7 +356,7 @@ public class ArmorListener implements Listener {
 
     public void playerWearingGillArmor(Player p, ItemStack[] armor) {
         for (ItemStack item : armor) {
-            if (ItemStackGenerator.isCustomItem(item, 19))
+            if (ItemStackGeneratorUtils.isCustomItem(item, 19))
                 continue;
             playersWearingGillArmor.remove(p.getUniqueId());
             return;
@@ -374,7 +374,7 @@ public class ArmorListener implements Listener {
 
     public void playerWearingAdventurerArmor(Player p, ItemStack[] armor) {
         for (ItemStack item : armor) {
-            if (ItemStackGenerator.isCustomItem(item, 8))
+            if (ItemStackGeneratorUtils.isCustomItem(item, 8))
                 continue;
             playersWearingAdventurerArmor.remove(p.getUniqueId());
             return;
@@ -392,7 +392,7 @@ public class ArmorListener implements Listener {
 
     public void playerWearingBeaconArmor(Player p, ItemStack[] armor) {
         for (ItemStack item : armor) {
-            if (ItemStackGenerator.isCustomItem(item, 29))
+            if (ItemStackGeneratorUtils.isCustomItem(item, 29))
                 continue;
             playersWearingBeaconArmor.remove(p.getUniqueId());
             return;
@@ -410,7 +410,7 @@ public class ArmorListener implements Listener {
 
     public void playerWearingPowerArmor(Player p, ItemStack[] armor) {
         for (ItemStack item : armor) {
-            if (ItemStackGenerator.isCustomItem(item, 51))
+            if (ItemStackGeneratorUtils.isCustomItem(item, 51))
                 continue;
             playersWearingPowerArmor.remove(p.getUniqueId());
             return;

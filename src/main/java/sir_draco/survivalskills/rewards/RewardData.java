@@ -87,6 +87,14 @@ public class RewardData {
         tieredPercent(m, "Fortune", map(1, "20%", 2, "40%", 3, "50%"),
                 "You now have a {value} chance of getting double ores");
 
+        staticEntry(m, "ToolBelt", lines(
+                NEW_ABILITY + "You can now use " + AQUA + "/toolbelt" + YELLOW + " to access your Tool Belt"),
+                GRAY + "Use " + AQUA + "/toolbelt" + GRAY + " to access your Tool Belt");
+
+        staticEntry(m, "UpCommand", lines(
+                NEW_ABILITY + "You can now use " + AQUA + "/ssup" + YELLOW + " to teleport to the surface"),
+                GRAY + "Use " + AQUA + "/ssup" + GRAY + " to teleport to the surface");
+
         spelunkerEntries(m);
         veinMinerEntries(m);
 
@@ -147,6 +155,13 @@ public class RewardData {
         staticEntry(m, "JumpingBoots", lines(
                 NEW_ITEM + "You can now craft Jumping Boots"),
                 GRAY + "Craftable Item");
+
+        staticEntry(m, "Magnet", lines(
+                NEW_ITEM + "You can now craft a Magnet",
+                GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),
+                GRAY + "Attracts items to you when held in your hand\n"
+                        + GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes\n"
+                        + GRAY + "Craftable Item");
 
         tieredPercent(m, "Swim", map(1, "40%", 2, "80%", 3, "120%", 4, "160%", 5, "200%"),
                 "You now have a {value} swim speed boost");
@@ -234,7 +249,7 @@ public class RewardData {
                 GRAY + "You no longer need to eat food");
 
         tieredLinearInt(m, "Health", 10, 11, 1, "",
-                NEW_ABILITY + "You now have {value} hearts");
+                "You now have {value} hearts");
 
         // TODO: Need to link to the Timberman plugin if it is available
         staticEntry(m, "Timberman", lines(
@@ -249,8 +264,7 @@ public class RewardData {
 
         tieredLinearInt(m, "BlockReturn", 10, 5, 5, "%",
                 "You now have a {value} chance of getting a (building) block back when you place it",
-                "You now have a {value} chance of getting\n" +
-                        "a (building) block back when you place it");
+                "You now have a {value} chance of getting\na (building) block back when you place it");
 
         flightEntries(m);
 
@@ -289,12 +303,22 @@ public class RewardData {
                 GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),
                 GRAY + "Craftable Item");
 
+        staticEntry(m, "TogglePhantomSpawns", lines(
+                NEW_ABILITY + "You can now use " + AQUA + "/togglephantoms" + YELLOW
+                        + " to enable or disable phantom spawns"),
+                GRAY + "Use " + AQUA + "/togglephantoms" + GRAY + " to enable or disable phantom spawns");
+
         staticEntry(m, "FishingKing", lines(
                 NEW_ITEM + "You can now summon the Fishing King through fishing when it isn't raining"),
                 GRAY + "The Fishing King can spawn while fishing (1/100 chance)");
 
         staticEntry(m, "VillagerSummon", lines(
                 NEW_ITEM + "You can now craft a Villager Boss Summoning item",
+                GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),
+                GRAY + "Craftable Item");
+
+        staticEntry(m, "TheExiledOneSummon", lines(
+                NEW_ITEM + "You can now craft a The Exiled One Boss Summoning item",
                 GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),
                 GRAY + "Craftable Item");
 
@@ -637,6 +661,10 @@ public class RewardData {
         return template.replace("{value}", style.highlight() + value + style.body());
     }
 
+    private static String multilineDesc(String descTemplate, ChatColor bodyColor) {
+        return bodyColor.toString() + descTemplate.replace("\n", "\n" + bodyColor.toString());
+    }
+
     private static void tieredPercent(Map<String, RewardEntry> m, String prefix, Map<Integer, String> levelValues, String template) {
         tieredPercent(m, prefix, levelValues, NEW_ABILITY + template, template);
     }
@@ -645,7 +673,7 @@ public class RewardData {
         for (var entry : levelValues.entrySet()) {
             String name = prefix + toRoman(entry.getKey());
             String notif = fillValue(notifTemplate, entry.getValue(), RewardStyle.NOTIFY_ABILITY);
-            String desc = fillValue(RewardStyle.DESC.body + descTemplate, entry.getValue(), RewardStyle.DESC);
+            String desc = fillValue(multilineDesc(descTemplate, RewardStyle.DESC.body()), entry.getValue(), RewardStyle.DESC);
             m.put(name, entry(List.of(notif), desc));
         }
     }
@@ -670,7 +698,7 @@ public class RewardData {
             String name = prefix + toRoman(level);
             String value = (start + (level - 1) * step) + suffix;
             String notif = fillValue(NEW_ABILITY + notifTemplate, value, RewardStyle.NOTIFY_ABILITY);
-            String desc = fillValue(RewardStyle.DESC.body() + descTemplate, value, RewardStyle.DESC);
+            String desc = fillValue(multilineDesc(descTemplate, RewardStyle.DESC.body()), value, RewardStyle.DESC);
             List<String> notifLines = new ArrayList<>();
             notifLines.add(notif);
             notifLines.addAll(extraNotifLines);
@@ -689,7 +717,7 @@ public class RewardData {
         for (var entry : levelValues.entrySet()) {
             String name = prefix + toRoman(entry.getKey());
             String notif = fillValue(NEW_ABILITY + notifTemplate, entry.getValue(), RewardStyle.NOTIFY_ABILITY);
-            String desc = fillValue(RewardStyle.DESC.body() + descTemplate, entry.getValue(), RewardStyle.DESC);
+            String desc = fillValue(multilineDesc(descTemplate, RewardStyle.DESC.body()), entry.getValue(), RewardStyle.DESC);
             m.put(name, entry(List.of(notif), desc));
         }
     }

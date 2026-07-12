@@ -28,8 +28,8 @@ import sir_draco.survivalskills.abilities.DeathLocationTimer;
 import sir_draco.survivalskills.abilities.Grave;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.skills.SkillCategory;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
 
 import java.io.File;
 import java.io.IOException;
@@ -142,11 +142,11 @@ public class MainSkill implements Listener {
 
     @EventHandler
     public void placeSkillsItem(BlockPlaceEvent e) {
-        if (!ItemStackGenerator.isCustomItem(e.getItemInHand())) return;
+        if (!ItemStackGeneratorUtils.isCustomItem(e.getItemInHand())) return;
         ItemMeta meta = e.getItemInHand().getItemMeta();
         if (meta == null) return;
-        if (!ItemStackGenerator.hasCustomModelData(meta, 15)
-                && !ItemStackGenerator.hasCustomModelData(meta, 32)) return;
+        if (!ItemStackGeneratorUtils.hasCustomModelData(meta, 15)
+                && !ItemStackGeneratorUtils.hasCustomModelData(meta, 32)) return;
         e.setCancelled(true);
     }
 
@@ -158,7 +158,7 @@ public class MainSkill implements Listener {
         if (hand == null) return;
         ItemMeta meta = hand.getItemMeta();
         if (meta == null) return;
-        if (!ItemStackGenerator.hasCustomModelData(meta, 18)) return;
+        if (!ItemStackGeneratorUtils.hasCustomModelData(meta, 18)) return;
         e.setCancelled(true);
         Color color = Color.fromRGB((int) (Math.random() * 255), (int) (Math.random() * 255), (int) (Math.random() * 255));
         Vector vector = e.getPlayer().getLocation().getDirection();

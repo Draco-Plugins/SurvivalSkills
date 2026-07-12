@@ -3,8 +3,8 @@ package sir_draco.survivalskills.trophy;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -12,19 +12,25 @@ import sir_draco.survivalskills.external.providers.CitizensRegistryProvider;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.utils.ColorParser;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
 public class TrophyManager {
 
-    public final static String npcName = ColorParser.colorizeString("God Trophy",
+    public static final String npcName = ColorParser.colorizeString("God Trophy",
             ColorParser.generateGradient("#FFFF00", "#FFFFFF", 10), true);
 
+    private static final int MAX_TROPHY_ID = 1_000_000;
+    private static final int BASE_SKILL_CAP = 10;
+    private static final int SKILL_CAP_PER_TROPHY = 10;
+
     private final SurvivalSkills plugin;
-    private final HashMap<UUID, HashMap<String, Boolean>> trophyTracker = new HashMap<>();
+    private final Map<UUID, Map<TrophyType, Boolean>> trophyTracker = new HashMap<>();
     private final HashMap<Location, Trophy> trophies = new HashMap<>();
     private final HashMap<Integer, ItemStack> trophyItems = new HashMap<>();
     private final HashMap<UUID, GodTrophyQuest> playerGodQuestData = new HashMap<>();
@@ -82,17 +88,10 @@ public class TrophyManager {
 
     public void loadPlayerTrophies(UUID uuid, FileConfiguration data) {
         if (trophyTracker.containsKey(uuid)) return;
-        HashMap<String, Boolean> trophyList = new HashMap<>();
-        trophyList.put("CaveTrophy", data.getBoolean(uuid + ".CaveTrophy"));
-        trophyList.put("ForestTrophy", data.getBoolean(uuid + ".ForestTrophy"));
-        trophyList.put("FarmingTrophy", data.getBoolean(uuid + ".FarmingTrophy"));
-        trophyList.put("OceanTrophy", data.getBoolean(uuid + ".OceanTrophy"));
-        trophyList.put("FishingTrophy", data.getBoolean(uuid + ".FishingTrophy"));
-        trophyList.put("ColorTrophy", data.getBoolean(uuid + ".ColorTrophy"));
-        trophyList.put("NetherTrophy", data.getBoolean(uuid + ".NetherTrophy"));
-        trophyList.put("EndTrophy", data.getBoolean(uuid + ".EndTrophy"));
-        trophyList.put("ChampionTrophy", data.getBoolean(uuid + ".ChampionTrophy"));
-        trophyList.put("GodTrophy", data.getBoolean(uuid + ".GodTrophy"));
+        HashMap<TrophyType, Boolean> trophyList = new HashMap<>();
+        for (TrophyType type : TrophyType.values()) {
+            trophyList.put(type, data.getBoolean(uuid + "." + type.getName()));
+        }
         trophyTracker.put(uuid, trophyList);
     }
 
@@ -117,9 +116,8 @@ public class TrophyManager {
         }
 
         for (Map.Entry<Location, Trophy> trophy : trophies.entrySet()) {
-            trophy.getValue().shutdownTrophy();
             trophyData.set(trophy.getValue().getID() + ".Location", trophy.getKey());
-            trophyData.set(trophy.getValue().getID() + ".UUID", trophy.getValue().getUUID().toString());
+            trophyData.set(trophy.getValue().getID() + ".UUID", trophy.getValue().getUuid().toString());
             trophyData.set(trophy.getValue().getID() + ".Type", trophy.getValue().getType());
             trophyData.set(trophy.getValue().getID() + ".PlayerName", trophy.getValue().getPlayerName());
         }
@@ -128,20 +126,19 @@ public class TrophyManager {
     }
 
     public void saveTrophyData(FileConfiguration data) {
-        for (Map.Entry<UUID, HashMap<String, Boolean>> player : trophyTracker.entrySet()) {
+        for (Map.Entry<UUID, Map<TrophyType, Boolean>> player : trophyTracker.entrySet()) {
             savePlayerTrophyData(player.getKey(), data);
         }
     }
 
     public void savePlayerTrophyData(UUID uuid, FileConfiguration data) {
         if (trophyTracker.containsKey(uuid)) {
-            for (Map.Entry<String, Boolean> list : trophyTracker.get(uuid).entrySet()) {
-                if (data.get(uuid + "." + list.getKey()) != null) {
-                    boolean trophy = data.getBoolean(uuid + "." + list.getKey());
-                    if (trophy) continue;
-                    data.set(uuid + "." + list.getKey(), list.getValue());
+            for (Map.Entry<TrophyType, Boolean> entry : trophyTracker.get(uuid).entrySet()) {
+                String key = uuid + "." + entry.getKey().getName();
+                // Never downgrade an already-true trophy to false
+                if (!data.getBoolean(key)) {
+                    data.set(key, entry.getValue());
                 }
-                else data.set(uuid + "." + list.getKey(), list.getValue());
             }
         }
         else Bukkit.getLogger().warning("UUID " + uuid + " does not have a trophy status");
@@ -173,44 +170,62 @@ public class TrophyManager {
      * max level a player can be
      */
     public int playerMaxSkillLevel(UUID uuid) {
-        int count = 0;
-        if (trophyTracker.get(uuid) == null)  {
-            // Try to load the player's trophies after a delay
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    loadTrophies();
-                }
-            }.runTaskLater(plugin, 20);
-            return 10;
+        Map<TrophyType, Boolean> playerTrophies = trophyTracker.get(uuid);
+        if (playerTrophies == null) {
+            ensurePlayerTrophiesLoaded(uuid);
+            playerTrophies = trophyTracker.get(uuid);
+            if (playerTrophies == null) return BASE_SKILL_CAP;
         }
-        for (Map.Entry<String, Boolean> list : trophyTracker.get(uuid).entrySet()) if (list.getValue()) count++;
-        return 10 + (count * 10);
+        int count = 0;
+        for (Boolean earned : playerTrophies.values()) {
+            if (earned) count++;
+        }
+        return BASE_SKILL_CAP + (count * SKILL_CAP_PER_TROPHY);
+    }
+
+    /**
+     * Attempts to load trophy data for a single player from playerdata.yml.
+     * Called as a fallback when a player's trophy tracker entry is missing.
+     */
+    private void ensurePlayerTrophiesLoaded(UUID uuid) {
+        File dataFile = new File(plugin.getDataFolder(), "playerdata.yml");
+        if (!dataFile.exists()) return;
+        FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
+        if (data.contains(uuid.toString())) {
+            loadPlayerTrophies(uuid, data);
+        }
     }
 
     public int generateTrophyID() {
+        int attempts = 0;
         int id;
-        boolean unique;
         do {
-            id = (int) Math.ceil(Math.random() * 1000000);
-            unique = true;
-            for (Trophy trophy : trophies.values()) {
-                if (trophy.getID() == id) {
-                    unique = false;
-                    break;
-                }
+            if (++attempts > MAX_TROPHY_ID) {
+                throw new IllegalStateException("No available trophy IDs after " + MAX_TROPHY_ID + " attempts");
             }
-        } while (!unique);
+            id = ThreadLocalRandom.current().nextInt(1, MAX_TROPHY_ID + 1);
+        } while (isTrophyIDTaken(id));
         return id;
+    }
+
+    private boolean isTrophyIDTaken(int id) {
+        for (Trophy trophy : trophies.values()) {
+            if (trophy.getID() == id) return true;
+        }
+        return false;
     }
 
     public void removeTrophy(Location loc) {
         FileConfiguration trophyData = plugin.getTrophyData();
-        Trophy trophy = trophies.get(loc);
-        trophies.remove(loc);
+        Trophy trophy = trophies.remove(loc);
         if (trophy == null) return;
-        if (trophyData.get("" + trophy.getID()) == null) return;
-        trophyData.set("" + trophy.getID(), null);
+        trophy.shutdownTrophy();
+        trophyData.set(String.valueOf(trophy.getID()), null);
+        try {
+            trophyData.save(plugin.getTrophyFile());
+        } catch (IOException e) {
+            Bukkit.getLogger().log(Level.WARNING, "[SurvivalSkills] Failed to save trophy data after removal", e);
+        }
     }
 
     public int getRewardLevel(SkillCategory skillCategory, String reward) {
@@ -220,11 +235,11 @@ public class TrophyManager {
         return 0;
     }
 
-    public HashMap<UUID, HashMap<String, Boolean>> getTrophyTracker() {
+    public Map<UUID, Map<TrophyType, Boolean>> getTrophyTracker() {
         return trophyTracker;
     }
 
-    public HashMap<Integer, ItemStack> getTrophyItems() {
+    public Map<Integer, ItemStack> getTrophyItems() {
         return trophyItems;
     }
 
@@ -233,11 +248,11 @@ public class TrophyManager {
         return trophyItems.get(type);
     }
 
-    public HashMap<Location, Trophy> getTrophies() {
+    public Map<Location, Trophy> getTrophies() {
         return trophies;
     }
 
-    public HashMap<UUID, GodTrophyQuest> getPlayerGodQuestData() {
+    public Map<UUID, GodTrophyQuest> getPlayerGodQuestData() {
         return playerGodQuestData;
     }
 
@@ -259,7 +274,7 @@ public class TrophyManager {
         return registry;
     }
 
-    public HashMap<UUID, Integer> getGodNPCIDs() {
+    public Map<UUID, Integer> getGodNPCIDs() {
         return godNPCIDs;
     }
 }

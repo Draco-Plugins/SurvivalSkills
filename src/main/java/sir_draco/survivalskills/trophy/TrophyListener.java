@@ -3,7 +3,6 @@ package sir_draco.survivalskills.trophy;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,17 +15,22 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.utils.Utils;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.Map;
 
 public class TrophyListener implements Listener {
+
+    private static final int TROPHY_CUSTOM_MODEL_DATA = 999;
+    private static final int MERCHANT_RESULT_SLOT = 2;
 
     private final SurvivalSkills plugin;
 
@@ -36,20 +40,13 @@ public class TrophyListener implements Listener {
 
     @EventHandler
     public void blockPlaceEvent(BlockPlaceEvent e) {
+        // Prevent placing blocks in, below, and on top of trophies
         for (Map.Entry<Location, Trophy> trophy : plugin.getTrophyManager().getTrophies().entrySet()) {
-            if (trophy.getKey().getBlockX() != e.getBlock().getX())
-                continue;
-            if (trophy.getKey().getBlockZ() != e.getBlock().getZ())
-                continue;
-            // Prevent placement where a trophy is
-            if (trophy.getKey().getBlockY() != e.getBlock().getY())
-                continue;
-            // Prevent placement on the block below a trophy
-            if (trophy.getKey().getBlockY() - 1 != e.getBlock().getY())
-                continue;
+            if (trophy.getKey().getBlockX() != e.getBlock().getX()) continue;
+            if (trophy.getKey().getBlockZ() != e.getBlock().getZ()) continue;
+            if (Math.abs(trophy.getKey().getBlockY() - e.getBlock().getY()) > 1) continue;
             e.setCancelled(true);
-            e.getPlayer()
-                    .sendRawMessage(ChatColor.RED + "There is a " + trophy.getValue().getType() + " trophy below you");
+            e.getPlayer().sendRawMessage(ChatColor.RED + "There is a " + trophy.getValue().getType() + " trophy below you");
             return;
         }
     }
@@ -58,22 +55,28 @@ public class TrophyListener implements Listener {
     public void playerPlaceTrophy(PlayerInteractEvent e) {
         Player p = e.getPlayer();
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if (e.getHand() == null)
-            return;
-        if (!e.getHand().equals(EquipmentSlot.HAND))
-            return;
+        if (e.getHand() == null) return;
+        if (!e.getHand().equals(EquipmentSlot.HAND)) return;
+
         ItemMeta meta = hand.getItemMeta();
-        if (meta == null)
-            return;
-        if (ItemStackGenerator.hasCustomModelData(meta, 999))
+        if (meta == null) return;
+        if (ItemStackGeneratorUtils.hasCustomModelData(meta, TROPHY_CUSTOM_MODEL_DATA))
             e.setCancelled(true);
-        else
-            return;
+        else return;
+
+        // A left click is a break attempt and must never also place the held trophy.
+        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
 
         // Make sure the trophy can be placed
         Block clicked = e.getClickedBlock();
         if (clicked == null || !e.getBlockFace().equals(BlockFace.UP)) {
             p.sendRawMessage(ChatColor.RED + "You can't place a trophy there");
+            p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+            return;
+        }
+
+        if (plugin.getTrophyManager().getTrophies().containsKey(clicked.getLocation())) {
+            p.sendRawMessage(ChatColor.RED + "You can't place a trophy on another trophy");
             p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
             return;
         }
@@ -104,82 +107,28 @@ public class TrophyListener implements Listener {
             return;
         }
 
+        // Look up the trophy type from the held item's material
+        TrophyType trophyType = TrophyType.fromMaterial(hand.getType()).orElse(null);
+        if (trophyType == null) return;
+
         p.getInventory().setItemInMainHand(new ItemStack(Material.AIR));
 
         String playerName = p.getName();
-        Trophy trophy;
-        if (hand.getType().equals(Material.DIAMOND_PICKAXE)) {
-            above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "CaveTrophy",
-                    plugin.getTrophyManager().generateTrophyID(), playerName);
-            trophy.spawnTrophy(plugin, true);
-            plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
-        } else if (hand.getType().equals(Material.OAK_SAPLING)) {
-            above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "ForestTrophy",
-                    plugin.getTrophyManager().generateTrophyID(), playerName);
-            trophy.spawnTrophy(plugin, true);
-            plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
-        } else if (hand.getType().equals(Material.GOLDEN_CARROT)) {
-            above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "FarmingTrophy",
-                    plugin.getTrophyManager().generateTrophyID(), playerName);
-            trophy.spawnTrophy(plugin, true);
-            plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
-        } else if (hand.getType().equals(Material.TRIDENT)) {
-            above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "OceanTrophy",
-                    plugin.getTrophyManager().generateTrophyID(), playerName);
-            trophy.spawnTrophy(plugin, true);
-            plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
-        } else if (hand.getType().equals(Material.FISHING_ROD)) {
-            above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "FishingTrophy",
-                    plugin.getTrophyManager().generateTrophyID(), playerName);
-            trophy.spawnTrophy(plugin, true);
-            plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
-        } else if (hand.getType().equals(Material.SHEARS)) {
-            above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "ColorTrophy",
-                    plugin.getTrophyManager().generateTrophyID(), playerName);
-            trophy.spawnTrophy(plugin, true);
-            plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
-        } else if (hand.getType().equals(Material.NETHERRACK)) {
-            above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "NetherTrophy",
-                    plugin.getTrophyManager().generateTrophyID(), playerName);
-            trophy.spawnTrophy(plugin, true);
-            plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
-        } else if (hand.getType().equals(Material.END_STONE)) {
-            above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "EndTrophy",
-                    plugin.getTrophyManager().generateTrophyID(), playerName);
-            trophy.spawnTrophy(plugin, true);
-            plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
-        } else if (hand.getType().equals(Material.DIAMOND_SWORD)) {
-            above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "ChampionTrophy",
-                    plugin.getTrophyManager().generateTrophyID(), playerName);
-            trophy.spawnTrophy(plugin, true);
-            plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
-        } else if (hand.getType().equals(Material.GRASS_BLOCK)) {
-            above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-            trophy = new Trophy(above.getLocation(), p.getUniqueId(), "GodTrophy",
-                    plugin.getTrophyManager().generateTrophyID(), playerName);
-            trophy.spawnTrophy(plugin, true);
-            plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
-        }
+        above.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
+        Trophy trophy = new Trophy(above.getLocation(), p.getUniqueId(), trophyType.getName(),
+                plugin.getTrophyManager().generateTrophyID(), playerName);
+        trophy.spawnTrophy(plugin, true);
+        plugin.getTrophyManager().getTrophies().put(above.getLocation(), trophy);
     }
 
     @EventHandler
     public void trophyBlockExplode(BlockExplodeEvent e) {
         Location loc = e.getBlock().getLocation();
-        if (!plugin.getTrophyManager().getTrophies().containsKey(loc.clone().add(0, 1, 0)))
-            return;
-        if (!plugin.getTrophyManager().getTrophies().containsKey(loc))
-            return;
-        e.setCancelled(true);
-        e.getBlock().setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
+        if (plugin.getTrophyManager().getTrophies().containsKey(loc.clone().add(0, 1, 0))
+                || plugin.getTrophyManager().getTrophies().containsKey(loc)) {
+            e.setCancelled(true);
+            e.getBlock().setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
+        }
     }
 
     @EventHandler
@@ -187,12 +136,11 @@ public class TrophyListener implements Listener {
         if (e.blockList().isEmpty())
             return;
         for (Block block : e.blockList()) {
-            if (!plugin.getTrophyManager().getTrophies().containsKey(block.getLocation().clone().add(0, 1, 0)))
-                continue;
-            if (!plugin.getTrophyManager().getTrophies().containsKey(block.getLocation()))
-                continue;
-            e.setCancelled(true);
-            return;
+            if (plugin.getTrophyManager().getTrophies().containsKey(block.getLocation().clone().add(0, 1, 0))
+                    || plugin.getTrophyManager().getTrophies().containsKey(block.getLocation())) {
+                e.setCancelled(true);
+                return;
+            }
         }
     }
 
@@ -213,12 +161,10 @@ public class TrophyListener implements Listener {
             return;
         }
 
-        if (!plugin.getTrophyManager().getTrophies().containsKey(loc))
-            return;
+        if (!plugin.getTrophyManager().getTrophies().containsKey(loc)) return;
         e.setCancelled(true);
         Trophy trophy = plugin.getTrophyManager().getTrophies().get(loc);
-        if (!trophy.canBreakTrophy(e.getPlayer().getUniqueId()) && !e.getPlayer().isOp())
-            return;
+        if (!trophy.canBreakTrophy(e.getPlayer().getUniqueId()) && !e.getPlayer().isOp()) return;
         int type = trophy.getTrophyType();
         trophy.breakTrophy(plugin.getTrophyManager().getTrophyItem(type));
         plugin.getTrophyManager().removeTrophy(loc);
@@ -226,40 +172,33 @@ public class TrophyListener implements Listener {
 
     @EventHandler
     public void crystalDamage(EntityDamageEvent e) {
-        if (!e.getEntity().getType().equals(EntityType.END_CRYSTAL))
-            return;
+        if (!e.getEntity().getType().equals(EntityType.END_CRYSTAL)) return;
         if (e.getEntity().hasMetadata("trophy"))
             e.setCancelled(true);
     }
 
     @EventHandler
     public void entityPickUpTrophy(EntityPickupItemEvent e) {
-        if (e.getEntity() instanceof Player)
-            return;
-        if (!e.getItem().getItemStack().containsEnchantment(Enchantment.KNOCKBACK))
-            return;
-        if (e.getItem().getItemStack().getEnchantmentLevel(Enchantment.KNOCKBACK) != 5)
-            return;
-        e.setCancelled(true);
+        if (e.getEntity() instanceof Player) return;
+        ItemMeta meta = e.getItem().getItemStack().getItemMeta();
+        if (meta == null) return;
+        if (meta.getPersistentDataContainer().has(ItemStackGeneratorUtils.trophyItemKey, PersistentDataType.STRING))
+            e.setCancelled(true);
     }
 
     @EventHandler
     public void villagerTradeEvent(InventoryClickEvent e) {
-        // Check if the player has an active God Quest
-        Player p = (Player) e.getWhoClicked();
-        if (!plugin.getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId()))
-            return;
+        // Check if a player has an active God Quest
+        if (!(e.getWhoClicked() instanceof Player p)) return;
+        if (!plugin.getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId())) return;
 
         // Get the god quest
         GodTrophyQuest quest = plugin.getTrophyManager().getPlayerGodQuestData().get(p.getUniqueId());
 
         // Check that the inventory is a villager trade inventory
-        if (e.getClickedInventory() == null)
-            return;
-        if (!e.getClickedInventory().getType().equals(InventoryType.MERCHANT))
-            return;
-        if (e.getSlot() != 2)
-            return;
+        if (e.getClickedInventory() == null) return;
+        if (!e.getClickedInventory().getType().equals(InventoryType.MERCHANT)) return;
+        if (e.getSlot() != MERCHANT_RESULT_SLOT) return;
 
         // If it is a shift click, check how many trades took place
         int trades = 1;
@@ -274,13 +213,14 @@ public class TrophyListener implements Listener {
 
     public boolean holdingMiningTrophy(Player p) {
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if (!hand.getType().equals(Material.DIAMOND_PICKAXE))
-            return false;
-        return hand.containsEnchantment(Enchantment.KNOCKBACK);
+        if (!hand.getType().equals(Material.DIAMOND_PICKAXE)) return false;
+        ItemMeta meta = hand.getItemMeta();
+        if (meta == null) return false;
+        return meta.getPersistentDataContainer().has(ItemStackGeneratorUtils.trophyItemKey, PersistentDataType.STRING);
     }
 
     public boolean blockHasSkyAccess(Block block) {
-        if (block.getLocation().getBlockY() == 257)
+        if (block.getLocation().getBlockY() >= block.getWorld().getMaxHeight() - 1)
             return true;
         Block above = block.getRelative(BlockFace.UP);
         if (above.isEmpty() || above.getType() == Material.AIR)
@@ -318,12 +258,9 @@ public class TrophyListener implements Listener {
 
     private int getTradeCount(MerchantInventory inv, ItemStack item, int slot) {
         ItemStack invItem = inv.getItem(slot);
-        if (invItem == null)
-            return 0;
-        if (!invItem.getType().equals(item.getType()))
-            return 0;
-        if (invItem.getAmount() < item.getAmount())
-            return 0;
+        if (invItem == null) return 0;
+        if (!invItem.getType().equals(item.getType())) return 0;
+        if (invItem.getAmount() < item.getAmount()) return 0;
         return invItem.getAmount() / item.getAmount();
     }
 }

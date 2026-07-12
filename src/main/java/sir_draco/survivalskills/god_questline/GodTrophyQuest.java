@@ -14,7 +14,8 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.trophy.Trophy;
 import sir_draco.survivalskills.trophy.TrophyEffects;
 import sir_draco.survivalskills.trophy.TrophyManager;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -518,7 +519,7 @@ public class GodTrophyQuest {
                 continue;
             if (!item.getType().equals(mat))
                 continue;
-            if (item.getItemMeta() != null && ItemStackGenerator.hasCustomModelData(item.getItemMeta()))
+            if (item.getItemMeta() != null && ItemStackGeneratorUtils.hasCustomModelData(item.getItemMeta()))
                 continue;
 
             // Handle the item in the inventory
@@ -548,9 +549,9 @@ public class GodTrophyQuest {
                 .entrySet()) {
             if (!trophy.getValue().getType().equalsIgnoreCase("godtrophy"))
                 continue;
-            if (!trophy.getValue().getUUID().equals(uuid))
+            if (!trophy.getValue().getUuid().equals(uuid))
                 continue;
-            TrophyEffects effects = trophy.getValue().getEffects();
+            TrophyEffects effects = trophy.getValue().getEffects().orElse(null);
             if (effects.getGodTrophy() == null)
                 continue;
             // TODO: Implement particle effects for the god trophy

@@ -25,10 +25,14 @@ import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.trophy.Trophy;
+import sir_draco.survivalskills.trophy.TrophyEffects;
 import sir_draco.survivalskills.trophy.TrophyListener;
 import sir_draco.survivalskills.trophy.TrophyManager;
+import sir_draco.survivalskills.utils.CommandRegistry;
+import sir_draco.survivalskills.utils.DependencyChecker;
 import sir_draco.survivalskills.utils.FileUtils;
 import sir_draco.survivalskills.utils.RecipeMaker;
+import sir_draco.survivalskills.utils.RecipeRegistrar;
 import sir_draco.survivalskills.utils.Utils;
 
 import java.io.*;
@@ -93,7 +97,7 @@ public final class SurvivalSkills extends JavaPlugin {
         }
 
         // Check for plugin dependencies
-        FileUtils.checkPluginDependencies();
+        DependencyChecker.check();
 
         FileUtils.loadFiles();
 
@@ -107,12 +111,12 @@ public final class SurvivalSkills extends JavaPlugin {
                 RecipeMaker.trophyRecipes(SurvivalSkills.getInstance());
                 RecipeMaker.rewardRecipes(SurvivalSkills.getInstance());
                 RecipeMaker.godRecipes(SurvivalSkills.getInstance());
-                RecipeMaker.emptyRecipeStack(SurvivalSkills.getInstance());
+                RecipeRegistrar.emptyRecipeStack(SurvivalSkills.getInstance());
             }
         }.runTaskAsynchronously(this);
 
         abilityManager = new AbilityManager(this);
-        FileUtils.loadCommands();
+        CommandRegistry.registerAll(this);
 
         TrialManager.loadProtectedAreas();
 
@@ -127,11 +131,7 @@ public final class SurvivalSkills extends JavaPlugin {
             FileUtils.savePermaTrash(p, permaTrashData, permaTrashFile);
         }
 
-        try {
-            FileUtils.savePlayerData();
-        } catch (IOException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Failed to save player data", e);
-        }
+        FileUtils.savePlayerData();
 
         try {
             trophyManager.saveTrophies();
@@ -146,11 +146,7 @@ public final class SurvivalSkills extends JavaPlugin {
             Bukkit.getLogger().log(Level.SEVERE, "Failed to save grave data", e);
         }
 
-        try {
-            FileUtils.saveLeaderboard(leaderboardTracker, leaderboardData, leaderboardFile);
-        } catch (IOException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Failed to save leaderboard data", e);
-        }
+        FileUtils.saveLeaderboard(leaderboardTracker, leaderboardData, leaderboardFile);
 
         FileUtils.saveTeleportAnchors(godListener.getTeleportAnchors());
         FileUtils.savePowerOreConversions();
@@ -245,7 +241,7 @@ public final class SurvivalSkills extends JavaPlugin {
             Location loc = trophy.getKey();
             if (!p.getWorld().equals(loc.getWorld()) || p.getLocation().distance(loc) > 50)
                 continue;
-            trophy.getValue().getEffects().checkForPlayers();
+            trophy.getValue().getEffects().ifPresent((TrophyEffects trophyEffects) -> trophyEffects.checkForPlayers());
         }
 
         // Make sure the main XP level is correct, load the player's rewards, add them to active leaderboard players

@@ -8,19 +8,16 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
-import org.bukkit.plugin.Plugin;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.abilities.AutoTrash;
 import sir_draco.survivalskills.abilities.TrailEffect;
 import sir_draco.survivalskills.abilities.godItems.TeleporterAnchor;
 import sir_draco.survivalskills.boards.LeaderboardPlayer;
-import sir_draco.survivalskills.commands.admin_commands.*;
-import sir_draco.survivalskills.commands.default_commands.*;
-import sir_draco.survivalskills.commands.skill_commands.*;
 import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.skills.SkillsHolder;
+import sir_draco.survivalskills.trophy.TrophyType;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,12 +25,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 @SuppressWarnings("deprecation")
 public class FileUtils {
     public static final String CONFIG_YML = "config.yml";
-    public static final String CONFIG_UPDATE = "ConfigUpdate";
     public static final String BIG_TRASH = ".BigTrash";
     public static final String PLAYER = "Player ";
     public static final String PLAYERDATA_YML = "playerdata.yml";
@@ -47,68 +44,44 @@ public class FileUtils {
     public static final String TRAIL = ".Trail";
     public static final String NO_PHANTOMS = ".NoPhantoms";
 
+    private static final double CURRENT_CONFIG_VERSION = 2.22;
+
     private FileUtils() {
         // Prevent instantiation
     }
 
     public static void loadFiles() {
-        // See if the config has ever been saved before
-        SurvivalSkills.getInstance().saveDefaultConfig();
-        File configFile = new File(SurvivalSkills.getInstance().getDataFolder(), CONFIG_YML);
+        SurvivalSkills plugin = SurvivalSkills.getInstance();
+
+        // Load main config
+        plugin.saveDefaultConfig();
+        File configFile = new File(plugin.getDataFolder(), CONFIG_YML);
         FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-        SurvivalSkills.getInstance().setConfig(config);
+        plugin.setConfig(config);
 
-        // See if an update needs to be made to the config
-        if (config.get("Version") == null || config.getDouble("Version") != 2.22)
+        if (config.get("Version") == null || config.getDouble("Version") != CURRENT_CONFIG_VERSION)
             updateConfig(config);
-        SurvivalSkills.getInstance().setSkillManager(new SkillManager(SurvivalSkills.getInstance()));
+        plugin.setSkillManager(new SkillManager(plugin));
 
-        File trophyFile = new File(SurvivalSkills.getInstance().getDataFolder(), "trophydata.yml");
-        SurvivalSkills.getInstance().setTrophyFile(trophyFile);
-        if (!trophyFile.exists())
-            SurvivalSkills.getInstance().saveResource("trophydata.yml", true);
-        FileConfiguration trophyData = YamlConfiguration.loadConfiguration(trophyFile);
-        SurvivalSkills.getInstance().setTrophyData(trophyData);
-
-        File leaderboardFile = new File(SurvivalSkills.getInstance().getDataFolder(), "leaderboard.yml");
-        SurvivalSkills.getInstance().setLeaderboardFile(leaderboardFile);
-        if (!leaderboardFile.exists())
-            SurvivalSkills.getInstance().saveResource("leaderboard.yml", true);
-        FileConfiguration leaderboardData = YamlConfiguration.loadConfiguration(leaderboardFile);
-        SurvivalSkills.getInstance().setLeaderboardData(leaderboardData);
-        loadLeaderboard(leaderboardData, SurvivalSkills.getInstance().getLeaderboardTracker());
-
-        File permaTrashFile = new File(SurvivalSkills.getInstance().getDataFolder(), "permatrash.yml");
-        SurvivalSkills.getInstance().setPermaTrashFile(permaTrashFile);
-        if (!permaTrashFile.exists())
-            SurvivalSkills.getInstance().saveResource("permatrash.yml", true);
-        FileConfiguration permaTrashData = YamlConfiguration.loadConfiguration(permaTrashFile);
-        SurvivalSkills.getInstance().setPermaTrashData(permaTrashData);
-
-        File toolBeltFile = new File(SurvivalSkills.getInstance().getDataFolder(), "toolbelt.yml");
-        SurvivalSkills.getInstance().setToolBeltFile(toolBeltFile);
-        if (!toolBeltFile.exists())
-            SurvivalSkills.getInstance().saveResource("toolbelt.yml", true);
-        FileConfiguration toolBeltData = YamlConfiguration.loadConfiguration(toolBeltFile);
-        SurvivalSkills.getInstance().setToolBeltData(toolBeltData);
+        // Load data files
+        loadDataFile("trophydata.yml", plugin::setTrophyFile, plugin::setTrophyData);
+        loadDataFile("leaderboard.yml", plugin::setLeaderboardFile, plugin::setLeaderboardData);
+        loadLeaderboard(plugin.getLeaderboardData(), plugin.getLeaderboardTracker());
+        loadDataFile("permatrash.yml", plugin::setPermaTrashFile, plugin::setPermaTrashData);
+        loadDataFile("toolbelt.yml", plugin::setToolBeltFile, plugin::setToolBeltData);
     }
 
-    public static void checkPluginDependencies() {
-        Plugin griefPrevention = Bukkit.getServer().getPluginManager().getPlugin("GriefPrevention");
-        if (griefPrevention != null && griefPrevention.isEnabled())
-            SurvivalSkills.getInstance().setGriefPreventionEnabled(true);
-
-        Plugin worldGuard = Bukkit.getServer().getPluginManager().getPlugin("WorldGuard");
-        if (worldGuard != null && worldGuard.isEnabled())
-            SurvivalSkills.getInstance().setWorldGuardEnabled(true);
-
-        Plugin citizens = Bukkit.getServer().getPluginManager().getPlugin("Citizens");
-        if (citizens != null && citizens.isEnabled())
-            SurvivalSkills.getInstance().setCitizensEnabled(true);
+    private static void loadDataFile(String fileName,
+            Consumer<File> fileSetter,
+            Consumer<FileConfiguration> configSetter) {
+        File file = new File(SurvivalSkills.getInstance().getDataFolder(), fileName);
+        if (!file.exists())
+            SurvivalSkills.getInstance().saveResource(fileName, true);
+        fileSetter.accept(file);
+        configSetter.accept(YamlConfiguration.loadConfiguration(file));
     }
 
     public static void updateConfig(FileConfiguration config) {
-        // Load the default configuration from the JAR
         InputStream defConfigStream = SurvivalSkills.getInstance().getClass().getClassLoader()
                 .getResourceAsStream(CONFIG_YML);
         if (defConfigStream == null) {
@@ -118,10 +91,8 @@ public class FileUtils {
         YamlConfiguration defConfig = YamlConfiguration
                 .loadConfiguration(new InputStreamReader(defConfigStream, StandardCharsets.UTF_8));
 
-        // Merge new defaults into the existing config (existing config is modified)
         mergeConfigWithOrder(config, defConfig, "");
 
-        // Save the updated existing configuration
         File file = new File(SurvivalSkills.getInstance().getDataFolder(), CONFIG_YML);
         try {
             config.save(file);
@@ -144,30 +115,19 @@ public class FileUtils {
      */
     private static void mergeConfigWithOrder(ConfigurationSection existingConfig, ConfigurationSection defaultConfig,
             String parentKey) {
-        // Iterate through all keys in the new default config
         for (String key : defaultConfig.getKeys(false)) {
             String fullKey = parentKey.isEmpty() ? key : parentKey + "." + key;
 
-            // Case 1: Both configs have this key as a configuration section - recurse into
-            // it
             if (defaultConfig.isConfigurationSection(key) && existingConfig.isConfigurationSection(key)) {
                 handleBothSectionsHaveKey(existingConfig, defaultConfig, key, fullKey);
-            }
-            // Case 2: Default has a section but existing doesn't - create the section in
-            // existing config
-            else if (defaultConfig.isConfigurationSection(key) && !existingConfig.contains(key)) {
+            } else if (defaultConfig.isConfigurationSection(key) && !existingConfig.contains(key)) {
                 handleKeyInDefaultButNotExisting(existingConfig, defaultConfig, key, fullKey);
-            }
-            // Case 3: Existing config already has this key (not a section) - keep user's
-            // value so do nothing
-            // Case 4: Key only exists in default config - add it to existing config
-            else if (!existingConfig.contains(key)) {
+            } else if (!existingConfig.contains(key)) {
                 Object defaultValue = defaultConfig.get(key);
                 if (defaultValue != null) {
                     existingConfig.set(key, defaultValue);
                     Bukkit.getLogger().log(Level.INFO,
-                            String.format("[SurvivalSkills] Added new config key: %s = %s", fullKey, defaultValue),
-                            CONFIG_UPDATE);
+                            String.format("[SurvivalSkills] Added new config key: %s = %s", fullKey, defaultValue));
                 }
             }
         }
@@ -178,10 +138,9 @@ public class FileUtils {
         ConfigurationSection defaultSection = defaultConfig.getConfigurationSection(key);
         if (defaultSection != null) {
             ConfigurationSection newSection = existingConfig.createSection(key);
-            // Recursively copy all values from the default section
             mergeConfigWithOrder(newSection, defaultSection, fullKey);
-            Bukkit.getLogger().log(Level.INFO, String.format("[SurvivalSkills] Added new config section: %s", fullKey),
-                    CONFIG_UPDATE);
+            Bukkit.getLogger().log(Level.INFO,
+                    String.format("[SurvivalSkills] Added new config section: %s", fullKey));
         }
     }
 
@@ -194,79 +153,23 @@ public class FileUtils {
             mergeConfigWithOrder(existingSection, defaultSection, fullKey);
         } else {
             Bukkit.getLogger().log(Level.WARNING,
-                    String.format("[SurvivalSkills] Failed to merge section: %s", fullKey), CONFIG_UPDATE);
+                    String.format("[SurvivalSkills] Failed to merge section: %s", fullKey));
         }
     }
 
     public static void loadLeaderboard(FileConfiguration leaderboardData,
             Map<UUID, LeaderboardPlayer> leaderboardTracker) {
         ConfigurationSection section = leaderboardData.getConfigurationSection("");
-        if (section == null)
-            return;
+        if (section == null) return;
+
         section.getKeys(false).forEach(key -> {
             EnumMap<SkillCategory, Integer> scores = new EnumMap<>(SkillCategory.class);
-            scores.put(SkillCategory.BUILDING, leaderboardData.getInt(key + ".Building"));
-            scores.put(SkillCategory.CRAFTING, leaderboardData.getInt(key + ".Crafting"));
-            scores.put(SkillCategory.EXPLORING, leaderboardData.getInt(key + ".Exploring"));
-            scores.put(SkillCategory.FARMING, leaderboardData.getInt(key + ".Farming"));
-            scores.put(SkillCategory.FIGHTING, leaderboardData.getInt(key + ".Fighting"));
-            scores.put(SkillCategory.FISHING, leaderboardData.getInt(key + ".Fishing"));
-            scores.put(SkillCategory.MINING, leaderboardData.getInt(key + ".Mining"));
-            scores.put(SkillCategory.MAIN, leaderboardData.getInt(key + ".Main"));
-            scores.put(SkillCategory.DEATHS, leaderboardData.getInt(key + ".Deaths"));
-            scores.put(SkillCategory.SOLO_TRIALS, leaderboardData.getInt(key + ".SoloTrials"));
-            scores.put(SkillCategory.COOP_TRIALS, leaderboardData.getInt(key + ".CoopTrials"));
+            for (SkillCategory cat : SkillCategory.allSkills()) {
+                scores.put(cat, leaderboardData.getInt(key + "." + cat.getDisplayName().replace(" ", "")));
+            }
             String name = leaderboardData.getString(key + ".Name");
-            LeaderboardPlayer leaderboard = new LeaderboardPlayer(name, scores);
-            leaderboardTracker.put(UUID.fromString(key), leaderboard);
+            leaderboardTracker.put(UUID.fromString(key), new LeaderboardPlayer(name, scores));
         });
-    }
-
-    public static void loadCommands() {
-        SurvivalSkills plugin = SurvivalSkills.getInstance();
-        // Default Player Commands
-        new FlightCommand(plugin);
-        new AutoEatCommand(plugin);
-        new AutoTrashCommand(plugin);
-        new DeathLocationCommand(plugin);
-        new DeathReturnCommand(plugin);
-        new EatCommand(plugin);
-        new MobScannerCommand(plugin);
-        new NightVisionCommand(plugin);
-        new PeacefulMinerCommand(plugin);
-        new PermaTrashCommand(plugin);
-        new SpelunkerCommand(plugin);
-        new ToggleMaxSkillMessageCommand(plugin);
-        new TogglePhantomsCommand(plugin);
-        new ToggleScoreboardCommand(plugin);
-        new ToggleSpeedCommand(plugin);
-        new ToggleTrailCommand(plugin);
-        new ToolBeltCommand(plugin);
-        new VeinminerCommand(plugin);
-        new WaterBreathingCommand(plugin);
-        new ToggleBloodyDomainCommand();
-        new ToggleTrashCommand(plugin);
-        new GodQuestCommand(plugin);
-        new ToggleBossMusic();
-        new UpCommand(plugin);
-        new GodTrialCommand(plugin);
-        new CreativeCommand(plugin);
-
-        // Admin Commands
-        new BossCommand(plugin);
-        new BossMusicCommand(plugin);
-        new CaveFinderCommand(plugin);
-        new GetTrophyCommand(plugin);
-        new ResetFirstDragonCommand(plugin);
-        new SkillsMultiplierCommand(plugin);
-        new SurvivalSkillsCommand(plugin);
-        new SurvivalSkillsGetCommand(plugin);
-        new ToggleOverworldFirstDragonCommand(plugin);
-        new DragonStatusCommand();
-        new ToggleGodQuestCommand(plugin);
-        new ResetAllCommand(plugin);
-        new StoreTrialBuildingCommand(plugin);
-        new CancelAbilityCooldownsCommand(plugin);
     }
 
     public static void loadPermaTrash(Player p, FileConfiguration permaTrashData) {
@@ -284,25 +187,24 @@ public class FileUtils {
 
     private static AutoTrash loadTrashMaterials(UUID uuid, FileConfiguration permaTrashData) {
         ConfigurationSection materials = permaTrashData.getConfigurationSection(uuid + ".Materials");
-        boolean big = false;
-        if (permaTrashData.contains(uuid + BIG_TRASH))
-            big = permaTrashData.getBoolean(uuid + BIG_TRASH);
+        boolean big = permaTrashData.contains(uuid + BIG_TRASH)
+                && permaTrashData.getBoolean(uuid + BIG_TRASH);
         AutoTrash trash = new AutoTrash(big, true);
         if (materials != null) {
-            // get the list of materials from the config
             materials.getKeys(false).forEach(key -> {
                 String type = permaTrashData.getString(uuid + ".Materials." + key);
                 if (type != null) {
                     Material material = Material.getMaterial(type);
                     if (material == null) {
-                        Bukkit.getLogger().warning("Material " + key + " for " + uuid + " is not valid");
+                        Bukkit.getLogger().warning(String.format("Material %s for %s is not valid", key, uuid));
                         return;
                     }
                     if (trash.getTrashMaterials().contains(material))
                         return;
                     trash.addTrashItem(new ItemStack(material));
-                } else
-                    Bukkit.getLogger().warning("Material " + key + " for " + uuid + " is not valid");
+                } else {
+                    Bukkit.getLogger().warning(String.format("Material %s for %s is not valid", key, uuid));
+                }
             });
         }
         return trash;
@@ -310,30 +212,30 @@ public class FileUtils {
 
     private static boolean loadTrashEnchants(UUID uuid, AutoTrash trash, FileConfiguration permaTrashData) {
         ConfigurationSection enchants = permaTrashData.getConfigurationSection(uuid + ".Enchants");
-        if (enchants != null) {
-            ArrayList<String> keyNames = new ArrayList<>();
-            // get the list of items from the config
-            enchants.getKeys(false).forEach(key -> {
-                String keyName = permaTrashData.getString(uuid + ".Enchants." + key);
-                keyNames.add(keyName);
-            });
+        if (enchants == null)
+            return false;
 
-            for (String key : keyNames) {
-                Enchantment enchant = getEnchantFromKey(key);
-                if (enchant == null) {
-                    Bukkit.getLogger().log(Level.WARNING,
-                            String.format("Enchantment %s for %s is not valid", key, uuid), CONFIG_UPDATE);
-                    return true;
-                }
+        ArrayList<String> keyNames = new ArrayList<>();
+        enchants.getKeys(false).forEach(key -> {
+            String keyName = permaTrashData.getString(uuid + ".Enchants." + key);
+            keyNames.add(keyName);
+        });
 
-                ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
-                EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
-                if (meta == null)
-                    return true;
-                meta.addStoredEnchant(enchant, 1, false);
-                item.setItemMeta(meta);
-                trash.addTrashItem(item);
+        for (String key : keyNames) {
+            Enchantment enchant = getEnchantFromKey(key);
+            if (enchant == null) {
+                Bukkit.getLogger().log(Level.WARNING,
+                        String.format("Enchantment %s for %s is not valid", key, uuid));
+                return true;
             }
+
+            ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
+            EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+            if (meta == null)
+                return true;
+            meta.addStoredEnchant(enchant, 1, false);
+            item.setItemMeta(meta);
+            trash.addTrashItem(item);
         }
         return false;
     }
@@ -343,24 +245,17 @@ public class FileUtils {
             if (enchant.getKey().toString().equalsIgnoreCase(key))
                 return enchant;
         }
-        return Enchantment.EFFICIENCY;
+        return null;
     }
 
     public static void loadData(Player p, FileConfiguration data) {
         SurvivalSkills plugin = SurvivalSkills.getInstance();
-        HashMap<String, Boolean> trophyList = new HashMap<>();
+        HashMap<TrophyType, Boolean> trophyList = new HashMap<>();
         if (!data.contains(p.getUniqueId().toString())) {
             ArrayList<Skill> skills = new ArrayList<>();
-            trophyList.put("CaveTrophy", false);
-            trophyList.put("ForestTrophy", false);
-            trophyList.put("FarmingTrophy", false);
-            trophyList.put("OceanTrophy", false);
-            trophyList.put("FishingTrophy", false);
-            trophyList.put("ColorTrophy", false);
-            trophyList.put("NetherTrophy", false);
-            trophyList.put("EndTrophy", false);
-            trophyList.put("ChampionTrophy", false);
-            trophyList.put("GodTrophy", false);
+            for (TrophyType type : TrophyType.values()) {
+                trophyList.put(type, false);
+            }
 
             skills.add(new Skill(0, 1, SkillCategory.MAIN));
             skills.add(new Skill(0, 1, SkillCategory.BUILDING));
@@ -481,7 +376,6 @@ public class FileUtils {
                 effect.runTaskTimer(SurvivalSkills.getInstance(), 60, 1);
                 SurvivalSkills.getInstance().getAbilityManager().getTrailTracker().put(p, effect);
             }
-
         }
     }
 
@@ -489,7 +383,6 @@ public class FileUtils {
         if (SurvivalSkills.getInstance().getShowScoreboard().containsKey(uuid))
             return;
         if (!data.contains(uuid + SCOREBOARD)) {
-            // default to having the scoreboard enabled when no setting exists
             SurvivalSkills.getInstance().getShowScoreboard().put(uuid, true);
         } else {
             SurvivalSkills.getInstance().getShowScoreboard().put(uuid, data.getBoolean(uuid + SCOREBOARD));
@@ -498,7 +391,6 @@ public class FileUtils {
 
     /**
      * Loads all teleport anchors from the teleportanchors.yml file.
-     * This method reconstructs anchor objects and validates their locations.
      */
     public static void loadTeleportAnchors(Map<Location, TeleporterAnchor> anchors) {
         File file = new File(SurvivalSkills.getInstance().getDataFolder(), "teleportanchors.yml");
@@ -539,7 +431,6 @@ public class FileUtils {
 
                 UUID ownerId = UUID.fromString(ownerString);
 
-                // Validate that the location still has a respawn anchor
                 if (location.getWorld() == null ||
                         location.getBlock().getType() != Material.RESPAWN_ANCHOR) {
                     Bukkit.getLogger().log(Level.WARNING,
@@ -585,22 +476,7 @@ public class FileUtils {
         if (SkillManager.getSkill(uuid, SkillCategory.MAIN).getLevel() == Skill.MAX_LEVEL)
             plugin.getTrophyManager().savePlayerGodQuestData(uuid, godQuestData);
 
-        if (plugin.getShowScoreboard().containsKey(uuid))
-            data.set(uuid + SCOREBOARD, plugin.getShowScoreboard().get(uuid));
-        else
-            Bukkit.getLogger().warning(PLAYER + p.getName() + " does not have a scoreboard status");
-
-        if (plugin.getAbilityManager().getTrailTracker().containsKey(p))
-            data.set(uuid + TRAIL, plugin.getAbilityManager().getTrailTracker().get(p).getTrailName());
-        else
-            data.set(uuid + TRAIL, "None");
-
-        data.set(uuid + NO_PHANTOMS, plugin.getFightingListener().getNoPhantomSpawns().contains(p));
-        data.set(uuid + AUTO_EAT, plugin.getFarmingListener().getAutoEat().contains(p));
-        data.set(uuid + VEINMINER, plugin.getMiningListener().getVeinminerTracker().getOrDefault(p, -1));
-        data.set(uuid + PEACEFUL_MINER, plugin.getMiningListener().getPeacefulMiners().contains(p));
-        data.set(uuid + BLOODY_DOMAIN, plugin.getAbilityManager().getBloodyDomainTracker().containsKey(p));
-        data.set(uuid + NO_BOSS_MUSIC, plugin.getFightingListener().getNoBossMusic().contains(p));
+        savePlayerSettings(p, uuid, data);
 
         plugin.getAbilityManager().saveFlightTimer(p, data);
         plugin.getAbilityManager().saveSpelunkerTimer(p, data);
@@ -617,7 +493,7 @@ public class FileUtils {
         }
     }
 
-    public static void savePlayerData() throws IOException {
+    public static void savePlayerData() {
         SurvivalSkills plugin = SurvivalSkills.getInstance();
         if (plugin.getSkillManager().getPlayerSkills().isEmpty())
             return;
@@ -638,35 +514,39 @@ public class FileUtils {
 
         for (Player p : Bukkit.getOnlinePlayers()) {
             UUID uuid = p.getUniqueId();
-            if (plugin.getShowScoreboard().containsKey(uuid))
-                data.set(uuid + SCOREBOARD, plugin.getShowScoreboard().get(uuid));
-            else
-                Bukkit.getLogger().warning(PLAYER + p.getName() + " does not have a scoreboard status");
-
-            if (plugin.getAbilityManager().getTrailTracker().containsKey(p))
-                data.set(uuid + TRAIL, plugin.getAbilityManager().getTrailTracker().get(p).getTrailName());
-            else
-                data.set(uuid + TRAIL, "None");
-
-            data.set(uuid + NO_PHANTOMS, plugin.getFightingListener().getNoPhantomSpawns().contains(p));
-            data.set(uuid + AUTO_EAT, plugin.getFarmingListener().getAutoEat().contains(p));
-            data.set(uuid + VEINMINER, plugin.getMiningListener().getVeinminerTracker().getOrDefault(p, -1));
-            data.set(uuid + PEACEFUL_MINER, plugin.getMiningListener().getPeacefulMiners().contains(p));
-            data.set(uuid + BLOODY_DOMAIN, plugin.getAbilityManager().getBloodyDomainTracker().containsKey(p));
-            data.set(uuid + NO_BOSS_MUSIC, plugin.getFightingListener().getNoBossMusic().contains(p));
-
+            savePlayerSettings(p, uuid, data);
             plugin.getAbilityManager().saveFlightTimer(p, data);
             plugin.getAbilityManager().saveSpelunkerTimer(p, data);
-
             plugin.getSkillManager().savePlayerMultiplier(p, data);
         }
 
-        data.save(dataFile);
-        godQuestData.save(godQuestFile);
+        saveToFile(data, dataFile, "Failed to save player data");
+        saveToFile(godQuestData, godQuestFile, "Failed to save god quest data");
+    }
+
+    private static void savePlayerSettings(Player p, UUID uuid, FileConfiguration data) {
+        SurvivalSkills plugin = SurvivalSkills.getInstance();
+
+        if (plugin.getShowScoreboard().containsKey(uuid))
+            data.set(uuid + SCOREBOARD, plugin.getShowScoreboard().get(uuid));
+        else
+            Bukkit.getLogger().warning(PLAYER + p.getName() + " does not have a scoreboard status");
+
+        if (plugin.getAbilityManager().getTrailTracker().containsKey(p))
+            data.set(uuid + TRAIL, plugin.getAbilityManager().getTrailTracker().get(p).getTrailName());
+        else
+            data.set(uuid + TRAIL, "None");
+
+        data.set(uuid + NO_PHANTOMS, plugin.getFightingListener().getNoPhantomSpawns().contains(p));
+        data.set(uuid + AUTO_EAT, plugin.getFarmingListener().getAutoEat().contains(p));
+        data.set(uuid + VEINMINER, plugin.getMiningListener().getVeinminerTracker().getOrDefault(p, -1));
+        data.set(uuid + PEACEFUL_MINER, plugin.getMiningListener().getPeacefulMiners().contains(p));
+        data.set(uuid + BLOODY_DOMAIN, plugin.getAbilityManager().getBloodyDomainTracker().containsKey(p));
+        data.set(uuid + NO_BOSS_MUSIC, plugin.getFightingListener().getNoBossMusic().contains(p));
     }
 
     public static void saveLeaderboard(Map<UUID, LeaderboardPlayer> leaderboardTracker,
-            FileConfiguration leaderboardData, File leaderboardFile) throws IOException {
+            FileConfiguration leaderboardData, File leaderboardFile) {
         if (leaderboardTracker.isEmpty()) return;
         if (leaderboardData == null) return;
 
@@ -674,24 +554,14 @@ public class FileUtils {
             LeaderboardPlayer lp = player.getValue();
             leaderboardData.set(player.getKey() + ".Name", lp.getName());
             leaderboardData.set(player.getKey() + ".Level", lp.getScore());
-            leaderboardData.set(player.getKey() + ".Building", lp.getScore(SkillCategory.BUILDING));
-            leaderboardData.set(player.getKey() + ".Mining", lp.getScore(SkillCategory.MINING));
-            leaderboardData.set(player.getKey() + ".Fishing", lp.getScore(SkillCategory.FISHING));
-            leaderboardData.set(player.getKey() + ".Exploring", lp.getScore(SkillCategory.EXPLORING));
-            leaderboardData.set(player.getKey() + ".Farming", lp.getScore(SkillCategory.FARMING));
-            leaderboardData.set(player.getKey() + ".Fighting", lp.getScore(SkillCategory.FIGHTING));
-            leaderboardData.set(player.getKey() + ".Crafting", lp.getScore(SkillCategory.CRAFTING));
-            leaderboardData.set(player.getKey() + ".Main", lp.getScore(SkillCategory.MAIN));
-            leaderboardData.set(player.getKey() + ".Deaths", lp.getScore(SkillCategory.DEATHS));
-            leaderboardData.set(player.getKey() + ".SoloTrials", lp.getScore(SkillCategory.SOLO_TRIALS));
-            leaderboardData.set(player.getKey() + ".CoopTrials", lp.getScore(SkillCategory.COOP_TRIALS));
+            for (SkillCategory cat : SkillCategory.allSkills()) {
+                leaderboardData.set(
+                        player.getKey() + "." + cat.getDisplayName().replace(" ", ""),
+                        lp.getScore(cat));
+            }
         }
 
-        try {
-            leaderboardData.save(leaderboardFile);
-        } catch (IOException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Failed to save leaderboard file", e);
-        }
+        saveToFile(leaderboardData, leaderboardFile, "Failed to save leaderboard file");
     }
 
     public static void savePermaTrash(Player p, FileConfiguration permaTrashData, File permaTrashFile) {
@@ -723,11 +593,7 @@ public class FileUtils {
             i++;
         }
 
-        try {
-            permaTrashData.save(permaTrashFile);
-        } catch (IOException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Failed to save perma trash file", e);
-        }
+        saveToFile(permaTrashData, permaTrashFile, "Failed to save perma trash file");
     }
 
     public static void savePotionBags() {
@@ -738,11 +604,7 @@ public class FileUtils {
         FileConfiguration potionBagData = YamlConfiguration.loadConfiguration(potionBagFile);
         plugin.getGodListener().savePotionBags(potionBagData);
 
-        try {
-            potionBagData.save(potionBagFile);
-        } catch (IOException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Failed to save potion bags file", e);
-        }
+        saveToFile(potionBagData, potionBagFile, "Failed to save potion bags file");
     }
 
     public static void savePowerOreConversions() {
@@ -753,31 +615,20 @@ public class FileUtils {
         FileConfiguration powerOreData = YamlConfiguration.loadConfiguration(powerOreFile);
         plugin.getGodListener().savePowerOreConversions(powerOreData);
 
-        try {
-            powerOreData.save(powerOreFile);
-        } catch (IOException e) {
-            Bukkit.getLogger().log(Level.SEVERE, "Failed to save power ore conversions file", e);
-        }
+        saveToFile(powerOreData, powerOreFile, "Failed to save power ore conversions file");
     }
 
     /**
      * Saves all teleport anchors to the teleportanchors.yml file.
-     * This method preserves all anchor data including name, location, and owner.
      */
     public static void saveTeleportAnchors(Map<Location, TeleporterAnchor> teleportAnchors) {
         File file = new File(SurvivalSkills.getInstance().getDataFolder(), "teleportanchors.yml");
         FileConfiguration config = YamlConfiguration.loadConfiguration(file);
 
-        // Clear existing data
         config.set("TeleportAnchors", null);
 
         if (teleportAnchors.isEmpty()) {
-            try {
-                config.save(file);
-            } catch (IOException e) {
-                Bukkit.getLogger().log(Level.SEVERE,
-                        "[SurvivalSkills] Failed to save teleport anchors file", e);
-            }
+            saveToFile(config, file, "Failed to save teleport anchors file");
             return;
         }
 
@@ -793,21 +644,25 @@ public class FileUtils {
             config.set(path + ".Owner", anchor.ownerId().toString());
         }
 
-        try {
-            config.save(file);
-            Bukkit.getLogger().log(Level.INFO,
-                    String.format("[SurvivalSkills] Saved %d teleport anchors", teleportAnchors.size()));
-        } catch (IOException e) {
-            Bukkit.getLogger().log(Level.SEVERE,
-                    "[SurvivalSkills] Failed to save teleport anchors file", e);
-        }
+        saveToFile(config, file, "Failed to save teleport anchors file");
+        Bukkit.getLogger().log(Level.INFO,
+                String.format("[SurvivalSkills] Saved %d teleport anchors", teleportAnchors.size()));
     }
 
     public static String loadSpawnRegionName() {
         FileConfiguration config = SurvivalSkills.getInstance().getTrueConfig();
 
         String spawnName = config.getString("WorldGuardSpawnRegion");
-        if (spawnName == null) return "spawn";
+        if (spawnName == null)
+            return "spawn";
         return spawnName;
+    }
+
+    private static void saveToFile(FileConfiguration data, File file, String errorMessage) {
+        try {
+            data.save(file);
+        } catch (IOException e) {
+            Bukkit.getLogger().log(Level.SEVERE, errorMessage, e);
+        }
     }
 }

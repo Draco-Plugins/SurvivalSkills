@@ -9,8 +9,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
-import sir_draco.survivalskills.utils.RecipeMaker;
+
+import sir_draco.survivalskills.utils.RecipeSlotLayout;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +48,7 @@ public class GodRecipeUI {
 
         Player p = (Player) e.getWhoClicked();
 
-        if (ItemStackGenerator.hasCustomModelData(meta)) {
+        if (ItemStackGeneratorUtils.hasCustomModelData(meta)) {
             if (currentInv + 1 >= inventories.size()) currentInv = -1;
             currentInv += 1;
             Inventory inv = inventories.get(currentInv);
@@ -71,7 +72,7 @@ public class GodRecipeUI {
 
         Player p = (Player) e.getWhoClicked();
 
-        if (ItemStackGenerator.hasCustomModelData(meta)) {
+        if (ItemStackGeneratorUtils.hasCustomModelData(meta)) {
             if (currentInv + 1 >= inventories.size()) currentInv = -1;
             currentInv += 1;
             Inventory inv = inventories.get(currentInv);
@@ -98,7 +99,7 @@ public class GodRecipeUI {
         meta = front.getItemMeta();
         if (meta == null) return;
         meta.setDisplayName(ChatColor.BLUE + "Next");
-        ItemStackGenerator.setCustomModelData(meta, 1);
+        ItemStackGeneratorUtils.setCustomModelData(meta, 1);
         front.setItemMeta(meta);
 
         int totalPages = (int) Math.ceil((double) list.size() / 2);
@@ -166,7 +167,7 @@ public class GodRecipeUI {
     public void addRecipe(ArrayList<NamespacedKey> recipeKeys, int recipeIndex, Inventory inv) {
         NamespacedKey key = recipeKeys.get(recipeIndex);
         if (key == null) return;
-        List<Integer> slots = RecipeMaker.getRecipePositions(recipeIndex + 1);
+        List<Integer> slots = RecipeSlotLayout.getRecipePositions(recipeIndex + 1);
         Recipe recipe = Bukkit.getRecipe(key);
         switch (recipe) {
             case ShapedRecipe shapedRecipe -> {

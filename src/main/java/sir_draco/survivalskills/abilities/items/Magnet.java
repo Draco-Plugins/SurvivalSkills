@@ -8,8 +8,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
+
 import sir_draco.survivalskills.utils.ProjectileCalculator;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import static sir_draco.survivalskills.skill_listeners.ExploringSkill.activeMagnets;
 
@@ -37,11 +38,9 @@ public class Magnet extends BukkitRunnable {
             ItemMeta meta = item.getItemMeta();
             if (meta == null)
                 continue;
-            if (!meta.getPersistentDataContainer().isEmpty()
-                    && meta.getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey)
-                    && meta.getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey,
+            if (meta.getPersistentDataContainer().has(ItemStackGeneratorUtils.trophyItemKey,
                             PersistentDataType.STRING)) {
-                String type = meta.getPersistentDataContainer().get(ItemStackGenerator.skillsItemKey,
+                String type = meta.getPersistentDataContainer().get(ItemStackGeneratorUtils.trophyItemKey,
                         PersistentDataType.STRING);
                 if (type != null)
                     if (type.equals("Trophy"))

@@ -20,6 +20,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.Iterator;
 import java.util.Optional;
@@ -50,17 +51,16 @@ public class Utils {
         ItemMeta meta = itemStack.getItemMeta();
         if (meta == null)
             return;
-        if (meta.getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey)) {
+        if (meta.getPersistentDataContainer().has(ItemStackGeneratorUtils.trophyItemKey)) {
             try {
                 PersistentDataContainer container = meta.getPersistentDataContainer();
                 if (container == null)
                     return;
-                if (!container.has(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING))
+                if (!container.has(ItemStackGeneratorUtils.trophyItemKey, PersistentDataType.STRING))
                     return;
 
-                String itemContainer = container.get(ItemStackGenerator.skillsItemKey, PersistentDataType.STRING);
-                if (itemContainer == null)
-                    return;
+                String itemContainer = container.get(ItemStackGeneratorUtils.trophyItemKey, PersistentDataType.STRING);
+                if (itemContainer == null) return;
 
                 if (itemContainer.equals("Trophy"))
                     ent.remove();

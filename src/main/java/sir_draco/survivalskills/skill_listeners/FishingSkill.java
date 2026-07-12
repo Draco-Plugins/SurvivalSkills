@@ -31,8 +31,10 @@ import sir_draco.survivalskills.abilities.AutoTrash;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.ProjectileCalculator;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.rewards.PlayerRewards;
+import sir_draco.survivalskills.trophy.TrophyType;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
@@ -155,7 +157,7 @@ public class FishingSkill implements Listener {
             // TODO: Extract to a function and allow the boss to be spawned regardless of whether the fishing trophy has been made or not
             double chance = Math.random();
 
-            if (!plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId()).get("FishingTrophy")) {
+            if (!plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId()).get(TrophyType.FISHING)) {
                 if (chance <= 0.01) {
                     Location loc = e.getHook().getLocation();
                     World world = e.getHook().getWorld();
@@ -372,10 +374,10 @@ public class FishingSkill implements Listener {
             return;
 
         ItemStack item = e.getItem().getItemStack();
-        if (item.getItemMeta() != null && ItemStackGenerator.hasCustomModelData(item.getItemMeta()))
+        if (item.getItemMeta() != null && ItemStackGeneratorUtils.hasCustomModelData(item.getItemMeta()))
             return;
         if (item.getItemMeta() != null
-                && item.getItemMeta().getPersistentDataContainer().has(ItemStackGenerator.skillsItemKey))
+                && item.getItemMeta().getPersistentDataContainer().has(ItemStackGeneratorUtils.skillsItemKey))
             return;
         if (trashInventories.containsKey(p)) {
             AutoTrash trash = trashInventories.get(p);
@@ -432,7 +434,7 @@ public class FishingSkill implements Listener {
     @EventHandler
     public void onBucketPickup(PlayerBucketFillEvent e) {
         ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(hand, 30))
+        if (!ItemStackGeneratorUtils.isCustomItem(hand, 30))
             return;
         Material type = e.getBlockClicked().getType();
         if (!type.equals(Material.WATER) && !type.equals(Material.LAVA))
@@ -445,7 +447,7 @@ public class FishingSkill implements Listener {
     @EventHandler
     public void onBucketUse(PlayerBucketEmptyEvent e) {
         ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(hand))
+        if (!ItemStackGeneratorUtils.isCustomItem(hand))
             return;
 
         if (hand.getType().equals(Material.WATER_BUCKET)) {
@@ -464,7 +466,7 @@ public class FishingSkill implements Listener {
         if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK) && !e.getAction().equals(Action.RIGHT_CLICK_AIR))
             return;
         ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(hand))
+        if (!ItemStackGeneratorUtils.isCustomItem(hand))
             return;
 
         Player p = e.getPlayer();

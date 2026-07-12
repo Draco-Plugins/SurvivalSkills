@@ -23,12 +23,13 @@ import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.FileUtils;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.boards.Leaderboard;
 import sir_draco.survivalskills.boards.LeaderboardPlayer;
 import sir_draco.survivalskills.boards.SkillScoreboard;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.RewardNotifications;
+import sir_draco.survivalskills.trophy.TrophyType;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.HashMap;
@@ -71,7 +72,7 @@ public class PlayerListener implements Listener {
         ItemMeta meta = hand.getItemMeta();
         if (meta == null)
             return;
-        if (ItemStackGenerator.hasCustomModelData(meta, 17)) {
+        if (ItemStackGeneratorUtils.hasCustomModelData(meta, 17)) {
             e.setCancelled(true);
 
             // Spawn a tropical fish
@@ -96,7 +97,7 @@ public class PlayerListener implements Listener {
         if (e.getClickedInventory() == null)
             return;
         ItemStack result = e.getRecipe().getResult();
-        if (!ItemStackGenerator.isCustomItem(result))
+        if (!ItemStackGeneratorUtils.isCustomItem(result))
             return;
         ItemMeta meta = result.getItemMeta();
         if (meta == null)
@@ -271,50 +272,50 @@ public class PlayerListener implements Listener {
                     return;
                 if (result.getType().equals(Material.BLACK_WOOL))
                     return;
-                HashMap<String, Boolean> trophies = plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId());
+                Map<TrophyType, Boolean> trophies = plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId());
                 switch (result.getType()) {
                     case DIAMOND_PICKAXE:
-                        trophies = enterTrophy(trophies, "CaveTrophy");
+                        trophies = enterTrophy(trophies, TrophyType.CAVE);
                         Bukkit.broadcastMessage(
                                 ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Cave Trophy");
                         break;
                     case OAK_SAPLING:
-                        trophies = enterTrophy(trophies, "ForestTrophy");
+                        trophies = enterTrophy(trophies, TrophyType.FOREST);
                         Bukkit.broadcastMessage(
                                 ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Forest Trophy");
                         break;
                     case SHEARS:
-                        trophies = enterTrophy(trophies, "ColorTrophy");
+                        trophies = enterTrophy(trophies, TrophyType.COLOR);
                         Bukkit.broadcastMessage(
                                 ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Color Trophy");
                         break;
                     case GOLDEN_CARROT:
-                        trophies = enterTrophy(trophies, "FarmingTrophy");
+                        trophies = enterTrophy(trophies, TrophyType.FARMING);
                         Bukkit.broadcastMessage(
                                 ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Farming Trophy");
                         break;
                     case TRIDENT:
-                        trophies = enterTrophy(trophies, "OceanTrophy");
+                        trophies = enterTrophy(trophies, TrophyType.OCEAN);
                         Bukkit.broadcastMessage(
                                 ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Ocean Trophy");
                         break;
                     case FISHING_ROD:
-                        trophies = enterTrophy(trophies, "FishingTrophy");
+                        trophies = enterTrophy(trophies, TrophyType.FISHING);
                         Bukkit.broadcastMessage(
                                 ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Fishing Trophy");
                         break;
                     case NETHERRACK:
-                        trophies = enterTrophy(trophies, "NetherTrophy");
+                        trophies = enterTrophy(trophies, TrophyType.NETHER);
                         Bukkit.broadcastMessage(
                                 ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Nether Trophy");
                         break;
                     case END_STONE:
-                        trophies = enterTrophy(trophies, "EndTrophy");
+                        trophies = enterTrophy(trophies, TrophyType.END);
                         Bukkit.broadcastMessage(
                                 ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "End Trophy");
                         break;
                     case DIAMOND_SWORD:
-                        trophies = enterTrophy(trophies, "ChampionTrophy");
+                        trophies = enterTrophy(trophies, TrophyType.CHAMPION);
                         Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA
                                 + "Champion Trophy");
                         break;
@@ -366,7 +367,7 @@ public class PlayerListener implements Listener {
             currentInv = i;
             break;
         }
-        if (ItemStackGenerator.hasCustomModelData(meta)) {
+        if (ItemStackGeneratorUtils.hasCustomModelData(meta)) {
             if (currentInv + 1 >= customInventories.get(p).size())
                 currentInv = -1;
             Inventory inv = customInventories.get(p).get(currentInv + 1);
@@ -404,7 +405,7 @@ public class PlayerListener implements Listener {
             currentInv = i;
             break;
         }
-        if (ItemStackGenerator.hasCustomModelData(meta)) {
+        if (ItemStackGeneratorUtils.hasCustomModelData(meta)) {
             if (currentInv + 1 >= customInventories.get(p).size())
                 currentInv = -1;
             Inventory inv = customInventories.get(p).get(currentInv + 1);
@@ -489,7 +490,7 @@ public class PlayerListener implements Listener {
             return;
         Player p = e.getPlayer();
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(hand, 26))
+        if (!ItemStackGeneratorUtils.isCustomItem(hand, 26))
             return;
 
         AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "XPVoucher");
@@ -517,7 +518,7 @@ public class PlayerListener implements Listener {
         Player p = e.getPlayer();
 
         ItemStack item = e.getItem();
-        if (!ItemStackGenerator.isCustomItem(item, 31))
+        if (!ItemStackGeneratorUtils.isCustomItem(item, 31))
             return;
         e.setCancelled(true);
         // Apply the speed boost to the player
@@ -525,12 +526,11 @@ public class PlayerListener implements Listener {
         p.getWorld().playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 1.0f, 1.0f);
     }
 
-    public HashMap<String, Boolean> enterTrophy(HashMap<String, Boolean> trophies, String trophyName) {
+    public Map<TrophyType, Boolean> enterTrophy(Map<TrophyType, Boolean> trophies, TrophyType trophyType) {
         if (trophies == null) {
             trophies = new HashMap<>();
-            trophies.put(trophyName, true);
-        } else
-            trophies.put(trophyName, true);
+        }
+        trophies.put(trophyType, true);
         return trophies;
     }
 

@@ -1,6 +1,1 @@
-BossCommand
-SkillsMultiplierCommand
-SurvivalSkillsCommand
-SkillsCommand
-FlightCommand
-GodTrialCommand
+GodTrialCommand -> Trials

@@ -12,6 +12,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.ProjectileCalculator;
 
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 public class GiantBoss extends Boss {
     private static final double GIANT_SCALE = 4;
@@ -109,13 +110,16 @@ public class GiantBoss extends Boss {
     @Override
     public void deathAnimation() {
         // Turn the ground beneath the giant into mycelium with the highest density being right below where he died
-        Location deathLoc = giant.getLocation().getBlock().getLocation();
-        if (deathLoc.getWorld() == null) return;
+        Location deathLoc = giant.getLocation();
+        if (deathLoc == null || deathLoc.getWorld() == null) {
+            Bukkit.getLogger().log(Level.SEVERE, "[SurvivalSkills] Death Location is null for Giant Boss");
+            return;
+        }
         World world = deathLoc.getWorld();
         int radius = 5;
-        for (int x = -radius; x <= radius; x++) {
-            for (int z = -radius; z <= radius; z++) {
-                for (int y = -1; y <= radius; y++) {
+        for (int x = -radius + deathLoc.getBlockX(); x <= radius + deathLoc.getBlockX(); x++) {
+            for (int z = -radius + deathLoc.getBlockZ(); z <= radius + deathLoc.getBlockZ(); z++) {
+                for (int y = -1 + deathLoc.getBlockY(); y <= radius + deathLoc.getBlockY(); y++) {
                     Location blockLoc = world.getBlockAt(x, y, z).getLocation();
                     if (blockLoc.distanceSquared(deathLoc) > 25) continue;
                     if (blockLoc.getBlock().getType() == Material.AIR) continue;
@@ -129,14 +133,13 @@ public class GiantBoss extends Boss {
         }
 
         // Spawn potion effect particles near the death location
-        for (int d = 1; d <= 10; d ++) {
+        for (int d = 1; d <= 5; d ++) {
             for (int i = 0; i < 360; i += 10) {
-                if (Math.random() > 0.1 / d) continue;
                 double angle = Math.toRadians(i);
                 double x = deathLoc.getX() + (d * Math.cos(angle));
                 double z = deathLoc.getZ() + (d * Math.sin(angle));
-                Location particleLoc = new Location(deathLoc.getWorld(), x, deathLoc.getY() + 0.5, z);
-                deathLoc.getWorld().spawnParticle(Particle.ASH, particleLoc, 1);
+                Location particleLoc = new Location(world, x, deathLoc.getY() + 4 + ((0.5 - Math.random()) * 5), z);
+                world.spawnParticle(Particle.ASH, particleLoc, 1);
             }
         }
     }

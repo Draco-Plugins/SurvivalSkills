@@ -16,12 +16,12 @@ import sir_draco.survivalskills.boards.LeaderboardPlayer;
 import sir_draco.survivalskills.boards.SkillScoreboard;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.Reward;
+import sir_draco.survivalskills.trophy.TrophyType;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.FileUtils;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemStackGenerator;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -230,12 +230,11 @@ public class SkillManager {
     }
 
     public void loadPlayerSkills(UUID uuid, FileConfiguration data) {
-        if (playerSkills.containsKey(uuid))
-            return;
+        if (playerSkills.containsKey(uuid)) return;
 
         ArrayList<Skill> skills = new ArrayList<>();
         for (SkillCategory skillCategory : SkillCategory.mainSkills()) {
-            skills.add(new Skill(data.getDouble(uuid + "." + skillCategory.getDisplayName() + ".Experience"), data.getInt(uuid + "." + skillCategory.getDisplayName() + ".Level"), skillCategory));
+            skills.add(new Skill(data.getDouble(uuid + "." + skillCategory + ".Experience"), data.getInt(uuid + "." + skillCategory + ".Level"), skillCategory));
         }
 
         SkillsHolder holder = new SkillsHolder(skills, getNewPlayerRewards());
@@ -367,9 +366,9 @@ public class SkillManager {
 
         if (main.getLevel() == Skill.MAX_LEVEL) {
             // TODO: Convert to method
-            HashMap<String, Boolean> trophies = plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId());
+            Map<TrophyType, Boolean> trophies = plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId());
             if (trophies != null) {
-                trophies.put("GodTrophy", true);
+                trophies.put(TrophyType.GOD, true);
                 plugin.getTrophyManager().getTrophyTracker().put(p.getUniqueId(), trophies);
             }
 
@@ -404,11 +403,7 @@ public class SkillManager {
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        try {
-                            FileUtils.savePlayerData();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                        FileUtils.savePlayerData();
 
                         plugin.getAbilityManager().saveToolBelts();
                     }

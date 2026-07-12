@@ -77,6 +77,10 @@ public class ColorParser {
         return Math.round(start + ratio * range);
     }
 
+    public static String gradientName(String name, String hex1, String hex2, boolean bold) {
+        return colorizeString(name, generateGradient(hex1, hex2, name), bold);
+    }
+
     public static Color hexToColor(String colorStr) {
         return Color.fromRGB(hexToInt(colorStr.substring(1, 3)),
                 hexToInt(colorStr.substring(3, 5)),

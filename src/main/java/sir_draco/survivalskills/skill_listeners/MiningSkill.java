@@ -32,9 +32,9 @@ import sir_draco.survivalskills.abilities.VeinMinerAsync;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
-import sir_draco.survivalskills.utils.ItemStackGenerator;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.Utils;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -108,8 +108,8 @@ public class MiningSkill implements Listener {
         }
 
         if (!rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").isApplied()) {
-            if (ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 1)
-                    || ItemStackGenerator.isCustomItem(p.getInventory().getItemInOffHand(), 1)) {
+            if (ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), 1)
+                    || ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInOffHand(), 1)) {
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "Unlimited Torch unlocks at mining level "
                         + ChatColor.AQUA + rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").getLevel());
@@ -122,10 +122,10 @@ public class MiningSkill implements Listener {
         if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
 
         if (e.getHand().equals(EquipmentSlot.OFF_HAND)
-                && !ItemStackGenerator.isCustomItem(p.getInventory().getItemInOffHand(), 1))
+                && !ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInOffHand(), 1))
             return;
         else if (e.getHand().equals(EquipmentSlot.HAND)
-                && !ItemStackGenerator.isCustomItem(p.getInventory().getItemInMainHand(), 1))
+                && !ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), 1))
             return;
         e.setCancelled(true);
 
@@ -165,7 +165,7 @@ public class MiningSkill implements Listener {
             return;
         Player p = e.getPlayer();
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if (!ItemStackGenerator.isCustomItem(hand, 27))
+        if (!ItemStackGeneratorUtils.isCustomItem(hand, 27))
             return;
         if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "ZapWand").isApplied()) {
             e.setCancelled(true);
@@ -400,13 +400,13 @@ public class MiningSkill implements Listener {
     }
 
     public boolean isMiningArmor(PlayerInventory inv) {
-        if (!ItemStackGenerator.isCustomItem(inv.getBoots(), 3))
+        if (!ItemStackGeneratorUtils.isCustomItem(inv.getBoots(), 3))
             return false;
-        if (!ItemStackGenerator.isCustomItem(inv.getLeggings(), 3))
+        if (!ItemStackGeneratorUtils.isCustomItem(inv.getLeggings(), 3))
             return false;
-        if (!ItemStackGenerator.isCustomItem(inv.getChestplate(), 3))
+        if (!ItemStackGeneratorUtils.isCustomItem(inv.getChestplate(), 3))
             return false;
-        return ItemStackGenerator.isCustomItem(inv.getHelmet(), 3);
+        return ItemStackGeneratorUtils.isCustomItem(inv.getHelmet(), 3);
     }
 
     public void setOres() {
