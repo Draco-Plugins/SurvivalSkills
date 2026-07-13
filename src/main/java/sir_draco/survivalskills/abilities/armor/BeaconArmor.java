@@ -10,10 +10,11 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import sir_draco.survivalskills.skill_listeners.ArmorListener;
+import sir_draco.survivalskills.skill_listeners.ArmorListener.ArmorType;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import static sir_draco.survivalskills.skill_listeners.ArmorListener.beaconEffects;
-import static sir_draco.survivalskills.skill_listeners.ArmorListener.playersWearingBeaconArmor;
 
 public class BeaconArmor extends BukkitRunnable {
 
@@ -28,7 +29,7 @@ public class BeaconArmor extends BukkitRunnable {
     public void run() {
         PlayerInventory playerInventory = p.getInventory();
 
-        if (!playersWearingBeaconArmor.contains(p.getUniqueId())) {
+        if (!ArmorListener.isWearingArmor(p.getUniqueId(), ArmorType.BEACON)) {
             cancel();
             return;
         }
@@ -47,7 +48,7 @@ public class BeaconArmor extends BukkitRunnable {
 
     private void setArmor(PlayerInventory inv, Color color) {
         if (inv.getBoots() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getBoots(), 29)) {
-            playersWearingBeaconArmor.remove(p.getUniqueId());
+            ArmorListener.removeArmor(p.getUniqueId(), ArmorType.BEACON);
             cancel();
             return;
         }
@@ -55,7 +56,7 @@ public class BeaconArmor extends BukkitRunnable {
         p.sendEquipmentChange(p, EquipmentSlot.FEET, boots);
 
         if (inv.getLeggings() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getLeggings(), 29)) {
-            playersWearingBeaconArmor.remove(p.getUniqueId());
+            ArmorListener.removeArmor(p.getUniqueId(), ArmorType.BEACON);
             cancel();
             return;
         }
@@ -63,7 +64,7 @@ public class BeaconArmor extends BukkitRunnable {
         p.sendEquipmentChange(p, EquipmentSlot.LEGS, leggings);
 
         if (inv.getChestplate() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getChestplate(), 29)) {
-            playersWearingBeaconArmor.remove(p.getUniqueId());
+            ArmorListener.removeArmor(p.getUniqueId(), ArmorType.BEACON);
             cancel();
             return;
         }
@@ -71,7 +72,7 @@ public class BeaconArmor extends BukkitRunnable {
         p.sendEquipmentChange(p, EquipmentSlot.CHEST, chestplate);
 
         if (inv.getHelmet() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getHelmet(), 29)) {
-            playersWearingBeaconArmor.remove(p.getUniqueId());
+            ArmorListener.removeArmor(p.getUniqueId(), ArmorType.BEACON);
             cancel();
             return;
         }
@@ -82,11 +83,11 @@ public class BeaconArmor extends BukkitRunnable {
     private ItemStack colorArmor(ItemStack armor, Color armorColor) {
         armor = armor.clone();
         if (armor.getItemMeta() == null) {
-            playersWearingBeaconArmor.remove(p.getUniqueId());
+            ArmorListener.removeArmor(p.getUniqueId(), ArmorType.BEACON);
             return armor;
         }
         if (!(armor.getItemMeta() instanceof LeatherArmorMeta meta)) {
-            playersWearingBeaconArmor.remove(p.getUniqueId());
+            ArmorListener.removeArmor(p.getUniqueId(), ArmorType.BEACON);
             return armor;
         }
         meta.setColor(armorColor);

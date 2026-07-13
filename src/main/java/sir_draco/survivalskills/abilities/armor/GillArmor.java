@@ -3,8 +3,7 @@ package sir_draco.survivalskills.abilities.armor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.skill_listeners.ArmorListener;
-
-import static sir_draco.survivalskills.skill_listeners.ArmorListener.playersWearingGillArmor;
+import sir_draco.survivalskills.skill_listeners.ArmorListener.ArmorType;
 
 public class GillArmor extends BukkitRunnable {
     private final Player p;
@@ -15,7 +14,7 @@ public class GillArmor extends BukkitRunnable {
 
     @Override
     public void run() {
-        if (!playersWearingGillArmor.contains(p.getUniqueId())) {
+        if (!ArmorListener.isWearingArmor(p.getUniqueId(), ArmorType.GILL)) {
             cancel();
             return;
         }

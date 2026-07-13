@@ -27,45 +27,97 @@ import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.SurvivalSkills;
 
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 public class ArmorListener implements Listener {
 
-    private final SurvivalSkills plugin;
-    public static final ArrayList<UUID> playersWearingJumpingBoots = new ArrayList<>();
-    public static final ArrayList<UUID> playersWearingWandererArmor = new ArrayList<>();
-    public static final ArrayList<UUID> playersWearingTravelerArmor = new ArrayList<>();
-    public static final ArrayList<UUID> playersWearingGillArmor = new ArrayList<>();
-    public static final ArrayList<UUID> playersWearingAdventurerArmor = new ArrayList<>();
-    public static final ArrayList<UUID> playersWearingBeaconArmor = new ArrayList<>();
-    public static final ArrayList<PotionEffect> beaconEffects = new ArrayList<>();
-    public static final ArrayList<UUID> playersWearingPowerArmor = new ArrayList<>();
+    public enum ArmorType {
+        JUMPING_BOOTS(4, SkillCategory.EXPLORING, "JumpingBoots", JumpingBoots::new, 20, false),
+        WANDERER(5, SkillCategory.EXPLORING, "WandererArmor", WandererArmor::new, 20, true),
+        TRAVELER(7, SkillCategory.EXPLORING, "TravelerArmor", TravelerArmor::new, 20, true),
+        GILL(19, SkillCategory.EXPLORING, "GillArmor", GillArmor::new, 20, true),
+        ADVENTURER(8, SkillCategory.EXPLORING, "AdventurerArmor", AdventurerArmor::new, 20, true),
+        BEACON(29, SkillCategory.MINING, "BeaconArmor", BeaconArmor::new, 1, true),
+        POWER(51, SkillCategory.MINING, "PowerOre", null, 0, true);
+
+        private final int modelData;
+        private final SkillCategory category;
+        private final String rewardName;
+        private final Function<Player, ? extends BukkitRunnable> taskFactory;
+        private final int tickInterval;
+        private final boolean requiresFullSet;
+
+        ArmorType(int modelData, SkillCategory category, String rewardName,
+                  Function<Player, ? extends BukkitRunnable> taskFactory,
+                  int tickInterval, boolean requiresFullSet) {
+            this.modelData = modelData;
+            this.category = category;
+            this.rewardName = rewardName;
+            this.taskFactory = taskFactory;
+            this.tickInterval = tickInterval;
+            this.requiresFullSet = requiresFullSet;
+        }
+
+        public int getModelData() { return modelData; }
+        public SkillCategory getCategory() { return category; }
+        public String getRewardName() { return rewardName; }
+        public int getTickInterval() { return tickInterval; }
+        public boolean requiresFullSet() { return requiresFullSet; }
+    }
+
+    private static final Map<ArmorType, Set<UUID>> armorPlayers;
+    private static final Set<UUID> regenTaskPlayers = new HashSet<>();
     private final Map<UUID, Long> lastSneakTime = new HashMap<>();
 
-    public ArmorListener(SurvivalSkills plugin) {
-        this.plugin = plugin;
-        createBeaconEffects();
+    public static final List<PotionEffect> beaconEffects = List.of(
+        new PotionEffect(PotionEffectType.REGENERATION, 80, 0),
+        new PotionEffect(PotionEffectType.RESISTANCE, 80, 0),
+        new PotionEffect(PotionEffectType.SPEED, 80, 0),
+        new PotionEffect(PotionEffectType.STRENGTH, 80, 0),
+        new PotionEffect(PotionEffectType.JUMP_BOOST, 80, 0),
+        new PotionEffect(PotionEffectType.HASTE, 80, 0)
+    );
 
+    static {
+        armorPlayers = new EnumMap<>(ArmorType.class);
+        for (ArmorType type : ArmorType.values()) {
+            armorPlayers.put(type, new HashSet<>());
+        }
+    }
+
+    public ArmorListener() {
         for (Player p : Bukkit.getOnlinePlayers()) {
             armorCheck(p);
         }
     }
 
+    public static boolean isWearingArmor(UUID playerId, ArmorType type) {
+        return armorPlayers.getOrDefault(type, Collections.emptySet()).contains(playerId);
+    }
+
+    public static void removeArmor(UUID playerId, ArmorType type) {
+        Set<UUID> players = armorPlayers.get(type);
+        if (players != null) {
+            players.remove(playerId);
+        }
+    }
+
     @EventHandler
     public void playerJoin(PlayerJoinEvent e) {
-        // Check what armor they are wearing
-        Player p = e.getPlayer();
-        armorCheck(p);
+        armorCheck(e.getPlayer());
     }
 
     @EventHandler
     public void playerLeave(PlayerQuitEvent e) {
-        Player p = e.getPlayer();
-        removeArmors(p.getUniqueId());
+        removeArmors(e.getPlayer().getUniqueId());
     }
 
     @EventHandler
@@ -77,8 +129,8 @@ public class ArmorListener implements Listener {
             return;
         }
 
-        // Check if they have the keep inventory skill
-        Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MAIN, "KeepInventory");
+        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p)
+                .getReward(SkillCategory.MAIN, "KeepInventory");
         if (reward.isApplied())
             return;
 
@@ -94,57 +146,11 @@ public class ArmorListener implements Listener {
         if (!isArmor(hand.getType()))
             return;
 
-        playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
-
-        if (ItemStackGeneratorUtils.isCustomItem(hand, 4)) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    playerWearingJumpingBoots(p, p.getInventory().getArmorContents());
-                }
-            }.runTaskLater(plugin, 1);
-        } else if (ItemStackGeneratorUtils.isCustomItem(hand, 5)) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    playerWearingWandererArmor(p, p.getInventory().getArmorContents());
-                }
-            }.runTaskLater(plugin, 1);
-        } else if (ItemStackGeneratorUtils.isCustomItem(hand, 7)) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    playerWearingTravelerArmor(p, p.getInventory().getArmorContents());
-                }
-            }.runTaskLater(plugin, 1);
-        } else if (ItemStackGeneratorUtils.isCustomItem(hand, 19)) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    playerWearingGillArmor(p, p.getInventory().getArmorContents());
-                }
-            }.runTaskLater(plugin, 1);
-        } else if (ItemStackGeneratorUtils.isCustomItem(hand, 8)) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    playerWearingAdventurerArmor(p, p.getInventory().getArmorContents());
-                }
-            }.runTaskLater(plugin, 1);
-        } else if (ItemStackGeneratorUtils.isCustomItem(hand, 29)) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
-                }
-            }.runTaskLater(plugin, 1);
-        } else if (ItemStackGeneratorUtils.isCustomItem(hand, 51)) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    playerWearingPowerArmor(p, p.getInventory().getArmorContents());
-                }
-            }.runTaskLater(plugin, 1);
+        for (ArmorType armorType : ArmorType.values()) {
+            if (!ItemStackGeneratorUtils.isCustomItem(hand, armorType.getModelData()))
+                continue;
+            scheduleArmorCheck(p, armorType);
+            break;
         }
     }
 
@@ -156,78 +162,29 @@ public class ArmorListener implements Listener {
         if (clickedInventory == null)
             return;
 
-        // Check if the player puts an armor piece in their armor slot
         if (isPlayerInventory(clickedInventory) && e.getSlotType().equals(InventoryType.SlotType.ARMOR)) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
-                    playerWearingJumpingBoots(p, p.getInventory().getArmorContents());
-                    playerWearingWandererArmor(p, p.getInventory().getArmorContents());
-                    playerWearingTravelerArmor(p, p.getInventory().getArmorContents());
-                    playerWearingGillArmor(p, p.getInventory().getArmorContents());
-                    playerWearingAdventurerArmor(p, p.getInventory().getArmorContents());
-                    playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
-                    playerWearingPowerArmor(p, p.getInventory().getArmorContents());
+                    ItemStack[] armor = p.getInventory().getArmorContents();
+                    for (ArmorType type : ArmorType.values()) {
+                        playerWearingArmor(p, armor, type);
+                    }
                 }
-            }.runTaskLater(plugin, 1);
+            }.runTaskLater(SurvivalSkills.getInstance(), 1);
             return;
         }
 
-        // Check if armor is shift clicked onto the player
         if (e.isShiftClick()) {
             ItemStack currentItem = e.getCurrentItem();
             if (currentItem == null)
                 return;
 
-            if (ItemStackGeneratorUtils.isCustomItem(currentItem, 4)) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        playerWearingJumpingBoots(p, p.getInventory().getArmorContents());
-                    }
-                }.runTaskLater(plugin, 1);
-            } else if (ItemStackGeneratorUtils.isCustomItem(currentItem, 5)) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        playerWearingWandererArmor(p, p.getInventory().getArmorContents());
-                    }
-                }.runTaskLater(plugin, 1);
-            } else if (ItemStackGeneratorUtils.isCustomItem(currentItem, 7)) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        playerWearingTravelerArmor(p, p.getInventory().getArmorContents());
-                    }
-                }.runTaskLater(plugin, 1);
-            } else if (ItemStackGeneratorUtils.isCustomItem(currentItem, 19)) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        playerWearingGillArmor(p, p.getInventory().getArmorContents());
-                    }
-                }.runTaskLater(plugin, 1);
-            } else if (ItemStackGeneratorUtils.isCustomItem(currentItem, 8)) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        playerWearingAdventurerArmor(p, p.getInventory().getArmorContents());
-                    }
-                }.runTaskLater(plugin, 1);
-            } else if (ItemStackGeneratorUtils.isCustomItem(currentItem, 29)) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
-                    }
-                }.runTaskLater(plugin, 1);
-            } else if (ItemStackGeneratorUtils.isCustomItem(currentItem, 51)) {
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        playerWearingPowerArmor(p, p.getInventory().getArmorContents());
-                    }
-                }.runTaskLater(plugin, 1);
+            for (ArmorType armorType : ArmorType.values()) {
+                if (!ItemStackGeneratorUtils.isCustomItem(currentItem, armorType.getModelData()))
+                    continue;
+                scheduleArmorCheck(p, armorType);
+                break;
             }
         }
     }
@@ -236,18 +193,15 @@ public class ArmorListener implements Listener {
     public void onDamage(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player p))
             return;
-        if (!playersWearingPowerArmor.contains(p.getUniqueId()))
+        if (!isWearingArmor(p.getUniqueId(), ArmorType.POWER))
             return;
         double incoming = e.getFinalDamage();
         double absorbed = PowerArmor.addStoredDamage(p, incoming);
         if (absorbed > 0) {
-            // Cancel proportionally: if all absorbed, cancel full event
             if (absorbed >= incoming) {
                 e.setCancelled(true);
             } else {
-                // Reduce remaining damage
                 double remaining = incoming - absorbed;
-                // Double damage as punishment
                 e.setDamage(remaining * 2);
             }
         }
@@ -256,14 +210,14 @@ public class ArmorListener implements Listener {
     @EventHandler
     public void onSneak(PlayerToggleSneakEvent e) {
         if (!e.isSneaking())
-            return; // only on start of sneak
+            return;
         Player p = e.getPlayer();
-        if (!playersWearingPowerArmor.contains(p.getUniqueId()))
+        if (!isWearingArmor(p.getUniqueId(), ArmorType.POWER))
             return;
         long now = System.currentTimeMillis();
         long last = lastSneakTime.getOrDefault(p.getUniqueId(), 0L);
         lastSneakTime.put(p.getUniqueId(), now);
-        if (now - last < 1000) { // double sneak
+        if (now - last < 1000) {
             if (PowerArmor.getStoredDamage(p) <= 0)
                 return;
             PowerArmor.releaseDamage(p);
@@ -276,200 +230,106 @@ public class ArmorListener implements Listener {
             @Override
             public void run() {
                 checkHealthRegen(p);
-                playerWearingJumpingBoots(p, p.getInventory().getArmorContents());
-                playerWearingWandererArmor(p, p.getInventory().getArmorContents());
-                playerWearingTravelerArmor(p, p.getInventory().getArmorContents());
-                playerWearingGillArmor(p, p.getInventory().getArmorContents());
-                playerWearingAdventurerArmor(p, p.getInventory().getArmorContents());
-                playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
-                playerWearingPowerArmor(p, p.getInventory().getArmorContents());
+                ItemStack[] armor = p.getInventory().getArmorContents();
+                for (ArmorType type : ArmorType.values()) {
+                    playerWearingArmor(p, armor, type);
+                }
             }
-        }.runTaskLater(plugin, 20);
+        }.runTaskLater(SurvivalSkills.getInstance(), 20);
     }
 
-    public boolean isArmor(Material mat) {
-        return Objects.nonNull(mat)
-                && mat.name().endsWith("_HELMET")
+    public static boolean isArmor(Material mat) {
+        return mat != null && (mat.name().endsWith("_HELMET")
                 || mat.name().endsWith("_CHESTPLATE")
                 || mat.name().endsWith("_LEGGINGS")
-                || mat.name().endsWith("_BOOTS");
+                || mat.name().endsWith("_BOOTS"));
     }
 
-    public void playerWearingJumpingBoots(Player p, ItemStack[] armor) {
-        boolean found = false;
-        for (ItemStack item : armor) {
-            if (!ItemStackGeneratorUtils.isCustomItem(item, 4))
-                continue;
-            found = true;
-        }
-        if (!found) {
-            playersWearingJumpingBoots.remove(p.getUniqueId());
-            return;
+    public void playerWearingArmor(Player p, ItemStack[] armor, ArmorType type) {
+        UUID uuid = p.getUniqueId();
+        Set<UUID> players = armorPlayers.get(type);
+
+        if (type.requiresFullSet()) {
+            boolean allMatch = true;
+            for (ItemStack item : armor) {
+                if (!ItemStackGeneratorUtils.isCustomItem(item, type.getModelData())) {
+                    allMatch = false;
+                    break;
+                }
+            }
+            if (!allMatch) {
+                players.remove(uuid);
+                return;
+            }
+        } else {
+            boolean found = false;
+            for (ItemStack item : armor) {
+                if (ItemStackGeneratorUtils.isCustomItem(item, type.getModelData())) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                players.remove(uuid);
+                return;
+            }
         }
 
-        if (playersWearingJumpingBoots.contains(p.getUniqueId()))
+        if (players.contains(uuid))
             return;
 
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING,
-                "JumpingBoots");
+        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p)
+                .getReward(type.getCategory(), type.getRewardName());
         if (!reward.isApplied())
             return;
-        playersWearingJumpingBoots.add(p.getUniqueId());
-        new JumpingBoots(p).runTaskTimer(SurvivalSkills.getInstance(), 0, 20);
-    }
 
-    public void playerWearingWandererArmor(Player p, ItemStack[] armor) {
-        for (ItemStack item : armor) {
-            if (ItemStackGeneratorUtils.isCustomItem(item, 5))
-                continue;
-            playersWearingWandererArmor.remove(p.getUniqueId());
-            return;
+        players.add(uuid);
+
+        if (type.taskFactory != null) {
+            BukkitRunnable task = type.taskFactory.apply(p);
+            if (task != null) {
+                task.runTaskTimer(SurvivalSkills.getInstance(), 0, type.getTickInterval());
+            }
         }
-        if (playersWearingWandererArmor.contains(p.getUniqueId()))
-            return;
-
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING,
-                "WandererArmor");
-        if (!reward.isApplied())
-            return;
-        playersWearingWandererArmor.add(p.getUniqueId());
-        new WandererArmor(p).runTaskTimer(SurvivalSkills.getInstance(), 0, 20);
-    }
-
-    public void playerWearingTravelerArmor(Player p, ItemStack[] armor) {
-        for (ItemStack item : armor) {
-            if (ItemStackGeneratorUtils.isCustomItem(item, 7))
-                continue;
-            playersWearingTravelerArmor.remove(p.getUniqueId());
-            return;
-        }
-        if (playersWearingTravelerArmor.contains(p.getUniqueId()))
-            return;
-
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING,
-                "TravelerArmor");
-        if (!reward.isApplied())
-            return;
-        playersWearingTravelerArmor.add(p.getUniqueId());
-        new TravelerArmor(p).runTaskTimer(SurvivalSkills.getInstance(), 0, 20);
-    }
-
-    public void playerWearingGillArmor(Player p, ItemStack[] armor) {
-        for (ItemStack item : armor) {
-            if (ItemStackGeneratorUtils.isCustomItem(item, 19))
-                continue;
-            playersWearingGillArmor.remove(p.getUniqueId());
-            return;
-        }
-        if (playersWearingGillArmor.contains(p.getUniqueId()))
-            return;
-
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING,
-                "GillArmor");
-        if (!reward.isApplied())
-            return;
-        playersWearingGillArmor.add(p.getUniqueId());
-        new GillArmor(p).runTaskTimer(SurvivalSkills.getInstance(), 0, 20);
-    }
-
-    public void playerWearingAdventurerArmor(Player p, ItemStack[] armor) {
-        for (ItemStack item : armor) {
-            if (ItemStackGeneratorUtils.isCustomItem(item, 8))
-                continue;
-            playersWearingAdventurerArmor.remove(p.getUniqueId());
-            return;
-        }
-        if (playersWearingAdventurerArmor.contains(p.getUniqueId()))
-            return;
-
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING,
-                "AdventurerArmor");
-        if (!reward.isApplied())
-            return;
-        playersWearingAdventurerArmor.add(p.getUniqueId());
-        new AdventurerArmor(p).runTaskTimer(SurvivalSkills.getInstance(), 0, 20);
-    }
-
-    public void playerWearingBeaconArmor(Player p, ItemStack[] armor) {
-        for (ItemStack item : armor) {
-            if (ItemStackGeneratorUtils.isCustomItem(item, 29))
-                continue;
-            playersWearingBeaconArmor.remove(p.getUniqueId());
-            return;
-        }
-        if (playersWearingBeaconArmor.contains(p.getUniqueId()))
-            return;
-
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING,
-                "BeaconArmor");
-        if (!reward.isApplied())
-            return;
-        playersWearingBeaconArmor.add(p.getUniqueId());
-        new BeaconArmor(p).runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
-    }
-
-    public void playerWearingPowerArmor(Player p, ItemStack[] armor) {
-        for (ItemStack item : armor) {
-            if (ItemStackGeneratorUtils.isCustomItem(item, 51))
-                continue;
-            playersWearingPowerArmor.remove(p.getUniqueId());
-            return;
-        }
-        if (playersWearingPowerArmor.contains(p.getUniqueId())) {
-            return;
-        }
-
-        Reward reward = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING,
-                "PowerOre");
-        if (!reward.isApplied())
-            return;
-        playersWearingPowerArmor.add(p.getUniqueId());
     }
 
     private static boolean isPlayerInventory(Inventory inventory) {
         return inventory.getType().equals(InventoryType.PLAYER);
     }
 
-    public void createBeaconEffects() {
-        PotionEffect regen = new PotionEffect(PotionEffectType.REGENERATION, 80, 0);
-        PotionEffect resistance = new PotionEffect(PotionEffectType.RESISTANCE, 80, 0);
-        PotionEffect speed = new PotionEffect(PotionEffectType.SPEED, 80, 0);
-        PotionEffect strength = new PotionEffect(PotionEffectType.STRENGTH, 80, 0);
-        PotionEffect jump = new PotionEffect(PotionEffectType.JUMP_BOOST, 80, 0);
-        PotionEffect haste = new PotionEffect(PotionEffectType.HASTE, 80, 0);
-
-        beaconEffects.add(regen);
-        beaconEffects.add(resistance);
-        beaconEffects.add(speed);
-        beaconEffects.add(strength);
-        beaconEffects.add(jump);
-        beaconEffects.add(haste);
+    private void scheduleArmorCheck(Player p, ArmorType type) {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                playerWearingArmor(p, p.getInventory().getArmorContents(), type);
+            }
+        }.runTaskLater(SurvivalSkills.getInstance(), 1);
     }
 
     public void removeArmors(UUID uuid) {
-        playersWearingJumpingBoots.remove(uuid);
-        playersWearingWandererArmor.remove(uuid);
-        playersWearingTravelerArmor.remove(uuid);
-        playersWearingGillArmor.remove(uuid);
-        playersWearingAdventurerArmor.remove(uuid);
-        playersWearingBeaconArmor.remove(uuid);
-        playersWearingPowerArmor.remove(uuid);
+        for (Set<UUID> players : armorPlayers.values()) {
+            players.remove(uuid);
+        }
         lastSneakTime.remove(uuid);
     }
 
     public void checkHealthRegen(Player p) {
-        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+        if (regenTaskPlayers.contains(p.getUniqueId()))
+            return;
+
+        PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
         if (rewards == null)
             return;
         if (!rewards.getReward(SkillCategory.EXPLORING, "HealthRegen").isApplied())
             return;
 
+        regenTaskPlayers.add(p.getUniqueId());
         new BukkitRunnable() {
             @Override
             public void run() {
                 giveRegenPotionEffect(p);
             }
-        }.runTaskTimer(plugin, 0, 20);
+        }.runTaskTimer(SurvivalSkills.getInstance(), 0, 20);
     }
 
     public static void giveJumpPotionEffect(Player p) {

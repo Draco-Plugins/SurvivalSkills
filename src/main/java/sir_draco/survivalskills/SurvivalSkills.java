@@ -21,6 +21,7 @@ import sir_draco.survivalskills.god_questline.trial.TrialManager;
 import sir_draco.survivalskills.god_questline.trial.TrialUpgradeManager;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.skill_listeners.*;
+import sir_draco.survivalskills.skill_listeners.ArmorListener.ArmorType;
 import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
@@ -173,10 +174,12 @@ public final class SurvivalSkills extends JavaPlugin {
         CraftingSkill craftingListener = new CraftingSkill(this);
         mainListener = new MainSkill(this);
         playerListener = new PlayerListener(this);
-        armorListener = new ArmorListener(this);
+        armorListener = new ArmorListener();
         TrophyListener trophyListener = new TrophyListener(this);
         TabCompleter tabCompleter = new TabCompleter(this);
         godListener = new GodListener();
+        SortWandListener sortWandListener = new SortWandListener(this);
+        FlightRespawnListener flightRespawnListener = new FlightRespawnListener(this);
 
         getServer().getPluginManager().registerEvents(buildingListener, this);
         getServer().getPluginManager().registerEvents(miningListener, this);
@@ -191,6 +194,8 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(tabCompleter, this);
         getServer().getPluginManager().registerEvents(armorListener, this);
         getServer().getPluginManager().registerEvents(godListener, this);
+        getServer().getPluginManager().registerEvents(sortWandListener, this);
+        getServer().getPluginManager().registerEvents(flightRespawnListener, this);
         getServer().getPluginManager().registerEvents(new TrialManager(), this);
         getServer().getPluginManager().registerEvents(new TrialUpgradeManager(), this);
         
@@ -254,7 +259,7 @@ public final class SurvivalSkills extends JavaPlugin {
         // Handle abilities
         FileUtils.loadPermaTrash(p, permaTrashData);
         getMiningListener().hideGlowForPlayer(p);
-        armorListener.playerWearingBeaconArmor(p, p.getInventory().getArmorContents());
+        armorListener.playerWearingArmor(p, p.getInventory().getArmorContents(), ArmorType.BEACON);
         abilityManager.loadFlight(p, data);
         abilityManager.loadSpelunker(p, data);
 

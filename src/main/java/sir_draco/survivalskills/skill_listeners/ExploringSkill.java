@@ -27,6 +27,7 @@ import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.skill_listeners.ArmorListener.ArmorType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -140,11 +141,11 @@ public class ExploringSkill implements Listener {
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
         if (e.getCause() != EntityDamageEvent.DamageCause.FALL)
             return;
-        if (ArmorListener.playersWearingAdventurerArmor.contains(p.getUniqueId())) {
+        if (ArmorListener.isWearingArmor(p.getUniqueId(), ArmorType.ADVENTURER)) {
             e.setCancelled(true);
             return;
         }
-        if (ArmorListener.playersWearingJumpingBoots.contains(p.getUniqueId())) {
+        if (ArmorListener.isWearingArmor(p.getUniqueId(), ArmorType.JUMPING_BOOTS)) {
             e.setCancelled(true);
             return;
         }
@@ -224,7 +225,7 @@ public class ExploringSkill implements Listener {
         if (speed == 0)
             return;
 
-        if (ArmorListener.playersWearingGillArmor.contains(p.getUniqueId())) {
+        if (ArmorListener.isWearingArmor(p.getUniqueId(), ArmorType.GILL)) {
             speed *= 0.6;
             Vector v = p.getLocation().getDirection();
             p.setVelocity(v.multiply(speed));

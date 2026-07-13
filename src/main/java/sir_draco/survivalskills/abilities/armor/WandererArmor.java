@@ -3,8 +3,7 @@ package sir_draco.survivalskills.abilities.armor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.skill_listeners.ArmorListener;
-
-import static sir_draco.survivalskills.skill_listeners.ArmorListener.playersWearingWandererArmor;
+import sir_draco.survivalskills.skill_listeners.ArmorListener.ArmorType;
 
 public class WandererArmor extends BukkitRunnable {
 
@@ -16,7 +15,7 @@ public class WandererArmor extends BukkitRunnable {
 
     @Override
     public void run() {
-        if (!playersWearingWandererArmor.contains(p.getUniqueId())) {
+        if (!ArmorListener.isWearingArmor(p.getUniqueId(), ArmorType.WANDERER)) {
             cancel();
             return;
         }
