@@ -8,6 +8,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import sir_draco.survivalskills.skills.SkillCategory;
@@ -16,8 +20,22 @@ import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 public class CraftingSkill implements Listener {
+
+    private static final int FURNACE_RESULT_SLOT = 2;
+    private static final int STONECUTTER_RESULT_SLOT = 1;
+    private static final Set<InventoryAction> RESULT_REMOVAL_ACTIONS = Set.of(
+            InventoryAction.PICKUP_ALL,
+            InventoryAction.PICKUP_SOME,
+            InventoryAction.PICKUP_HALF,
+            InventoryAction.PICKUP_ONE,
+            InventoryAction.MOVE_TO_OTHER_INVENTORY,
+            InventoryAction.HOTBAR_MOVE_AND_READD,
+            InventoryAction.HOTBAR_SWAP,
+            InventoryAction.DROP_ALL_SLOT,
+            InventoryAction.DROP_ONE_SLOT);
 
     private final SurvivalSkills plugin;
     private final ArrayList<Material> disallowedCraftingSkillMaterials = new ArrayList<>();
@@ -49,6 +67,52 @@ public class CraftingSkill implements Listener {
         SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getCraftingXP(), SkillCategory.CRAFTING);
         if (cannotGetResult(e.getCursor(), e.getRecipe().getResult(), e.getClick())) return;
         handleCraftingSkills(p, e.getClickedInventory().getContents(), 1, e.getRecipe().getResult());
+    }
+
+    @EventHandler (ignoreCancelled = true)
+    public void onProcessingResultTaken(InventoryClickEvent e) {
+        if (!(e.getWhoClicked() instanceof Player p) || !RESULT_REMOVAL_ACTIONS.contains(e.getAction())) return;
+
+        InventoryType inventoryType = e.getView().getTopInventory().getType();
+        if (e.getRawSlot() != resultSlot(inventoryType)) return;
+
+        ItemStack result = e.getCurrentItem();
+        if (result == null || result.getType().isAir()) return;
+
+        Inventory topInventory = e.getView().getTopInventory();
+        if (inventoryType == InventoryType.STONECUTTER && e.isShiftClick()) {
+            int initialInputAmount = itemAmount(topInventory.getItem(0));
+            int resultAmount = result.getAmount();
+            plugin.getServer().getScheduler().runTask(plugin,
+                    () -> awardStonecutterShiftClickXp(p, topInventory, initialInputAmount, resultAmount));
+            return;
+        }
+
+        awardCraftingXp(p, result.getAmount());
+    }
+
+    private void awardStonecutterShiftClickXp(Player player, Inventory stonecutter,
+                                              int initialInputAmount, int resultAmount) {
+        int craftedAmount = initialInputAmount - itemAmount(stonecutter.getItem(0));
+        awardCraftingXp(player, craftedAmount * resultAmount);
+    }
+
+    private void awardCraftingXp(Player player, int itemAmount) {
+        if (itemAmount <= 0) return;
+        SkillManager.experienceEvent(plugin, player,
+                plugin.getSkillManager().getCraftingXP() * itemAmount, SkillCategory.CRAFTING);
+    }
+
+    private int itemAmount(ItemStack item) {
+        return item == null || item.getType().isAir() ? 0 : item.getAmount();
+    }
+
+    private int resultSlot(InventoryType inventoryType) {
+        return switch (inventoryType) {
+            case STONECUTTER -> STONECUTTER_RESULT_SLOT;
+            case FURNACE, BLAST_FURNACE, SMOKER -> FURNACE_RESULT_SLOT;
+            default -> -1;
+        };
     }
 
     public boolean cannotGetResult(ItemStack cursor, ItemStack result, ClickType click) {
