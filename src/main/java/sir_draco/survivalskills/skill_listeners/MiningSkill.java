@@ -25,6 +25,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import sir_draco.survivalskills.abilities.SpelunkerAbilitySync;
@@ -42,6 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MiningSkill implements Listener {
 
     private final SurvivalSkills plugin;
+    private final NamespacedKey unlimitedTorchDataKey;
     // Use EnumSet for O(1) contains() and minimal memory footprint. They are
     // immutable after construction.
     private Set<Material> ores = EnumSet.noneOf(Material.class);
@@ -61,6 +64,7 @@ public class MiningSkill implements Listener {
 
     public MiningSkill(SurvivalSkills plugin, int blocksPerHunger) {
         this.plugin = plugin;
+        unlimitedTorchDataKey = new NamespacedKey(plugin, "unlimited_torches");
         this.blocksPerHunger = blocksPerHunger;
         setOres();
         setCommonOres();
@@ -93,6 +97,14 @@ public class MiningSkill implements Listener {
 
         // Handle veinminer
         veinminerChecker(p, e);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void preventUnlimitedTorchDrops(BlockBreakEvent e) {
+        Block block = e.getBlock();
+        if (!removeUnlimitedTorchData(block)) return;
+
+        e.setDropItems(false);
     }
 
     @EventHandler
@@ -151,6 +163,40 @@ public class MiningSkill implements Listener {
             desiredBlock.setBlockData(torch);
         }
         desiredBlock.getState().update(true);
+        markUnlimitedTorch(desiredBlock);
+    }
+
+    void markUnlimitedTorch(Block block) {
+        PersistentDataContainer data = block.getChunk().getPersistentDataContainer();
+        long blockPosition = encodeBlockPosition(block);
+        long[] positions = data.getOrDefault(unlimitedTorchDataKey, PersistentDataType.LONG_ARRAY, new long[0]);
+        if (Arrays.stream(positions).anyMatch((long position) -> position == blockPosition)) return;
+
+        long[] updatedPositions = Arrays.copyOf(positions, positions.length + 1);
+        updatedPositions[positions.length] = blockPosition;
+        data.set(unlimitedTorchDataKey, PersistentDataType.LONG_ARRAY, updatedPositions);
+    }
+
+    private boolean removeUnlimitedTorchData(Block block) {
+        PersistentDataContainer data = block.getChunk().getPersistentDataContainer();
+        long[] positions = data.get(unlimitedTorchDataKey, PersistentDataType.LONG_ARRAY);
+        if (positions == null) return false;
+
+        long blockPosition = encodeBlockPosition(block);
+        long[] remainingPositions = Arrays.stream(positions)
+                .filter((long position) -> position != blockPosition)
+                .toArray();
+        if (remainingPositions.length == positions.length) return false;
+
+        if (remainingPositions.length == 0) data.remove(unlimitedTorchDataKey);
+        else data.set(unlimitedTorchDataKey, PersistentDataType.LONG_ARRAY, remainingPositions);
+        return true;
+    }
+
+    private static long encodeBlockPosition(Block block) {
+        return ((long) (block.getX() & 0xF) << 36)
+                | ((long) (block.getZ() & 0xF) << 32)
+                | (block.getY() & 0xFFFFFFFFL);
     }
 
     @EventHandler
