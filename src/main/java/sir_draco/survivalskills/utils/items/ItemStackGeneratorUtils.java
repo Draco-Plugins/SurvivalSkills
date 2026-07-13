@@ -6,6 +6,8 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -29,6 +31,12 @@ public class ItemStackGeneratorUtils {
     private static int potionBagIdCounter = 0;
 
     // Helpers
+
+    public static ItemStack getItemInHand(Player player, EquipmentSlot hand) {
+        if (EquipmentSlot.OFF_HAND.equals(hand))
+            return player.getInventory().getItemInOffHand();
+        return player.getInventory().getItemInMainHand();
+    }
 
     public static ItemStack createLeatherArmorPiece(Material material, String name,
             List<String> lore, int modelData, Color color) {

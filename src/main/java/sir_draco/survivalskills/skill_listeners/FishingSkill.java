@@ -433,7 +433,7 @@ public class FishingSkill implements Listener {
 
     @EventHandler
     public void onBucketPickup(PlayerBucketFillEvent e) {
-        ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
+        ItemStack hand = ItemStackGeneratorUtils.getItemInHand(e.getPlayer(), e.getHand());
         if (!ItemStackGeneratorUtils.isCustomItem(hand, 30))
             return;
         Material type = e.getBlockClicked().getType();
@@ -446,7 +446,7 @@ public class FishingSkill implements Listener {
 
     @EventHandler
     public void onBucketUse(PlayerBucketEmptyEvent e) {
-        ItemStack hand = e.getPlayer().getInventory().getItemInMainHand();
+        ItemStack hand = ItemStackGeneratorUtils.getItemInHand(e.getPlayer(), e.getHand());
         if (!ItemStackGeneratorUtils.isCustomItem(hand))
             return;
 

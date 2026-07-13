@@ -285,7 +285,8 @@ public class FarmingSkill implements Listener {
     }
 
     public void handleUnlimitedBoneMeal(Player p, Block block, PlayerInteractEvent e) {
-        if (!ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), 10))
+        ItemStack item = e.getItem();
+        if (!ItemStackGeneratorUtils.isCustomItem(item, 10))
             return;
         e.setCancelled(true);
         if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.FARMING, "UnlimitedBoneMeal").isApplied()) {

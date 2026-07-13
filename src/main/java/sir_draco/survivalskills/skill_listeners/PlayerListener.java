@@ -67,9 +67,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void bucket(PlayerBucketEmptyEvent e) {
         Player p = e.getPlayer();
-        if (!e.getHand().equals(EquipmentSlot.HAND))
-            return;
-        ItemStack hand = p.getInventory().getItemInMainHand();
+        ItemStack hand = ItemStackGeneratorUtils.getItemInHand(p, e.getHand());
         ItemMeta meta = hand.getItemMeta();
         if (meta == null)
             return;

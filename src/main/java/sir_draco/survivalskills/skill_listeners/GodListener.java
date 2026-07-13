@@ -136,14 +136,14 @@ public class GodListener implements Listener {
     @EventHandler
     public void onUseGodItem(PlayerInteractEvent e) {
         Player p = e.getPlayer();
-        ItemStack mainHand = p.getInventory().getItemInMainHand();
-        if (!ItemStackGeneratorUtils.isCustomItem(mainHand))
+        ItemStack hand = e.getItem();
+        if (!ItemStackGeneratorUtils.isCustomItem(hand))
             return;
-        if (e.getHand() == null || !e.getHand().equals(EquipmentSlot.HAND))
+        if (e.getHand() == null)
             return;
         if (!e.getAction().equals(Action.RIGHT_CLICK_AIR) && !e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
             return;
-        ItemMeta meta = mainHand.getItemMeta();
+        ItemMeta meta = hand.getItemMeta();
         if (meta == null)
             return;
         if (ItemStackGeneratorUtils.hasCustomModelData(meta, 33)) {
@@ -160,7 +160,7 @@ public class GodListener implements Listener {
         } else if (ItemStackGeneratorUtils.hasCustomModelData(meta, 37)) {
             p.getWorld().createExplosion(p.getLocation(), 5, false, true, p);
         } else if (ItemStackGeneratorUtils.hasCustomModelData(meta, 38)) {
-            int id = getPotionBagID(mainHand);
+            int id = getPotionBagID(hand);
 
             if (potionBags.containsKey(id)) {
                 openPotionBags.add(potionBags.get(id));
