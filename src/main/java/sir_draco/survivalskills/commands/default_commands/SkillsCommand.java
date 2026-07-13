@@ -89,8 +89,9 @@ public class SkillsCommand implements CommandExecutor {
     }
 
     private void handleStats(Player p) {
+        int maxSkillLevel = plugin.getTrophyManager().playerMaxSkillLevel(p.getUniqueId());
         for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId()).getSkills())
-            SkillDisplay.printStats(p, skill, true);
+            SkillDisplay.printStats(p, skill, true, maxSkillLevel);
     }
 
     private void handleTree(Player p, String[] strings) {

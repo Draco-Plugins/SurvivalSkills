@@ -10,6 +10,10 @@ public final class SkillDisplay {
     private SkillDisplay() {}
 
     public static void printStats(Player p, Skill skill, boolean isPlayer) {
+        printStats(p, skill, isPlayer, Skill.MAX_LEVEL);
+    }
+
+    public static void printStats(Player p, Skill skill, boolean isPlayer, int maxLevel) {
         p.sendRawMessage(ChatColor.AQUA.toString() + ChatColor.BOLD + skill.getSkillCategory() + ChatColor.WHITE + ":");
         p.sendRawMessage(ChatColor.WHITE + "Level: " + ChatColor.GREEN + skill.getLevel());
         if (!isPlayer) {
@@ -23,6 +27,9 @@ public final class SkillDisplay {
         String xp = ChatColor.YELLOW.toString() + soFar + ChatColor.WHITE + "/" + ChatColor.YELLOW + total;
         if (skill.getLevel() == Skill.MAX_LEVEL) {
             p.sendRawMessage(ChatColor.WHITE + "Experience: " + ChatColor.YELLOW + "MAX");
+        } else if (skill.getLevel() >= maxLevel) {
+            p.sendRawMessage(ChatColor.WHITE + "Experience: " + ChatColor.LIGHT_PURPLE
+                    + "You have hit your level cap!");
         } else if (soFar == 0) {
             p.sendRawMessage(ChatColor.WHITE + "Experience: " + ChatColor.LIGHT_PURPLE
                     + "Interact with this skill first!");

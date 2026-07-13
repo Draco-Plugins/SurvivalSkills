@@ -42,6 +42,17 @@ class SkillDisplayTest {
     }
 
     @Test
+    void printStatsShowsLevelCapForTrophyCap() {
+        Player player = mock(Player.class);
+        Skill skill = skill(SkillCategory.MINING, 30, 0, 100);
+
+        SkillDisplay.printStats(player, skill, true, 30);
+
+        verify(player).sendRawMessage(ChatColor.WHITE + "Experience: " + ChatColor.LIGHT_PURPLE
+                + "You have hit your level cap!");
+    }
+
+    @Test
     void printStatsShowsInteractionPromptAtStartOfLevel() {
         Player player = mock(Player.class);
         Skill skill = skill(SkillCategory.FARMING, 10, 0, 100);
