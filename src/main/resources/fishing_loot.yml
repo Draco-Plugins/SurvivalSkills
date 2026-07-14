@@ -1,0 +1,153 @@
+# Fishing skill loot tables
+#
+# Materials are listed by their Bukkit Material enum name. Duplicate entries
+# increase the drop probability (weighting); the random draw picks a single
+# index from the list, so more copies means a more frequent drop.
+#
+# Enchantments use their namespaced key (e.g. "minecraft:power") mapped to the
+# maximum drop level. Server admins may tune these values without recompiling;
+# the file is created from these defaults on first load.
+#
+# The exotic table lists identifiers handled in code (custom items that cannot
+# be expressed as plain materials); admins may remove entries to disable drops.
+
+common:
+  - BAMBOO
+  - BONE
+  - BOOK
+  - BOWL
+  - COAL
+  - COD
+  - INK_SAC
+  - LEATHER
+  - PUFFERFISH
+  - ROTTEN_FLESH
+  - SALMON
+  - STICK
+  - STRING
+  - TROPICAL_FISH
+  - GLASS_BOTTLE
+  - DIRT
+
+rare:
+  - ENCHANTED_BOOK
+  - ENCHANTED_BOOK
+  - ENDER_PEARL
+  - EXPERIENCE_BOTTLE
+  - GOLD_INGOT
+  - IRON_INGOT
+  - LAPIS_LAZULI
+  - LEATHER_HORSE_ARMOR
+  - LILY_PAD
+  - NAME_TAG
+  - REDSTONE
+  - SADDLE
+  - SLIME_BALL
+  - TNT
+
+rare_enchantments:
+  "minecraft:power": 2
+  "minecraft:punch": 1
+  "minecraft:sharpness": 2
+  "minecraft:bane_of_arthropods": 2
+  "minecraft:smite": 2
+  "minecraft:depth_strider": 1
+  "minecraft:efficiency": 2
+  "minecraft:unbreaking": 1
+  "minecraft:frost_walker": 1
+  "minecraft:impaling": 2
+  "minecraft:knockback": 1
+  "minecraft:luck_of_the_sea": 1
+  "minecraft:lure": 1
+  "minecraft:respiration": 1
+  "minecraft:piercing": 1
+  "minecraft:protection": 2
+  "minecraft:blast_protection": 2
+  "minecraft:feather_falling": 2
+  "minecraft:fire_protection": 2
+  "minecraft:projectile_protection": 2
+  "minecraft:quick_charge": 1
+  "minecraft:riptide": 1
+  "minecraft:soul_speed": 1
+  "minecraft:sweeping_edge": 1
+
+epic:
+  - DIAMOND
+  - EMERALD
+  - ENCHANTED_BOOK
+  - ENCHANTED_BOOK
+  - EXPERIENCE_BOTTLE
+  - GHAST_TEAR
+  - GLOWSTONE_DUST
+  - GOLDEN_APPLE
+  - GOLDEN_HORSE_ARMOR
+  - GUNPOWDER
+  - HEART_OF_THE_SEA
+  - IRON_HORSE_ARMOR
+  - NAUTILUS_SHELL
+  - QUARTZ
+  - EXPERIENCE_BOTTLE
+
+epic_enchantments:
+  "minecraft:power": 5
+  "minecraft:flame": 1
+  "minecraft:punch": 2
+  "minecraft:channeling": 1
+  "minecraft:sharpness": 4
+  "minecraft:bane_of_arthropods": 5
+  "minecraft:smite": 5
+  "minecraft:depth_strider": 3
+  "minecraft:efficiency": 5
+  "minecraft:unbreaking": 3
+  "minecraft:fire_aspect": 2
+  "minecraft:frost_walker": 2
+  "minecraft:impaling": 5
+  "minecraft:knockback": 2
+  "minecraft:fortune": 3
+  "minecraft:looting": 3
+  "minecraft:loyalty": 3
+  "minecraft:luck_of_the_sea": 3
+  "minecraft:lure": 3
+  "minecraft:multishot": 1
+  "minecraft:respiration": 3
+  "minecraft:piercing": 4
+  "minecraft:protection": 4
+  "minecraft:blast_protection": 4
+  "minecraft:feather_falling": 4
+  "minecraft:fire_protection": 4
+  "minecraft:projectile_protection": 4
+  "minecraft:quick_charge": 3
+  "minecraft:riptide": 3
+  "minecraft:silk_touch": 1
+  "minecraft:soul_speed": 3
+  "minecraft:sweeping_edge": 3
+  "minecraft:swift_sneak": 3
+  "minecraft:thorns": 3
+  "minecraft:aqua_affinity": 1
+
+legendary:
+  - BEACON
+  - DIAMOND_HORSE_ARMOR
+  - DRAGON_BREATH
+  - SHULKER_SHELL
+  - ENCHANTED_BOOK
+  - ENCHANTED_GOLDEN_APPLE
+  - NETHERITE_INGOT
+  - TOTEM_OF_UNDYING
+  - TRIDENT
+  - EXPERIENCE_BOTTLE
+  - ELYTRA
+
+legendary_enchantments:
+  "minecraft:power": 5
+  "minecraft:infinity": 1
+  "minecraft:sharpness": 5
+  "minecraft:mending": 1
+
+exotic:
+  - WEATHER_ARTIFACT
+  - TIME_ARTIFACT
+  - UNLIMITED_WATER_BUCKET
+  - UNLIMITED_LAVA_BUCKET
+  - UNLIMITED_EMPTY_BUCKET
+  - UNLIMITED_ROCKET

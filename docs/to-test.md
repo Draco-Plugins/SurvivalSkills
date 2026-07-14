@@ -1,12 +1,14 @@
 GodTrialCommand -> Trials
-XP + Level System
-Armor Sets
+Beacon Armor
 Sort Wand
-Test blocks back and output doubling
+Test blocks back and output doubling for crafting
 Test exploring skill XP (same block)
 Cave finder
 Magnet
 Test swim speed
 Mob XP
 Berserker Ability
-Boss Fight Kills -> Try to spawn 2 bosses from the same itemstack
+Boss Fight Kills -> Try to spawn 2 bosses from the same itemstack\
+Fishing
+Auto Trash
+Artifacts
