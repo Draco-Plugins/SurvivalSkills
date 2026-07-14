@@ -1,0 +1,143 @@
+package sir_draco.survivalskills.skill_listeners.god;
+
+import org.bukkit.Location;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.ZombieVillager;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import sir_draco.survivalskills.skill_listeners.god.items.GodItemAction;
+import sir_draco.survivalskills.skill_listeners.god.items.GodItemActions;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
+
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Dispatches right-click activation of god items to per-item
+ * {@link GodItemAction} strategies, and hosts the adjacent god-item event
+ * handlers (revive zombie, explosion immunity, power laser cooldowns).
+ */
+public class GodItemUseHandler implements Listener {
+
+    // Custom model data identifiers
+    private static final int MODEL_WEB_SHOOTER = 33;
+    private static final int MODEL_VILLAGER_REVIVAL = 35;
+    private static final int MODEL_ENDER_ESSENCE = 36;
+    private static final int MODEL_DRAGON_BREATH_CANNON = 37;
+    private static final int MODEL_POTION_BAG = 38;
+    private static final int MODEL_WIND_CHARGE = 39;
+    private static final int MODEL_DRAGON_FIREBALL = 40;
+    private static final int MODEL_WITHER_ROSE = 41;
+    private static final int MODEL_TRIDENT_LAUNCHER = 43;
+    private static final int MODEL_SPONGE = 46;
+    private static final int MODEL_POWER_SWORD = 47;
+    private static final int MODEL_POWER_LASER = 50;
+
+    // Villager revival
+    private static final int CONVERSION_TIME_TICKS = 40;
+    private static final int CURE_PARTICLE_COUNT = 30;
+
+    private final Map<Integer, GodItemAction> itemActions = new LinkedHashMap<>();
+    private final Set<Player> powerLaserCooldowns = new HashSet<>();
+
+    public GodItemUseHandler(PotionBagListener potionBagListener) {
+        register(MODEL_WEB_SHOOTER, new GodItemActions.WebShooterItemAction());
+        register(MODEL_ENDER_ESSENCE, new GodItemActions.EnderEssenceItemAction());
+        register(MODEL_DRAGON_BREATH_CANNON, new GodItemActions.DragonBreathCannonItemAction());
+        register(MODEL_POTION_BAG, new GodItemActions.PotionBagItemAction(potionBagListener));
+        register(MODEL_WIND_CHARGE, new GodItemActions.WindChargeItemAction());
+        register(MODEL_DRAGON_FIREBALL, new GodItemActions.DragonFireballItemAction());
+        register(MODEL_WITHER_ROSE, new GodItemActions.WitherRoseItemAction());
+        register(MODEL_TRIDENT_LAUNCHER, new GodItemActions.TridentLauncherItemAction());
+        register(MODEL_SPONGE, new GodItemActions.SpongeItemAction());
+        register(MODEL_POWER_SWORD, new GodItemActions.PowerSwordItemAction());
+        register(MODEL_POWER_LASER, new GodItemActions.PowerLaserItemAction(this));
+    }
+
+    private void register(int modelData, GodItemAction action) {
+        itemActions.put(modelData, action);
+    }
+
+    @EventHandler
+    public void onUseGodItem(PlayerInteractEvent e) {
+        Player p = e.getPlayer();
+        ItemStack hand = e.getItem();
+        if (!ItemStackGeneratorUtils.isCustomItem(hand))
+            return;
+        if (e.getHand() == null)
+            return;
+        if (!isRightClick(e.getAction()))
+            return;
+        ItemMeta meta = hand.getItemMeta();
+        if (meta == null)
+            return;
+
+        for (Map.Entry<Integer, GodItemAction> entry : itemActions.entrySet()) {
+            if (ItemStackGeneratorUtils.hasCustomModelData(meta, entry.getKey())) {
+                entry.getValue().execute(p, hand, meta, e);
+                return;
+            }
+        }
+    }
+
+    private static boolean isRightClick(Action action) {
+        return Action.RIGHT_CLICK_AIR.equals(action) || Action.RIGHT_CLICK_BLOCK.equals(action);
+    }
+
+    @EventHandler
+    public void reviveZombie(PlayerInteractEntityEvent e) {
+        if (!org.bukkit.inventory.EquipmentSlot.HAND.equals(e.getHand()))
+            return;
+        if (!org.bukkit.entity.EntityType.ZOMBIE_VILLAGER.equals(e.getRightClicked().getType()))
+            return;
+        Player p = e.getPlayer();
+        ItemStack mainHand = p.getInventory().getItemInMainHand();
+        if (!ItemStackGeneratorUtils.isCustomItem(mainHand, MODEL_VILLAGER_REVIVAL))
+            return;
+
+        ZombieVillager zombie = (ZombieVillager) e.getRightClicked();
+        zombie.setConversionTime(CONVERSION_TIME_TICKS);
+        Location loc = e.getRightClicked().getLocation();
+        if (loc.getWorld() == null)
+            return;
+        p.getWorld().playSound(p.getLocation(), Sound.ENTITY_ZOMBIE_VILLAGER_CURE, 1, 1);
+        loc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, loc, CURE_PARTICLE_COUNT,
+                Math.random(), Math.random(), Math.random());
+    }
+
+    @EventHandler
+    public void handleGodDamage(EntityDamageEvent e) {
+        if (!(e.getEntity() instanceof Player p))
+            return;
+        if (!ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), MODEL_DRAGON_BREATH_CANNON))
+            return;
+        if (!EntityDamageEvent.DamageCause.BLOCK_EXPLOSION.equals(e.getCause())
+                && !EntityDamageEvent.DamageCause.ENTITY_EXPLOSION.equals(e.getCause()))
+            return;
+        e.setCancelled(true);
+    }
+
+    // --- Power laser cooldown management (targeted access for PowerLaser) ---
+
+    public boolean isOnPowerLaserCooldown(Player player) {
+        return powerLaserCooldowns.contains(player);
+    }
+
+    public void addPowerLaserCooldown(Player player) {
+        powerLaserCooldowns.add(player);
+    }
+
+    public void removePowerLaserCooldown(Player player) {
+        powerLaserCooldowns.remove(player);
+    }
+}

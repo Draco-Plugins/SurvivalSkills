@@ -6,20 +6,20 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.*;
 import org.bukkit.scheduler.BukkitRunnable;
-import sir_draco.survivalskills.skill_listeners.GodListener;
+import sir_draco.survivalskills.skill_listeners.god.GodItemUseHandler;
 
 public class PowerLaser extends BukkitRunnable {
 
     private final Player p;
-    private final GodListener listener;
+    private final GodItemUseHandler handler;
     private final Location startLocation;
     private final Location endLocation;
 
     private int time = 0;
 
-    public PowerLaser(Player p, GodListener listener) {
+    public PowerLaser(Player p, GodItemUseHandler handler) {
         this.p = p;
-        this.listener = listener;
+        this.handler = handler;
         startLocation = p.getEyeLocation();
         endLocation = getEndLocation();
     }
@@ -28,7 +28,7 @@ public class PowerLaser extends BukkitRunnable {
     public void run() {
         if (time == 40) {
             cancel();
-            listener.getPowerLaserCooldowns().remove(p);
+            handler.removePowerLaserCooldown(p);
             return;
         }
 

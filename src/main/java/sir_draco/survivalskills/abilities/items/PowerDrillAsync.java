@@ -10,21 +10,22 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-import sir_draco.survivalskills.skill_listeners.GodListener;
+import sir_draco.survivalskills.skill_listeners.god.PowerOreChallengeListener;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class PowerDrillAsync extends BukkitRunnable {
 
     private final SurvivalSkills plugin;
     private final Player p;
-    private final GodListener listener;
+    private final PowerOreChallengeListener listener;
     private final Block block;
     private final Vector direction;
 
-    public PowerDrillAsync(SurvivalSkills plugin, Player p, GodListener listener, Block block) {
+    public PowerDrillAsync(SurvivalSkills plugin, Player p, PowerOreChallengeListener listener, Block block) {
         this.plugin = plugin;
         this.p = p;
         this.listener = listener;
@@ -35,8 +36,8 @@ public class PowerDrillAsync extends BukkitRunnable {
     @Override
     public void run() {
         ArrayList<Block> blocks = getBlocks(block);
-        ArrayList<Block> eventBlockTrackingList = new ArrayList<>(blocks);
-        listener.getDrillTracker().put(p, eventBlockTrackingList);
+        List<Block> eventBlockTrackingList = new ArrayList<>(blocks);
+        listener.registerDrillBlocks(p, eventBlockTrackingList);
         ItemStack pickaxe = p.getInventory().getItemInMainHand();
 
         // Break all the blocks around a block in the list 1 tick at a time (sync)

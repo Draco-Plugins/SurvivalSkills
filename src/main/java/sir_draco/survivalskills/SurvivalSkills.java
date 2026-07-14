@@ -193,7 +193,7 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(trophyListener, this);
         getServer().getPluginManager().registerEvents(tabCompleter, this);
         getServer().getPluginManager().registerEvents(armorListener, this);
-        getServer().getPluginManager().registerEvents(godListener, this);
+        godListener.register(this);
         getServer().getPluginManager().registerEvents(sortWandListener, this);
         getServer().getPluginManager().registerEvents(flightRespawnListener, this);
         getServer().getPluginManager().registerEvents(new TrialManager(), this);

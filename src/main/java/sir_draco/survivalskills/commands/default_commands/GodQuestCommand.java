@@ -46,7 +46,7 @@ public class GodQuestCommand implements CommandExecutor {
         }
 
         GodRecipeUI ui = new GodRecipeUI(getRecipeList(stage.get()));
-        plugin.getGodListener().getOpenGodRecipeUI().put(p, ui);
+        plugin.getGodListener().registerGodRecipeUI(p, ui);
         ui.open(p);
         return true;
     }

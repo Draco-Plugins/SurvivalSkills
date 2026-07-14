@@ -90,7 +90,7 @@ public class ResetAllCommand implements CommandExecutor {
             grave.getValue().removeGrave(false);
         }
         plugin.getMainListener().getGraves().clear();
-        plugin.getGodListener().getPotionBags().clear();
+        plugin.getGodListener().clearPotionBags();
         plugin.getFishingListener().getPermaTrash().clear();
     }
 }
