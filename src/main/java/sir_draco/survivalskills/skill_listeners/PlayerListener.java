@@ -69,42 +69,35 @@ public class PlayerListener implements Listener {
         Player p = e.getPlayer();
         ItemStack hand = ItemStackGeneratorUtils.getItemInHand(p, e.getHand());
         ItemMeta meta = hand.getItemMeta();
-        if (meta == null)
-            return;
+        if (meta == null) return;
         if (ItemStackGeneratorUtils.hasCustomModelData(meta, 17)) {
             e.setCancelled(true);
 
             // Spawn a tropical fish
             Location loc = e.getBlock().getLocation().clone().add(0.5, 1, 0.5);
             World world = loc.getWorld();
-            if (world == null)
-                return;
+            if (world == null) return;
             world.spawnEntity(loc, EntityType.TROPICAL_FISH);
         }
     }
 
-    @SuppressWarnings("SpellCheckingInspection")
     @EventHandler
     public void playerDamageEvent(EntityDamageByEntityEvent e) {
-        if (e.getDamager() instanceof Firework fw)
-            if (fw.hasMetadata("nodamage"))
-                e.setCancelled(true);
+        if (!(e.getDamager() instanceof Firework fw)) return;
+        if (!fw.hasMetadata("nodamage")) return;
+        e.setCancelled(true);
     }
 
     @EventHandler
     public void playerCraftEvent(CraftItemEvent e) {
-        if (e.getClickedInventory() == null)
-            return;
+        if (e.getClickedInventory() == null) return;
         ItemStack result = e.getRecipe().getResult();
-        if (!ItemStackGeneratorUtils.isCustomItem(result))
-            return;
+        if (!ItemStackGeneratorUtils.isCustomItem(result)) return;
         ItemMeta meta = result.getItemMeta();
-        if (meta == null)
-            return;
+        if (meta == null) return;
 
         Player p = (Player) e.getWhoClicked();
-        if (!meta.hasCustomModelDataComponent())
-            return;
+        if (!meta.hasCustomModelDataComponent()) return;
         CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
         int modelData = customModelData.getFloats().stream()
                 .filter(modelDataValue -> modelDataValue == Math.round(modelDataValue))
@@ -341,34 +334,26 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void inventoryClickEvent(InventoryClickEvent e) {
-        if (e.getClickedInventory() == null)
-            return;
-        if (e.getCurrentItem() == null)
-            return;
+        if (e.getClickedInventory() == null) return;
+        if (e.getCurrentItem() == null) return;
         Player p = (Player) e.getWhoClicked();
-        if (!customInventories.containsKey(p))
-            return;
+        if (!customInventories.containsKey(p)) return;
 
         e.setCancelled(true);
         ItemStack arrow = e.getCurrentItem();
         ItemMeta meta = arrow.getItemMeta();
-        if (!arrow.getType().equals(Material.ARROW))
-            return;
-        if (meta == null)
-            return;
-        if (meta.getDisplayName().equalsIgnoreCase("arrow"))
-            return;
+        if (!arrow.getType().equals(Material.ARROW)) return;
+        if (meta == null) return;
+        if (meta.getDisplayName().equalsIgnoreCase("arrow")) return;
 
         int currentInv = 0;
         for (int i = 0; i < customInventories.get(p).size(); i++) {
-            if (!customInventories.get(p).get(i).equals(e.getClickedInventory()))
-                continue;
+            if (!customInventories.get(p).get(i).equals(e.getClickedInventory())) continue;
             currentInv = i;
             break;
         }
         if (ItemStackGeneratorUtils.hasCustomModelData(meta)) {
-            if (currentInv + 1 >= customInventories.get(p).size())
-                currentInv = -1;
+            if (currentInv + 1 >= customInventories.get(p).size()) currentInv = -1;
             Inventory inv = customInventories.get(p).get(currentInv + 1);
             openInventory.put(p, inv);
             p.openInventory(inv);
@@ -384,29 +369,23 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void inventoryDragEvent(InventoryDragEvent e) {
         Player p = (Player) e.getWhoClicked();
-        if (!customInventories.containsKey(p))
-            return;
+        if (!customInventories.containsKey(p)) return;
 
         e.setCancelled(true);
         ItemStack arrow = e.getOldCursor();
         ItemMeta meta = arrow.getItemMeta();
-        if (!arrow.getType().equals(Material.ARROW))
-            return;
-        if (meta == null)
-            return;
-        if (meta.getDisplayName().equalsIgnoreCase("arrow"))
-            return;
+        if (!arrow.getType().equals(Material.ARROW)) return;
+        if (meta == null) return;
+        if (meta.getDisplayName().equalsIgnoreCase("arrow")) return;
 
         int currentInv = 0;
         for (int i = 0; i < customInventories.get(p).size(); i++) {
-            if (!customInventories.get(p).get(i).equals(e.getInventory()))
-                continue;
+            if (!customInventories.get(p).get(i).equals(e.getInventory())) continue;
             currentInv = i;
             break;
         }
         if (ItemStackGeneratorUtils.hasCustomModelData(meta)) {
-            if (currentInv + 1 >= customInventories.get(p).size())
-                currentInv = -1;
+            if (currentInv + 1 >= customInventories.get(p).size()) currentInv = -1;
             Inventory inv = customInventories.get(p).get(currentInv + 1);
             openInventory.put(p, inv);
             p.openInventory(inv);
@@ -422,8 +401,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void inventoryCloseEvent(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
-        if (openInventory.containsKey(p) && !openInventory.get(p).equals(e.getInventory()))
-            return;
+        if (openInventory.containsKey(p) && !openInventory.get(p).equals(e.getInventory())) return;
         customInventories.remove(p);
         openInventory.remove(p);
     }
@@ -481,16 +459,12 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void useXPVoucher(PlayerInteractEvent e) {
-        if (e.getHand() == null)
-            return;
-        if (e.getHand().equals(EquipmentSlot.OFF_HAND))
-            return;
-        if (e.getAction().equals(Action.RIGHT_CLICK_BLOCK) || e.getAction().equals(Action.RIGHT_CLICK_AIR))
-            return;
+        if (e.getHand() == null) return;
+        if (e.getHand().equals(EquipmentSlot.OFF_HAND)) return;
+        if (e.getAction().equals(Action.RIGHT_CLICK_BLOCK) || e.getAction().equals(Action.RIGHT_CLICK_AIR)) return;
         Player p = e.getPlayer();
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if (!ItemStackGeneratorUtils.isCustomItem(hand, 26))
-            return;
+        if (!ItemStackGeneratorUtils.isCustomItem(hand, 26)) return;
 
         AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "XPVoucher");
         if (timer != null) {
@@ -517,8 +491,7 @@ public class PlayerListener implements Listener {
         Player p = e.getPlayer();
 
         ItemStack item = e.getItem();
-        if (!ItemStackGeneratorUtils.isCustomItem(item, 31))
-            return;
+        if (!ItemStackGeneratorUtils.isCustomItem(item, 31)) return;
         e.setCancelled(true);
         // Apply the speed boost to the player
         p.setVelocity(p.getLocation().getDirection().multiply(1.5));

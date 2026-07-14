@@ -1,0 +1,40 @@
+# Fighting skill mob XP multipliers
+# Each entry maps an EntityType name to a multiplier applied to the base FightingXP.
+# Server admins may tune these values; the file is created from defaults on first load.
+MobXP:
+    BEE: 0.5
+    BLAZE: 1.5
+    CAVE_SPIDER: 1.0
+    CREEPER: 1.0
+    DROWNED: 1.0
+    ELDER_GUARDIAN: 100.0
+    ENDERMAN: 2.0
+    ENDERMITE: 0.5
+    EVOKER: 2.5
+    GHAST: 2.5
+    HOGLIN: 1.5
+    HUSK: 1.0
+    IRON_GOLEM: 2.0
+    MAGMA_CUBE: 0.25
+    PHANTOM: 1.5
+    PIGLIN: 1.0
+    PIGLIN_BRUTE: 1.5
+    PILLAGER: 1.5
+    POLAR_BEAR: 1.5
+    RAVAGER: 2.5
+    SHULKER: 1.5
+    SILVERFISH: 0.5
+    SKELETON: 2.0
+    SLIME: 0.25
+    SPIDER: 1.0
+    STRAY: 1.5
+    VEX: 1.5
+    VINDICATOR: 1.5
+    WARDEN: 250.0
+    WITCH: 1.5
+    WITHER: 750.0
+    WITHER_SKELETON: 1.5
+    ZOGLIN: 1.5
+    ZOMBIE: 1.0
+    ZOMBIE_VILLAGER: 1.0
+    ZOMBIFIED_PIGLIN: 1.0

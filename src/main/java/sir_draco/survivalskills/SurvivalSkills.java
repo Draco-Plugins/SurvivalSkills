@@ -223,7 +223,6 @@ public final class SurvivalSkills extends JavaPlugin {
             trailTracker.remove(p);
         }
         fightingListener.getNoPhantomSpawns().remove(p);
-        fightingListener.getActiveBerserkers().remove(p);
 
         if (!TrialManager.getTrials().isEmpty())
             for (Trial trial : TrialManager.getTrials())

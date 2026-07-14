@@ -12,6 +12,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class HarvesterAsync extends BukkitRunnable {
 
@@ -34,7 +35,7 @@ public class HarvesterAsync extends BukkitRunnable {
 
         // Add the blocks to the harvestedBlocks list using a duplicate list of the
         // blocks
-        plugin.getFarmingListener().getHarvestedBlocks().put(p, new ArrayList<>(blocks));
+        plugin.getFarmingListener().getHarvestedBlocks().put(p, new HashSet<>(blocks));
 
         // Split the blocks list into multiple lists of 50 blocks
         ArrayList<ArrayList<Block>> blocksSplit = new ArrayList<>();

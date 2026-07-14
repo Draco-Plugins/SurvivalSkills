@@ -78,10 +78,8 @@ public class MiningSkill implements Listener {
     public void onBlockBreak(BlockBreakEvent e) {
         Player p = e.getPlayer();
 
-        if (plugin.getFarmingList().contains(e.getBlock().getType()))
-            return;
-        if (e.getBlock().getType().toString().contains("LOG"))
-            return;
+        if (plugin.getFarmingList().contains(e.getBlock().getType())) return;
+        if (e.getBlock().getType().toString().contains("LOG")) return;
 
         // Handle Glowing Blocks
         removeGlow(e.getBlock());
@@ -112,8 +110,7 @@ public class MiningSkill implements Listener {
         Player p = e.getPlayer();
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
 
-        if (rewards == null && plugin.isCitizensEnabled())
-            return;
+        if (rewards == null && plugin.isCitizensEnabled()) return;
         else if (rewards == null) {
             Bukkit.getLogger().warning("Player " + p.getName() + " does not have a PlayerRewards object");
             return;
@@ -201,18 +198,13 @@ public class MiningSkill implements Listener {
 
     @EventHandler
     public void useZapWand(PlayerInteractEvent e) {
-        if (e.getHand() == null)
-            return;
-        if (e.getHand().equals(EquipmentSlot.OFF_HAND))
-            return;
-        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK))
-            return;
-        if (e.getClickedBlock() == null)
-            return;
+        if (e.getHand() == null) return;
+        if (e.getHand().equals(EquipmentSlot.OFF_HAND)) return;
+        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+        if (e.getClickedBlock() == null) return;
         Player p = e.getPlayer();
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if (!ItemStackGeneratorUtils.isCustomItem(hand, 27))
-            return;
+        if (!ItemStackGeneratorUtils.isCustomItem(hand, 27)) return;
         if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "ZapWand").isApplied()) {
             e.setCancelled(true);
             p.sendRawMessage(ChatColor.RED + "Zap Wand unlocks at mining level " + ChatColor.AQUA +
@@ -230,18 +222,15 @@ public class MiningSkill implements Listener {
     @EventHandler
     public void toolDamage(PlayerItemDamageEvent e) {
         Player p = e.getPlayer();
-        if (!plugin.getSkillManager().getPlayerRewards(p).isUnbreakableTools())
-            return;
+        if (!plugin.getSkillManager().getPlayerRewards(p).isUnbreakableTools()) return;
         e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void playerHurt(EntityDamageEvent e) {
-        if (!(e.getEntity() instanceof Player p))
-            return;
+        if (!(e.getEntity() instanceof Player p)) return;
         double reductionPercentage = plugin.getSkillManager().getPlayerRewards(p).getProtectionPercentage();
-        if (reductionPercentage == 0)
-            return;
+        if (reductionPercentage == 0) return;
         double newDamage = e.getDamage() * (1 - reductionPercentage);
         e.setDamage(newDamage);
     }
@@ -249,8 +238,7 @@ public class MiningSkill implements Listener {
     @EventHandler
     public void playerMove(PlayerMoveEvent e) {
         // Make sure they are wearing the armor
-        if (!isMiningArmor(e.getPlayer().getInventory()))
-            return;
+        if (!isMiningArmor(e.getPlayer().getInventory())) return;
 
         // Add the potion effects
         e.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 100, 1, false, false));
@@ -265,15 +253,11 @@ public class MiningSkill implements Listener {
 
     @EventHandler
     public void onMobSpawn(EntitySpawnEvent e) {
-        if (e.getLocation().getBlockY() >= 64)
-            return;
-        if (!peacefulMobList.contains(e.getEntityType()))
-            return;
+        if (e.getLocation().getBlockY() >= 64) return;
+        if (!peacefulMobList.contains(e.getEntityType())) return;
         for (Player p : peacefulMiners) {
-            if (!p.getWorld().getEnvironment().equals(e.getEntity().getWorld().getEnvironment()))
-                continue;
-            if (p.getLocation().distance(e.getEntity().getLocation()) > 150)
-                continue;
+            if (!p.getWorld().getEnvironment().equals(e.getEntity().getWorld().getEnvironment())) continue;
+            if (p.getLocation().distance(e.getEntity().getLocation()) > 150) continue;
             e.setCancelled(true);
             e.getEntity().remove();
             return;
@@ -282,40 +266,33 @@ public class MiningSkill implements Listener {
 
     @EventHandler
     public void onToolBeltClick(InventoryClickEvent e) {
-        if (e.getClickedInventory() == null)
-            return;
+        if (e.getClickedInventory() == null) return;
         Player p = (Player) e.getWhoClicked();
         Inventory inv = e.getClickedInventory();
         Inventory top = e.getView().getTopInventory();
-        if (!toolBelts.containsKey(p))
-            return;
+        if (!toolBelts.containsKey(p)) return;
         Inventory toolBelt = toolBelts.get(p);
-        if (!toolBelt.equals(inv) && !toolBelt.equals(top))
-            return;
+        if (!toolBelt.equals(inv) && !toolBelt.equals(top)) return;
         // Prevent hotbar swaps
         if (e.getAction().equals(InventoryAction.HOTBAR_SWAP)
                 || e.getAction().equals(InventoryAction.HOTBAR_MOVE_AND_READD)) {
             e.setCancelled(true);
             return;
         }
-        if (e.getCurrentItem() == null)
-            return;
+        if (e.getCurrentItem() == null) return;
 
         // Check if the clicked item is a tool
-        if (!inv.equals(top)) {
-            if (!acceptableTools.contains(e.getCurrentItem().getType())) {
-                p.sendRawMessage(ChatColor.RED + "You can only put tools in the tool belt");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                e.setCancelled(true);
-            }
-        }
+        if (inv.equals(top)) return;
+        if (acceptableTools.contains(e.getCurrentItem().getType())) return;
+        p.sendRawMessage(ChatColor.RED + "You can only put tools in the tool belt");
+        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+        e.setCancelled(true);
     }
 
     @EventHandler
     public void onToolBeltDrag(InventoryDragEvent e) {
         Inventory inv = e.getInventory();
-        if (!toolBelts.containsValue(inv))
-            return;
+        if (!toolBelts.containsValue(inv)) return;
         Player p = (Player) e.getWhoClicked();
 
         // Check if the clicked item is a tool
@@ -326,19 +303,17 @@ public class MiningSkill implements Listener {
         }
 
         for (ItemStack item : e.getNewItems().values()) {
-            if (!acceptableTools.contains(item.getType())) {
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                e.setCancelled(true);
-                return;
-            }
+            if (acceptableTools.contains(item.getType())) continue;
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            e.setCancelled(true);
+            return;
         }
     }
 
     @EventHandler
     public void onToolBeltClose(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
-        if (!toolBelts.containsKey(p))
-            return;
+        if (!toolBelts.containsKey(p)) return;
 
         // Save the changes to the tool belt
         plugin.getAbilityManager().saveToolBelt(p, toolBelts.get(p));
@@ -359,36 +334,28 @@ public class MiningSkill implements Listener {
     }
 
     public String getOreTeam(Material mat) {
-        if (commonOres.contains(mat))
-            return "common";
-        else if (uncommonOres.contains(mat))
-            return ChatColor.GREEN + "uncommon";
-        else if (rareOres.contains(mat))
-            return ChatColor.BLUE + "rare";
-        else
-            return "none";
+        if (commonOres.contains(mat)) return "common";
+        else if (uncommonOres.contains(mat)) return ChatColor.GREEN + "uncommon";
+        else if (rareOres.contains(mat)) return ChatColor.BLUE + "rare";
+        else return "none";
     }
 
     public void endSpelunkerAll() {
-        if (spelunkerTracker.isEmpty())
-            return;
+        if (spelunkerTracker.isEmpty()) return;
         for (Map.Entry<Player, SpelunkerAbilitySync> spelunker : spelunkerTracker.entrySet())
             spelunker.getValue().endThread();
     }
 
     public void removeGlow(Block block) {
-        if (spelunkerTracker.isEmpty())
-            return;
+        if (spelunkerTracker.isEmpty()) return;
         for (Map.Entry<Player, SpelunkerAbilitySync> tracker : spelunkerTracker.entrySet()) {
-            if (!tracker.getValue().containsBlock(block))
-                continue;
+            if (!tracker.getValue().containsBlock(block)) continue;
             tracker.getValue().removeGlow(block);
         }
     }
 
     public void hideGlowForPlayer(Player p) {
-        if (spelunkerTracker.isEmpty())
-            return;
+        if (spelunkerTracker.isEmpty()) return;
         for (Map.Entry<Player, SpelunkerAbilitySync> hide : spelunkerTracker.entrySet())
             hide.getValue().hideAllGlowForPlayer(p);
     }
@@ -397,25 +364,19 @@ public class MiningSkill implements Listener {
         // Defensive: rewards object can theoretically be null if player data not fully
         // loaded yet.
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
-        if (rewards == null)
-            return;
+        if (rewards == null) return;
         double fortuneChance = rewards.getFortuneChance();
-        if (fortuneChance <= 0)
-            return;
+        if (fortuneChance <= 0) return;
         Material brokenType = e.getBlock().getType();
-        if (!ores.contains(brokenType))
-            return;
-        if (p.getInventory().getItemInMainHand().containsEnchantment(Enchantment.SILK_TOUCH))
-            return; // Respect silk touch
+        if (!ores.contains(brokenType)) return;
+        if (p.getInventory().getItemInMainHand().containsEnchantment(Enchantment.SILK_TOUCH)) return; // Respect silk touch
 
-        if (Math.random() >= fortuneChance)
-            return; // Chance failed
+        if (Math.random() >= fortuneChance) return; // Chance failed
 
         // Replace default drops with doubled stacks (capped at 64)
         e.setDropItems(false);
         for (ItemStack drop : e.getBlock().getDrops(p.getInventory().getItemInMainHand())) {
-            if (drop == null || drop.getType().isAir())
-                continue;
+            if (drop == null || drop.getType().isAir()) continue;
             int newAmount = Math.min(drop.getAmount() * 2, 64);
             drop.setAmount(newAmount);
             e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
@@ -424,34 +385,26 @@ public class MiningSkill implements Listener {
 
     public void veinminerChecker(Player p, BlockBreakEvent e) {
         // Make sure the player has the ability to vein mine
-        if (!veinminerTracker.containsKey(p))
-            return;
-        if (!p.isSneaking())
-            return;
+        if (!veinminerTracker.containsKey(p)) return;
+        if (!p.isSneaking()) return;
         Material material = e.getBlock().getType();
-        if (!ores.contains(material))
-            return;
+        if (!ores.contains(material)) return;
 
         // Make sure this block isn't part of a previous vein mine
-        if (!veinTracker.containsKey(p))
-            veinTracker.put(p, new ArrayList<>());
+        if (!veinTracker.containsKey(p)) veinTracker.put(p, new ArrayList<>());
         if (veinTracker.get(p).contains(e.getBlock())) {
             veinTracker.get(p).remove(e.getBlock());
             return;
         }
 
-        VeinMinerAsync veinMiner = new VeinMinerAsync(plugin, p, this, e.getBlock(), material,
-                blocksPerHunger);
+        VeinMinerAsync veinMiner = new VeinMinerAsync(plugin, p, this, e.getBlock(), material, blocksPerHunger);
         veinMiner.runTaskAsynchronously(plugin);
     }
 
     public boolean isMiningArmor(PlayerInventory inv) {
-        if (!ItemStackGeneratorUtils.isCustomItem(inv.getBoots(), 3))
-            return false;
-        if (!ItemStackGeneratorUtils.isCustomItem(inv.getLeggings(), 3))
-            return false;
-        if (!ItemStackGeneratorUtils.isCustomItem(inv.getChestplate(), 3))
-            return false;
+        if (!ItemStackGeneratorUtils.isCustomItem(inv.getBoots(), 3)) return false;
+        if (!ItemStackGeneratorUtils.isCustomItem(inv.getLeggings(), 3)) return false;
+        if (!ItemStackGeneratorUtils.isCustomItem(inv.getChestplate(), 3)) return false;
         return ItemStackGeneratorUtils.isCustomItem(inv.getHelmet(), 3);
     }
 
@@ -604,11 +557,8 @@ public class MiningSkill implements Listener {
 
     // Vein miner activity flag helpers
     public void setVeinMinerActive(Player p, boolean active) {
-        if (active) {
-            activeVeinMinerPlayers.add(p.getUniqueId());
-        } else {
-            activeVeinMinerPlayers.remove(p.getUniqueId());
-        }
+        if (active) activeVeinMinerPlayers.add(p.getUniqueId());
+        else activeVeinMinerPlayers.remove(p.getUniqueId());
     }
 
     public boolean isVeinMinerActive(Player p) {

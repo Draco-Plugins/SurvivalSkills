@@ -268,11 +268,22 @@ public class AbilityManager {
         timerTracker.get(p).removeIf(timer -> timer.getName().equalsIgnoreCase(ability));
     }
 
-    /** Get a tracked ability timer by name for a player; returns null if not found. */
+/** Get a tracked ability timer by name for a player; returns null if not found. */
     public AbilityTimer getAbility(Player p, String ability) {
         if (!timerTracker.containsKey(p)) return null;
         for (AbilityTimer timer : timerTracker.get(p)) if (timer.getName().equalsIgnoreCase(ability)) return timer;
         return null;
+    }
+
+    /**
+     * True iff the named ability exists for the player and is currently within its
+     * active window. Lets callers treat AbilityManager as the single source of
+     * truth for "is this ability currently in effect" instead of mirroring timer
+     * state in parallel lists that can drift out of sync.
+     */
+    public boolean isAbilityActive(Player p, String ability) {
+        AbilityTimer timer = getAbility(p, ability);
+        return timer != null && timer.isActive();
     }
 
     public boolean saveAbilityTimerState(Player p, String ability, FileConfiguration data, String configPath) {

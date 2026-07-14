@@ -931,7 +931,7 @@ public class GodListener implements Listener {
      * @param location The location where the anchor will be placed
      */
     private void promptForAnchorName(Player player, Location location) {
-        // TODO: move this function
+        // TODO: move this function to its own class
         // Register a one-time chat listener with timeout and disconnect cleanup
         final SurvivalSkills plugin = SurvivalSkills.getInstance();
         final long timeoutTicks = 20 * 30; // 30 seconds

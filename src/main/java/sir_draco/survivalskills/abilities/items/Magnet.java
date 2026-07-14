@@ -12,7 +12,7 @@ import org.bukkit.util.Vector;
 import sir_draco.survivalskills.utils.ProjectileCalculator;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
-import static sir_draco.survivalskills.skill_listeners.ExploringSkill.activeMagnets;
+import static sir_draco.survivalskills.skill_listeners.ExploringSkill.getActiveMagnetPlayers;
 
 public class Magnet extends BukkitRunnable {
 
@@ -24,7 +24,7 @@ public class Magnet extends BukkitRunnable {
 
     @Override
     public void run() {
-        if (!activeMagnets.contains(p)) {
+        if (!getActiveMagnetPlayers().contains(p.getUniqueId())) {
             cancel();
             return;
         }
