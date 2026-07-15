@@ -9,6 +9,7 @@ import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.DragonFireball;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Snowball;
 import org.bukkit.entity.Trident;
 import org.bukkit.entity.WindCharge;
 import org.bukkit.event.block.Action;
@@ -70,6 +71,15 @@ public final class GodItemActions {
         public void execute(Player p, ItemStack item, ItemMeta meta, PlayerInteractEvent e) {
             e.setCancelled(true);
             p.launchProjectile(WindCharge.class, p.getLocation().getDirection().multiply(2));
+        }
+    }
+
+    /** Custom model data 53 - launches a snowball without consuming the cannon. */
+    public static final class SnowballCannonItemAction implements GodItemAction {
+        @Override
+        public void execute(Player p, ItemStack item, ItemMeta meta, PlayerInteractEvent e) {
+            e.setCancelled(true);
+            p.launchProjectile(Snowball.class, p.getLocation().getDirection().multiply(2));
         }
     }
 

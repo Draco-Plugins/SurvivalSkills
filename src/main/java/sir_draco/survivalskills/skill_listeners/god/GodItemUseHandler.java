@@ -43,6 +43,7 @@ public class GodItemUseHandler implements Listener {
     private static final int MODEL_SPONGE = ItemModelData.UNLIMITED_SPONGE.getId();
     private static final int MODEL_POWER_SWORD = ItemModelData.POWER_SWORD.getId();
     private static final int MODEL_POWER_LASER = ItemModelData.POWER_LASER.getId();
+    private static final int MODEL_SNOWBALL_CANNON = ItemModelData.SNOWBALL_CANNON.getId();
 
     // Villager revival
     private static final int CONVERSION_TIME_TICKS = 40;
@@ -63,6 +64,7 @@ public class GodItemUseHandler implements Listener {
         register(MODEL_SPONGE, new GodItemActions.SpongeItemAction());
         register(MODEL_POWER_SWORD, new GodItemActions.PowerSwordItemAction());
         register(MODEL_POWER_LASER, new GodItemActions.PowerLaserItemAction(this));
+        register(MODEL_SNOWBALL_CANNON, new GodItemActions.SnowballCannonItemAction());
     }
 
     private void register(int modelData, GodItemAction action) {

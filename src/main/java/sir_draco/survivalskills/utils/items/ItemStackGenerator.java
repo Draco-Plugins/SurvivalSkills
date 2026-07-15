@@ -678,6 +678,17 @@ public class ItemStackGenerator {
                 .build();
     }
 
+    public static ItemStack getSnowballCannon() {
+        return new ItemStackBuilder(Material.SNOWBALL, 1,
+                ColorParser.gradientName("Snowball Cannon", "#D9F4FF", "#6FA8DC", true))
+                .lore(List.of(
+                        ChatColor.GRAY + "Right click to shoot infinite snowballs",
+                        "",
+                        "~Stray Exotic~"))
+                .modelData(ItemModelData.SNOWBALL_CANNON.getId())
+                .build();
+    }
+
     public static ItemStack getDragonBreathCannon() {
         return new ItemStackBuilder(Material.DRAGON_BREATH, 1,
                 ColorParser.gradientName("Dragon Breath Cannon", "#5608FB", "#343434", true))

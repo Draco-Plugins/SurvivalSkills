@@ -131,6 +131,7 @@ public class GodItemDropListener implements Listener {
         godItems.put(EntityType.WITCH, ItemStackGenerator.getNewPotionBag());
         godItems.put(EntityType.DROWNED, ItemStackGenerator.getTridentLauncher());
         godItems.put(EntityType.BREEZE, ItemStackGenerator.getMagicBagOfWind());
+        godItems.put(EntityType.STRAY, ItemStackGenerator.getSnowballCannon());
         godItems.put(EntityType.ENDER_DRAGON, ItemStackGenerator.getDragonBreathCannon());
         godItems.put(EntityType.GUARDIAN, ItemStackGenerator.getUnlimitedSponge());
         godItems.put(EntityType.WITHER_SKELETON, ItemStackGenerator.getUnlimitedWitherRose());
