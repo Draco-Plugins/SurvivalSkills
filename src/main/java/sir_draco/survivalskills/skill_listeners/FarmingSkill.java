@@ -28,7 +28,9 @@ import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,6 +44,11 @@ public class FarmingSkill implements Listener {
     private final Map<Material, Float> foodSaturationMap = new HashMap<>();
     private final List<Material> leafBlocks = new ArrayList<>();
     private final List<Player> autoEat = new ArrayList<>();
+    private final Map<Player, Set<Material>> blacklistedFoods = new HashMap<>();
+    private final Map<Player, AutoEatMode> autoEatModes = new HashMap<>();
+
+    private static final Set<Material> HARD_EXCLUDED_FOODS = Set.of(Material.ROTTEN_FLESH,
+            Material.POISONOUS_POTATO, Material.SPIDER_EYE);
 
     private static final int WATERING_CAN_ID = ItemModelData.WATERING_CAN.getId();
     private static final int BONEMEAL_ID = ItemModelData.UNLIMITED_BONE_MEAL.getId();
@@ -152,32 +159,33 @@ public class FarmingSkill implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                ArrayList<ItemStack> edibleItems = findEdibleItems(p);
+                List<ItemStack> edibleItems = findEdibleItems(p);
                 if (edibleItems.isEmpty()) {
                     p.sendRawMessage(ChatColor.RED + "You have no food to eat!");
                     autoEat.remove(p);
                     p.sendRawMessage(ChatColor.YELLOW + "Auto Eat has been disabled.");
                     p.playSound(p, Sound.ENTITY_PANDA_EAT, 1, 1);
                 } else {
-                    for (ItemStack next : edibleItems)
+                    List<ItemStack> orderedItems = getAutoEatMode(p).order(edibleItems, 20 - p.getFoodLevel(),
+                            foodNutritionMap, foodSaturationMap);
+                    for (ItemStack next : orderedItems)
                         consumeFoodItem(p, next);
                 }
             }
         }.runTaskLater(plugin, 1);
     }
 
-    private ArrayList<ItemStack> findEdibleItems(Player p) {
+    private List<ItemStack> findEdibleItems(Player p) {
         ArrayList<ItemStack> edibleItems = new ArrayList<>();
         for (ItemStack item : p.getInventory().getContents()) {
             if (item == null) continue;
             if (!item.getType().isEdible()) continue;
-            if (item.getType().equals(Material.ROTTEN_FLESH) || item.getType().equals(Material.POISONOUS_POTATO)
-                    || item.getType().equals(Material.SPIDER_EYE))
+            if (HARD_EXCLUDED_FOODS.contains(item.getType()))
                 continue; // skip negative food
             if (item.getItemMeta() != null && ItemStackGeneratorUtils.hasCustomModelData(item.getItemMeta()))
                 continue; // skip custom items (likely special tools)
 
-            edibleItems.add(item);
+            if (!isBlacklisted(p, item.getType())) edibleItems.add(item);
         }
         return edibleItems;
     }
@@ -372,6 +380,8 @@ public class FarmingSkill implements Listener {
         foodSaturationMap.put(Material.BREAD, 1.2f);
         foodNutritionMap.put(Material.CARROT, 3);
         foodSaturationMap.put(Material.CARROT, 1.2f);
+        foodNutritionMap.put(Material.CHORUS_FRUIT, 4);
+        foodSaturationMap.put(Material.CHORUS_FRUIT, 0.6f);
         foodNutritionMap.put(Material.MELON_SLICE, 2);
         foodSaturationMap.put(Material.MELON_SLICE, 0.6f);
         foodNutritionMap.put(Material.POTATO, 1);
@@ -457,5 +467,48 @@ public class FarmingSkill implements Listener {
 
     public List<Player> getAutoEat() {
         return autoEat;
+    }
+
+    public Map<Player, Set<Material>> getBlacklistedFoods() {
+        return blacklistedFoods;
+    }
+
+    public Map<Player, AutoEatMode> getAutoEatModes() {
+        return autoEatModes;
+    }
+
+    public Set<Material> getBlacklistedFoods(Player player) {
+        return Set.copyOf(blacklistedFoods.getOrDefault(player, Set.of()));
+    }
+
+    public boolean isBlacklisted(Player player, Material material) {
+        return blacklistedFoods.getOrDefault(player, Set.of()).contains(material);
+    }
+
+    public void toggleBlacklistedFood(Player player, Material material) {
+        Set<Material> foods = blacklistedFoods.computeIfAbsent(player, ignored -> new HashSet<>());
+        if (!foods.add(material)) foods.remove(material);
+        if (foods.isEmpty()) blacklistedFoods.remove(player);
+    }
+
+    public void setBlacklistedFoods(Player player, Set<Material> foods) {
+        if (foods.isEmpty()) blacklistedFoods.remove(player);
+        else blacklistedFoods.put(player, new HashSet<>(foods));
+    }
+
+    public AutoEatMode getAutoEatMode(Player player) {
+        return autoEatModes.getOrDefault(player, AutoEatMode.INVENTORY_ORDER);
+    }
+
+    public void setAutoEatMode(Player player, AutoEatMode mode) {
+        if (mode == AutoEatMode.INVENTORY_ORDER) autoEatModes.remove(player);
+        else autoEatModes.put(player, mode);
+    }
+
+    public List<Material> getFilterableFoods() {
+        return foodNutritionMap.keySet().stream()
+                .filter(material -> !HARD_EXCLUDED_FOODS.contains(material))
+                .sorted(Comparator.comparing(Material::name))
+                .toList();
     }
 }

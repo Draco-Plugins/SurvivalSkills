@@ -13,3 +13,4 @@ Fishing
 Auto Trash
 Artifacts
 Test unlimited torches
+Auto eat GUI

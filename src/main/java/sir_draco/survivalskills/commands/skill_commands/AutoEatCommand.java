@@ -9,14 +9,21 @@ import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.skills.SkillCategory;
+import sir_draco.survivalskills.skill_listeners.AutoEatGui;
+import sir_draco.survivalskills.skill_listeners.AutoEatMode;
+
+import java.util.Arrays;
 
 
 public class AutoEatCommand implements CommandExecutor {
 
     private final SurvivalSkills plugin;
+    private final AutoEatGui autoEatGui;
 
     public AutoEatCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
+        autoEatGui = new AutoEatGui(plugin);
+        plugin.getServer().getPluginManager().registerEvents(autoEatGui, plugin);
         PluginCommand command = plugin.getCommand("autoeat");
         if (command != null) command.setExecutor(this);
     }
@@ -41,6 +48,14 @@ public class AutoEatCommand implements CommandExecutor {
             return true;
         }
 
+        if (strings.length > 0 && strings[0].equalsIgnoreCase("gui")) {
+            autoEatGui.openFoodPage(p, 0);
+            return true;
+        }
+        if (strings.length > 0 && strings[0].equalsIgnoreCase("mode")) {
+            return handleModeCommand(p, strings);
+        }
+
         // Check if auto eat is being disabled
         if (plugin.getFarmingListener().getAutoEat().contains(p)) {
             plugin.getFarmingListener().getAutoEat().remove(p);
@@ -51,6 +66,24 @@ public class AutoEatCommand implements CommandExecutor {
         plugin.getFarmingListener().getAutoEat().add(p);
         p.sendRawMessage(ChatColor.YELLOW + "Auto Eat has been enabled!");
         p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+        return true;
+    }
+
+    private boolean handleModeCommand(Player player, String[] arguments) {
+        if (arguments.length < 2) {
+            player.sendRawMessage(ChatColor.YELLOW + "Auto Eat mode: " + ChatColor.AQUA
+                    + plugin.getFarmingListener().getAutoEatMode(player).getDisplayName());
+            player.sendRawMessage(ChatColor.GRAY + "Modes: " + Arrays.stream(AutoEatMode.values())
+                    .map(AutoEatMode::name).map(String::toLowerCase).toList());
+            return true;
+        }
+        try {
+            AutoEatMode mode = AutoEatMode.valueOf(arguments[1].toUpperCase());
+            plugin.getFarmingListener().setAutoEatMode(player, mode);
+            player.sendRawMessage(ChatColor.YELLOW + "Auto Eat mode set to " + ChatColor.AQUA + mode.getDisplayName());
+        } catch (IllegalArgumentException exception) {
+            player.sendRawMessage(ChatColor.RED + "Unknown Auto Eat mode.");
+        }
         return true;
     }
 }

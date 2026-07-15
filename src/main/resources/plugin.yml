@@ -44,6 +44,7 @@ commands:
         permission: survivalskills.default
     autoeat:
         description: Automatically eats food when hungry
+        usage: /autoeat [gui|mode <inventory_order|best_saturation_first|worst_food_first|balanced>]
         permission: survivalskills.default
     sseat:
         description: Allows a player to eat food

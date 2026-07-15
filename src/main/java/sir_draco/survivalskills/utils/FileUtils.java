@@ -17,6 +17,7 @@ import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.skills.SkillsHolder;
+import sir_draco.survivalskills.skill_listeners.AutoEatMode;
 import sir_draco.survivalskills.trophy.TrophyType;
 
 import java.io.File;
@@ -41,6 +42,8 @@ public class FileUtils {
     public static final String PEACEFUL_MINER = ".PeacefulMiner";
     public static final String VEINMINER = ".Veinminer";
     public static final String AUTO_EAT = ".AutoEat";
+    public static final String AUTO_EAT_BLACKLIST = ".AutoEatBlacklistedFoods";
+    public static final String AUTO_EAT_MODE = ".AutoEatMode";
     public static final String TRAIL = ".Trail";
     public static final String NO_PHANTOMS = ".NoPhantoms";
 
@@ -347,6 +350,21 @@ public class FileUtils {
             if (autoEat && !SurvivalSkills.getInstance().getFarmingListener().getAutoEat().contains(p))
                 SurvivalSkills.getInstance().getFarmingListener().getAutoEat().add(p);
         }
+        Set<Material> blacklistedFoods = data.getStringList(uuid + AUTO_EAT_BLACKLIST).stream()
+                .map(Material::matchMaterial)
+                .filter(Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+        SurvivalSkills.getInstance().getFarmingListener().setBlacklistedFoods(p, blacklistedFoods);
+
+        String storedMode = data.getString(uuid + AUTO_EAT_MODE);
+        if (storedMode == null) return;
+        try {
+            SurvivalSkills.getInstance().getFarmingListener().setAutoEatMode(p, AutoEatMode.valueOf(storedMode));
+        } catch (IllegalArgumentException exception) {
+            Bukkit.getLogger().log(Level.WARNING,
+                    String.format("[SurvivalSkills] Ignoring invalid Auto Eat mode for player %s: %s", p.getName(), storedMode),
+                    exception);
+        }
     }
 
     private static void loadPhantoms(Player p, FileConfiguration data, UUID uuid) {
@@ -538,6 +556,9 @@ public class FileUtils {
 
         data.set(uuid + NO_PHANTOMS, plugin.getFightingListener().getNoPhantomSpawns().contains(p));
         data.set(uuid + AUTO_EAT, plugin.getFarmingListener().getAutoEat().contains(p));
+        data.set(uuid + AUTO_EAT_BLACKLIST, plugin.getFarmingListener().getBlacklistedFoods(p).stream()
+                .map(Material::name).sorted().toList());
+        data.set(uuid + AUTO_EAT_MODE, plugin.getFarmingListener().getAutoEatMode(p).name());
         Boolean veinminer = plugin.getMiningListener().getVeinminerTracker().get(p);
         if (veinminer != null)
             data.set(uuid + VEINMINER, veinminer);
