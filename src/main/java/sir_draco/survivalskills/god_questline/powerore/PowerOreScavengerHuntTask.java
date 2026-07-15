@@ -9,19 +9,26 @@ import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Scavenger hunt: player must find 3 heads within radius and right-click them.
  */
 public class PowerOreScavengerHuntTask extends BukkitRunnable implements PowerOreTask {
 
+    private static final int HEAD_COUNT = 3;
+    private static final int SPAWN_RADIUS = 150;
+    private static final int MAX_SPAWN_ATTEMPTS = 500;
+    private static final int ANNOUNCE_INTERVAL_SECONDS = 60;
+    private static final int FINAL_COUNTDOWN_SECONDS = 10;
+    private static final long DURATION_MS = 300_000L;
+
     private final PowerOreChallenge challenge;
     private final Player player;
     private final Location origin;
     private final List<Location> headLocations = new ArrayList<>();
     private final Set<Location> found = new HashSet<>();
-    private int secondsLeft = 300; // 5 minutes
-    private final Random random = new Random();
+    private final long startTime = System.currentTimeMillis();
 
     public PowerOreScavengerHuntTask(PowerOreChallenge challenge, Player player, Location origin) {
         this.challenge = challenge;
@@ -37,7 +44,9 @@ public class PowerOreScavengerHuntTask extends BukkitRunnable implements PowerOr
             return;
         }
         player.sendMessage(ChatColor.AQUA
-                + "Scavenger Hunt: 3 of your head were spawned on the surface in a 150 block radius. Find and right-click all 3 heads! You have 5 minutes.");
+                + "Scavenger Hunt: " + HEAD_COUNT + " of your head were spawned on the surface in a "
+                + SPAWN_RADIUS + " block radius. Find and right-click all " + HEAD_COUNT
+                + " heads! You have " + (DURATION_MS / 60000) + " minutes.");
         runTaskTimer(SurvivalSkills.getInstance(), 20, 20);
     }
 
@@ -46,13 +55,13 @@ public class PowerOreScavengerHuntTask extends BukkitRunnable implements PowerOr
         if (world == null)
             return;
         int attempts = 0;
-        while (headLocations.size() < 3 && attempts < 500) {
+        while (headLocations.size() < HEAD_COUNT && attempts < MAX_SPAWN_ATTEMPTS) {
             attempts++;
-            // Randomize location within a 150 block radius
-            int dx = random.nextInt(301) - 150;
-            int dz = random.nextInt(301) - 150;
+            // Randomize location within the spawn radius
+            int dx = ThreadLocalRandom.current().nextInt(-SPAWN_RADIUS, SPAWN_RADIUS + 1);
+            int dz = ThreadLocalRandom.current().nextInt(-SPAWN_RADIUS, SPAWN_RADIUS + 1);
 
-            if (Math.sqrt(dx * dx + dz * dz) > 150)
+            if (Math.sqrt(dx * dx + dz * dz) > SPAWN_RADIUS)
                 continue;
 
             int x = origin.getBlockX() + dx;
@@ -75,26 +84,24 @@ public class PowerOreScavengerHuntTask extends BukkitRunnable implements PowerOr
                 skull.update();
             }
             headLocations.add(loc);
-            player.sendMessage(ChatColor.AQUA + "Head spawned at: " + loc);
         }
     }
 
     public boolean handleInteract(Block block) {
         if (challenge.getStatus() != PowerOreChallenge.Status.RUNNING)
             return false;
-        Location loc = block.getLocation();
         for (Location head : headLocations) {
-            if (head.getWorld().equals(loc.getWorld()) && head.distanceSquared(loc) < 0.1) {
-                if (found.contains(head))
-                    return true;
-                found.add(head);
-                block.setType(Material.AIR);
-                player.playSound(head, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-                player.sendMessage(ChatColor.GREEN + "Head found (" + found.size() + "/3)");
-                if (found.size() == 3)
-                    challenge.complete();
+            if (!head.getBlock().equals(block))
+                continue;
+            if (found.contains(head))
                 return true;
-            }
+            found.add(head);
+            block.setType(Material.AIR);
+            player.playSound(head, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+            player.sendMessage(ChatColor.GREEN + "Head found (" + found.size() + "/" + HEAD_COUNT + ")");
+            if (found.size() == HEAD_COUNT)
+                challenge.complete();
+            return true;
         }
         return false;
     }
@@ -105,24 +112,35 @@ public class PowerOreScavengerHuntTask extends BukkitRunnable implements PowerOr
             cancel();
             return;
         }
-        if (secondsLeft-- <= 0) {
+        long elapsed = System.currentTimeMillis() - startTime;
+        if (elapsed >= DURATION_MS) {
             challenge.fail("Time ran out");
             cancel();
             return;
         }
-        if (secondsLeft % 60 == 0 || secondsLeft <= 10)
-            player.sendMessage(ChatColor.YELLOW + "Time left: " + secondsLeft + "s");
+        long remainingSeconds = (DURATION_MS - elapsed) / 1000;
+        if (remainingSeconds % ANNOUNCE_INTERVAL_SECONDS == 0 || remainingSeconds <= FINAL_COUNTDOWN_SECONDS)
+            player.sendMessage(ChatColor.YELLOW + "Time left: " + remainingSeconds + "s");
     }
 
     @Override
     public void cleanup() {
         try {
             cancel();
-        } catch (Exception ignored) {
+        } catch (IllegalStateException ignored) {
+            // Task was not scheduled or already cancelled
         }
-        for (Location loc : headLocations)
-            if (!found.contains(loc) && loc.getBlock().getType() == Material.PLAYER_HEAD)
+        for (Location loc : headLocations) {
+            if (found.contains(loc))
+                continue;
+            World world = loc.getWorld();
+            if (world == null)
+                continue;
+            if (!world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4))
+                continue;
+            if (loc.getBlock().getType() == Material.PLAYER_HEAD)
                 loc.getBlock().setType(Material.AIR);
+        }
     }
 
     @Override

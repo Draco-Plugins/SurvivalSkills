@@ -288,6 +288,7 @@ public final class SurvivalSkills extends JavaPlugin {
                 && !getTrophyManager().getPlayerGodQuestData().containsKey(p.getUniqueId())) {
             GodTrophyQuest quest = new GodTrophyQuest(p.getUniqueId());
             SurvivalSkills.getInstance().getTrophyManager().getPlayerGodQuestData().put(p.getUniqueId(), quest);
+            quest.synchronizeGodTrophy();
         }
     }
 

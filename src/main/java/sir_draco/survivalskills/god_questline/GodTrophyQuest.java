@@ -18,10 +18,13 @@ import sir_draco.survivalskills.utils.items.ItemStackGenerator;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.UUID;
 
 public class GodTrophyQuest {
@@ -33,6 +36,64 @@ public class GodTrophyQuest {
     private int currentItemCount = 0;
 
     private int phase = 0;
+
+    private enum PhaseGroup {
+        INTRO(0, 0, 0),
+        FARMING(1, 12, 0),
+        ORE(13, 21, 0),
+        CREATURE(22, 26, 1),
+        KNOWLEDGE(27, 44, 2),
+        RELIC(45, 46, 3),
+        VILLAGER(47, 47, 0),
+        COMBAT(48, 48, 4),
+        MOB_ITEM(49, 57, 0),
+        ADVANCEMENT(58, 58, 0);
+
+        final int start;
+        final int end;
+        final int stage;
+
+        PhaseGroup(int start, int end, int stage) {
+            this.start = start;
+            this.end = end;
+            this.stage = stage;
+        }
+
+        boolean contains(int phase) {
+            return phase >= start && phase <= end;
+        }
+
+        int localIndex(int phase) {
+            return phase - start + 1;
+        }
+    }
+
+    private static final Map<Integer, PhaseGroup> PHASE_TO_GROUP = new HashMap<>();
+    private static final List<PhaseGroup> GOD_QUEST_GROUPS = Arrays.stream(PhaseGroup.values())
+            .filter((PhaseGroup group) -> group != PhaseGroup.INTRO)
+            .toList();
+    private static final List<Color> GOD_TROPHY_AURA_COLORS = List.of(
+            Color.fromRGB(160, 160, 160), // Quest not started
+            Color.fromRGB(60, 180, 75),   // Farming
+            Color.fromRGB(255, 190, 35),  // Ore
+            Color.fromRGB(160, 70, 220),  // Creature
+            Color.fromRGB(55, 140, 255),  // Knowledge
+            Color.fromRGB(255, 90, 180),  // Relic
+            Color.fromRGB(45, 210, 120),  // Villager
+            Color.fromRGB(235, 55, 55),   // Combat
+            Color.fromRGB(75, 25, 130),   // Mob items
+            Color.fromRGB(245, 245, 255)  // Advancements
+    );
+    static {
+        for (int i = 0; i <= 59; i++) {
+            for (PhaseGroup group : PhaseGroup.values()) {
+                if (group.contains(i)) {
+                    PHASE_TO_GROUP.put(i, group);
+                    break;
+                }
+            }
+        }
+    }
 
     public GodTrophyQuest(UUID uuid) {
         this.uuid = uuid;
@@ -54,77 +115,27 @@ public class GodTrophyQuest {
 
     /**
      * Entry point for the NPC interaction. Routes to the appropriate phase handler.
-     * Phases overview (1-indexed tasks, 0 is the intro):
-     * - 0: Intro dialogue
-     * - 1..12: Farming collection (bulk materials)
-     * - 13..21: Ore/wealth collection (bulk materials)
-     * - 22..26: Creature trophies (crafted/held-in-hand items)
-     * - 27..44: Knowledge/potions sequence
-     * - 45..46: Relics (crafted items)
-     * - 47: Villager trading progress check
-     * - 48: Combat gear check
-     * - 49..57: Mob rare item sequence
-     * - 58: Advancement check
+     * Each PhaseGroup constant defines its phase range and local-index mapping.
      */
     public void handleNPCInteract(Player p) {
         if (phase >= maxPhase)
             return;
 
-        if (phase == 0) {
-            dialogueOpener(p);
+        PhaseGroup group = PHASE_TO_GROUP.get(phase);
+        if (group == null)
             return;
-        }
 
-        // Farming 1..12
-        if (phase >= 1 && phase <= 12) {
-            checkFarmingQuest(p, phase);
-            return;
-        }
-
-        // Ores 13..21 (local index 1..9)
-        if (phase >= 13 && phase <= 21) {
-            checkOreQuest(p, phase - 12);
-            return;
-        }
-
-        // Creatures 22..26 (local index 1..5)
-        if (phase >= 22 && phase <= 26) {
-            checkCreatureQuest(p, phase - 21);
-            return;
-        }
-
-        // Knowledge 27..44 (local index 1..18)
-        if (phase >= 27 && phase <= 44) {
-            checkKnowledgeQuest(p, phase - 26);
-            return;
-        }
-
-        // Relics 45..46 (local index 1..2)
-        if (phase >= 45 && phase <= 46) {
-            checkRelicQuest(p, phase - 44);
-            return;
-        }
-
-        // Villager trading 47
-        if (phase == 47) {
-            checkVillagerTradingQuest(p);
-            return;
-        }
-
-        // Combat gear 48
-        if (phase == 48) {
-            checkCombatQuest(p);
-            return;
-        }
-
-        // Mob items 49..57 (local index 1..9)
-        if (phase >= 49 && phase <= 57) {
-            checkMobItemQuest(p, phase - 48);
-            return;
-        }
-
-        if (phase == 58) {
-            checkAdvancementsQuest(p);
+        switch (group) {
+            case INTRO -> dialogueOpener(p);
+            case FARMING -> checkFarmingQuest(p, phase);
+            case ORE -> checkOreQuest(p, group.localIndex(phase));
+            case CREATURE -> checkCreatureQuest(p, group.localIndex(phase));
+            case KNOWLEDGE -> checkKnowledgeQuest(p, group.localIndex(phase));
+            case RELIC -> checkRelicQuest(p, group.localIndex(phase));
+            case VILLAGER -> checkVillagerTradingQuest(p);
+            case COMBAT -> checkCombatQuest(p);
+            case MOB_ITEM -> checkMobItemQuest(p, group.localIndex(phase));
+            case ADVANCEMENT -> checkAdvancementsQuest(p);
         }
     }
 
@@ -137,64 +148,33 @@ public class GodTrophyQuest {
             dialogueItemCount(p, item, currentItemCount, max);
             return true;
         }
-        p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-        p.playSound(p, Sound.ENTITY_VILLAGER_CELEBRATE, 1, 1);
+        playSuccessSound(p);
         return false;
     }
 
     public boolean handleItemCheck(Player p, ItemStack item, String itemName) {
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if (hand.getType().isAir()) {
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            ArrayList<String> messages = new ArrayList<>();
-            messages.add("You are not holding anything");
-            messages.add("Use " + ChatColor.YELLOW + "/godquest" + ChatColor.WHITE + " to see the recipe for " +
-                    ChatColor.AQUA + itemName);
-            dialogue(p, messages);
-            return true;
-        }
-
-        if (!hand.equals(item)) {
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            ArrayList<String> messages = new ArrayList<>();
-            messages.add("You do not have the right item");
-            messages.add("Use " + ChatColor.YELLOW + "/godquest" + ChatColor.WHITE + " to see the recipe for " +
-                    ChatColor.AQUA + itemName);
-            dialogue(p, messages);
-            return true;
-        }
-
-        p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-        p.playSound(p, Sound.ENTITY_VILLAGER_CELEBRATE, 1, 1);
+        if (hand.getType().isAir())
+            return emptyHandItemStackDialogue(p, itemName);
+        if (!hand.equals(item))
+            return wrongItemDialogue(p, itemName);
+        playSuccessSound(p);
         return false;
     }
 
     public boolean handleItemCheck(Player p, Material mat, String itemName) {
-        ItemStack hand = p.getInventory().getItemInMainHand();
-        if (hand.getType().isAir()) {
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": " + "You are not holding anything");
-        }
-
-        if (!hand.getType().equals(mat)) {
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            ArrayList<String> messages = new ArrayList<>();
-            messages.add("You do not have the right item");
-            messages.add("Use " + ChatColor.YELLOW + "/godquest" + ChatColor.WHITE + " to see the recipe for " +
-                    ChatColor.AQUA + itemName);
-            dialogue(p, messages);
-            return true;
-        }
-
-        p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-        p.playSound(p, Sound.ENTITY_VILLAGER_CELEBRATE, 1, 1);
+        if (p.getInventory().getItemInMainHand().getType().isAir())
+            return emptyHandItemStackDialogue(p, itemName);
+        if (!p.getInventory().getItemInMainHand().getType().equals(mat))
+            return wrongItemDialogue(p, itemName);
+        playSuccessSound(p);
         return false;
     }
 
     // -----------------------
     // Dialogue helpers
     // -----------------------
-    public void dialogue(Player p, ArrayList<String> messages) {
+    public void dialogue(Player p, List<String> messages) {
         new BukkitRunnable() {
             private int counter = 0;
 
@@ -213,7 +193,7 @@ public class GodTrophyQuest {
 
     public void dialogueOpener(Player p) {
         // Initial quest intro
-        ArrayList<String> messages = lines(
+        List<String> messages = lines(
                 "I can grant you great powers",
                 "First you must bring me items that show your dedication to this world",
                 "Farming is the foundation of any society",
@@ -224,7 +204,7 @@ public class GodTrophyQuest {
     }
 
     public void dialogueItemCount(Player p, String item, int count, int max) {
-        ArrayList<String> messages = lines(
+        List<String> messages = lines(
                 "You have brought me " + ChatColor.AQUA + count + ChatColor.WHITE + " " + item,
                 "You need to bring me " + ChatColor.AQUA + (max - count) + ChatColor.WHITE + " more " + item);
         dialogue(p, messages);
@@ -236,45 +216,45 @@ public class GodTrophyQuest {
     public void checkFarmingQuest(Player p, int cropType) {
         switch (cropType) {
             case 1 -> bulkStep(p, 2000, Material.BREAD, "bread",
-                    lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "carrots"),
+                    lines("Excellent Work!", "Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "carrots"),
                     false);
             case 2 -> bulkStep(p, 5000, Material.CARROT, "carrots",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "potatoes"),
                     false);
             case 3 -> bulkStep(p, 5000, Material.POTATO, "potatoes",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "poisonous potatoes"),
                     false);
             case 4 -> bulkStep(p, 500, Material.POISONOUS_POTATO, "poisonous potatoes",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "beetroots"),
                     false);
             case 5 -> bulkStep(p, 5000, Material.BEETROOT, "beetroots",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "5,000 " + ChatColor.WHITE + "melon slices"),
                     false);
             case 6 -> bulkStep(p, 5000, Material.MELON_SLICE, "melon slices",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "2,500 " + ChatColor.WHITE + "pumpkins"),
                     false);
             case 7 -> bulkStep(p, 2500, Material.PUMPKIN, "pumpkins",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "sweet berries"),
                     false);
             case 8 -> bulkStep(p, 500, Material.SWEET_BERRIES, "sweet berries",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "glow berries"),
                     false);
             case 9 -> bulkStep(p, 500, Material.GLOW_BERRIES, "glow berries",
-                    lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "apples"),
+                    lines("Excellent Work!", "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "apples"),
                     false);
             case 10 -> bulkStep(p, 500, Material.APPLE, "apples",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "chorus flowers"),
                     false);
             case 11 -> bulkStep(p, 64, Material.CHORUS_FLOWER, "chorus flowers",
-                    lines("Excellent work!", "Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "cakes"),
+                    lines("Excellent Work!", "Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "cakes"),
                     false);
             case 12 -> bulkStep(p, 64, Material.CAKE, "cake",
                     lines(
@@ -288,35 +268,35 @@ public class GodTrophyQuest {
     public void checkOreQuest(Player p, int oreType) {
         switch (oreType) {
             case 1 -> bulkStep(p, 500, Material.COAL_BLOCK, "coal blocks",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "copper blocks"),
                     false);
             case 2 -> bulkStep(p, 500, Material.COPPER_BLOCK, "copper blocks",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "iron blocks"),
                     false);
             case 3 -> bulkStep(p, 500, Material.IRON_BLOCK, "iron blocks",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "lapis blocks"),
                     false);
             case 4 -> bulkStep(p, 500, Material.LAPIS_BLOCK, "lapis blocks",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "redstone blocks"),
                     false);
             case 5 -> bulkStep(p, 500, Material.REDSTONE_BLOCK, "redstone blocks",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "500 " + ChatColor.WHITE + "gold blocks"),
                     false);
             case 6 -> bulkStep(p, 500, Material.GOLD_BLOCK, "gold blocks",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "200 " + ChatColor.WHITE + "diamond blocks"),
                     false);
             case 7 -> bulkStep(p, 200, Material.DIAMOND_BLOCK, "diamond blocks",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "200 " + ChatColor.WHITE + "emerald blocks"),
                     false);
             case 8 -> bulkStep(p, 200, Material.EMERALD_BLOCK, "emerald blocks",
-                    lines("Excellent work!",
+                    lines("Excellent Work!",
                             "Now bring me " + ChatColor.AQUA + "64 " + ChatColor.WHITE + "netherite blocks"),
                     false);
             case 9 -> bulkStep(p, 64, Material.NETHERITE_BLOCK, "netherite blocks",
@@ -360,37 +340,37 @@ public class GodTrophyQuest {
                             "Start with a potion of swiftness"),
                     false);
             case 2 -> potionStep(p, PotionType.SWIFTNESS, "Potion of Swiftness",
-                    lines("Excellent Work!", "Now bring me a potion of fire resistance"));
+                    lines("Excellent Work!", "Now bring me a potion of fire resistance"), false);
             case 3 -> potionStep(p, PotionType.FIRE_RESISTANCE, "Potion of Fire Resistance",
-                    lines("Excellent Work!", "Now bring me a potion of healing"));
+                    lines("Excellent Work!", "Now bring me a potion of healing"), false);
             case 4 -> potionStep(p, PotionType.HEALING, "Potion of Healing",
-                    lines("Excellent Work!", "Now bring me a potion of harming"));
+                    lines("Excellent Work!", "Now bring me a potion of harming"), false);
             case 5 -> potionStep(p, PotionType.HARMING, "Potion of Harming",
-                    lines("Excellent Work!", "Now bring me a potion of water breathing"));
+                    lines("Excellent Work!", "Now bring me a potion of water breathing"), false);
             case 6 -> potionStep(p, PotionType.WATER_BREATHING, "Potion of Water Breathing",
-                    lines("Excellent Work!", "Now bring me a potion of night vision"));
+                    lines("Excellent Work!", "Now bring me a potion of night vision"), false);
             case 7 -> potionStep(p, PotionType.NIGHT_VISION, "Potion of Night Vision",
-                    lines("Excellent Work!", "Now bring me a potion of invisibility"));
+                    lines("Excellent Work!", "Now bring me a potion of invisibility"), false);
             case 8 -> potionStep(p, PotionType.INVISIBILITY, "Potion of Invisibility",
-                    lines("Excellent Work!", "Now bring me a potion of leaping"));
+                    lines("Excellent Work!", "Now bring me a potion of leaping"), false);
             case 9 -> potionStep(p, PotionType.LEAPING, "Potion of Leaping",
-                    lines("Excellent Work!", "Now bring me a potion of slow falling"));
+                    lines("Excellent Work!", "Now bring me a potion of slow falling"), false);
             case 10 -> potionStep(p, PotionType.SLOW_FALLING, "Potion of Slow Falling",
-                    lines("Excellent Work!", "Now bring me a potion of strength"));
+                    lines("Excellent Work!", "Now bring me a potion of strength"), false);
             case 11 -> potionStep(p, PotionType.STRENGTH, "Potion of Strength",
-                    lines("Excellent Work!", "Now bring me a potion of weakness"));
+                    lines("Excellent Work!", "Now bring me a potion of weakness"), false);
             case 12 -> potionStep(p, PotionType.WEAKNESS, "Potion of Weakness",
-                    lines("Excellent Work!", "Now bring me a potion of regeneration"));
+                    lines("Excellent Work!", "Now bring me a potion of regeneration"), false);
             case 13 -> potionStep(p, PotionType.REGENERATION, "Potion of Regeneration",
-                    lines("Excellent Work!", "Now bring me a potion of poison"));
+                    lines("Excellent Work!", "Now bring me a potion of poison"), false);
             case 14 -> potionStep(p, PotionType.POISON, "Potion of Poison",
-                    lines("Excellent Work!", "Now bring me a potion of infestation"));
+                    lines("Excellent Work!", "Now bring me a potion of infestation"), false);
             case 15 -> potionStep(p, PotionType.INFESTED, "Potion of Infestation",
-                    lines("Excellent Work!", "Now bring me a potion of oozing"));
+                    lines("Excellent Work!", "Now bring me a potion of oozing"), false);
             case 16 -> potionStep(p, PotionType.OOZING, "Potion of Oozing",
-                    lines("Excellent Work!", "Now bring me a potion of weaving"));
+                    lines("Excellent Work!", "Now bring me a potion of weaving"), false);
             case 17 -> potionStep(p, PotionType.WEAVING, "Potion of Weaving",
-                    lines("Excellent Work!", "Now bring me a potion of wind charged"));
+                    lines("Excellent Work!", "Now bring me a potion of wind charged"), false);
             // This potion has a different format due to being the last step
             case 18 -> handInMaterialStep(p, getPotion(PotionType.WIND_CHARGED).getType(), "Potion of Wind Charged",
                     lines(
@@ -419,32 +399,28 @@ public class GodTrophyQuest {
 
     public void checkVillagerTradingQuest(Player p) {
         if (currentItemCount < 1000) {
-            ArrayList<String> messages = new ArrayList<>();
-            messages.add(
-                    "You have traded with villagers " + ChatColor.AQUA + currentItemCount + ChatColor.WHITE + " times");
-            messages.add("You need to trade with villagers " + ChatColor.AQUA + (1000 - currentItemCount)
-                    + ChatColor.WHITE + " more times");
-            dialogue(p, messages);
+            dialogue(p, List.of(
+                    "You have traded with villagers " + ChatColor.AQUA + currentItemCount + ChatColor.WHITE + " times",
+                    "You need to trade with villagers " + ChatColor.AQUA + (1000 - currentItemCount)
+                            + ChatColor.WHITE + " more times"));
         } else {
-            ArrayList<String> messages1 = new ArrayList<>();
-            messages1.add("The villagers clearly trust in you skills as a merchant");
-            messages1.add("We are nearing the end of my tribulations");
-            messages1.add("Soon you will need to prove yourself in a combat trial");
-            messages1.add("Bring me some powerful gear to show me you know what it means to fight");
-            messages1.add("You can see the recipe by using " + ChatColor.YELLOW + "/godquest");
-            dialogue(p, messages1);
+            dialogue(p, List.of(
+                    "The villagers clearly trust in you skills as a merchant",
+                    "We are nearing the end of my tribulations",
+                    "Soon you will need to prove yourself in a combat trial",
+                    "Bring me some powerful gear to show me you know what it means to fight",
+                    "You can see the recipe by using " + ChatColor.YELLOW + "/godquest"));
             phase++;
             updateGodTrophyParticles();
         }
     }
 
     public void checkCombatQuest(Player p) {
-        if (handleItemCheck(p, ItemStackGenerator.getWarriorEmblem(), "Warrior Emblem"))
-            return;
-        successAndAdvance(p, true, true, true, lines(
-                "Excellent Work!",
-                "You may have noticed the mobs of this world sometimes drop rare items",
-                "Bring me the item from a " + ChatColor.AQUA + "spider"));
+        handInItemStackStep(p, ItemStackGenerator.getWarriorEmblem(), "Warrior Emblem",
+                lines("Excellent Work!",
+                        "You may have noticed the mobs of this world sometimes drop rare items",
+                        "Bring me the item from a " + ChatColor.AQUA + "spider"),
+                true);
     }
 
     public void checkMobItemQuest(Player p, int itemType) {
@@ -474,9 +450,9 @@ public class GodTrophyQuest {
                                     "The final task is to complete all Minecraft advancements"),
                             true);
                 } else {
-                    phase++;
+                    phase++; // Intentional to skip all advancements phase
                     handInItemStackStep(p, ItemStackGenerator.getDragonBreathCannon(), "Dragon Breath Cannon",
-                            getStrings(), true);
+                            getGodTrialCompletionMessage(), true);
                 }
             }
         }
@@ -489,23 +465,22 @@ public class GodTrophyQuest {
      */
     public void checkAdvancementsQuest(Player p) {
         if (hasAllAdvancements(p) || !allAdvancements) {
-            successAndAdvance(p, true, false, true, getStrings());
+            onBulkComplete(p, getGodTrialCompletionMessage(), true);
         } else {
             dialogue(p, lines("You have not yet achieved all advancements.",
                     "Keep working hard and you will get there!"));
         }
     }
 
-    private static ArrayList<String> getStrings() {
-        ArrayList<String> messages9 = new ArrayList<>();
-        messages9.add("Excellent Work!");
-        messages9.add("You have completed all of my tasks");
-        messages9.add("Finally you must prove yourself in the " + ChatColor.RED + "Trial of the Gods " + ChatColor.WHITE
-                + "by defeating the god difficulty");
-        messages9.add("Do this and you will be given " + ChatColor.AQUA + "creative mode " + ChatColor.WHITE +
-                "using the power of the gods!");
-        messages9.add("You can start the trial at anytime, anywhere, by using " + ChatColor.YELLOW + "/godtrial");
-        return messages9;
+    private static List<String> getGodTrialCompletionMessage() {
+        return List.of(
+                "Excellent Work!",
+                "You have completed all of my tasks",
+                "Finally you must prove yourself in the " + ChatColor.RED + "Trial of the Gods " + ChatColor.WHITE
+                        + "by defeating the god difficulty",
+                "Do this and you will be given " + ChatColor.AQUA + "creative mode " + ChatColor.WHITE +
+                        "using the power of the gods!",
+                "You can start the trial at anytime, anywhere, by using " + ChatColor.YELLOW + "/godtrial");
     }
 
     public int removeMaterialsFromInventory(int currentProgress, int max, Inventory inv, Material mat) {
@@ -525,8 +500,9 @@ public class GodTrophyQuest {
             // Handle the item in the inventory
             total += item.getAmount();
             if (currentProgress + total > max) {
-                int remaining = max - currentProgress + total - item.getAmount();
-                item.setAmount(item.getAmount() - remaining);
+                // This stack puts us over the limit; only take what is needed
+                int neededFromStack = max - currentProgress - (total - item.getAmount());
+                item.setAmount(item.getAmount() - neededFromStack);
                 if (item.getAmount() == 0)
                     inv.remove(item);
                 return total;
@@ -545,18 +521,42 @@ public class GodTrophyQuest {
     }
 
     public void updateGodTrophyParticles() {
+        updateGodTrophyParticles(true);
+    }
+
+    public void synchronizeGodTrophy() {
+        updateGodTrophyParticles(false);
+    }
+
+    private void updateGodTrophyParticles(boolean playProgressBurst) {
         for (Map.Entry<Location, Trophy> trophy : SurvivalSkills.getInstance().getTrophyManager().getTrophies()
                 .entrySet()) {
             if (!trophy.getValue().getType().equalsIgnoreCase("godtrophy"))
                 continue;
             if (!trophy.getValue().getUuid().equals(uuid))
                 continue;
-            TrophyEffects effects = trophy.getValue().getEffects().orElse(null);
-            if (effects.getGodTrophy() == null)
+            Optional<TrophyEffects> effects = trophy.getValue().getEffects();
+            if (effects.isEmpty() || effects.get().getGodTrophy() == null)
                 continue;
-            // TODO: Implement particle effects for the god trophy
+            GodTrophyEffects godTrophyEffects = effects.get().getGodTrophy();
+            synchronizeGodTrophyEffects(godTrophyEffects);
+            if (playProgressBurst)
+                godTrophyEffects.playProgressBurst();
             return;
         }
+    }
+
+    public void synchronizeGodTrophyEffects(GodTrophyEffects godTrophyEffects) {
+        Objects.requireNonNull(godTrophyEffects);
+        int completedGroups = countCompletedGroups(phase);
+        godTrophyEffects.setAuraColor(GOD_TROPHY_AURA_COLORS.get(completedGroups));
+        godTrophyEffects.updateNpcPersonality(completedGroups);
+    }
+
+    private static int countCompletedGroups(int phase) {
+        return (int) GOD_QUEST_GROUPS.stream()
+                .filter((PhaseGroup group) -> phase > group.end)
+                .count();
     }
 
     public void setCurrentItemCount(int count) {
@@ -578,9 +578,12 @@ public class GodTrophyQuest {
 
         while (advancementIterator.hasNext()) {
             Advancement advancement = advancementIterator.next();
-            if (!p.getAdvancementProgress(advancement).isDone()) {
+            // Skip recipe unlocks — they auto-complete and don't count as
+            // visible advancements for the player
+            if (advancement.getKey().getKey().startsWith("recipes/"))
+                continue;
+            if (!p.getAdvancementProgress(advancement).isDone())
                 return false;
-            }
         }
 
         return true;
@@ -595,14 +598,9 @@ public class GodTrophyQuest {
     }
 
     public Optional<Integer> getStage() {
-        if (phase >= 22 && phase <= 26)
-            return Optional.of(1);
-        if (phase >= 27 && phase <= 44)
-            return Optional.of(2);
-        if (phase == 45 || phase == 46)
-            return Optional.of(3);
-        if (phase == 48)
-            return Optional.of(4);
+        PhaseGroup group = PHASE_TO_GROUP.get(phase);
+        if (group != null && group.stage > 0)
+            return Optional.of(group.stage);
         return Optional.empty();
     }
 
@@ -614,26 +612,64 @@ public class GodTrophyQuest {
     // Private helpers to reduce duplication
     // -----------------------
 
-    /** Small utility for building dialogue lists inline. */
-    private static ArrayList<String> lines(String... text) {
-        ArrayList<String> list = new ArrayList<>();
-        for (String t : text)
-            list.add(t);
-        return list;
+    /** Plays the standard success sound for completing a quest step. */
+    private void playSuccessSound(Player p) {
+        p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+        p.playSound(p, Sound.ENTITY_VILLAGER_CELEBRATE, 1, 1);
     }
 
     /**
-     * Common success flow: send dialogue, optionally reset counts, remove one from
-     * hand, update particles, and advance phase.
+     * Sends the "wrong item" dialogue and returns true
+     * so callers can {@code return wrongItemDialogue(p, name)}.
      */
-    private void successAndAdvance(Player p, boolean resetCount, boolean removeFromHand, boolean updateParticles,
-            ArrayList<String> messages) {
-        if (removeFromHand)
-            removeItemFromMainHand(p);
+    private boolean wrongItemDialogue(Player p, String itemName) {
+        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+        dialogue(p, lines(
+                "You do not have the right item",
+                "Use " + ChatColor.YELLOW + "/godquest" + ChatColor.WHITE + " to see the recipe for " + ChatColor.AQUA + itemName
+        ));
+        return true;
+    }
+
+    /**
+     * Sends the "empty hand" dialogue (with recipe hint) and returns true
+     * so callers can {@code return emptyHandItemStackDialogue(p, name)}.
+     */
+    private boolean emptyHandItemStackDialogue(Player p, String itemName) {
+        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+        dialogue(p, lines(
+                "You are not holding anything",
+                "Use " + ChatColor.YELLOW + "/godquest" + ChatColor.WHITE + " to see the recipe for " + ChatColor.AQUA + itemName
+        ));
+        return true;
+    }
+
+    /** Small utility for building dialogue lists inline. */
+    private static List<String> lines(String... text) {
+        return List.of(text);
+    }
+
+    /**
+     * Completes a bulk-collection step: resets count, sends dialogue, advances
+     * phase, and optionally triggers trophy particle updates.
+     */
+    private void onBulkComplete(Player p, List<String> messages, boolean updateParticles) {
+        currentItemCount = 0;
         dialogue(p, messages);
         phase++;
-        if (resetCount)
-            currentItemCount = 0;
+        if (updateParticles)
+            updateGodTrophyParticles();
+    }
+
+    /**
+     * Completes a hand-in step: removes one from main hand, resets count, sends
+     * dialogue, advances phase, and optionally triggers trophy particle updates.
+     */
+    private void onHandInComplete(Player p, List<String> messages, boolean updateParticles) {
+        removeItemFromMainHand(p);
+        currentItemCount = 0;
+        dialogue(p, messages);
+        phase++;
         if (updateParticles)
             updateGodTrophyParticles();
     }
@@ -642,33 +678,34 @@ public class GodTrophyQuest {
      * Bulk material collection step handler (e.g., farming/ore). When completed,
      * resets count and advances phase.
      */
-    private void bulkStep(Player p, int required, Material mat, String itemName, ArrayList<String> successMessages,
-            boolean updateParticlesAfter) {
+    private void bulkStep(Player p, int required, Material mat, String itemName, List<String> successMessages,
+            boolean updateParticles) {
         if (handleItemCheck(required, p, mat, itemName))
             return; // still collecting
-        successAndAdvance(p, true, false, updateParticlesAfter, successMessages);
+        onBulkComplete(p, successMessages, updateParticles);
     }
 
     /** Hand-in step for exact ItemStack in main hand. */
-    private void handInItemStackStep(Player p, ItemStack expected, String itemName, ArrayList<String> successMessages,
-            boolean updateParticlesAfter) {
+    private void handInItemStackStep(Player p, ItemStack expected, String itemName, List<String> successMessages,
+            boolean updateParticles) {
         if (handleItemCheck(p, expected, itemName))
             return; // wrong or missing item
-        successAndAdvance(p, true, true, updateParticlesAfter, successMessages);
+        onHandInComplete(p, successMessages, updateParticles);
     }
 
     /** Hand-in step for a specific Material in main hand. */
-    private void handInMaterialStep(Player p, Material mat, String itemName, ArrayList<String> successMessages,
-            boolean updateParticlesAfter) {
+    private void handInMaterialStep(Player p, Material mat, String itemName, List<String> successMessages,
+            boolean updateParticles) {
         if (handleItemCheck(p, mat, itemName))
             return; // wrong or missing item
-        successAndAdvance(p, true, true, updateParticlesAfter, successMessages);
+        onHandInComplete(p, successMessages, updateParticles);
     }
 
     /** Potion hand-in convenience wrapper. */
-    private void potionStep(Player p, PotionType type, String friendlyName, ArrayList<String> successMessages) {
+    private void potionStep(Player p, PotionType type, String friendlyName, List<String> successMessages,
+            boolean updateParticles) {
         if (handleItemCheck(p, getPotion(type), friendlyName))
             return;
-        successAndAdvance(p, true, true, false, successMessages);
+        onHandInComplete(p, successMessages, updateParticles);
     }
 }

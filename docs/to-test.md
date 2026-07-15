@@ -14,3 +14,5 @@ Auto Trash
 Artifacts
 Test unlimited torches
 Auto eat GUI
+God Trophy Effects
+Power Ore

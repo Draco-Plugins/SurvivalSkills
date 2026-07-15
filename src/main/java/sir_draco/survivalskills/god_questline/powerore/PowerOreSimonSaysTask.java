@@ -2,7 +2,6 @@ package sir_draco.survivalskills.god_questline.powerore;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -18,23 +17,47 @@ import java.util.*;
 /** Simon Says memory sequence task. */
 public class PowerOreSimonSaysTask implements PowerOreTask {
 
+    private static final int[] SEQUENCE_LENGTHS = { 4, 6, 8, 10 };
+    private static final int TICKS_BEFORE_SEQUENCE = 40;
+    private static final int TICKS_PER_HIGHLIGHT = 10;
+    private static final int TICKS_BETWEEN_HIGHLIGHTS = 3;
+    private static final int TICK_INTERVAL = 2;
+    private static final int CENTER_SLOT = 4;
+    private static final float SOUND_PITCH_INCREMENT = 0.1f;
+    private static final int NEXT_ROUND_DELAY_TICKS = 40;
+
+    private enum DisplayStep {
+        HIGHLIGHT(TICKS_PER_HIGHLIGHT),
+        GAP(TICKS_BETWEEN_HIGHLIGHTS);
+
+        private final int duration;
+
+        DisplayStep(int duration) {
+            this.duration = duration;
+        }
+
+        public int getDuration() {
+            return duration;
+        }
+    }
+
     private final PowerOreChallenge challenge;
     private final Player player;
-    private final int[] rounds = { 4, 6, 8, 10 };
     private final List<Material> colorMaterials = List.of(
             Material.RED_STAINED_GLASS_PANE,
             Material.BLUE_STAINED_GLASS_PANE,
             Material.GREEN_STAINED_GLASS_PANE,
             Material.YELLOW_STAINED_GLASS_PANE);
     private final Random random = new Random();
+
     private int roundIndex = 0;
-    private int startDelay = 20;
-    private List<Integer> currentSequence = new ArrayList<>();
     private int inputIndex = 0;
+    private List<Integer> currentSequence = new ArrayList<>();
     private Inventory inventory;
     private boolean showing = false;
+    private boolean finished = false;
 
-    public PowerOreSimonSaysTask(PowerOreChallenge challenge, Player player, Location oreLoc) {
+    public PowerOreSimonSaysTask(PowerOreChallenge challenge, Player player) {
         this.challenge = challenge;
         this.player = player;
     }
@@ -49,7 +72,7 @@ public class PowerOreSimonSaysTask implements PowerOreTask {
     private void startRound() {
         inputIndex = 0;
         currentSequence.clear();
-        int length = rounds[roundIndex];
+        int length = SEQUENCE_LENGTHS[roundIndex];
         for (int i = 0; i < length; i++)
             currentSequence.add(random.nextInt(colorMaterials.size()));
         player.sendMessage(ChatColor.AQUA + "Round " + (roundIndex + 1) + ": Memorize the sequence!");
@@ -61,6 +84,7 @@ public class PowerOreSimonSaysTask implements PowerOreTask {
         new BukkitRunnable() {
             int idx = 0;
             int phaseTicks = 0;
+            DisplayStep currentStep = DisplayStep.HIGHLIGHT;
 
             @Override
             public void run() {
@@ -69,10 +93,6 @@ public class PowerOreSimonSaysTask implements PowerOreTask {
                     return;
                 }
 
-                // Make sure the start is delayed
-                if (startDelay-- > 0)
-                    return;
-
                 if (idx >= currentSequence.size()) {
                     showing = false;
                     fillColorButtons();
@@ -80,27 +100,37 @@ public class PowerOreSimonSaysTask implements PowerOreTask {
                     cancel();
                     return;
                 }
-                if (phaseTicks == 0) {
-                    int colorIndex = currentSequence.get(idx);
-                    ItemStack item = coloredItem(colorMaterials.get(colorIndex), ChatColor.YELLOW + "?", "");
-                    inventory.setItem(4, item);
-                    player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1 + (colorIndex * 0.1f));
-                }
+
                 phaseTicks++;
-                if (phaseTicks >= 10)
-                    inventory.setItem(4, null);
-                if (phaseTicks >= 13) {
-                    phaseTicks = 0;
-                    idx++;
+                if (currentStep == DisplayStep.HIGHLIGHT) {
+                    if (phaseTicks == 1) {
+                        int colorIndex = currentSequence.get(idx);
+                        ItemStack item = coloredItem(colorMaterials.get(colorIndex), ChatColor.YELLOW + "?", "");
+                        inventory.setItem(CENTER_SLOT, item);
+                        player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1,
+                                1 + (colorIndex * SOUND_PITCH_INCREMENT));
+                    }
+                    if (phaseTicks >= currentStep.getDuration()) {
+                        inventory.setItem(CENTER_SLOT, null);
+                        currentStep = DisplayStep.GAP;
+                        phaseTicks = 0;
+                    }
+                } else if (currentStep == DisplayStep.GAP) {
+                    if (phaseTicks >= currentStep.getDuration()) {
+                        currentStep = DisplayStep.HIGHLIGHT;
+                        phaseTicks = 0;
+                        idx++;
+                    }
                 }
             }
-        }.runTaskTimer(SurvivalSkills.getInstance(), 0, 2);
+        }.runTaskTimer(SurvivalSkills.getInstance(), TICKS_BEFORE_SEQUENCE, TICK_INTERVAL);
     }
 
     private void fillColorButtons() {
         for (int i = 0; i < colorMaterials.size(); i++) {
-            inventory.setItem((2 * i) + 1, coloredItem(colorMaterials.get(i), ChatColor.WHITE + "Color " + (i + 1),
-                    ChatColor.GRAY + "Click in order"));
+            inventory.setItem((2 * i) + 1,
+                    coloredItem(colorMaterials.get(i), ChatColor.WHITE + "Color " + (i + 1),
+                            ChatColor.GRAY + "Click in order"));
         }
     }
 
@@ -116,54 +146,68 @@ public class PowerOreSimonSaysTask implements PowerOreTask {
         return item;
     }
 
-    public void handleClick(InventoryClickEvent e) {
+    private Optional<Integer> getClickedColorIndex(InventoryClickEvent e) {
         e.setCancelled(true);
         if (showing)
-            return;
-
+            return Optional.empty();
         if (challenge.getStatus() != PowerOreChallenge.Status.RUNNING)
-            return;
-
+            return Optional.empty();
         int slot = e.getRawSlot();
         if (slot < 0 || slot >= inventory.getSize())
-            return;
+            return Optional.empty();
         if (slot % 2 == 0)
+            return Optional.empty();
+        return Optional.of((slot - 1) / 2);
+    }
+
+    public void handleClick(InventoryClickEvent e) {
+        Optional<Integer> colorIndexOpt = getClickedColorIndex(e);
+        if (colorIndexOpt.isEmpty())
             return;
 
-        int colorIndex = (slot - 1) / 2;
+        int colorIndex = colorIndexOpt.get();
         if (currentSequence.get(inputIndex) != colorIndex) {
+            finished = true;
             challenge.fail("Wrong sequence");
             player.closeInventory();
             return;
         }
 
         inputIndex++;
-        player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1 + (colorIndex * 0.1f));
+        player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1,
+                1 + (colorIndex * SOUND_PITCH_INCREMENT));
 
         if (inputIndex < currentSequence.size())
             return;
 
+        advanceRound();
+    }
+
+    private void advanceRound() {
         roundIndex++;
-        if (roundIndex >= rounds.length) {
+        if (roundIndex >= SEQUENCE_LENGTHS.length) {
+            finished = true;
             player.closeInventory();
             challenge.complete();
             return;
         }
 
-        // Go to next round
         new BukkitRunnable() {
             @Override
             public void run() {
                 inventory.clear();
                 startRound();
             }
-        }.runTaskLater(SurvivalSkills.getInstance(), 40);
-
+        }.runTaskLater(SurvivalSkills.getInstance(), NEXT_ROUND_DELAY_TICKS);
     }
 
     public void handleClose() {
-        if (challenge.getStatus() == PowerOreChallenge.Status.RUNNING)
+        if (finished)
+            return;
+        if (challenge.getStatus() == PowerOreChallenge.Status.RUNNING) {
+            finished = true;
             challenge.fail("Simon Says closed early");
+        }
     }
 
     @Override

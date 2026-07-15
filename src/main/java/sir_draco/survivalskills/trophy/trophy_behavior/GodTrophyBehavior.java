@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.GodTrophyEffects;
+import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.trophy.TrophyEffects;
 
 public class GodTrophyBehavior implements TrophyEffectBehavior {
@@ -15,8 +16,13 @@ public class GodTrophyBehavior implements TrophyEffectBehavior {
             return cycle;
         }
         if (cycle == 1 || godTrophy == null) {
-            godTrophy = new GodTrophyEffects(loc, effects.getPlayerName(), effects.getPlayerUUID());
+            godTrophy = new GodTrophyEffects(effects.getPlugin(), loc, effects.getTrophyId(),
+                    effects.getPlayerName(), effects.getPlayerUUID());
             effects.setGodTrophy(godTrophy);
+            GodTrophyQuest godTrophyQuest = SurvivalSkills.getInstance().getTrophyManager()
+                    .getPlayerGodQuestData().get(effects.getPlayerUUID());
+            if (godTrophyQuest != null)
+                godTrophyQuest.synchronizeGodTrophyEffects(godTrophy);
         }
         godTrophy.tickTrophy(cycle);
         return cycle;

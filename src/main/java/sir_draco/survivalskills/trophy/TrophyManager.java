@@ -9,6 +9,7 @@ import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.external.providers.CitizensRegistryProvider;
+import sir_draco.survivalskills.god_questline.GodTrophyEffects;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.utils.ColorParser;
 
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public class TrophyManager {
 
@@ -37,8 +39,6 @@ public class TrophyManager {
     private final HashMap<UUID, Integer> godNPCIDs = new HashMap<>();
 
     public static CitizensRegistryProvider registry = null;
-    private static int nextID = 1;
-
     private boolean godQuestEnabled;
 
     public TrophyManager(SurvivalSkills plugin) {
@@ -58,7 +58,6 @@ public class TrophyManager {
     public void loadTrophies() {
         FileConfiguration trophyData = plugin.getTrophyData();
         ConfigurationSection section = trophyData.getConfigurationSection("");
-        if (section == null) return;
 
         // Shutdown and clear existing trophies to avoid duplicates
         for (Trophy t : trophies.values()) {
@@ -66,24 +65,33 @@ public class TrophyManager {
         }
         trophies.clear();
 
-        section.getKeys(false).forEach(key -> {
-            Location loc = trophyData.getLocation(key + ".Location");
-            String uuidString = trophyData.getString(key + ".UUID");
-            if (uuidString == null) {
-                trophyData.set(key, null);
-            }
-            else {
-                int id = Integer.parseInt(key);
-                UUID uuid = UUID.fromString(uuidString);
-                String type = trophyData.getString(key + ".Type");
-                String playerName = trophyData.getString(key + ".PlayerName");
+        if (section != null) {
+            section.getKeys(false).forEach(key -> {
+                Location loc = trophyData.getLocation(key + ".Location");
+                String uuidString = trophyData.getString(key + ".UUID");
+                if (uuidString == null) {
+                    trophyData.set(key, null);
+                }
+                else {
+                    int id = Integer.parseInt(key);
+                    UUID uuid = UUID.fromString(uuidString);
+                    String type = trophyData.getString(key + ".Type");
+                    String playerName = trophyData.getString(key + ".PlayerName");
 
-                Trophy trophy = new Trophy(loc, uuid, type, id, playerName);
-                // Server load: not a fresh placement, so skip placement-only animations
-                trophy.spawnTrophy(plugin, false);
-                trophies.put(loc, trophy);
-            }
-        });
+                    Trophy trophy = new Trophy(loc, uuid, type, id, playerName);
+                    // Server load: not a fresh placement, so skip placement-only animations
+                    trophy.spawnTrophy(plugin, false);
+                    trophies.put(loc, trophy);
+                }
+            });
+        }
+        Map<Integer, Location> activeGodTrophies = trophies.entrySet().stream()
+                .filter((Map.Entry<Location, Trophy> trophyEntry) ->
+                        trophyEntry.getValue().getTrophyType() == TrophyType.GOD.getId())
+                .collect(Collectors.toUnmodifiableMap(
+                        (Map.Entry<Location, Trophy> trophyEntry) -> trophyEntry.getValue().getID(),
+                        (Map.Entry<Location, Trophy> trophyEntry) -> trophyEntry.getKey().clone()));
+        GodTrophyEffects.removeOrphanedCrystals(plugin, activeGodTrophies);
     }
 
     public void loadPlayerTrophies(UUID uuid, FileConfiguration data) {
@@ -262,12 +270,6 @@ public class TrophyManager {
 
     public boolean isGodQuestEnabled() {
         return godQuestEnabled;
-    }
-
-    public static int getNextID() {
-        int num = nextID;
-        nextID++;
-        return num;
     }
 
     public static CitizensRegistryProvider getCitizensRegistryProvider() {

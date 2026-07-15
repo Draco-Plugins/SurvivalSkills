@@ -1,6 +1,5 @@
 package sir_draco.survivalskills.trophy;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -9,11 +8,8 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.logging.Level;
 
 public class Trophy {
-
-    private static final int GOD_TROPHY_CYCLE_THRESHOLD = 130;
 
     private final Location loc;
     private final UUID uuid;
@@ -72,13 +68,6 @@ public class Trophy {
         }
         if (type != TrophyType.GOD) {
             effects.spawnItem(0.5, 1.0, 0.5);
-        }
-        if (effects.getGodTrophy() != null && effects.getCycle() > GOD_TROPHY_CYCLE_THRESHOLD) {
-            try {
-                effects.getGodTrophy().spawnPlayer(playerName, uuid);
-            } catch (Exception e) {
-                Bukkit.getLogger().log(Level.WARNING, "[SurvivalSkills] Failed to spawn player for trophy: " + id);
-            }
         }
         effects.behaviorStart();
         effects.setRun(true);

@@ -209,7 +209,6 @@ public class TrophyEffects extends BukkitRunnable {
         }
         if (godTrophy != null) {
             godTrophy.remove();
-            godTrophy = null;
         }
         if (behavior != null) {
             behavior.cleanup();
@@ -408,8 +407,8 @@ public class TrophyEffects extends BukkitRunnable {
         return type;
     }
 
-    public int getCycle() {
-        return cycle;
+    public int getTrophyId() {
+        return trophy.getID();
     }
 
     // ---- Behavior factory ----

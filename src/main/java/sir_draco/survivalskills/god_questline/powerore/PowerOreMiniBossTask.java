@@ -15,16 +15,38 @@ import sir_draco.survivalskills.SurvivalSkills;
 /** Mini boss task: spawn a powerful Iron Golem the player must defeat. */
 public class PowerOreMiniBossTask extends BukkitRunnable implements PowerOreTask {
 
+    // Entity stats
     private static final int MAX_HEALTH = 250;
     private static final int ATTACK_DAMAGE = 30;
     private static final float SPEED = 0.4f;
+    private static final double MAX_DISTANCE = 60.0;
+
+    // Spawn offsets
+    private static final double SPAWN_OFFSET_X = 0.5;
+    private static final double SPAWN_OFFSET_Y = 1.0;
+    private static final double SPAWN_OFFSET_Z = 0.5;
+
+    // Shooter task timing (ticks)
+    private static final int SHOOTER_INITIAL_DELAY = 40;
+    private static final int SHOOTER_PERIOD = 60;
+    private static final int MAIN_TASK_PERIOD = 20;
+
+    // Projectile properties
+    private static final double HAND_OFFSET_Y = 2.2;
+    private static final double PROJECTILE_SPEED = 1.2;
+    private static final int PROJECTILE_LIFETIME = 40;
+    private static final double COLLISION_RADIUS_SQ = 1.2;
+    private static final int PROJECTILE_DAMAGE = 18;
+
+    // Projectile tracker timing (ticks)
+    private static final int TRACKER_DELAY = 1;
+    private static final int TRACKER_PERIOD = 2;
 
     private final PowerOreChallenge challenge;
     private final Player player;
     private final Location oreLoc;
     private IronGolem golem;
     private BukkitRunnable shooter;
-    private final double maxDistance = 60d; // configurable later
 
     public PowerOreMiniBossTask(PowerOreChallenge challenge, Player player, Location oreLoc) {
         this.challenge = challenge;
@@ -39,57 +61,81 @@ public class PowerOreMiniBossTask extends BukkitRunnable implements PowerOreTask
             challenge.fail("World unloaded");
             return;
         }
-        golem = (IronGolem) world.spawnEntity(oreLoc.clone().add(0.5, 1, 0.5), EntityType.IRON_GOLEM);
+        Location spawnLoc = oreLoc.clone().add(SPAWN_OFFSET_X, SPAWN_OFFSET_Y, SPAWN_OFFSET_Z);
+        golem = (IronGolem) world.spawnEntity(spawnLoc, EntityType.IRON_GOLEM);
+        if (golem == null) {
+            challenge.fail("Failed to spawn the Sentinel");
+            return;
+        }
         golem.setCustomName(ChatColor.DARK_RED + "Power Ore Sentinel");
         golem.setCustomNameVisible(true);
         handleAttributes();
         golem.setPlayerCreated(false);
         golem.setTarget(player);
-        shooter = new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (golem == null || golem.isDead() || challenge.getStatus() != PowerOreChallenge.Status.RUNNING) {
-                    cancel();
-                    return;
-                }
-                if (!player.isOnline())
-                    return;
-                launchIngot();
-            }
-        };
-        shooter.runTaskTimer(SurvivalSkills.getInstance(), 40, 60);
-        runTaskTimer(SurvivalSkills.getInstance(), 0, 20);
+        shooter = new ShooterTask();
+        shooter.runTaskTimer(SurvivalSkills.getInstance(), SHOOTER_INITIAL_DELAY, SHOOTER_PERIOD);
+        runTaskTimer(SurvivalSkills.getInstance(), 0, MAIN_TASK_PERIOD);
         player.sendMessage(ChatColor.RED + "Defeat the Power Ore Sentinel to complete the conversion!");
+    }
+
+    /** @return true if the challenge is still running and the golem is alive */
+    private boolean isActive() {
+        return challenge.getStatus() == PowerOreChallenge.Status.RUNNING
+                && golem != null && !golem.isDead();
+    }
+
+    /** Periodically launches iron ingot projectiles at the player. */
+    private class ShooterTask extends BukkitRunnable {
+        @Override
+        public void run() {
+            if (!isActive()) {
+                cancel();
+                return;
+            }
+            if (!player.isOnline()) {
+                cancel();
+                return;
+            }
+            launchIngot();
+        }
     }
 
     private void launchIngot() {
         if (golem == null)
             return;
         World world = golem.getWorld();
-        Location hand = golem.getLocation().clone().add(0, 2.2, 0);
+        Location hand = golem.getLocation().clone().add(0, HAND_OFFSET_Y, 0);
         Item ingot = world.dropItem(hand, new ItemStack(Material.IRON_INGOT));
         ingot.setPickupDelay(Integer.MAX_VALUE);
         Vector dir = player.getLocation().toVector().subtract(hand.toVector()).normalize();
-        ingot.setVelocity(dir.multiply(1.2));
-        new BukkitRunnable() {
-            int life = 40;
+        ingot.setVelocity(dir.multiply(PROJECTILE_SPEED));
+        new ProjectileTracker(ingot).runTaskTimer(SurvivalSkills.getInstance(), TRACKER_DELAY, TRACKER_PERIOD);
+    }
 
-            @Override
-            public void run() {
-                if (life-- <= 0 || ingot.isDead()) {
-                    ingot.remove();
-                    cancel();
-                    return;
-                }
-                if (player.getWorld().equals(ingot.getWorld())
-                        && player.getLocation().distanceSquared(ingot.getLocation()) < 1.2) {
-                    player.damage(18, golem);
-                    player.getWorld().playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1, 1);
-                    ingot.remove();
-                    cancel();
-                }
+    /** Tracks a single projectile and damages the player on collision. */
+    private class ProjectileTracker extends BukkitRunnable {
+        private final Item ingot;
+        private int life = PROJECTILE_LIFETIME;
+
+        ProjectileTracker(Item ingot) {
+            this.ingot = ingot;
+        }
+
+        @Override
+        public void run() {
+            if (life-- <= 0 || ingot.isDead()) {
+                ingot.remove();
+                cancel();
+                return;
             }
-        }.runTaskTimer(SurvivalSkills.getInstance(), 1, 2);
+            if (player.getWorld().equals(ingot.getWorld())
+                    && player.getLocation().distanceSquared(ingot.getLocation()) < COLLISION_RADIUS_SQ) {
+                player.damage(PROJECTILE_DAMAGE, golem);
+                player.getWorld().playSound(player.getLocation(), Sound.BLOCK_ANVIL_LAND, 1, 1);
+                ingot.remove();
+                cancel();
+            }
+        }
     }
 
     @Override
@@ -104,7 +150,7 @@ public class PowerOreMiniBossTask extends BukkitRunnable implements PowerOreTask
             return;
         }
         if (!player.getWorld().equals(golem.getWorld())
-                || player.getLocation().distanceSquared(golem.getLocation()) > maxDistance * maxDistance) {
+                || player.getLocation().distanceSquared(golem.getLocation()) > MAX_DISTANCE * MAX_DISTANCE) {
             challenge.fail("You abandoned the Sentinel.");
             cancel();
         }
@@ -115,11 +161,13 @@ public class PowerOreMiniBossTask extends BukkitRunnable implements PowerOreTask
         try {
             if (shooter != null)
                 shooter.cancel();
-        } catch (Exception ignored) {
+        } catch (IllegalStateException ignored) {
+            // Task was already cancelled or not scheduled
         }
         try {
             cancel();
-        } catch (Exception ignored) {
+        } catch (IllegalStateException ignored) {
+            // Task was already cancelled or not scheduled
         }
         if (golem != null && !golem.isDead())
             golem.remove();
@@ -135,7 +183,7 @@ public class PowerOreMiniBossTask extends BukkitRunnable implements PowerOreTask
         return player;
     }
 
-    public void handleAttributes() {
+    private void handleAttributes() {
         AttributeInstance health = golem.getAttribute(Attribute.MAX_HEALTH);
         if (health != null)
             health.setBaseValue(MAX_HEALTH);
@@ -146,6 +194,5 @@ public class PowerOreMiniBossTask extends BukkitRunnable implements PowerOreTask
         AttributeInstance speed = golem.getAttribute(Attribute.MOVEMENT_SPEED);
         if (speed != null)
             speed.setBaseValue(SPEED);
-
     }
 }
