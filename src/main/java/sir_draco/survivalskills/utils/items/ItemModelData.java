@@ -58,6 +58,7 @@ public enum ItemModelData {
     BROODING_SILK(49),
     POWER_LASER(50),
     POWER_ARMOR(51),
+    UNLIMITED_POWDER_SNOW_BUCKET(52),
     TELEPORT_ANCHOR(55),
     TROPHY(999);
 

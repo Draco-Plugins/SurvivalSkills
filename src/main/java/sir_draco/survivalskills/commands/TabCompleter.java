@@ -117,6 +117,7 @@ public class TabCompleter implements Listener {
         words.add("unlimitedbonemeal");
         words.add("unlimitedemptybucket");
         words.add("unlimitedlavabucket");
+        words.add("unlimitedpowdersnowbucket");
         words.add("unlimitedtippedarrow");
         words.add("unlimitedtorch");
         words.add("unlimitedtropicalfishbucket");

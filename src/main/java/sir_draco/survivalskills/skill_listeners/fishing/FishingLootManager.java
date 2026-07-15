@@ -163,6 +163,7 @@ public class FishingLootManager {
         suppliers.put("TIME_ARTIFACT", ItemStackGenerator::getTimeArtifact);
         suppliers.put("UNLIMITED_WATER_BUCKET", ItemStackGenerator::getUnlimitedWaterBucket);
         suppliers.put("UNLIMITED_LAVA_BUCKET", ItemStackGenerator::getUnlimitedLavaBucket);
+        suppliers.put("UNLIMITED_POWDER_SNOW_BUCKET", ItemStackGenerator::getUnlimitedPowderSnowBucket);
         suppliers.put("UNLIMITED_EMPTY_BUCKET", ItemStackGenerator::getUnlimitedEmptyBucket);
         suppliers.put("UNLIMITED_ROCKET", ItemStackGenerator::getUnlimitedRocket);
 
@@ -170,7 +171,8 @@ public class FishingLootManager {
         if (raw.isEmpty()) {
             // Fallback to the full default set so drops never silently vanish.
             raw = List.of("WEATHER_ARTIFACT", "TIME_ARTIFACT", "UNLIMITED_WATER_BUCKET",
-                    "UNLIMITED_LAVA_BUCKET", "UNLIMITED_EMPTY_BUCKET", "UNLIMITED_ROCKET");
+                    "UNLIMITED_LAVA_BUCKET", "UNLIMITED_POWDER_SNOW_BUCKET", "UNLIMITED_EMPTY_BUCKET",
+                    "UNLIMITED_ROCKET");
         }
         for (String entry : raw) {
             Supplier<ItemStack> supplier = suppliers.get(entry);

@@ -496,6 +496,14 @@ public class ItemStackGenerator {
                 .build();
     }
 
+    public static ItemStack getUnlimitedPowderSnowBucket() {
+        return new ItemStackBuilder(Material.POWDER_SNOW_BUCKET, 1,
+                ColorParser.gradientName("Unlimited Powder Snow Bucket", "#FFFFFF", "#9DD9E8", true))
+                .lore(ChatColor.GRAY + "Infinite powder snow")
+                .modelData(ItemModelData.UNLIMITED_POWDER_SNOW_BUCKET.getId())
+                .build();
+    }
+
     public static ItemStack getWeatherArtifact() {
         return new ItemStackBuilder(Material.BREEZE_ROD, 1,
                 ColorParser.gradientName("Weather Artifact", "#FFF000", "#2E3435", true))

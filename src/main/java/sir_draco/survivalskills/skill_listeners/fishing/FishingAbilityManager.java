@@ -102,6 +102,11 @@ public class FishingAbilityManager {
             e.setCancelled(true);
             Block relative = e.getBlockClicked().getRelative(e.getBlockFace());
             relative.setType(Material.LAVA);
+        } else if (ItemStackGeneratorUtils.isCustomItem(hand,
+                ItemModelData.UNLIMITED_POWDER_SNOW_BUCKET.getId())) {
+            e.setCancelled(true);
+            Block relative = e.getBlockClicked().getRelative(e.getBlockFace());
+            relative.setType(Material.POWDER_SNOW);
         }
     }
 }
