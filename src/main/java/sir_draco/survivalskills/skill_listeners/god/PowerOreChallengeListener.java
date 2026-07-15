@@ -23,12 +23,12 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.abilities.VeinMinerAsync;
 import sir_draco.survivalskills.abilities.items.PowerDrillTask;
 import sir_draco.survivalskills.god_questline.powerore.PowerOreChallenge;
 import sir_draco.survivalskills.god_questline.powerore.PowerOreScavengerHuntTask;
 import sir_draco.survivalskills.god_questline.powerore.PowerOreSimonSaysTask;
 import sir_draco.survivalskills.rewards.PlayerRewards;
-import sir_draco.survivalskills.skill_listeners.MiningSkill;
 import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.skill_listeners.god.items.PowerOreGate;
@@ -36,15 +36,14 @@ import sir_draco.survivalskills.skills.SkillCategory;
 
 import java.io.File;
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 /**
@@ -69,7 +68,7 @@ public class PowerOreChallengeListener implements Listener {
 
     private final ChallengeRegistry powerOreRegistry = new ChallengeRegistry();
     private final Set<Player> conversionCooldowns = new HashSet<>();
-    private final Map<Player, List<Block>> drillTracker = new HashMap<>();
+    private final Map<UUID, Set<PowerDrillTask>> drillTasks = new ConcurrentHashMap<>();
 
     public PowerOreChallengeListener() {
         loadPowerOreConversions();
@@ -84,7 +83,7 @@ public class PowerOreChallengeListener implements Listener {
         Location loc = block.getLocation();
 
         handlePowerOreBreak(e, p, loc);
-        handlePowerDrillBreak(e, p, block);
+        handlePowerDrillBreak(p, block);
     }
 
     private void handlePowerOreBreak(BlockBreakEvent e, Player p, Location loc) {
@@ -111,21 +110,12 @@ public class PowerOreChallengeListener implements Listener {
         }
     }
 
-    private void handlePowerDrillBreak(BlockBreakEvent e, Player p, Block block) {
+    private void handlePowerDrillBreak(Player p, Block block) {
         if (!ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), MODEL_POWER_DRILL))
             return;
-
-        // Make sure the player is trackable
-        drillTracker.computeIfAbsent(p, k -> new ArrayList<>());
-
-        // Make sure this block isn't part of a previous drill task
-        if (drillTracker.get(p).contains(block)) {
-            drillTracker.get(p).remove(block);
+        if (p.hasMetadata(PowerDrillTask.DRILL_BREAK_METADATA))
             return;
-        }
-
-        // Skip if this break is part of an active vein-miner task
-        if (shouldSkipVeinMineBreak(p, block))
+        if (p.hasMetadata(VeinMinerAsync.VEIN_MINER_BREAK_METADATA))
             return;
 
         // Make sure the player has the Power Ore ability unlocked
@@ -140,18 +130,7 @@ public class PowerOreChallengeListener implements Listener {
             return;
         }
 
-        launchPowerDrillAsync(p, block);
-    }
-
-    private boolean shouldSkipVeinMineBreak(Player p, Block block) {
-        MiningSkill mining = SurvivalSkills.getInstance().getMiningListener();
-        if (mining == null)
-            return false;
-        if (p.hasMetadata("survivalskills_veinminer_break"))
-            return true;
-        if (mining.isVeinMinerActive(p))
-            return true;
-        return mining.getVeinTracker().containsKey(p) && mining.getVeinTracker().get(p).contains(block);
+        launchPowerDrill(p, block);
     }
 
     private boolean hasPowerOreAbilityUnlocked(Player p) {
@@ -160,9 +139,9 @@ public class PowerOreChallengeListener implements Listener {
                 PowerOreGate.POWER_ORE_REWARD).isApplied();
     }
 
-    private void launchPowerDrillAsync(Player p, Block block) {
+    private void launchPowerDrill(Player p, Block block) {
         PowerDrillTask drillTask = new PowerDrillTask(SurvivalSkills.getInstance(), p, this, block);
-        drillTask.runTaskAsynchronously(SurvivalSkills.getInstance());
+        drillTask.start();
     }
 
     @EventHandler
@@ -355,19 +334,34 @@ public class PowerOreChallengeListener implements Listener {
         powerOreRegistry.unregister(loc, uuid);
     }
 
-    // --- Drill tracker (targeted access for PowerDrillTask) ---
+    // --- Active drill task ownership ---
 
-    public void registerDrillBlocks(Player player, List<Block> blocks) {
-        drillTracker.put(player, blocks);
+    public void registerDrillTask(UUID playerId, PowerDrillTask drillTask) {
+        drillTasks.compute(playerId, (UUID ignored, Set<PowerDrillTask> playerTasks) -> {
+            Set<PowerDrillTask> updatedTasks = playerTasks == null
+                    ? ConcurrentHashMap.newKeySet()
+                    : playerTasks;
+            updatedTasks.add(drillTask);
+            return updatedTasks;
+        });
     }
 
-    public void unregisterDrillBlocks(Player player) {
-        drillTracker.remove(player);
+    public void unregisterDrillTask(UUID playerId, PowerDrillTask drillTask) {
+        drillTasks.computeIfPresent(playerId, (UUID ignored, Set<PowerDrillTask> playerTasks) -> {
+            playerTasks.remove(drillTask);
+            return playerTasks.isEmpty() ? null : playerTasks;
+        });
+    }
+
+    private void cancelDrillTasks(UUID playerId) {
+        Set<PowerDrillTask> playerTasks = drillTasks.remove(playerId);
+        if (playerTasks == null) return;
+        Set.copyOf(playerTasks).forEach((PowerDrillTask drillTask) -> drillTask.cancelForDisconnect());
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent e) {
-        drillTracker.remove(e.getPlayer());
+        cancelDrillTasks(e.getPlayer().getUniqueId());
         conversionCooldowns.remove(e.getPlayer());
     }
 

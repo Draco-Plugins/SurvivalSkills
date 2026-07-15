@@ -31,6 +31,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import sir_draco.survivalskills.abilities.SpelunkerAbilitySync;
 import sir_draco.survivalskills.abilities.VeinMinerAsync;
+import sir_draco.survivalskills.abilities.items.PowerDrillTask;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
@@ -41,12 +42,14 @@ import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public class MiningSkill implements Listener {
 
     private static final int CUSTOM_ITEM_UNLIMITED_TORCH = ItemModelData.UNLIMITED_TORCH.getId();
     private static final int CUSTOM_ITEM_MINING_ARMOR = ItemModelData.MINING_ARMOR.getId();
     private static final int CUSTOM_ITEM_ZAP_WAND = ItemModelData.ZAP_WAND.getId();
+    private static final int CUSTOM_ITEM_POWER_DRILL = ItemModelData.POWER_DRILL.getId();
 
     private final SurvivalSkills plugin;
     private final NamespacedKey unlimitedTorchDataKey;
@@ -61,7 +64,7 @@ public class MiningSkill implements Listener {
     private final Set<Material> acceptableTools = createAcceptableTools();
     private final Map<Player, SpelunkerAbilitySync> spelunkerTracker = new ConcurrentHashMap<>();
     private final Map<Player, Boolean> veinminerTracker = new ConcurrentHashMap<>(); // false = takes hunger, true = doesn't
-    private final HashMap<Player, ArrayList<Block>> veinTracker = new HashMap<>();
+    private final Map<Player, List<Block>> veinTracker = new ConcurrentHashMap<>();
     private final HashMap<Player, Inventory> toolBelts = new HashMap<>();
     private final int blocksPerHunger;
     private final Set<UUID> activeVeinMinerPlayers = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -391,6 +394,11 @@ public class MiningSkill implements Listener {
     }
 
     public void veinminerChecker(Player p, BlockBreakEvent e) {
+        if (p.hasMetadata(PowerDrillTask.DRILL_BREAK_METADATA)) return;
+        boolean holdingPowerDrill = ItemStackGeneratorUtils.isCustomItem(
+                p.getInventory().getItemInMainHand(), CUSTOM_ITEM_POWER_DRILL);
+        if (shouldSkipVeinMiner(holdingPowerDrill, isVeinMinerActive(p))) return;
+
         // Make sure the player has the ability to vein mine
         if (!veinminerTracker.containsKey(p)) return;
         if (!p.isSneaking()) return;
@@ -405,7 +413,17 @@ public class MiningSkill implements Listener {
         }
 
         VeinMinerAsync veinMiner = new VeinMinerAsync(plugin, p, this, e.getBlock(), material, blocksPerHunger);
-        veinMiner.runTaskAsynchronously(plugin);
+        try {
+            veinMiner.runTask(plugin);
+        } catch (RuntimeException exception) {
+            veinMiner.cleanupAfterFailure();
+            Bukkit.getLogger().log(Level.SEVERE,
+                    String.format("[SurvivalSkills] Failed to schedule vein miner for %s", p.getName()), exception);
+        }
+    }
+
+    static boolean shouldSkipVeinMiner(boolean holdingPowerDrill, boolean veinMinerActive) {
+        return holdingPowerDrill || veinMinerActive;
     }
 
     public boolean isMiningArmor(PlayerInventory inv) {
@@ -550,7 +568,7 @@ public class MiningSkill implements Listener {
         return veinminerTracker;
     }
 
-    public HashMap<Player, ArrayList<Block>> getVeinTracker() {
+    public Map<Player, List<Block>> getVeinTracker() {
         return veinTracker;
     }
 

@@ -9,95 +9,100 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.metadata.FixedMetadataValue;
-import sir_draco.survivalskills.skill_listeners.MiningSkill;
+import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.skill_listeners.MiningSkill;
 
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 
 public class VeinMinerAsync extends BukkitRunnable {
 
+    public static final String VEIN_MINER_BREAK_METADATA = "survivalskills_veinminer_break";
+
     private final SurvivalSkills plugin;
-    private final Player p;
+    private final Player player;
     private final MiningSkill skill;
-    private final Block block;
+    private final Block originBlock;
     private final Material material;
     private final int blocksPerHunger;
+    private final AtomicBoolean cleanedUp = new AtomicBoolean();
 
-    public VeinMinerAsync(SurvivalSkills plugin, Player p, MiningSkill skill, Block block, Material material,
+    public VeinMinerAsync(SurvivalSkills plugin, Player player, MiningSkill skill, Block block, Material material,
             int blocksPerHunger) {
         this.plugin = plugin;
-        this.p = p;
+        this.player = player;
         this.skill = skill;
-        this.block = block;
+        this.originBlock = block;
         this.material = material;
         this.blocksPerHunger = blocksPerHunger;
-        this.skill.setVeinMinerActive(p, true);
+        this.skill.setVeinMinerActive(player, true);
     }
 
     @Override
     public void run() {
-        // Get the blocks in the vein and remove hunger appropriately
-        ArrayList<Block> blocks = getVeinBlocks(block);
-        ArrayList<Block> eventBlockTrackingList = new ArrayList<>(blocks);
-        skill.getVeinTracker().put(p, eventBlockTrackingList);
-        if (Boolean.FALSE.equals(skill.getVeinminerTracker().get(p))) {
-            int food = p.getFoodLevel();
-            int newFood = food - (blocks.size() / blocksPerHunger);
-            if (newFood < 0) {
-                p.sendRawMessage(ChatColor.RED + "You don't have enough hunger to mine the whole ore vein with");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                skill.getVeinTracker().remove(p);
+        if (!player.isOnline()) {
+            cleanup();
+            return;
+        }
+
+        try {
+            ArrayList<Block> blocks = getVeinBlocks(originBlock);
+            skill.getVeinTracker().put(player, new ArrayList<>(blocks));
+            if (!applyHungerCost(blocks.size())) {
+                cleanup();
                 return;
             }
 
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    FoodLevelChangeEvent event = new FoodLevelChangeEvent(p, newFood);
-                    p.setFoodLevel(newFood);
-                    Bukkit.getServer().getPluginManager().callEvent(event);
-                }
-            }.runTask(plugin);
+            ItemStack pickaxe = player.getInventory().getItemInMainHand().clone();
+            try {
+                new VeinBatchRunner(blocks, pickaxe).runTaskTimer(plugin, 0, 1);
+            } catch (RuntimeException exception) {
+                fail("could not schedule block breaking", exception);
+            }
+        } catch (RuntimeException exception) {
+            fail("failed while preparing blocks", exception);
+        }
+    }
+
+    public void cleanupAfterFailure() {
+        cleanup();
+    }
+
+    private boolean applyHungerCost(int blockCount) {
+        if (!Boolean.FALSE.equals(skill.getVeinminerTracker().get(player))) return true;
+
+        int food = player.getFoodLevel();
+        int newFood = food - (blockCount / blocksPerHunger);
+        if (newFood < 0) {
+            player.sendRawMessage(ChatColor.RED + "You don't have enough hunger to mine the whole ore vein with");
+            player.playSound(player, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            return false;
         }
 
-        ItemStack pickaxe = p.getInventory().getItemInMainHand();
+        FoodLevelChangeEvent event = new FoodLevelChangeEvent(player, newFood);
+        player.setFoodLevel(newFood);
+        Bukkit.getServer().getPluginManager().callEvent(event);
+        return true;
+    }
 
-        // Break all the blocks in the vein 1 block per tick (main thread). We run
-        // this inside a synchronous repeating task to avoid multi-threaded world
-        // mutations when Power Drill also operates.
-        new BukkitRunnable() {
-            int i = 0;
+    private void cleanup() {
+        if (!cleanedUp.compareAndSet(false, true)) return;
 
-            @Override
-            public void run() {
-                if (i >= blocks.size()) {
-                    plugin.getMiningListener().getVeinTracker().remove(p);
-                    p.removeMetadata("survivalskills_veinminer_break", plugin);
-                    skill.setVeinMinerActive(p, false);
-                    cancel();
-                    return;
-                }
+        skill.getVeinTracker().remove(player);
+        try {
+            player.removeMetadata(VEIN_MINER_BREAK_METADATA, plugin);
+        } finally {
+            skill.setVeinMinerActive(player, false);
+        }
+    }
 
-                // Make sure the block is breakable
-                Block blockToBreak = blocks.get(i);
-                if (blockToBreak.getType().isAir()) {
-                    i++;
-                    return;
-                }
-
-                // Mark this break as coming from vein miner (metadata cleared immediately
-                // after)
-                p.setMetadata("survivalskills_veinminer_break", new FixedMetadataValue(plugin, true));
-                BlockBreakEvent event = new BlockBreakEvent(blockToBreak, p);
-                Bukkit.getServer().getPluginManager().callEvent(event);
-                if (!event.isCancelled()) {
-                    blockToBreak.breakNaturally(pickaxe);
-                }
-                i++;
-            }
-        }.runTaskTimer(plugin, 0, 1);
+    private void fail(String message, RuntimeException exception) {
+        cleanup();
+        Bukkit.getLogger().log(Level.SEVERE,
+                String.format("[SurvivalSkills] Vein miner for %s %s", player.getName(), message), exception);
     }
 
     public ArrayList<Block> getVeinBlocks(Block startBlock) {
@@ -143,5 +148,50 @@ public class VeinMinerAsync extends BukkitRunnable {
             return getVeinBlockHelper(type, block, checkedBlocks, blocks, iterations);
         }
         return blocks;
+    }
+
+    private final class VeinBatchRunner extends BukkitRunnable {
+        private final ArrayList<Block> blocks;
+        private final ItemStack pickaxe;
+        private int blockIndex;
+
+        private VeinBatchRunner(ArrayList<Block> blocks, ItemStack pickaxe) {
+            this.blocks = blocks;
+            this.pickaxe = pickaxe;
+        }
+
+        @Override
+        public void run() {
+            if (!player.isOnline() || blockIndex >= blocks.size()) {
+                stop();
+                return;
+            }
+
+            try {
+                Block blockToBreak = blocks.get(blockIndex);
+                blockIndex++;
+                if (blockToBreak.getType().isAir()) return;
+
+                player.setMetadata(VEIN_MINER_BREAK_METADATA, new FixedMetadataValue(plugin, true));
+                try {
+                    BlockBreakEvent event = new BlockBreakEvent(blockToBreak, player);
+                    Bukkit.getServer().getPluginManager().callEvent(event);
+                    if (!event.isCancelled()) blockToBreak.breakNaturally(pickaxe);
+                } finally {
+                    player.removeMetadata(VEIN_MINER_BREAK_METADATA, plugin);
+                }
+            } catch (RuntimeException exception) {
+                try {
+                    fail("failed while breaking blocks", exception);
+                } finally {
+                    cancel();
+                }
+            }
+        }
+
+        private void stop() {
+            cleanup();
+            cancel();
+        }
     }
 }
