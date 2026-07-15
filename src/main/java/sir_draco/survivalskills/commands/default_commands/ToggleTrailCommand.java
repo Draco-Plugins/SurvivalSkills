@@ -45,6 +45,12 @@ public class ToggleTrailCommand implements CommandExecutor {
                 return true;
             }
 
+            TrailEffect activeTrail = plugin.getAbilityManager().getTrailTracker().get(p);
+            if (activeTrail != null && activeTrail.getTrailName().equalsIgnoreCase(trail)) {
+                disableTrail(p, activeTrail);
+                return true;
+            }
+
             // Check if they have unlocked it
             String rewardName = trail + "Trail";
             Reward reward = plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MAIN, rewardName);
@@ -93,10 +99,14 @@ public class ToggleTrailCommand implements CommandExecutor {
         }
 
         // Remove existing trail
-        plugin.getAbilityManager().getTrailTracker().get(p).cancel();
+        disableTrail(p, plugin.getAbilityManager().getTrailTracker().get(p));
+        return true;
+    }
+
+    private void disableTrail(Player p, TrailEffect trailEffect) {
+        trailEffect.cancel();
         plugin.getAbilityManager().getTrailTracker().remove(p);
         p.sendRawMessage(ChatColor.GREEN + "Trail disabled!");
         p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
-        return true;
     }
 }
