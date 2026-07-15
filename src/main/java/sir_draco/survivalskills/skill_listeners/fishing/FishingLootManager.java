@@ -335,7 +335,8 @@ public class FishingLootManager {
      */
     private void trackNonStackable(Player p, Material mat) {
         if (NON_STACKABLE_MATERIALS.contains(mat))
-            nonStackableItems.merge(p, 1, Integer::sum);
+            nonStackableItems.merge(p, 1, (Integer currentCount, Integer addedCount) ->
+                    currentCount.intValue() + addedCount.intValue());
     }
 
     // =================================================================

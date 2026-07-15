@@ -74,7 +74,8 @@ public class AutoEatCommand implements CommandExecutor {
             player.sendRawMessage(ChatColor.YELLOW + "Auto Eat mode: " + ChatColor.AQUA
                     + plugin.getFarmingListener().getAutoEatMode(player).getDisplayName());
             player.sendRawMessage(ChatColor.GRAY + "Modes: " + Arrays.stream(AutoEatMode.values())
-                    .map(AutoEatMode::name).map(String::toLowerCase).toList());
+                    .map((AutoEatMode mode) -> mode.name())
+                    .map((String modeName) -> modeName.toLowerCase()).toList());
             return true;
         }
         try {

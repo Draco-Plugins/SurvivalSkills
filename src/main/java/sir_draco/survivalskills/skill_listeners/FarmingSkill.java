@@ -508,7 +508,7 @@ public class FarmingSkill implements Listener {
     public List<Material> getFilterableFoods() {
         return foodNutritionMap.keySet().stream()
                 .filter(material -> !HARD_EXCLUDED_FOODS.contains(material))
-                .sorted(Comparator.comparing(Material::name))
+                .sorted(Comparator.comparing((Material material) -> material.name()))
                 .toList();
     }
 }

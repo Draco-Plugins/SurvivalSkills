@@ -557,7 +557,7 @@ public class FileUtils {
         data.set(uuid + NO_PHANTOMS, plugin.getFightingListener().getNoPhantomSpawns().contains(p));
         data.set(uuid + AUTO_EAT, plugin.getFarmingListener().getAutoEat().contains(p));
         data.set(uuid + AUTO_EAT_BLACKLIST, plugin.getFarmingListener().getBlacklistedFoods(p).stream()
-                .map(Material::name).sorted().toList());
+                .map((Material material) -> material.name()).sorted().toList());
         data.set(uuid + AUTO_EAT_MODE, plugin.getFarmingListener().getAutoEatMode(p).name());
         Boolean veinminer = plugin.getMiningListener().getVeinminerTracker().get(p);
         if (veinminer != null)
