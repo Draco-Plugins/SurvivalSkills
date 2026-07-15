@@ -13,12 +13,13 @@ import sir_draco.survivalskills.utils.Recipes.ShapedSpec;
 import sir_draco.survivalskills.utils.Recipes.SmallShapedSpec;
 import sir_draco.survivalskills.utils.Recipes.TrophyRecipeData;
 import sir_draco.survivalskills.utils.Recipes.TrophyRecipeData.TrophyRecipe;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 
 import java.util.*;
 
 public class RecipeMaker {
 
-        private static final int DENSE_WOOL_MODEL_DATA = 15;
+        private static final int DENSE_WOOL_MODEL_DATA = ItemModelData.DENSE_WOOL.getId();
 
         // Enchantments shared by every dense wool item and fragment recipe.
         private static final Map<Enchantment, Integer> KNOCKBACK_ENCHANTS =

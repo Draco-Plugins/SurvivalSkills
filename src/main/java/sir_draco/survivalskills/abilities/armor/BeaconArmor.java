@@ -12,6 +12,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import sir_draco.survivalskills.skill_listeners.ArmorListener;
 import sir_draco.survivalskills.skill_listeners.ArmorListener.ArmorType;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import static sir_draco.survivalskills.skill_listeners.ArmorListener.beaconEffects;
@@ -47,7 +48,7 @@ public class BeaconArmor extends BukkitRunnable {
     }
 
     private void setArmor(PlayerInventory inv, Color color) {
-        if (inv.getBoots() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getBoots(), 29)) {
+        if (inv.getBoots() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getBoots(), ItemModelData.BEACON_ARMOR.getId())) {
             ArmorListener.removeArmor(p.getUniqueId(), ArmorType.BEACON);
             cancel();
             return;
@@ -55,7 +56,7 @@ public class BeaconArmor extends BukkitRunnable {
         ItemStack boots = colorArmor(inv.getBoots(), color);
         p.sendEquipmentChange(p, EquipmentSlot.FEET, boots);
 
-        if (inv.getLeggings() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getLeggings(), 29)) {
+        if (inv.getLeggings() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getLeggings(), ItemModelData.BEACON_ARMOR.getId())) {
             ArmorListener.removeArmor(p.getUniqueId(), ArmorType.BEACON);
             cancel();
             return;
@@ -63,7 +64,7 @@ public class BeaconArmor extends BukkitRunnable {
         ItemStack leggings = colorArmor(inv.getLeggings(), color);
         p.sendEquipmentChange(p, EquipmentSlot.LEGS, leggings);
 
-        if (inv.getChestplate() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getChestplate(), 29)) {
+        if (inv.getChestplate() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getChestplate(), ItemModelData.BEACON_ARMOR.getId())) {
             ArmorListener.removeArmor(p.getUniqueId(), ArmorType.BEACON);
             cancel();
             return;
@@ -71,7 +72,7 @@ public class BeaconArmor extends BukkitRunnable {
         ItemStack chestplate = colorArmor(inv.getChestplate(), color);
         p.sendEquipmentChange(p, EquipmentSlot.CHEST, chestplate);
 
-        if (inv.getHelmet() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getHelmet(), 29)) {
+        if (inv.getHelmet() == null || !ItemStackGeneratorUtils.isCustomItem(inv.getHelmet(), ItemModelData.BEACON_ARMOR.getId())) {
             ArmorListener.removeArmor(p.getUniqueId(), ArmorType.BEACON);
             cancel();
             return;

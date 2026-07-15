@@ -42,7 +42,7 @@ public class VeinMinerAsync extends BukkitRunnable {
         ArrayList<Block> blocks = getVeinBlocks(block);
         ArrayList<Block> eventBlockTrackingList = new ArrayList<>(blocks);
         skill.getVeinTracker().put(p, eventBlockTrackingList);
-        if (skill.getVeinminerTracker().get(p) == 0) {
+        if (Boolean.FALSE.equals(skill.getVeinminerTracker().get(p))) {
             int food = p.getFoodLevel();
             int newFood = food - (blocks.size() / blocksPerHunger);
             if (newFood < 0) {

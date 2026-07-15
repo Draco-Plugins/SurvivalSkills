@@ -29,6 +29,7 @@ import sir_draco.survivalskills.bosses.VillagerBoss;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.items.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.utils.music.ExiledBossMusic;
 
@@ -260,11 +261,11 @@ public class BossManager {
     }
 
     public static boolean isSummoningBoss(ItemStack item) {
-        if (ItemStackGeneratorUtils.isCustomItem(item, 12))
+        if (ItemStackGeneratorUtils.isCustomItem(item, ItemModelData.GIANT_SUMMON.getId()))
             return true;
-        if (ItemStackGeneratorUtils.isCustomItem(item, 13))
+        if (ItemStackGeneratorUtils.isCustomItem(item, ItemModelData.BROOD_MOTHER_SUMMON.getId()))
             return true;
-        return ItemStackGeneratorUtils.isCustomItem(item, 14);
+        return ItemStackGeneratorUtils.isCustomItem(item, ItemModelData.THE_EXILED_ONE_SUMMON.getId());
     }
 
     static boolean isNight(World world) {

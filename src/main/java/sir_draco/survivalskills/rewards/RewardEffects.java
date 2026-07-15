@@ -49,7 +49,7 @@ public class RewardEffects {
         tieredDouble(m, "Mining", "Armor", map(1, 0.05, 2, 0.10, 3, 0.15, 4, 0.20), (pr, val) -> pr.setProtectionPercentage(val));
         put(m, "Mining", "UnbreakableTools", (pr, p) -> pr.setUnbreakableTools(true));
         put(m, "Mining", "VeinMinerII", (pr, p) -> {
-            SurvivalSkills.getInstance().getMiningListener().getVeinminerTracker().put(p, 1);
+            SurvivalSkills.getInstance().getMiningListener().getVeinminerTracker().put(p, true);
             pr.setUnbreakableTools(true);
         });
 

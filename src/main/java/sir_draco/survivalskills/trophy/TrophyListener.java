@@ -23,13 +23,14 @@ import org.bukkit.persistence.PersistentDataType;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.utils.Utils;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.Map;
 
 public class TrophyListener implements Listener {
 
-    private static final int TROPHY_CUSTOM_MODEL_DATA = 999;
+    private static final int TROPHY_CUSTOM_MODEL_DATA = ItemModelData.TROPHY.getId();
     private static final int MERCHANT_RESULT_SLOT = 2;
 
     private final SurvivalSkills plugin;

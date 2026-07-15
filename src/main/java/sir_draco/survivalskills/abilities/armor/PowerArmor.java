@@ -15,6 +15,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 
 /**
  * Utility class for Power Armor damage storage & release.
@@ -29,7 +30,7 @@ public final class PowerArmor {
     }
 
     public static final String POWER_ARMOR_KEY = "power_armor_damage";
-    public static final int POWER_ARMOR_MODEL_DATA = 51;
+    public static final int POWER_ARMOR_MODEL_DATA = ItemModelData.POWER_ARMOR.getId();
     public static final double MAX_STORED_DAMAGE = 50.0;
     private static final double MAX_RADIUS = 20.0;
     // Particle rendering configuration for shockwave sphere

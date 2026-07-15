@@ -12,3 +12,4 @@ Boss Fight Kills -> Try to spawn 2 bosses from the same itemstack\
 Fishing
 Auto Trash
 Artifacts
+Test unlimited torches

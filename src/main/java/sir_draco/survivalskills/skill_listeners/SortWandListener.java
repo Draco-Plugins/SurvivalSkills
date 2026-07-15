@@ -24,6 +24,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.skills.SkillCategory;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.*;
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
 
 public class SortWandListener implements Listener {
 
-    private static final int SORT_WAND_MODEL_DATA = 16;
+    private static final int SORT_WAND_MODEL_DATA = ItemModelData.SORT_WAND.getId();
     private static final int FIRST_MAIN_SLOT = 9;
     private static final int LAST_MAIN_SLOT = 35;
     private static final int MAX_STACK_SIZE = 64;

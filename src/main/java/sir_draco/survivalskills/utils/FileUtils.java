@@ -336,9 +336,8 @@ public class FileUtils {
 
     private static void loadVeinMiner(Player p, FileConfiguration data, UUID uuid) {
         if (data.contains(uuid + VEINMINER)) {
-            int veinminer = data.getInt(uuid + VEINMINER);
-            if (veinminer == 0 || veinminer == 1)
-                SurvivalSkills.getInstance().getMiningListener().getVeinminerTracker().put(p, veinminer);
+            boolean noHunger = data.getBoolean(uuid + VEINMINER);
+            SurvivalSkills.getInstance().getMiningListener().getVeinminerTracker().put(p, noHunger);
         }
     }
 
@@ -539,7 +538,9 @@ public class FileUtils {
 
         data.set(uuid + NO_PHANTOMS, plugin.getFightingListener().getNoPhantomSpawns().contains(p));
         data.set(uuid + AUTO_EAT, plugin.getFarmingListener().getAutoEat().contains(p));
-        data.set(uuid + VEINMINER, plugin.getMiningListener().getVeinminerTracker().getOrDefault(p, -1));
+        Boolean veinminer = plugin.getMiningListener().getVeinminerTracker().get(p);
+        if (veinminer != null)
+            data.set(uuid + VEINMINER, veinminer);
         data.set(uuid + PEACEFUL_MINER, plugin.getMiningListener().getPeacefulMiners().contains(p));
         data.set(uuid + BLOODY_DOMAIN, plugin.getAbilityManager().getBloodyDomainTracker().containsKey(p));
         data.set(uuid + NO_BOSS_MUSIC, plugin.getFightingListener().getNoBossMusic().contains(p));

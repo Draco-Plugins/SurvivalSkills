@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import sir_draco.survivalskills.utils.items.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.HashMap;
@@ -89,7 +90,7 @@ public class GodItemDropListener implements Listener {
         if (!(e.getEntity() instanceof Player p))
             return;
         ItemStack arrow = e.getConsumable();
-        if (!ItemStackGeneratorUtils.isCustomItem(arrow, 34))
+        if (!ItemStackGeneratorUtils.isCustomItem(arrow, ItemModelData.UNLIMITED_TIPPED_ARROW.getId()))
             return;
 
         Arrow oldArrow = (Arrow) e.getProjectile();

@@ -28,19 +28,22 @@ import sir_draco.survivalskills.abilities.DeathLocationTimer;
 import sir_draco.survivalskills.abilities.Grave;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.skills.SkillCategory;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MainSkill implements Listener {
 
     private final SurvivalSkills plugin;
-    private final HashMap<Player, ArrayList<Location>> deathLocations = new HashMap<>();
-    private final HashMap<Location, Grave> graves = new HashMap<>();
-    private final HashMap<Inventory, Grave> openGraves = new HashMap<>();
+    private final Map<Player, List<Location>> deathLocations = new ConcurrentHashMap<>();
+    private final Map<Location, Grave> graves = new HashMap<>();
+    private final Map<Inventory, Grave> openGraves = new HashMap<>();
     private final int graveLifespan;
     private final File graveFile;
     private final FileConfiguration grave;
@@ -61,16 +64,21 @@ public class MainSkill implements Listener {
         Player p = e.getEntity();
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
 
-        if (deathLocations.containsKey(p)) deathLocations.get(p).add(p.getLocation());
-        else {
-            ArrayList<Location> locations = new ArrayList<>();
-            locations.add(p.getLocation());
-            deathLocations.put(p, locations);
-        }
+        trackDeathLocation(p);
+        startDeathTimer(p);
+        handleDeathInventory(e, rewards);
+    }
 
-        DeathLocationTimer timer = new DeathLocationTimer(plugin, p, p.getLocation(), graveLifespan);
+    private void trackDeathLocation(Player player) {
+        deathLocations.computeIfAbsent(player, k -> new CopyOnWriteArrayList<>()).add(player.getLocation());
+    }
+
+    private void startDeathTimer(Player player) {
+        DeathLocationTimer timer = new DeathLocationTimer(plugin, player, player.getLocation(), graveLifespan);
         timer.runTaskTimerAsynchronously(plugin, 0, 20);
+    }
 
+    private void handleDeathInventory(PlayerDeathEvent e, PlayerRewards rewards) {
         if (rewards.getReward(SkillCategory.MAIN, "KeepExperience").isApplied()) {
             e.setKeepLevel(true);
             e.setDroppedExp(0);
@@ -82,10 +90,11 @@ public class MainSkill implements Listener {
             return;
         }
         if (e.getKeepInventory()) return;
-
         if (e.getDrops().isEmpty()) return;
         if (!rewards.getReward(SkillCategory.MAIN, "Gravestone").isApplied()) return;
-        Grave grave = new Grave(nextGraveID, p.getUniqueId(), p.getLocation(), new ArrayList<>(e.getDrops()), graveLifespan, plugin);
+
+        Grave grave = new Grave(nextGraveID, e.getEntity().getUniqueId(), e.getEntity().getLocation(),
+                                new ArrayList<>(e.getDrops()), graveLifespan, plugin);
         graves.put(grave.getLocation(), grave);
         e.getDrops().clear();
         nextGraveID++;
@@ -145,8 +154,8 @@ public class MainSkill implements Listener {
         if (!ItemStackGeneratorUtils.isCustomItem(e.getItemInHand())) return;
         ItemMeta meta = e.getItemInHand().getItemMeta();
         if (meta == null) return;
-        if (!ItemStackGeneratorUtils.hasCustomModelData(meta, 15)
-                && !ItemStackGeneratorUtils.hasCustomModelData(meta, 32)) return;
+        if (!ItemStackGeneratorUtils.hasCustomModelData(meta, ItemModelData.DENSE_WOOL.getId())
+                && !ItemStackGeneratorUtils.hasCustomModelData(meta, ItemModelData.MAGNET.getId())) return;
         e.setCancelled(true);
     }
 
@@ -158,19 +167,19 @@ public class MainSkill implements Listener {
         if (hand == null) return;
         ItemMeta meta = hand.getItemMeta();
         if (meta == null) return;
-        if (!ItemStackGeneratorUtils.hasCustomModelData(meta, 18)) return;
+        if (!ItemStackGeneratorUtils.hasCustomModelData(meta, ItemModelData.FIREWORK_CANNON.getId())) return;
         e.setCancelled(true);
-        Color color = Color.fromRGB((int) (Math.random() * 255), (int) (Math.random() * 255), (int) (Math.random() * 255));
+        Color color = randomColor();
         Vector vector = e.getPlayer().getLocation().getDirection();
         Location loc = e.getPlayer().getLocation().clone().add(vector.multiply(5));
-        spawnFirework(loc, 1, FireworkEffect.Type.BALL, color, false, false, null);
+        spawnFirework(loc, 1, FireworkEffect.Type.BALL, color, false, false, List.of());
     }
 
-    public HashMap<Player, ArrayList<Location>> getDeathLocations() {
+    public Map<Player, List<Location>> getDeathLocations() {
         return deathLocations;
     }
 
-    public HashMap<Location, Grave> getGraves() {
+    public Map<Location, Grave> getGraves() {
         return graves;
     }
 
@@ -182,47 +191,62 @@ public class MainSkill implements Listener {
     }
 
     public void loadGraves() {
-        // Grave Loading
         ConfigurationSection graveConfig = grave.getConfigurationSection("Graves");
         if (graveConfig == null) return;
-        ArrayList<Integer> removeIDs = new ArrayList<>();
-        graveConfig.getKeys(false).forEach(id -> {
+
+        List<Integer> removeIDs = new ArrayList<>();
+        for (String id : graveConfig.getKeys(false)) {
             int intID = Integer.parseInt(id);
-            String uuidString = grave.getString("Graves." + id + ".UUID");
-            if (uuidString == null) uuidString = "00000000-0000-0000-0000-000000000000";
-            UUID player = UUID.fromString(uuidString);
-            Location location = getLocationFromConfig(Integer.parseInt(id));
-            ArrayList<ItemStack> items = new ArrayList<>();
-            ConfigurationSection section = grave.getConfigurationSection("Graves." + id + ".Inventory");
-            if (section == null) return;
-            section.getKeys(false).forEach(slot ->
-                    items.add(grave.getItemStack("Graves." + id + ".Inventory." + slot)));
-
             removeIDs.add(intID);
-            if (location != null) {
-                Grave grave = new Grave(intID, player, location, items, graveLifespan, plugin);
-                graves.put(location, grave);
-            }
-        });
+            loadSingleGrave(intID);
+        }
 
-        if (!removeIDs.isEmpty()) for (int id : removeIDs) grave.set("Graves." + id, null);
+        for (int id : removeIDs) {
+            grave.set("Graves." + id, null);
+        }
     }
 
-    public Location getLocationFromConfig(int id) {
+    private void loadSingleGrave(int intID) {
+        String uuidString = grave.getString("Graves." + intID + ".UUID");
+        if (uuidString == null) {
+            uuidString = "00000000-0000-0000-0000-000000000000";
+        }
+        UUID playerUUID = UUID.fromString(uuidString);
+        List<ItemStack> items = loadGraveItems(intID);
+        Optional<Location> locationOpt = getLocationFromConfig(intID);
+
+        locationOpt.ifPresent(location -> {
+            Grave grave = new Grave(intID, playerUUID, location, new ArrayList<>(items), graveLifespan, plugin);
+            graves.put(location, grave);
+        });
+    }
+
+    private List<ItemStack> loadGraveItems(int intID) {
+        ConfigurationSection section = grave.getConfigurationSection("Graves." + intID + ".Inventory");
+        if (section == null) return List.of();
+
+        List<ItemStack> items = new ArrayList<>();
+        for (String slot : section.getKeys(false)) {
+            items.add(grave.getItemStack("Graves." + intID + ".Inventory." + slot));
+        }
+        return items;
+    }
+
+    public Optional<Location> getLocationFromConfig(int id) {
         String locationString = grave.getString("Graves." + id + ".Location");
-        if (locationString == null) return null;
+        if (locationString == null) return Optional.empty();
         String[] locationSplit = locationString.split(":");
         String worldName = grave.getString("Graves." + id + ".World");
-        if (worldName == null) return null;
+        if (worldName == null) return Optional.empty();
         World world = Bukkit.getWorld(worldName);
-        if (world == null) return null;
+        if (world == null) return Optional.empty();
         double x = Double.parseDouble(locationSplit[0]);
         double y = Double.parseDouble(locationSplit[1]);
         double z = Double.parseDouble(locationSplit[2]);
-        return new Location(world, x, y, z);
+        return Optional.of(new Location(world, x, y, z));
     }
 
-    public void spawnFirework(Location loc, int power, FireworkEffect.Type type, Color color, boolean trail, boolean flicker, ArrayList<Color> fadeColors) {
+    public void spawnFirework(Location loc, int power, FireworkEffect.Type type, Color color, boolean trail, boolean flicker, List<Color> fadeColors) {
         World world = loc.getWorld();
         if (world == null) return;
         Firework fw = (Firework) world.spawnEntity(loc, EntityType.FIREWORK_ROCKET);
@@ -233,12 +257,18 @@ public class MainSkill implements Listener {
         build.withColor(color);
         if (trail) build.withTrail();
         if (flicker) build.withFlicker();
-        if (fadeColors != null) build.withFade(fadeColors);
+        if (!fadeColors.isEmpty()) build.withFade(fadeColors);
 
         fwm.addEffect(build.build());
         fwm.setPower(power);
         fw.setMetadata("nodamage", new FixedMetadataValue(plugin, true));
         fw.setFireworkMeta(fwm);
         fw.detonate();
+    }
+
+    private Color randomColor() {
+        return Color.fromRGB((int) (Math.random() * 255),
+                             (int) (Math.random() * 255),
+                             (int) (Math.random() * 255));
     }
 }

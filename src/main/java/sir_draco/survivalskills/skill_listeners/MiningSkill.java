@@ -36,12 +36,17 @@ import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.Utils;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MiningSkill implements Listener {
+
+    private static final int CUSTOM_ITEM_UNLIMITED_TORCH = ItemModelData.UNLIMITED_TORCH.getId();
+    private static final int CUSTOM_ITEM_MINING_ARMOR = ItemModelData.MINING_ARMOR.getId();
+    private static final int CUSTOM_ITEM_ZAP_WAND = ItemModelData.ZAP_WAND.getId();
 
     private final SurvivalSkills plugin;
     private final NamespacedKey unlimitedTorchDataKey;
@@ -53,10 +58,9 @@ public class MiningSkill implements Listener {
     private Set<Material> rareOres = EnumSet.noneOf(Material.class);
     private final ArrayList<Player> peacefulMiners = new ArrayList<>();
     private final ArrayList<EntityType> peacefulMobList = new ArrayList<>();
-    private final ArrayList<Material> acceptableTools = new ArrayList<>();
-    private final HashMap<Player, SpelunkerAbilitySync> spelunkerTracker = new HashMap<>();
-    private final HashMap<Player, Integer> veinminerTracker = new HashMap<>(); // Integer is 0 (takes hunger) or 1
-                                                                               // (doesn't)
+    private final Set<Material> acceptableTools = createAcceptableTools();
+    private final Map<Player, SpelunkerAbilitySync> spelunkerTracker = new ConcurrentHashMap<>();
+    private final Map<Player, Boolean> veinminerTracker = new ConcurrentHashMap<>(); // false = takes hunger, true = doesn't
     private final HashMap<Player, ArrayList<Block>> veinTracker = new HashMap<>();
     private final HashMap<Player, Inventory> toolBelts = new HashMap<>();
     private final int blocksPerHunger;
@@ -71,7 +75,6 @@ public class MiningSkill implements Listener {
         setUncommonOres();
         setRareOres();
         setPeacefulMobList();
-        setAcceptableTools();
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -110,15 +113,14 @@ public class MiningSkill implements Listener {
         Player p = e.getPlayer();
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
 
-        if (rewards == null && plugin.isCitizensEnabled()) return;
-        else if (rewards == null) {
+        if (rewards == null) {
             Bukkit.getLogger().warning("Player " + p.getName() + " does not have a PlayerRewards object");
             return;
         }
 
         if (!rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").isApplied()) {
-            if (ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), 1)
-                    || ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInOffHand(), 1)) {
+            if (ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), CUSTOM_ITEM_UNLIMITED_TORCH)
+                    || ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInOffHand(), CUSTOM_ITEM_UNLIMITED_TORCH)) {
                 e.setCancelled(true);
                 p.sendRawMessage(ChatColor.RED + "Unlimited Torch unlocks at mining level "
                         + ChatColor.AQUA + rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").getLevel());
@@ -131,10 +133,10 @@ public class MiningSkill implements Listener {
         if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
 
         if (e.getHand().equals(EquipmentSlot.OFF_HAND)
-                && !ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInOffHand(), 1))
+                && !ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInOffHand(), CUSTOM_ITEM_UNLIMITED_TORCH))
             return;
         else if (e.getHand().equals(EquipmentSlot.HAND)
-                && !ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), 1))
+                && !ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), CUSTOM_ITEM_UNLIMITED_TORCH))
             return;
         e.setCancelled(true);
 
@@ -150,10 +152,9 @@ public class MiningSkill implements Listener {
 
         // Place torch if possible
         Block desiredBlock = e.getClickedBlock().getRelative(e.getBlockFace());
-        if (!desiredBlock.isEmpty() && !desiredBlock.getType().isAir()) return;
+        if (!desiredBlock.isEmpty()) return;
         if (e.getBlockFace().equals(BlockFace.UP) || e.getBlockFace().equals(BlockFace.DOWN)) {
             desiredBlock.setType(Material.TORCH);
-            desiredBlock.getState().setType(Material.TORCH);
         } else {
             Directional torch = (Directional) Material.WALL_TORCH.createBlockData();
             torch.setFacing(e.getBlockFace());
@@ -163,7 +164,7 @@ public class MiningSkill implements Listener {
         markUnlimitedTorch(desiredBlock);
     }
 
-    void markUnlimitedTorch(Block block) {
+    public void markUnlimitedTorch(Block block) {
         PersistentDataContainer data = block.getChunk().getPersistentDataContainer();
         long blockPosition = encodeBlockPosition(block);
         long[] positions = data.getOrDefault(unlimitedTorchDataKey, PersistentDataType.LONG_ARRAY, new long[0]);
@@ -204,11 +205,15 @@ public class MiningSkill implements Listener {
         if (e.getClickedBlock() == null) return;
         Player p = e.getPlayer();
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if (!ItemStackGeneratorUtils.isCustomItem(hand, 27)) return;
-        if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "ZapWand").isApplied()) {
+        if (!ItemStackGeneratorUtils.isCustomItem(hand, CUSTOM_ITEM_ZAP_WAND)) return;
+
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+        if (rewards == null) return;
+
+        if (!rewards.getReward(SkillCategory.MINING, "ZapWand").isApplied()) {
             e.setCancelled(true);
             p.sendRawMessage(ChatColor.RED + "Zap Wand unlocks at mining level " + ChatColor.AQUA +
-                    plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "ZapWand").getLevel());
+                    rewards.getReward(SkillCategory.MINING, "ZapWand").getLevel());
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
@@ -229,7 +234,9 @@ public class MiningSkill implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void playerHurt(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player p)) return;
-        double reductionPercentage = plugin.getSkillManager().getPlayerRewards(p).getProtectionPercentage();
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+        if (rewards == null) return;
+        double reductionPercentage = rewards.getProtectionPercentage();
         if (reductionPercentage == 0) return;
         double newDamage = e.getDamage() * (1 - reductionPercentage);
         e.setDamage(newDamage);
@@ -369,7 +376,7 @@ public class MiningSkill implements Listener {
         if (fortuneChance <= 0) return;
         Material brokenType = e.getBlock().getType();
         if (!ores.contains(brokenType)) return;
-        if (p.getInventory().getItemInMainHand().containsEnchantment(Enchantment.SILK_TOUCH)) return; // Respect silk touch
+        if (p.getInventory().getItemInMainHand().getEnchantmentLevel(Enchantment.SILK_TOUCH) > 0) return; // Respect silk touch
 
         if (Math.random() >= fortuneChance) return; // Chance failed
 
@@ -391,7 +398,7 @@ public class MiningSkill implements Listener {
         if (!ores.contains(material)) return;
 
         // Make sure this block isn't part of a previous vein mine
-        if (!veinTracker.containsKey(p)) veinTracker.put(p, new ArrayList<>());
+        veinTracker.computeIfAbsent(p, k -> new ArrayList<>());
         if (veinTracker.get(p).contains(e.getBlock())) {
             veinTracker.get(p).remove(e.getBlock());
             return;
@@ -402,10 +409,10 @@ public class MiningSkill implements Listener {
     }
 
     public boolean isMiningArmor(PlayerInventory inv) {
-        if (!ItemStackGeneratorUtils.isCustomItem(inv.getBoots(), 3)) return false;
-        if (!ItemStackGeneratorUtils.isCustomItem(inv.getLeggings(), 3)) return false;
-        if (!ItemStackGeneratorUtils.isCustomItem(inv.getChestplate(), 3)) return false;
-        return ItemStackGeneratorUtils.isCustomItem(inv.getHelmet(), 3);
+        if (!ItemStackGeneratorUtils.isCustomItem(inv.getBoots(), CUSTOM_ITEM_MINING_ARMOR)) return false;
+        if (!ItemStackGeneratorUtils.isCustomItem(inv.getLeggings(), CUSTOM_ITEM_MINING_ARMOR)) return false;
+        if (!ItemStackGeneratorUtils.isCustomItem(inv.getChestplate(), CUSTOM_ITEM_MINING_ARMOR)) return false;
+        return ItemStackGeneratorUtils.isCustomItem(inv.getHelmet(), CUSTOM_ITEM_MINING_ARMOR);
     }
 
     public void setOres() {
@@ -471,67 +478,67 @@ public class MiningSkill implements Listener {
         peacefulMobList.add(EntityType.SILVERFISH);
     }
 
-    public void setAcceptableTools() {
-        acceptableTools.add(Material.WOODEN_PICKAXE);
-        acceptableTools.add(Material.STONE_PICKAXE);
-        acceptableTools.add(Material.IRON_PICKAXE);
-        acceptableTools.add(Material.GOLDEN_PICKAXE);
-        acceptableTools.add(Material.DIAMOND_PICKAXE);
-        acceptableTools.add(Material.NETHERITE_PICKAXE);
-        acceptableTools.add(Material.WOODEN_SHOVEL);
-        acceptableTools.add(Material.STONE_SHOVEL);
-        acceptableTools.add(Material.IRON_SHOVEL);
-        acceptableTools.add(Material.GOLDEN_SHOVEL);
-        acceptableTools.add(Material.DIAMOND_SHOVEL);
-        acceptableTools.add(Material.NETHERITE_SHOVEL);
-        acceptableTools.add(Material.WOODEN_AXE);
-        acceptableTools.add(Material.STONE_AXE);
-        acceptableTools.add(Material.IRON_AXE);
-        acceptableTools.add(Material.GOLDEN_AXE);
-        acceptableTools.add(Material.DIAMOND_AXE);
-        acceptableTools.add(Material.NETHERITE_AXE);
-        acceptableTools.add(Material.WOODEN_HOE);
-        acceptableTools.add(Material.STONE_HOE);
-        acceptableTools.add(Material.IRON_HOE);
-        acceptableTools.add(Material.GOLDEN_HOE);
-        acceptableTools.add(Material.DIAMOND_HOE);
-        acceptableTools.add(Material.NETHERITE_HOE);
-        acceptableTools.add(Material.SHEARS);
-        acceptableTools.add(Material.BUCKET);
-        acceptableTools.add(Material.WATER_BUCKET);
-        acceptableTools.add(Material.LAVA_BUCKET);
-        acceptableTools.add(Material.FLINT_AND_STEEL);
-        acceptableTools.add(Material.CLOCK);
-        acceptableTools.add(Material.COMPASS);
-        acceptableTools.add(Material.FISHING_ROD);
-        acceptableTools.add(Material.CARROT_ON_A_STICK);
-        acceptableTools.add(Material.WARPED_FUNGUS_ON_A_STICK);
-        acceptableTools.add(Material.SPYGLASS);
-        acceptableTools.add(Material.TROPICAL_FISH_BUCKET);
-        acceptableTools.add(Material.PUFFERFISH_BUCKET);
-        acceptableTools.add(Material.SALMON_BUCKET);
-        acceptableTools.add(Material.COD_BUCKET);
-        acceptableTools.add(Material.AXOLOTL_BUCKET);
-        acceptableTools.add(Material.ELYTRA);
-        acceptableTools.add(Material.RECOVERY_COMPASS);
-        acceptableTools.add(Material.BRUSH);
-        acceptableTools.add(Material.TADPOLE_BUCKET);
-        acceptableTools.add(Material.MILK_BUCKET);
-        acceptableTools.add(Material.POWDER_SNOW_BUCKET);
-        acceptableTools.add(Material.WIND_CHARGE);
-        acceptableTools.add(Material.FIREWORK_ROCKET);
-        acceptableTools.add(Material.TOTEM_OF_UNDYING);
-        acceptableTools.add(Material.BONE_MEAL);
-        acceptableTools.add(Material.LEAD);
-        acceptableTools.add(Material.FIRE_CHARGE);
-        acceptableTools.add(Material.SPYGLASS);
-        acceptableTools.add(Material.WRITABLE_BOOK);
-        acceptableTools.add(Material.MAP);
-        acceptableTools.add(Material.ENDER_PEARL);
-        acceptableTools.add(Material.ENDER_EYE);
+    private static Set<Material> createAcceptableTools() {
+        return Collections.unmodifiableSet(EnumSet.of(
+                Material.WOODEN_PICKAXE,
+                Material.STONE_PICKAXE,
+                Material.IRON_PICKAXE,
+                Material.GOLDEN_PICKAXE,
+                Material.DIAMOND_PICKAXE,
+                Material.NETHERITE_PICKAXE,
+                Material.WOODEN_SHOVEL,
+                Material.STONE_SHOVEL,
+                Material.IRON_SHOVEL,
+                Material.GOLDEN_SHOVEL,
+                Material.DIAMOND_SHOVEL,
+                Material.NETHERITE_SHOVEL,
+                Material.WOODEN_AXE,
+                Material.STONE_AXE,
+                Material.IRON_AXE,
+                Material.GOLDEN_AXE,
+                Material.DIAMOND_AXE,
+                Material.NETHERITE_AXE,
+                Material.WOODEN_HOE,
+                Material.STONE_HOE,
+                Material.IRON_HOE,
+                Material.GOLDEN_HOE,
+                Material.DIAMOND_HOE,
+                Material.NETHERITE_HOE,
+                Material.SHEARS,
+                Material.BUCKET,
+                Material.WATER_BUCKET,
+                Material.LAVA_BUCKET,
+                Material.FLINT_AND_STEEL,
+                Material.CLOCK,
+                Material.COMPASS,
+                Material.FISHING_ROD,
+                Material.CARROT_ON_A_STICK,
+                Material.WARPED_FUNGUS_ON_A_STICK,
+                Material.SPYGLASS,
+                Material.TROPICAL_FISH_BUCKET,
+                Material.PUFFERFISH_BUCKET,
+                Material.SALMON_BUCKET,
+                Material.COD_BUCKET,
+                Material.AXOLOTL_BUCKET,
+                Material.ELYTRA,
+                Material.RECOVERY_COMPASS,
+                Material.BRUSH,
+                Material.TADPOLE_BUCKET,
+                Material.MILK_BUCKET,
+                Material.POWDER_SNOW_BUCKET,
+                Material.WIND_CHARGE,
+                Material.FIREWORK_ROCKET,
+                Material.TOTEM_OF_UNDYING,
+                Material.BONE_MEAL,
+                Material.LEAD,
+                Material.FIRE_CHARGE,
+                Material.WRITABLE_BOOK,
+                Material.MAP,
+                Material.ENDER_PEARL,
+                Material.ENDER_EYE));
     }
 
-    public HashMap<Player, SpelunkerAbilitySync> getSpelunkerTracker() {
+    public Map<Player, SpelunkerAbilitySync> getSpelunkerTracker() {
         return spelunkerTracker;
     }
 
@@ -539,7 +546,7 @@ public class MiningSkill implements Listener {
         return ores;
     }
 
-    public HashMap<Player, Integer> getVeinminerTracker() {
+    public Map<Player, Boolean> getVeinminerTracker() {
         return veinminerTracker;
     }
 

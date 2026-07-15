@@ -24,6 +24,7 @@ import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.ProjectileCalculator;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.Utils;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.ArrayList;
@@ -42,9 +43,9 @@ public class FarmingSkill implements Listener {
     private final List<Material> leafBlocks = new ArrayList<>();
     private final List<Player> autoEat = new ArrayList<>();
 
-    private static final int WATERING_CAN_ID = 9;
-    private static final int BONEMEAL_ID = 10;
-    private static final int HARVESTER_ID = 11;
+    private static final int WATERING_CAN_ID = ItemModelData.WATERING_CAN.getId();
+    private static final int BONEMEAL_ID = ItemModelData.UNLIMITED_BONE_MEAL.getId();
+    private static final int HARVESTER_ID = ItemModelData.HARVESTER.getId();
 
     public FarmingSkill(SurvivalSkills plugin) {
         this.plugin = plugin;

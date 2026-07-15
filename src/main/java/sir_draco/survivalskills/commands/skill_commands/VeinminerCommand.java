@@ -54,9 +54,9 @@ public class VeinminerCommand implements CommandExecutor {
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return true;
         } else if (plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.MINING, "VeinminerII").isApplied()) {
-            plugin.getMiningListener().getVeinminerTracker().put(p, 1);
+            plugin.getMiningListener().getVeinminerTracker().put(p, true);
         } else {
-            plugin.getMiningListener().getVeinminerTracker().put(p, 0);
+            plugin.getMiningListener().getVeinminerTracker().put(p, false);
         }
 
         p.sendRawMessage(ChatColor.GREEN + "Veinminer has been enabled!");

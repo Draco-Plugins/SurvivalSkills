@@ -1,15 +1,28 @@
 package sir_draco.survivalskills.skill_listeners;
 
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.*;
-import org.bukkit.event.inventory.*;
-import org.bukkit.event.player.*;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -23,6 +36,7 @@ import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.utils.FileUtils;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.boards.Leaderboard;
 import sir_draco.survivalskills.boards.LeaderboardPlayer;
@@ -35,6 +49,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Level;
 
 public class PlayerListener implements Listener {
@@ -43,6 +58,29 @@ public class PlayerListener implements Listener {
     private final Map<Player, List<Inventory>> customInventories = new HashMap<>();
     private final HashMap<Player, Inventory> openInventory = new HashMap<>();
     private final HashMap<Player, Location> deathLocations = new HashMap<>();
+
+    private record CraftRestriction(SkillCategory category, String rewardName) {}
+
+    private static final Map<Integer, CraftRestriction> CRAFT_RESTRICTIONS = Map.ofEntries(
+            Map.entry(ItemModelData.UNLIMITED_TORCH.getId(), new CraftRestriction(SkillCategory.MINING, "UnlimitedTorch")),
+            Map.entry(ItemModelData.MINING_ARMOR.getId(), new CraftRestriction(SkillCategory.MINING, "MiningArmor")),
+            Map.entry(ItemModelData.JUMPING_BOOTS.getId(), new CraftRestriction(SkillCategory.EXPLORING, "JumpingBoots")),
+            Map.entry(ItemModelData.WANDERER_ARMOR.getId(), new CraftRestriction(SkillCategory.EXPLORING, "WandererArmor")),
+            Map.entry(ItemModelData.CAVE_FINDER.getId(), new CraftRestriction(SkillCategory.EXPLORING, "CaveFinder")),
+            Map.entry(ItemModelData.TRAVELER_ARMOR.getId(), new CraftRestriction(SkillCategory.EXPLORING, "TravelerArmor")),
+            Map.entry(ItemModelData.ADVENTURER_ARMOR.getId(), new CraftRestriction(SkillCategory.EXPLORING, "AdventurerArmor")),
+            Map.entry(ItemModelData.WATERING_CAN.getId(), new CraftRestriction(SkillCategory.FARMING, "WateringCan")),
+            Map.entry(ItemModelData.UNLIMITED_BONE_MEAL.getId(), new CraftRestriction(SkillCategory.FARMING, "UnlimitedBoneMeal")),
+            Map.entry(ItemModelData.HARVESTER.getId(), new CraftRestriction(SkillCategory.FARMING, "Harvester")),
+            Map.entry(ItemModelData.GIANT_SUMMON.getId(), new CraftRestriction(SkillCategory.FIGHTING, "GiantSummon")),
+            Map.entry(ItemModelData.BROOD_MOTHER_SUMMON.getId(), new CraftRestriction(SkillCategory.FIGHTING, "BroodMotherSummon")),
+            Map.entry(ItemModelData.THE_EXILED_ONE_SUMMON.getId(), new CraftRestriction(SkillCategory.FIGHTING, "TheExiledOneSummon")),
+            Map.entry(ItemModelData.SORT_WAND.getId(), new CraftRestriction(SkillCategory.BUILDING, "AutoSortWand")),
+            Map.entry(ItemModelData.FIREWORK_CANNON.getId(), new CraftRestriction(SkillCategory.MAIN, "FireworkCannon")),
+            Map.entry(ItemModelData.GILL_ARMOR.getId(), new CraftRestriction(SkillCategory.EXPLORING, "GillArmor")),
+            Map.entry(ItemModelData.ZAP_WAND.getId(), new CraftRestriction(SkillCategory.MINING, "ZapWand")),
+            Map.entry(ItemModelData.MAGNET.getId(), new CraftRestriction(SkillCategory.EXPLORING, "Magnet"))
+    );
 
     public PlayerListener(SurvivalSkills plugin) {
         this.plugin = plugin;
@@ -68,9 +106,10 @@ public class PlayerListener implements Listener {
     public void bucket(PlayerBucketEmptyEvent e) {
         Player p = e.getPlayer();
         ItemStack hand = ItemStackGeneratorUtils.getItemInHand(p, e.getHand());
+        if (hand == null) return;
         ItemMeta meta = hand.getItemMeta();
         if (meta == null) return;
-        if (ItemStackGeneratorUtils.hasCustomModelData(meta, 17)) {
+        if (ItemStackGeneratorUtils.hasCustomModelData(meta, ItemModelData.UNLIMITED_TROPICAL_FISH_BUCKET.getId())) {
             e.setCancelled(true);
 
             // Spawn a tropical fish
@@ -98,12 +137,8 @@ public class PlayerListener implements Listener {
 
         Player p = (Player) e.getWhoClicked();
         if (!meta.hasCustomModelDataComponent()) return;
-        CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
-        int modelData = customModelData.getFloats().stream()
-                .filter(modelDataValue -> modelDataValue == Math.round(modelDataValue))
-                .map((Float modelDataValue) -> Math.round(modelDataValue))
-                .findFirst()
-                .orElse(0);
+        int modelData = extractModelData(meta);
+
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
         if (rewards == null) {
             e.setCancelled(true);
@@ -113,222 +148,14 @@ public class PlayerListener implements Listener {
             return;
         }
 
-        switch (modelData) {
-            case 1:
-                if (rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").getLevel() + ChatColor.RED + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 3:
-                if (rewards.getReward(SkillCategory.MINING, "MiningArmor").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.MINING, "MiningArmor").getLevel() + ChatColor.RED + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 4:
-                if (rewards.getReward(SkillCategory.EXPLORING, "JumpingBoots").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "JumpingBoots").getLevel() + ChatColor.RED + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 5:
-                if (rewards.getReward(SkillCategory.EXPLORING, "WandererArmor").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "WandererArmor").getLevel() + ChatColor.RED
-                        + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 6:
-                if (rewards.getReward(SkillCategory.EXPLORING, "CaveFinder").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "CaveFinder").getLevel() + ChatColor.RED + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 7:
-                if (rewards.getReward(SkillCategory.EXPLORING, "TravelerArmor").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "TravelerArmor").getLevel() + ChatColor.RED
-                        + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 8:
-                if (rewards.getReward(SkillCategory.EXPLORING, "AdventurerArmor").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "AdventurerArmor").getLevel() + ChatColor.RED
-                        + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 9:
-                if (rewards.getReward(SkillCategory.FARMING, "WateringCan").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "WateringCan").getLevel() + ChatColor.RED + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 10:
-                if (rewards.getReward(SkillCategory.FARMING, "UnlimitedBoneMeal").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "UnlimitedBoneMeal").getLevel() + ChatColor.RED
-                        + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 11:
-                if (rewards.getReward(SkillCategory.FARMING, "Harvester").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "Harvester").getLevel() + ChatColor.RED + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 12:
-                if (rewards.getReward(SkillCategory.FIGHTING, "GiantSummon").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "GiantSummon").getLevel() + ChatColor.RED + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 13:
-                if (rewards.getReward(SkillCategory.FIGHTING, "BroodMotherSummon").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "BroodMotherSummon").getLevel() + ChatColor.RED
-                        + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 14:
-                if (rewards.getReward(SkillCategory.FIGHTING, "TheExiledOneSummon").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "TheExiledOneSummon").getLevel() + ChatColor.RED
-                        + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                break;
-            case 16:
-                if (rewards.getReward(SkillCategory.BUILDING, "AutoSortWand").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be building level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.BUILDING, "AutoSortWand").getLevel() + ChatColor.RED + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            case 18:
-                if (rewards.getReward(SkillCategory.MAIN, "FireworkCannon").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be main level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.MAIN, "FireworkCannon").getLevel() + ChatColor.RED + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            case 19:
-                if (rewards.getReward(SkillCategory.EXPLORING, "GillArmor").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "GillArmor").getLevel() + ChatColor.RED + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            case 27:
-                if (rewards.getReward(SkillCategory.MINING, "ZapWand").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be mining level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.MINING, "ZapWand").getLevel() + ChatColor.RED + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            case 32:
-                if (rewards.getReward(SkillCategory.EXPLORING, "Magnet").isApplied())
-                    return;
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "You need to be exploring level " + ChatColor.AQUA
-                        + rewards.getReward(SkillCategory.EXPLORING, "Magnet").getLevel() + ChatColor.RED + " to craft this");
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            case 999:
-                if (result.getType().equals(Material.WHITE_WOOL))
-                    return;
-                if (result.getType().equals(Material.BLACK_WOOL))
-                    return;
-                Map<TrophyType, Boolean> trophies = plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId());
-                switch (result.getType()) {
-                    case DIAMOND_PICKAXE:
-                        trophies = enterTrophy(trophies, TrophyType.CAVE);
-                        Bukkit.broadcastMessage(
-                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Cave Trophy");
-                        break;
-                    case OAK_SAPLING:
-                        trophies = enterTrophy(trophies, TrophyType.FOREST);
-                        Bukkit.broadcastMessage(
-                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Forest Trophy");
-                        break;
-                    case SHEARS:
-                        trophies = enterTrophy(trophies, TrophyType.COLOR);
-                        Bukkit.broadcastMessage(
-                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Color Trophy");
-                        break;
-                    case GOLDEN_CARROT:
-                        trophies = enterTrophy(trophies, TrophyType.FARMING);
-                        Bukkit.broadcastMessage(
-                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Farming Trophy");
-                        break;
-                    case TRIDENT:
-                        trophies = enterTrophy(trophies, TrophyType.OCEAN);
-                        Bukkit.broadcastMessage(
-                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Ocean Trophy");
-                        break;
-                    case FISHING_ROD:
-                        trophies = enterTrophy(trophies, TrophyType.FISHING);
-                        Bukkit.broadcastMessage(
-                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Fishing Trophy");
-                        break;
-                    case NETHERRACK:
-                        trophies = enterTrophy(trophies, TrophyType.NETHER);
-                        Bukkit.broadcastMessage(
-                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "Nether Trophy");
-                        break;
-                    case END_STONE:
-                        trophies = enterTrophy(trophies, TrophyType.END);
-                        Bukkit.broadcastMessage(
-                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "End Trophy");
-                        break;
-                    case DIAMOND_SWORD:
-                        trophies = enterTrophy(trophies, TrophyType.CHAMPION);
-                        Bukkit.broadcastMessage(ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA
-                                + "Champion Trophy");
-                        break;
-                    case GRASS_BLOCK:
-                        if (SkillManager.getSkillLevel(p.getUniqueId(), SkillCategory.MAIN) != Skill.MAX_LEVEL) {
-                            e.setCancelled(true);
-                            p.sendRawMessage(ChatColor.RED + "You need to be main level " + ChatColor.AQUA + Skill.MAX_LEVEL
-                                    + ChatColor.RED + " to craft this");
-                            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-                            return;
-                        }
-                        Bukkit.broadcastMessage(
-                                ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + "God Trophy");
-                    default:
-                        break;
-                }
-                plugin.getTrophyManager().getTrophyTracker().put(p.getUniqueId(), trophies);
-                p.sendRawMessage(ChatColor.GREEN + "Your level cap has been changed to: " + ChatColor.AQUA
-                        + (plugin.getTrophyManager().playerMaxSkillLevel(p.getUniqueId())));
-                p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-                break;
+        CraftRestriction restriction = CRAFT_RESTRICTIONS.get(modelData);
+        if (restriction != null) {
+            handleCraftRestriction(e, p, rewards, restriction);
+            return;
+        }
+
+        if (modelData == ItemModelData.TROPHY.getId()) {
+            handleTrophyCraft(e, p, rewards, result);
         }
     }
 
@@ -337,65 +164,23 @@ public class PlayerListener implements Listener {
         if (e.getClickedInventory() == null) return;
         if (e.getCurrentItem() == null) return;
         Player p = (Player) e.getWhoClicked();
-        if (!customInventories.containsKey(p)) return;
+        List<Inventory> playerInvs = customInventories.get(p);
+        if (playerInvs == null) return;
 
         e.setCancelled(true);
         ItemStack arrow = e.getCurrentItem();
-        ItemMeta meta = arrow.getItemMeta();
-        if (!arrow.getType().equals(Material.ARROW)) return;
-        if (meta == null) return;
-        if (meta.getDisplayName().equalsIgnoreCase("arrow")) return;
-
-        int currentInv = 0;
-        for (int i = 0; i < customInventories.get(p).size(); i++) {
-            if (!customInventories.get(p).get(i).equals(e.getClickedInventory())) continue;
-            currentInv = i;
-            break;
-        }
-        if (ItemStackGeneratorUtils.hasCustomModelData(meta)) {
-            if (currentInv + 1 >= customInventories.get(p).size()) currentInv = -1;
-            Inventory inv = customInventories.get(p).get(currentInv + 1);
-            openInventory.put(p, inv);
-            p.openInventory(inv);
-        } else {
-            if (currentInv - 1 < 0)
-                currentInv = customInventories.get(p).size();
-            Inventory inv = customInventories.get(p).get(currentInv - 1);
-            openInventory.put(p, inv);
-            p.openInventory(inv);
-        }
+        navigateCustomInventory(p, arrow, e.getClickedInventory(), playerInvs);
     }
 
     @EventHandler
     public void inventoryDragEvent(InventoryDragEvent e) {
         Player p = (Player) e.getWhoClicked();
-        if (!customInventories.containsKey(p)) return;
+        List<Inventory> playerInvs = customInventories.get(p);
+        if (playerInvs == null) return;
 
         e.setCancelled(true);
         ItemStack arrow = e.getOldCursor();
-        ItemMeta meta = arrow.getItemMeta();
-        if (!arrow.getType().equals(Material.ARROW)) return;
-        if (meta == null) return;
-        if (meta.getDisplayName().equalsIgnoreCase("arrow")) return;
-
-        int currentInv = 0;
-        for (int i = 0; i < customInventories.get(p).size(); i++) {
-            if (!customInventories.get(p).get(i).equals(e.getInventory())) continue;
-            currentInv = i;
-            break;
-        }
-        if (ItemStackGeneratorUtils.hasCustomModelData(meta)) {
-            if (currentInv + 1 >= customInventories.get(p).size()) currentInv = -1;
-            Inventory inv = customInventories.get(p).get(currentInv + 1);
-            openInventory.put(p, inv);
-            p.openInventory(inv);
-        } else {
-            if (currentInv - 1 < 0)
-                currentInv = customInventories.get(p).size();
-            Inventory inv = customInventories.get(p).get(currentInv - 1);
-            openInventory.put(p, inv);
-            p.openInventory(inv);
-        }
+        navigateCustomInventory(p, arrow, e.getInventory(), playerInvs);
     }
 
     @EventHandler
@@ -464,7 +249,7 @@ public class PlayerListener implements Listener {
         if (e.getAction().equals(Action.RIGHT_CLICK_BLOCK) || e.getAction().equals(Action.RIGHT_CLICK_AIR)) return;
         Player p = e.getPlayer();
         ItemStack hand = p.getInventory().getItemInMainHand();
-        if (!ItemStackGeneratorUtils.isCustomItem(hand, 26)) return;
+        if (!ItemStackGeneratorUtils.isCustomItem(hand, ItemModelData.XP_VOUCHER.getId())) return;
 
         AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "XPVoucher");
         if (timer != null) {
@@ -491,11 +276,89 @@ public class PlayerListener implements Listener {
         Player p = e.getPlayer();
 
         ItemStack item = e.getItem();
-        if (!ItemStackGeneratorUtils.isCustomItem(item, 31)) return;
+        if (!ItemStackGeneratorUtils.isCustomItem(item, ItemModelData.UNLIMITED_ROCKET.getId())) return;
         e.setCancelled(true);
         // Apply the speed boost to the player
         p.setVelocity(p.getLocation().getDirection().multiply(1.5));
         p.getWorld().playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 1.0f, 1.0f);
+    }
+
+    private void navigateCustomInventory(Player p, ItemStack arrow, Inventory clickedInventory,
+                                          List<Inventory> playerInvs) {
+        ItemMeta meta = arrow.getItemMeta();
+        if (!arrow.getType().equals(Material.ARROW)) return;
+        if (meta == null) return;
+        if (meta.getDisplayName().equalsIgnoreCase("arrow")) return;
+
+        int currentInv = 0;
+        for (int i = 0; i < playerInvs.size(); i++) {
+            if (!playerInvs.get(i).equals(clickedInventory)) continue;
+            currentInv = i;
+            break;
+        }
+        if (ItemStackGeneratorUtils.hasCustomModelData(meta)) {
+            if (currentInv + 1 >= playerInvs.size()) currentInv = -1;
+            Inventory inv = playerInvs.get(currentInv + 1);
+            openInventory.put(p, inv);
+            p.openInventory(inv);
+        } else {
+            if (currentInv - 1 < 0)
+                currentInv = playerInvs.size();
+            Inventory inv = playerInvs.get(currentInv - 1);
+            openInventory.put(p, inv);
+            p.openInventory(inv);
+        }
+    }
+
+    private void handleCraftRestriction(CraftItemEvent e, Player p, PlayerRewards rewards, CraftRestriction restriction) {
+        if (rewards.getReward(restriction.category(), restriction.rewardName()).isApplied())
+            return;
+        e.setCancelled(true);
+        p.sendRawMessage(ChatColor.RED + "You need to be " + restriction.category().getDisplayName().toLowerCase()
+                + " level " + ChatColor.AQUA
+                + rewards.getReward(restriction.category(), restriction.rewardName()).getLevel()
+                + ChatColor.RED + " to craft this");
+        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+    }
+
+    private void handleTrophyCraft(CraftItemEvent e, Player p, PlayerRewards rewards, ItemStack result) {
+        if (result.getType().equals(Material.WHITE_WOOL))
+            return;
+        if (result.getType().equals(Material.BLACK_WOOL))
+            return;
+
+        Map<TrophyType, Boolean> trophies = plugin.getTrophyManager().getTrophyTracker().get(p.getUniqueId());
+        Optional<TrophyType> matchedTrophy = TrophyType.fromMaterial(result.getType());
+        if (matchedTrophy.isEmpty()) return;
+
+        TrophyType trophyType = matchedTrophy.get();
+        if (trophyType == TrophyType.GOD) {
+            if (SkillManager.getSkillLevel(p.getUniqueId(), SkillCategory.MAIN) != Skill.MAX_LEVEL) {
+                e.setCancelled(true);
+                p.sendRawMessage(ChatColor.RED + "You need to be main level " + ChatColor.AQUA + Skill.MAX_LEVEL
+                        + ChatColor.RED + " to craft this");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+                return;
+            }
+        } else {
+            trophies = enterTrophy(trophies, trophyType);
+            Bukkit.broadcastMessage(
+                    ChatColor.GOLD + p.getName() + " has crafted the " + ChatColor.AQUA + trophyType.getName());
+        }
+
+        plugin.getTrophyManager().getTrophyTracker().put(p.getUniqueId(), trophies);
+        p.sendRawMessage(ChatColor.GREEN + "Your level cap has been changed to: " + ChatColor.AQUA
+                + (plugin.getTrophyManager().playerMaxSkillLevel(p.getUniqueId())));
+        p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+    }
+
+    private static int extractModelData(ItemMeta meta) {
+        CustomModelDataComponent customModelData = meta.getCustomModelDataComponent();
+        return customModelData.getFloats().stream()
+                .filter(modelDataValue -> modelDataValue == Math.round(modelDataValue))
+                .map((Float modelDataValue) -> Math.round(modelDataValue))
+                .findFirst()
+                .orElse(0);
     }
 
     public Map<TrophyType, Boolean> enterTrophy(Map<TrophyType, Boolean> trophies, TrophyType trophyType) {

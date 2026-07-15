@@ -78,7 +78,7 @@ public class ItemStackGeneratorUtils {
     public static ItemStack createGodQuestItem(Material material, String name, String hex1, String hex2) {
         return new ItemStackBuilder(material, 1, ColorParser.gradientName(name, hex1, hex2, true))
                 .lore(List.of(ChatColor.GRAY + "Used in the God Trophy quest"))
-                .modelData(42)
+                .modelData(ItemModelData.GOD_QUEST_ITEM.getId())
                 .build();
     }
 

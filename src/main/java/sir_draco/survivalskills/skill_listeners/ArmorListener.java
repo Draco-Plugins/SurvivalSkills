@@ -24,6 +24,7 @@ import sir_draco.survivalskills.abilities.armor.*;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.skills.SkillCategory;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.SurvivalSkills;
 
@@ -40,13 +41,13 @@ import java.util.function.Function;
 public class ArmorListener implements Listener {
 
     public enum ArmorType {
-        JUMPING_BOOTS(4, SkillCategory.EXPLORING, "JumpingBoots", JumpingBoots::new, 20, false),
-        WANDERER(5, SkillCategory.EXPLORING, "WandererArmor", WandererArmor::new, 20, true),
-        TRAVELER(7, SkillCategory.EXPLORING, "TravelerArmor", TravelerArmor::new, 20, true),
-        GILL(19, SkillCategory.EXPLORING, "GillArmor", GillArmor::new, 20, true),
-        ADVENTURER(8, SkillCategory.EXPLORING, "AdventurerArmor", AdventurerArmor::new, 20, true),
-        BEACON(29, SkillCategory.MINING, "BeaconArmor", BeaconArmor::new, 1, true),
-        POWER(51, SkillCategory.MINING, "PowerOre", null, 0, true);
+        JUMPING_BOOTS(ItemModelData.JUMPING_BOOTS.getId(), SkillCategory.EXPLORING, "JumpingBoots", JumpingBoots::new, 20, false),
+        WANDERER(ItemModelData.WANDERER_ARMOR.getId(), SkillCategory.EXPLORING, "WandererArmor", WandererArmor::new, 20, true),
+        TRAVELER(ItemModelData.TRAVELER_ARMOR.getId(), SkillCategory.EXPLORING, "TravelerArmor", TravelerArmor::new, 20, true),
+        GILL(ItemModelData.GILL_ARMOR.getId(), SkillCategory.EXPLORING, "GillArmor", GillArmor::new, 20, true),
+        ADVENTURER(ItemModelData.ADVENTURER_ARMOR.getId(), SkillCategory.EXPLORING, "AdventurerArmor", AdventurerArmor::new, 20, true),
+        BEACON(ItemModelData.BEACON_ARMOR.getId(), SkillCategory.MINING, "BeaconArmor", BeaconArmor::new, 1, true),
+        POWER(ItemModelData.POWER_ARMOR.getId(), SkillCategory.MINING, "PowerOre", null, 0, true);
 
         private final int modelData;
         private final SkillCategory category;

@@ -32,7 +32,7 @@ public class ItemStackGenerator {
                 ColorParser.rgbToHex(255, 0, 0), ColorParser.rgbToHex(80, 80, 80), true);
         return new ItemStackBuilder(Material.TORCH, 1, name)
                 .lore(ChatColor.GRAY + "This torch will never run out!")
-                .modelData(1)
+                .modelData(ItemModelData.UNLIMITED_TORCH.getId())
                 .build();
     }
 
@@ -69,7 +69,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.LIGHTNING_ROD, 1,
                 ChatColor.GOLD.toString() + ChatColor.BOLD + "Zap Wand")
                 .lore(ChatColor.GRAY + "Right click the ground to throw lightning")
-                .modelData(27)
+                .modelData(ItemModelData.ZAP_WAND.getId())
                 .build();
     }
 
@@ -120,7 +120,7 @@ public class ItemStackGenerator {
         Map<Enchantment, Integer> enchants = Map.of(Enchantment.KNOCKBACK, 10);
         return new ItemStackBuilder(Material.OBSIDIAN, 1, powerGradient("Power Ore"))
                 .lore(List.of(ChatColor.GRAY + "The ore is teeming with energy"))
-                .modelData(44)
+                .modelData(ItemModelData.POWER_ORE.getId())
                 .hideEnchants(true)
                 .enchants(enchants)
                 .build();
@@ -131,7 +131,7 @@ public class ItemStackGenerator {
                 .lore(List.of(
                         ChatColor.GRAY + "The laser is teeming with energy",
                         ChatColor.LIGHT_PURPLE + "Right click to shoot a laser"))
-                .modelData(50)
+                .modelData(ItemModelData.POWER_LASER.getId())
                 .build();
     }
 
@@ -178,7 +178,7 @@ public class ItemStackGenerator {
                 .lore(List.of(
                         ChatColor.GRAY + "The sword is teeming with energy",
                         ChatColor.LIGHT_PURPLE + "Right click to perform a dash attack"))
-                .modelData(47)
+                .modelData(ItemModelData.POWER_SWORD.getId())
                 .build();
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
@@ -195,7 +195,7 @@ public class ItemStackGenerator {
                 .lore(List.of(
                         ChatColor.GRAY + "The drill is teeming with energy",
                         ChatColor.LIGHT_PURPLE + "Demolish blocks with ease"))
-                .modelData(48)
+                .modelData(ItemModelData.POWER_DRILL.getId())
                 .build();
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
@@ -213,7 +213,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.BLAZE_ROD, 1,
                 ChatColor.BLUE.toString() + ChatColor.BOLD + "Sort Wand")
                 .lore(ChatColor.GRAY + "Left click a chest to sort its inventory")
-                .modelData(16)
+                .modelData(ItemModelData.SORT_WAND.getId())
                 .build();
     }
 
@@ -224,7 +224,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.HOPPER, 1,
                 ColorParser.gradientName("Magnet", "#FF7400", "#ADF3FD", true))
                 .lore(ChatColor.GRAY + "Attracts items to you when held in your hand")
-                .modelData(32)
+                .modelData(ItemModelData.MAGNET.getId())
                 .hideEnchants(true)
                 .enchants(enchants)
                 .build();
@@ -327,7 +327,7 @@ public class ItemStackGenerator {
                 .lore(List.of("",
                         ChatColor.GRAY + "Right Click to find the nearest cave",
                         ChatColor.GRAY + "Tells you if it is a confirmed cave or a potential dark spot"))
-                .modelData(6)
+                .modelData(ItemModelData.CAVE_FINDER.getId())
                 .build();
     }
 
@@ -364,7 +364,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.PRISMARINE_SHARD, 1,
                 ColorParser.gradientName("Watering Can", "#00FFFF", "#000000", true))
                 .lore(ChatColor.GRAY + "Right Click to water crops in a 5x5 area")
-                .modelData(9)
+                .modelData(ItemModelData.WATERING_CAN.getId())
                 .build();
     }
 
@@ -372,7 +372,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.BONE_MEAL, 1,
                 ColorParser.gradientName("Unlimited Bonemeal", "#000000", "#515151", true))
                 .lore(ChatColor.GRAY + "Infinite crop growth")
-                .modelData(10)
+                .modelData(ItemModelData.UNLIMITED_BONE_MEAL.getId())
                 .build();
     }
 
@@ -382,7 +382,7 @@ public class ItemStackGenerator {
                 .lore(List.of("",
                         ChatColor.GRAY + "Breaks and replants crops for you!",
                         ChatColor.GRAY + "Cooldown of 3 seconds"))
-                .modelData(11)
+                .modelData(ItemModelData.HARVESTER.getId())
                 .build();
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
@@ -397,7 +397,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.ZOMBIE_HEAD, 1,
                 ColorParser.gradientName("Giant Head", ColorParser.rgbToHex(0, 255, 0), ColorParser.rgbToHex(80, 80, 80), true))
                 .lore(ChatColor.GRAY + "I wonder how big his...")
-                .modelData(2)
+                .modelData(ItemModelData.BOSS_ITEM.getId())
                 .build();
     }
 
@@ -405,7 +405,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.PRISMARINE_SHARD, 1,
                 ColorParser.gradientName("Sea King Scale", "#00FFFF", "#0000FF", true))
                 .lore(ChatColor.GRAY + "Your fishing perseverance was noticed by the king")
-                .modelData(2)
+                .modelData(ItemModelData.BOSS_ITEM.getId())
                 .build();
     }
 
@@ -413,7 +413,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.COBWEB, 1,
                 ColorParser.gradientName("BroodMother Web", "#FFFFFF", "#43000E", true))
                 .lore(ChatColor.GRAY + "The Queen recognized your greatness as she fell")
-                .modelData(2)
+                .modelData(ItemModelData.BOSS_ITEM.getId())
                 .build();
     }
 
@@ -421,7 +421,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.ENDER_EYE, 1,
                 ColorParser.gradientName("Guardian Eye", "#001EFF", "#E900FF", true))
                 .lore(ChatColor.GRAY + "It seems like it is still watching you")
-                .modelData(2)
+                .modelData(ItemModelData.BOSS_ITEM.getId())
                 .build();
     }
 
@@ -429,7 +429,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.ECHO_SHARD, 1,
                 ColorParser.gradientName("Warden Heart", "#323232", "#C776FF", true))
                 .lore(ChatColor.GRAY + "You faintly hear the shrieks of ancient times")
-                .modelData(2)
+                .modelData(ItemModelData.BOSS_ITEM.getId())
                 .build();
     }
 
@@ -437,7 +437,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.PLAYER_HEAD, 1,
                 ColorParser.gradientName("Minecraft Essence", "#2C1F0C", "#005306", true))
                 .lore(ChatColor.GRAY + "The villager gained access to the game code itself")
-                .modelData(2)
+                .modelData(ItemModelData.BOSS_ITEM.getId())
                 .build();
     }
 
@@ -445,7 +445,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.DRAGON_HEAD, 1,
                 ColorParser.gradientName("Dragon Head", "#8C00FF", "#180152", true))
                 .lore(ChatColor.GRAY + "The ender dragon guarded the void from invaders")
-                .modelData(2)
+                .modelData(ItemModelData.BOSS_ITEM.getId())
                 .build();
     }
 
@@ -455,7 +455,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.ZOMBIE_SPAWN_EGG, 1,
                 ColorParser.gradientName("Giant Summoner Egg", ColorParser.rgbToHex(0, 255, 0), ColorParser.rgbToHex(80, 80, 80), true))
                 .lore(ChatColor.GRAY + "Must spawn at night")
-                .modelData(12)
+                .modelData(ItemModelData.GIANT_SUMMON.getId())
                 .build();
     }
 
@@ -463,7 +463,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.SPIDER_SPAWN_EGG, 1,
                 ColorParser.gradientName("BroodMother Summoner Egg", "#FFFFFF", "#43000E", true))
                 .lore(ChatColor.GRAY + "Make sure you are prepared")
-                .modelData(13)
+                .modelData(ItemModelData.BROOD_MOTHER_SUMMON.getId())
                 .build();
     }
 
@@ -474,7 +474,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "The true final boss of Minecraft",
                         ChatColor.RED + "This boss is very difficult and will require many attempts!",
                         ChatColor.RED.toString() + ChatColor.BOLD + "THIS IS A DESTRUCTIVE FIGHT!!!"))
-                .modelData(14)
+                .modelData(ItemModelData.THE_EXILED_ONE_SUMMON.getId())
                 .build();
     }
 
@@ -484,7 +484,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.WATER_BUCKET, 1,
                 ColorParser.gradientName("Unlimited Water Bucket", "#08C8FB", "#1D5E67", true))
                 .lore(ChatColor.GRAY + "Infinite water")
-                .modelData(20)
+                .modelData(ItemModelData.UNLIMITED_WATER_BUCKET.getId())
                 .build();
     }
 
@@ -492,7 +492,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.LAVA_BUCKET, 1,
                 ColorParser.gradientName("Unlimited Lava Bucket", "#FB5908", "#DA0A0A", true))
                 .lore(ChatColor.GRAY + "Infinite lava")
-                .modelData(21)
+                .modelData(ItemModelData.UNLIMITED_LAVA_BUCKET.getId())
                 .build();
     }
 
@@ -503,7 +503,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "Right click to change the weather",
                         ChatColor.GRAY + "1 Hour Cooldown",
                         ChatColor.GRAY + "Last Used: Never"))
-                .modelData(22)
+                .modelData(ItemModelData.WEATHER_ARTIFACT.getId())
                 .build();
     }
 
@@ -514,7 +514,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "Right click to change the time",
                         ChatColor.GRAY + "1 Hour Cooldown",
                         ChatColor.GRAY + "Last Used: Never"))
-                .modelData(23)
+                .modelData(ItemModelData.TIME_ARTIFACT.getId())
                 .build();
     }
 
@@ -523,7 +523,7 @@ public class ItemStackGenerator {
                 ColorParser.colorizeString("XP Voucher",
                         ColorParser.generateGradient("#FFC600", "#FFF080", multiplier + "x XP Voucher"), true))
                 .lore(List.of(ChatColor.GRAY + "Multiplies XP gained for " + duration + " minutes"))
-                .modelData(26)
+                .modelData(ItemModelData.XP_VOUCHER.getId())
                 .build();
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
@@ -543,7 +543,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.BUCKET, 1,
                 ColorParser.gradientName("Unlimited Empty Bucket", "#FFFFFF", "#777777", true))
                 .lore(ChatColor.GRAY + "Infinite empty bucket")
-                .modelData(30)
+                .modelData(ItemModelData.UNLIMITED_EMPTY_BUCKET.getId())
                 .build();
     }
 
@@ -551,7 +551,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.FIREWORK_ROCKET, 1,
                 ColorParser.gradientName("Unlimited Rocket", "#FF0000", "#FFFFFF", true))
                 .lore(ChatColor.GRAY + "Infinite rocket")
-                .modelData(31)
+                .modelData(ItemModelData.UNLIMITED_ROCKET.getId())
                 .build();
     }
 
@@ -559,7 +559,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.TROPICAL_FISH_BUCKET, 1,
                 ColorParser.gradientName("Unlimited Tropical Fish Bucket", "#084CFB", "#ADF3FD", true))
                 .lore(ChatColor.GRAY + "Infinite tropical fish")
-                .modelData(17)
+                .modelData(ItemModelData.UNLIMITED_TROPICAL_FISH_BUCKET.getId())
                 .build();
     }
 
@@ -571,7 +571,7 @@ public class ItemStackGenerator {
         String name = ColorParser.colorizeString("Firework Cannon", ColorParser.gradientConnector(colors), true);
         return new ItemStackBuilder(Material.CAMPFIRE, 1, name)
                 .lore(ChatColor.GRAY + "Shoots a firework in the direction you are looking")
-                .modelData(18)
+                .modelData(ItemModelData.FIREWORK_CANNON.getId())
                 .build();
     }
 
@@ -585,7 +585,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "Used in the God Trophy quest",
                         "",
                         "~Spider Exotic~"))
-                .modelData(33)
+                .modelData(ItemModelData.WEB_SHOOTER.getId())
                 .build();
     }
 
@@ -597,7 +597,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "Used in the God Trophy quest",
                         "",
                         "~Skeleton Exotic~"))
-                .modelData(34)
+                .modelData(ItemModelData.UNLIMITED_TIPPED_ARROW.getId())
                 .build();
     }
 
@@ -609,7 +609,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "Used in the God Trophy quest",
                         "",
                         "~Zombie Exotic~"))
-                .modelData(35)
+                .modelData(ItemModelData.VILLAGER_REVIVAL_ARTIFACT.getId())
                 .build();
     }
 
@@ -621,7 +621,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "Used in the God Trophy quest",
                         "",
                         "~Enderman Exotic~"))
-                .modelData(36)
+                .modelData(ItemModelData.ENDER_ESSENCE.getId())
                 .build();
     }
 
@@ -633,7 +633,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "Used in the God Trophy quest",
                         "",
                         "~Creeper Exotic~"))
-                .modelData(37)
+                .modelData(ItemModelData.CREEPER_ESSENCE.getId())
                 .build();
     }
 
@@ -643,7 +643,7 @@ public class ItemStackGenerator {
                 .lore(List.of(
                         ChatColor.GRAY + "Right click to open",
                         "~Witch Exotic~"))
-                .modelData(38)
+                .modelData(ItemModelData.POTION_BAG.getId())
                 .build();
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
@@ -666,7 +666,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "Used in the God Trophy quest",
                         "",
                         "~Breeze Exotic~"))
-                .modelData(39)
+                .modelData(ItemModelData.MAGIC_BAG_OF_WIND.getId())
                 .build();
     }
 
@@ -678,7 +678,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "Used in the God Trophy quest",
                         "",
                         "~Ender Dragon Exotic~"))
-                .modelData(40)
+                .modelData(ItemModelData.DRAGON_BREATH_CANNON.getId())
                 .build();
     }
 
@@ -690,7 +690,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "Used in the God Trophy quest",
                         "",
                         "~Wither Skeleton Exotic~"))
-                .modelData(41)
+                .modelData(ItemModelData.UNLIMITED_WITHER_ROSE.getId())
                 .build();
     }
 
@@ -698,7 +698,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.SPONGE, 1,
                 ColorParser.gradientName("Unlimited Sponge", "#ADFDDD", "#F8FB08", true))
                 .lore(ChatColor.GRAY + "Soak up the world!")
-                .modelData(46)
+                .modelData(ItemModelData.UNLIMITED_SPONGE.getId())
                 .build();
     }
 
@@ -708,7 +708,7 @@ public class ItemStackGenerator {
                 .lore(List.of(
                         ChatColor.GRAY + "The queen's web is stronger than usual",
                         ChatColor.GRAY + "A rare drop from the Broodmother"))
-                .modelData(49)
+                .modelData(ItemModelData.BROODING_SILK.getId())
                 .build();
     }
 
@@ -720,7 +720,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "Used in the God Trophy quest",
                         "",
                         "~Drowned Exotic~"))
-                .modelData(43)
+                .modelData(ItemModelData.TRIDENT_LAUNCHER.getId())
                 .build();
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
@@ -737,7 +737,7 @@ public class ItemStackGenerator {
         ItemStack item = new ItemStackBuilder(Material.TURTLE_HELMET, 1,
                 ColorParser.gradientName("Turtle Helmet", "#005616", "#03C1A5", true))
                 .lore(List.of(ChatColor.GRAY + "Used in the God Trophy quest"))
-                .modelData(42)
+                .modelData(ItemModelData.GOD_QUEST_ITEM.getId())
                 .build();
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
@@ -799,7 +799,7 @@ public class ItemStackGenerator {
                         ChatColor.GRAY + "A Testament Of Your Progress",
                         "",
                         lore))
-                .modelData(999)
+                .modelData(ItemModelData.TROPHY.getId())
                 .hideEnchants(true)
                 .enchants(enchants)
                 .build();
@@ -842,21 +842,21 @@ public class ItemStackGenerator {
     public static ItemStack getHardNautilusShell() {
         return new ItemStackBuilder(Material.NAUTILUS_SHELL, 1,
                 ChatColor.WHITE.toString() + ChatColor.BOLD + "Hard Nautilus Shell")
-                .modelData(24)
+                .modelData(ItemModelData.HARD_NAUTILUS_SHELL.getId())
                 .build();
     }
 
     public static ItemStack getHardHeartOfTheSea() {
         return new ItemStackBuilder(Material.HEART_OF_THE_SEA, 1,
                 ChatColor.YELLOW.toString() + ChatColor.BOLD + "Hard Heart Of The Sea")
-                .modelData(25)
+                .modelData(ItemModelData.HARD_HEART_OF_THE_SEA.getId())
                 .build();
     }
 
     public static ItemStack getBronzeIngot() {
         return new ItemStackBuilder(Material.COPPER_INGOT, 1,
                 ChatColor.GOLD.toString() + ChatColor.BOLD + "Bronze Ingot")
-                .modelData(28)
+                .modelData(ItemModelData.BRONZE_INGOT.getId())
                 .build();
     }
 
@@ -864,7 +864,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.LIGHT_WEIGHTED_PRESSURE_PLATE, 1,
                 ColorParser.gradientName("God Trophy Base", "#FFFF00", "#FFFFFF", true))
                 .lore(List.of(ChatColor.GRAY + "Used to craft the God Trophy"))
-                .modelData(45)
+                .modelData(ItemModelData.GOD_TROPHY_BASE.getId())
                 .build();
     }
 
@@ -872,7 +872,7 @@ public class ItemStackGenerator {
         return new ItemStackBuilder(Material.RESPAWN_ANCHOR, 1,
                 ChatColor.DARK_GRAY.toString() + ChatColor.BOLD + "Teleport Anchor")
                 .lore(List.of(ChatColor.GRAY + "Place down to add to the teleporter network"))
-                .modelData(55)
+                .modelData(ItemModelData.TELEPORT_ANCHOR.getId())
                 .build();
     }
 }

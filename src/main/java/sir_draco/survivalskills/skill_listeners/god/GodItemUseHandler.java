@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.skill_listeners.god.items.GodItemAction;
 import sir_draco.survivalskills.skill_listeners.god.items.GodItemActions;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.HashSet;
@@ -30,18 +31,18 @@ import java.util.Set;
 public class GodItemUseHandler implements Listener {
 
     // Custom model data identifiers
-    private static final int MODEL_WEB_SHOOTER = 33;
-    private static final int MODEL_VILLAGER_REVIVAL = 35;
-    private static final int MODEL_ENDER_ESSENCE = 36;
-    private static final int MODEL_DRAGON_BREATH_CANNON = 37;
-    private static final int MODEL_POTION_BAG = 38;
-    private static final int MODEL_WIND_CHARGE = 39;
-    private static final int MODEL_DRAGON_FIREBALL = 40;
-    private static final int MODEL_WITHER_ROSE = 41;
-    private static final int MODEL_TRIDENT_LAUNCHER = 43;
-    private static final int MODEL_SPONGE = 46;
-    private static final int MODEL_POWER_SWORD = 47;
-    private static final int MODEL_POWER_LASER = 50;
+    private static final int MODEL_WEB_SHOOTER = ItemModelData.WEB_SHOOTER.getId();
+    private static final int MODEL_VILLAGER_REVIVAL = ItemModelData.VILLAGER_REVIVAL_ARTIFACT.getId();
+    private static final int MODEL_ENDER_ESSENCE = ItemModelData.ENDER_ESSENCE.getId();
+    private static final int MODEL_DRAGON_BREATH_CANNON = ItemModelData.DRAGON_BREATH_CANNON.getId();
+    private static final int MODEL_POTION_BAG = ItemModelData.POTION_BAG.getId();
+    private static final int MODEL_WIND_CHARGE = ItemModelData.MAGIC_BAG_OF_WIND.getId();
+    private static final int MODEL_DRAGON_FIREBALL = ItemModelData.DRAGON_BREATH_CANNON.getId();
+    private static final int MODEL_WITHER_ROSE = ItemModelData.UNLIMITED_WITHER_ROSE.getId();
+    private static final int MODEL_TRIDENT_LAUNCHER = ItemModelData.TRIDENT_LAUNCHER.getId();
+    private static final int MODEL_SPONGE = ItemModelData.UNLIMITED_SPONGE.getId();
+    private static final int MODEL_POWER_SWORD = ItemModelData.POWER_SWORD.getId();
+    private static final int MODEL_POWER_LASER = ItemModelData.POWER_LASER.getId();
 
     // Villager revival
     private static final int CONVERSION_TIME_TICKS = 40;

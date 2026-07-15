@@ -13,6 +13,7 @@ import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.inventory.ItemStack;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.skills.SkillCategory;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class FishingAbilityManager {
     private static final int MAX_REMAINING_AIR = 300;
 
     /** Custom-item identifier used by the unlimited bucket pickup guard. */
-    private static final int UNLIMITED_BUCKET_CUSTOM_ITEM_ID = 30;
+    private static final int UNLIMITED_BUCKET_CUSTOM_ITEM_ID = ItemModelData.UNLIMITED_EMPTY_BUCKET.getId();
 
     private final SurvivalSkills plugin;
     private final ArrayList<Player> waterBreathers = new ArrayList<>();

@@ -25,6 +25,7 @@ import sir_draco.survivalskills.abilities.items.CaveFinderAsync;
 import sir_draco.survivalskills.abilities.items.Magnet;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -142,8 +143,8 @@ public class ExploringSkill implements Listener {
         Player p = e.getPlayer();
         if (e.getHand() != EquipmentSlot.HAND) return;
         PlayerInventory inv = p.getInventory();
-        if (!ItemStackGeneratorUtils.isCustomItem(inv.getItemInMainHand(), 6)
-                && !ItemStackGeneratorUtils.isCustomItem(inv.getItemInOffHand(), 6))
+        if (!ItemStackGeneratorUtils.isCustomItem(inv.getItemInMainHand(), ItemModelData.CAVE_FINDER.getId())
+                && !ItemStackGeneratorUtils.isCustomItem(inv.getItemInOffHand(), ItemModelData.CAVE_FINDER.getId()))
             return;
         if (!plugin.getSkillManager().getPlayerRewards(p).getReward(SkillCategory.EXPLORING, "CaveFinder").isApplied()) {
             p.sendRawMessage(ChatColor.RED + "You must be exploring level " + ChatColor.AQUA
@@ -162,7 +163,7 @@ public class ExploringSkill implements Listener {
         ItemStack mainHand = p.getInventory().getItem(e.getNewSlot());
         UUID uuid = p.getUniqueId();
 
-        if (!ItemStackGeneratorUtils.isCustomItem(mainHand, 32)) {
+        if (!ItemStackGeneratorUtils.isCustomItem(mainHand, ItemModelData.MAGNET.getId())) {
             activeMagnets.remove(uuid);
             cancelMagnetTask(uuid);
             return;

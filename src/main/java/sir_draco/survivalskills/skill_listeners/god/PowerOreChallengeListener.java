@@ -7,6 +7,9 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,22 +20,28 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.abilities.items.PowerDrillAsync;
+import sir_draco.survivalskills.abilities.items.PowerDrillTask;
 import sir_draco.survivalskills.god_questline.powerore.PowerOreChallenge;
 import sir_draco.survivalskills.god_questline.powerore.PowerOreScavengerHuntTask;
 import sir_draco.survivalskills.god_questline.powerore.PowerOreSimonSaysTask;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.skill_listeners.MiningSkill;
+import sir_draco.survivalskills.utils.items.ItemModelData;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import sir_draco.survivalskills.skill_listeners.god.items.PowerOreGate;
+import sir_draco.survivalskills.skills.SkillCategory;
 
 import java.io.File;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -46,17 +55,19 @@ import java.util.logging.Level;
 public class PowerOreChallengeListener implements Listener {
 
     // Power ore item / ability model data
-    private static final int MODEL_POWER_ORE = 44;
-    private static final int MODEL_POWER_DRILL = 48;
+    private static final int MODEL_POWER_ORE = ItemModelData.POWER_ORE.getId();
+    private static final int MODEL_POWER_DRILL = ItemModelData.POWER_DRILL.getId();
 
     // Conversion requirements
     private static final int POWER_ORE_LEVEL_REQUIREMENT = 50;
     private static final long CONVERSION_COOLDOWN_TICKS = 20L;
 
     private static final String POWER_ORE_CONVERSIONS_FILE = "poweroreconversions.yml";
+    private static final String SIMON_SAYS_TITLE = "Simon Says";
+    private static final String YAML_CHARGED_KEY = "ChargedPowerOres";
+    private static final double BLOCK_CENTER_OFFSET = 0.5;
 
-    private final Map<Location, PowerOreChallenge> powerOreChallenges = new HashMap<>();
-    private final Map<UUID, PowerOreChallenge> playerChallenges = new HashMap<>();
+    private final ChallengeRegistry powerOreRegistry = new ChallengeRegistry();
     private final Set<Player> conversionCooldowns = new HashSet<>();
     private final Map<Player, List<Block>> drillTracker = new HashMap<>();
 
@@ -79,11 +90,11 @@ public class PowerOreChallengeListener implements Listener {
     private void handlePowerOreBreak(BlockBreakEvent e, Player p, Location loc) {
         if (!Material.OBSIDIAN.equals(e.getBlock().getType()))
             return;
-        if (!powerOreChallenges.containsKey(loc))
+        if (!powerOreRegistry.hasLocation(loc))
             return;
 
-        PowerOreChallenge challenge = powerOreChallenges.get(loc);
-        e.setCancelled(true);
+        PowerOreChallenge challenge = powerOreRegistry.atLocation(loc);
+        e.setCancelled(true); // Cancel no matter what since drops are handled manually
         if (!challenge.getUniqueId().equals(p.getUniqueId())) {
             p.sendMessage(ChatColor.RED + "This Power Ore belongs to another player");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -96,14 +107,12 @@ public class PowerOreChallengeListener implements Listener {
         if (challenge.getStatus() == PowerOreChallenge.Status.SUCCESS && !challenge.isRewardDropped()) {
             e.getBlock().setType(Material.AIR);
             challenge.reward();
-            powerOreChallenges.remove(loc);
-            playerChallenges.remove(p.getUniqueId());
+            powerOreRegistry.unregister(loc, p.getUniqueId());
         }
     }
 
     private void handlePowerDrillBreak(BlockBreakEvent e, Player p, Block block) {
-        if (!sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils
-                .isCustomItem(p.getInventory().getItemInMainHand(), MODEL_POWER_DRILL))
+        if (!ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), MODEL_POWER_DRILL))
             return;
 
         // Make sure the player is trackable
@@ -116,15 +125,8 @@ public class PowerOreChallengeListener implements Listener {
         }
 
         // Skip if this break is part of an active vein-miner task
-        MiningSkill mining = SurvivalSkills.getInstance().getMiningListener();
-        if (mining != null) {
-            if (p.hasMetadata("survivalskills_veinminer_break"))
-                return;
-            if (mining.isVeinMinerActive(p))
-                return;
-            if (mining.getVeinTracker().containsKey(p) && mining.getVeinTracker().get(p).contains(block))
-                return;
-        }
+        if (shouldSkipVeinMineBreak(p, block))
+            return;
 
         // Make sure the player has the Power Ore ability unlocked
         PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
@@ -133,20 +135,39 @@ public class PowerOreChallengeListener implements Listener {
                     String.format("[SurvivalSkills] Player rewards not found for %s", p.getName()));
             return;
         }
-        if (!rewards.getReward(sir_draco.survivalskills.skills.SkillCategory.MINING,
-                PowerOreGate.POWER_ORE_REWARD).isApplied()) {
+        if (!hasPowerOreAbilityUnlocked(p)) {
             PowerOreGate.sendLockedMessage(p, "drill");
             return;
         }
 
-        PowerDrillAsync drillTask = new PowerDrillAsync(SurvivalSkills.getInstance(), p, this, block);
+        launchPowerDrillAsync(p, block);
+    }
+
+    private boolean shouldSkipVeinMineBreak(Player p, Block block) {
+        MiningSkill mining = SurvivalSkills.getInstance().getMiningListener();
+        if (mining == null)
+            return false;
+        if (p.hasMetadata("survivalskills_veinminer_break"))
+            return true;
+        if (mining.isVeinMinerActive(p))
+            return true;
+        return mining.getVeinTracker().containsKey(p) && mining.getVeinTracker().get(p).contains(block);
+    }
+
+    private boolean hasPowerOreAbilityUnlocked(Player p) {
+        PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
+        return rewards != null && rewards.getReward(SkillCategory.MINING,
+                PowerOreGate.POWER_ORE_REWARD).isApplied();
+    }
+
+    private void launchPowerDrillAsync(Player p, Block block) {
+        PowerDrillTask drillTask = new PowerDrillTask(SurvivalSkills.getInstance(), p, this, block);
         drillTask.runTaskAsynchronously(SurvivalSkills.getInstance());
     }
 
     @EventHandler
     public void onPlaceBlock(BlockPlaceEvent e) {
-        if (sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils
-                .isCustomItem(e.getItemInHand(), MODEL_POWER_ORE))
+        if (ItemStackGeneratorUtils.isCustomItem(e.getItemInHand(), MODEL_POWER_ORE))
             e.setCancelled(true);
     }
 
@@ -171,7 +192,7 @@ public class PowerOreChallengeListener implements Listener {
         if (!Material.PLAYER_HEAD.equals(type) && !Material.PLAYER_WALL_HEAD.equals(type))
             return;
 
-        PowerOreChallenge challenge = playerChallenges.get(e.getPlayer().getUniqueId());
+        PowerOreChallenge challenge = powerOreRegistry.forPlayer(e.getPlayer().getUniqueId());
         if (challenge == null
                 || !(challenge.getTask() instanceof PowerOreScavengerHuntTask huntTask))
             return;
@@ -183,15 +204,21 @@ public class PowerOreChallengeListener implements Listener {
 
     // --- Simon Says GUI ---
 
+    private PowerOreSimonSaysTask getSimonSaysTask(Player p) {
+        PowerOreChallenge challenge = powerOreRegistry.forPlayer(p.getUniqueId());
+        if (challenge == null
+                || !challenge.getStatus().equals(PowerOreChallenge.Status.RUNNING)
+                || !(challenge.getTask() instanceof PowerOreSimonSaysTask simonTask))
+            return null;
+        return simonTask;
+    }
+
     @EventHandler
     public void onGUIClick(InventoryClickEvent e) {
         if (!(e.getWhoClicked() instanceof Player p))
             return;
-        PowerOreChallenge challenge = playerChallenges.get(p.getUniqueId());
-        if (challenge == null
-                || !challenge.getStatus().equals(PowerOreChallenge.Status.RUNNING)
-                || !(challenge.getTask() instanceof PowerOreSimonSaysTask simonTask))
-            return;
+        PowerOreSimonSaysTask simonTask = getSimonSaysTask(p);
+        if (simonTask == null) return;
         simonTask.handleClick(e);
     }
 
@@ -199,17 +226,14 @@ public class PowerOreChallengeListener implements Listener {
     public void onGUIClose(InventoryCloseEvent e) {
         if (!(e.getPlayer() instanceof Player p))
             return;
-        PowerOreChallenge challenge = playerChallenges.get(p.getUniqueId());
-        if (challenge == null
-                || !challenge.getStatus().equals(PowerOreChallenge.Status.RUNNING)
-                || !(challenge.getTask() instanceof PowerOreSimonSaysTask simonTask))
-            return;
-        simonTask.handleClose();
+        PowerOreSimonSaysTask simonTaskClose = getSimonSaysTask(p);
+        if (simonTaskClose == null) return;
+        simonTaskClose.handleClose();
     }
 
     @EventHandler
     public void onGUIDrag(InventoryDragEvent e) {
-        if (e.getView().getTitle().contains("Simon Says"))
+        if (e.getView().getTitle().contains(SIMON_SAYS_TITLE))
             e.setCancelled(true);
     }
 
@@ -217,63 +241,95 @@ public class PowerOreChallengeListener implements Listener {
 
     public void tryPowerOreConversion(Player p) {
         conversionCooldowns.add(p);
+        scheduleCooldownExpiry(p);
+
+        if (!hasPowerOreAbilityUnlocked(p))
+            return;
+
+        Location loc = validateConversionPrerequisites(p);
+        if (loc == null)
+            return;
+
+        createAndStartChallenge(loc, p);
+    }
+
+    private void scheduleCooldownExpiry(Player p) {
         new BukkitRunnable() {
             @Override
             public void run() {
                 conversionCooldowns.remove(p);
             }
         }.runTaskLaterAsynchronously(SurvivalSkills.getInstance(), CONVERSION_COOLDOWN_TICKS);
+    }
 
-        PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
-        if (rewards == null || !rewards.getReward(
-                sir_draco.survivalskills.skills.SkillCategory.MINING, PowerOreGate.POWER_ORE_REWARD).isApplied())
-            return;
-
+    private Location validateConversionPrerequisites(Player p) {
         Block block = p.getLocation().getBlock().getRelative(0, -1, 0);
         if (!Material.OBSIDIAN.equals(block.getType()))
-            return;
+            return null;
+
         Location loc = block.getLocation();
         if (loc.getWorld() == null || loc.getWorld().getEnvironment() != World.Environment.NORMAL)
-            return;
+            return null;
+
         if (p.getLevel() < POWER_ORE_LEVEL_REQUIREMENT) {
             p.sendRawMessage(ChatColor.RED + "You need 50 levels of experience to power the ore");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            return;
+            return null;
         }
-        if (playerChallenges.containsKey(p.getUniqueId())) {
-            PowerOreChallenge existing = playerChallenges.get(p.getUniqueId());
+
+        if (powerOreRegistry.hasPlayer(p.getUniqueId())) {
+            PowerOreChallenge existing = powerOreRegistry.forPlayer(p.getUniqueId());
             p.sendMessage(ChatColor.RED + "You are already attempting a Power Ore challenge at "
                     + existing.getOreLocation().getBlockX() + ", " + existing.getOreLocation().getBlockY() + ", "
                     + existing.getOreLocation().getBlockZ());
-            return;
+            return null;
         }
 
+        return loc;
+    }
+
+    private void createAndStartChallenge(Location loc, Player p) {
         p.setLevel(p.getLevel() - POWER_ORE_LEVEL_REQUIREMENT);
 
         PowerOreChallenge.TaskType taskType = PowerOreChallenge.randomTask(new Random());
         PowerOreChallenge challenge = new PowerOreChallenge(loc, p, taskType);
-        powerOreChallenges.put(loc, challenge);
-        playerChallenges.put(p.getUniqueId(), challenge);
+        powerOreRegistry.register(loc, challenge);
         challenge.start();
     }
 
     // --- Persistence ---
 
-    public void savePowerOreConversions(org.bukkit.configuration.file.FileConfiguration data) {
+    public void savePowerOreConversions(FileConfiguration data) {
         // Only persist charged (completed) ores awaiting pickup.
-        data.set("ChargedPowerOres", null);
+        data.set(YAML_CHARGED_KEY, null);
 
         int i = 1;
-        for (Map.Entry<Location, PowerOreChallenge> entry : powerOreChallenges.entrySet()) {
+        for (Map.Entry<Location, PowerOreChallenge> entry : powerOreRegistry.entries()) {
             Location loc = entry.getKey();
             if (loc.getWorld() == null)
                 continue;
             if (entry.getValue().getStatus() != PowerOreChallenge.Status.SUCCESS)
                 continue;
 
-            data.set("ChargedPowerOres." + i + ".Location", loc);
-            data.set("ChargedPowerOres." + i + ".Player", entry.getValue().getUniqueId().toString());
+            data.set(YAML_CHARGED_KEY + "." + i + ".Location", loc);
+            data.set(YAML_CHARGED_KEY + "." + i + ".Player", entry.getValue().getUniqueId().toString());
             i++;
+        }
+    }
+
+    private Map.Entry<Location, PowerOreChallenge> loadSingleConversion(
+            FileConfiguration data, String key) {
+        Location loc = data.getLocation(YAML_CHARGED_KEY + "." + key + ".Location");
+        String playerUUID = data.getString(YAML_CHARGED_KEY + "." + key + ".Player");
+        if (loc == null || playerUUID == null)
+            return null;
+        try {
+            return new AbstractMap.SimpleEntry<>(
+                    loc, new PowerOreChallenge(loc, UUID.fromString(playerUUID)));
+        } catch (IllegalArgumentException ignored) {
+            Bukkit.getLogger().log(Level.WARNING,
+                    "[SurvivalSkills] Invalid UUID in power ore conversions: " + playerUUID);
+            return null;
         }
     }
 
@@ -281,39 +337,38 @@ public class PowerOreChallengeListener implements Listener {
         File file = new File(SurvivalSkills.getInstance().getDataFolder(), POWER_ORE_CONVERSIONS_FILE);
         if (!file.exists())
             return;
-        org.bukkit.configuration.file.FileConfiguration data =
-                org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+        FileConfiguration data = YamlConfiguration.loadConfiguration(file);
 
-        if (!data.contains("ChargedPowerOres"))
+        if (!data.contains(YAML_CHARGED_KEY))
             return;
-        org.bukkit.configuration.ConfigurationSection section = data.getConfigurationSection("ChargedPowerOres");
+        ConfigurationSection section = data.getConfigurationSection(YAML_CHARGED_KEY);
         if (section == null)
             return;
 
-        section.getKeys(false).forEach(key -> {
-            Location loc = data.getLocation("ChargedPowerOres." + key + ".Location");
-            String playerUUID = data.getString("ChargedPowerOres." + key + ".Player");
-            if (loc == null || playerUUID == null)
-                return;
-            try {
-                PowerOreChallenge challenge = new PowerOreChallenge(loc, UUID.fromString(playerUUID));
-                powerOreChallenges.put(loc, challenge);
-            } catch (IllegalArgumentException ignored) {
-                Bukkit.getLogger().log(Level.WARNING,
-                        "[SurvivalSkills] Invalid UUID in power ore conversions: " + playerUUID);
-            }
-        });
+        section.getKeys(false).stream()
+                .map(key -> loadSingleConversion(data, key))
+                .filter(Objects::nonNull)
+                .forEach(entry -> powerOreRegistry.register(entry.getKey(), entry.getValue()));
     }
 
     public void removeOreConversion(UUID uuid, Location loc) {
-        powerOreChallenges.remove(loc);
-        playerChallenges.remove(uuid);
+        powerOreRegistry.unregister(loc, uuid);
     }
 
-    // --- Drill tracker (targeted access for PowerDrillAsync) ---
+    // --- Drill tracker (targeted access for PowerDrillTask) ---
 
     public void registerDrillBlocks(Player player, List<Block> blocks) {
         drillTracker.put(player, blocks);
+    }
+
+    public void unregisterDrillBlocks(Player player) {
+        drillTracker.remove(player);
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent e) {
+        drillTracker.remove(e.getPlayer());
+        conversionCooldowns.remove(e.getPlayer());
     }
 
     /**
@@ -328,24 +383,70 @@ public class PowerOreChallengeListener implements Listener {
         int maxY = world.getMaxHeight();
 
         Block base = loc.getBlock();
+        // Find first non-air block searching downward
         Block search = base;
         while (search.getY() > minY && search.getType().isAir())
             search = search.getRelative(0, -1, 0);
 
-        Block candidate = search;
-        while (candidate.getY() > minY) {
-            if (candidate.getType().isSolid() && candidate.getRelative(0, 1, 0).getType().isAir())
-                return candidate.getLocation().add(0.5, 1, 0.5); // strike just above the block center
-            candidate = candidate.getRelative(0, -1, 0);
-        }
+        // Search downward first, then upward as fallback
+        Location found = findFirstSolidWithAirAbove(search, -1, minY);
+        if (found != null) return found;
 
-        Block upSearch = base;
-        while (upSearch.getY() < maxY) {
-            if (upSearch.getType().isSolid() && upSearch.getRelative(0, 1, 0).getType().isAir())
-                return upSearch.getLocation().add(0.5, 1, 0.5);
-            upSearch = upSearch.getRelative(0, 1, 0);
-        }
+        found = findFirstSolidWithAirAbove(base, 1, maxY);
+        if (found != null) return found;
 
         return loc;
+    }
+
+    private Location findFirstSolidWithAirAbove(Block start, int stepDir, int boundY) {
+        Block search = start;
+        while (stepDir < 0 ? search.getY() > boundY : search.getY() < boundY) {
+            if (search.getType().isSolid() && search.getRelative(0, 1, 0).getType().isAir())
+                return search.getLocation().add(BLOCK_CENTER_OFFSET, 1, BLOCK_CENTER_OFFSET);
+            search = search.getRelative(0, stepDir, 0);
+        }
+        return null;
+    }
+
+    // --- Challenge Registry ---
+
+    /**
+     * Thread-safe container for the two-map {@code Location→Challenge} /
+     * {@code UUID→Challenge} relationship, guaranteeing atomic synchronization
+     * between the two indexes.
+     */
+    private static class ChallengeRegistry {
+        private final Map<Location, PowerOreChallenge> byLocation = new HashMap<>();
+        private final Map<UUID, PowerOreChallenge> byPlayer = new HashMap<>();
+
+        void register(Location loc, PowerOreChallenge challenge) {
+            byLocation.put(loc, challenge);
+            byPlayer.put(challenge.getUniqueId(), challenge);
+        }
+
+        void unregister(Location loc, UUID playerId) {
+            byLocation.remove(loc);
+            byPlayer.remove(playerId);
+        }
+
+        PowerOreChallenge atLocation(Location loc) {
+            return byLocation.get(loc);
+        }
+
+        PowerOreChallenge forPlayer(UUID playerId) {
+            return byPlayer.get(playerId);
+        }
+
+        boolean hasLocation(Location loc) {
+            return byLocation.containsKey(loc);
+        }
+
+        boolean hasPlayer(UUID playerId) {
+            return byPlayer.containsKey(playerId);
+        }
+
+        Set<Map.Entry<Location, PowerOreChallenge>> entries() {
+            return byLocation.entrySet();
+        }
     }
 }

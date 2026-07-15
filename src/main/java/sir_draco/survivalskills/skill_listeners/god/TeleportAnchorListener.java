@@ -25,6 +25,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.abilities.godItems.TeleporterAnchor;
 import sir_draco.survivalskills.utils.FileUtils;
 import sir_draco.survivalskills.utils.Utils;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ import java.util.Map;
 public class TeleportAnchorListener implements Listener {
 
     // Teleport anchor item
-    private static final int MODEL_TELEPORT_ANCHOR = 55;
+    private static final int MODEL_TELEPORT_ANCHOR = ItemModelData.TELEPORT_ANCHOR.getId();
 
     // Anchor naming prompt
     private static final int ANCHOR_NAME_TIMEOUT_SECONDS = 30;
