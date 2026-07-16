@@ -199,10 +199,10 @@ class RewardDataTest {
     }
 
     @Test
-    void timbermanNotification() {
+    void timbermanIsNotRegisteredWhenPluginIsUnavailable() {
         var notif = RewardData.getNotification("Farming", "Timberman");
-        assertNotNull(notif);
-        assertTrue(notif.get(0).contains("crouch"), "Timberman should mention crouch");
+        assertNull(notif);
+        assertFalse(RewardData.getRegisteredRewards().get("Farming").contains("Timberman"));
     }
 
     // -- Spot checks: Building --

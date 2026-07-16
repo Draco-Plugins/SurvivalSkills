@@ -1,6 +1,7 @@
 package sir_draco.survivalskills.rewards;
 
 import org.bukkit.ChatColor;
+import sir_draco.survivalskills.external.providers.TimbermanProvider;
 
 import java.util.*;
 
@@ -32,6 +33,7 @@ public class RewardData {
     private static final String NEW_ABILITY = YELLOW.toString() + "[New Ability] ";
     private static final String NEW_TRAIL = DARK_BLUE.toString() + "[New Trail] ";
 
+    private static final TimbermanProvider TIMBERMAN_PROVIDER = new TimbermanProvider();
     private static final Map<String, Map<String, RewardEntry>> MESSAGE_DATA = buildData();
 
     public static List<String> getNotification(String type, String reward) {
@@ -251,10 +253,11 @@ public class RewardData {
         tieredLinearInt(m, "Health", 10, 11, 1, "",
                 "You now have {value} hearts");
 
-        // TODO: Need to link to the Timberman plugin if it is available
-        staticEntry(m, "Timberman", lines(
-                NEW_ABILITY + "You can now crouch to cut down whole trees instantly"),
-                GRAY + "You can now crouch to cut down whole trees instantly");
+        if (TIMBERMAN_PROVIDER.isAvailable()) {
+            staticEntry(m, "Timberman", lines(
+                    NEW_ABILITY + "You can now crouch to cut down whole trees instantly"),
+                    GRAY + "You can now crouch to cut down whole trees instantly");
+        }
 
         return m;
     }
@@ -343,13 +346,13 @@ public class RewardData {
         tieredValue(m, "CommonLoot", map(1, "25%", 2, "40%", 3, "55%", 4, "65%", 5, "75%"),
                 "You now have a {value} chance of getting common fishing loot");
 
-        tieredValue(m, "RareLoot", map(1, "10%", 2, "20%", 3, "30%", 4, "35%", 5, "40%"),
+        tieredValue(m, "RareLoot", map(1, "5%", 2, "15%", 3, "20%", 4, "25%", 5, "30%"),
                 "You now have a {value} chance of getting rare fishing loot");
 
-        tieredValue(m, "EpicLoot", map(1, "2%", 2, "3%", 3, "4%", 4, "4.5%", 5, "5%"),
+        tieredValue(m, "EpicLoot", map(1, "0.5%", 2, "1%", 3, "1.5%", 4, "2%", 5, "2.5%"),
                 "You now have a {value} chance of getting epic fishing loot");
 
-        tieredValue(m, "LegendaryLoot", map(1, "0.5%", 2, "0.75%", 3, "1%"),
+        tieredValue(m, "LegendaryLoot", map(1, "0.2%", 2, "0.35%", 3, "0.5%"),
                 "You now have a {value} chance of getting legendary fishing loot");
 
         tieredLinearInt(m, "Experience", 10, 10, 10, "%",

@@ -46,9 +46,9 @@ public class FishingLootManager {
 
     /** Per-material luck-of-the-sea bonus applied to each tier's base drop chance. */
     private static final double COMMON_LUCK_BONUS = 0.15;
-    private static final double RARE_LUCK_BONUS = 0.05;
-    private static final double EPIC_LUCK_BONUS = 0.025;
-    private static final double LEGENDARY_LUCK_BONUS = 0.005;
+    private static final double RARE_LUCK_BONUS = 0.025;
+    private static final double EPIC_LUCK_BONUS = 0.01;
+    private static final double LEGENDARY_LUCK_BONUS = 0.001;
     private static final double EXOTIC_LUCK_BONUS = 0.00005;
 
     /** Materials that should never stack when drawn (each counts toward the variety cap). */
