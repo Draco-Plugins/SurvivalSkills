@@ -22,6 +22,8 @@ import java.util.List;
 public class VillagerBoss extends Boss {
 
     private static final int LOWEST_BLOCK_HEIGHT = -64;
+    private static final double MAX_HEALTH = 1500;
+    private static final double ENTITY_MAX_HEALTH = 1024;
     private static final List<EntityType> MOBS = List.of(EntityType.BLAZE, EntityType.CREEPER, EntityType.DROWNED, EntityType.ENDERMAN,
         EntityType.EVOKER, EntityType.GHAST, EntityType.HUSK, EntityType.MAGMA_CUBE, EntityType.PHANTOM, EntityType.PILLAGER,
         EntityType.RAVAGER, EntityType.SKELETON, EntityType.SLIME, EntityType.SPIDER, EntityType.STRAY, EntityType.VEX, EntityType.VINDICATOR,
@@ -46,9 +48,8 @@ public class VillagerBoss extends Boss {
     private int deathTimer = 18000;
     private ExiledBossMusic music;
 
-    // TODO: Implement health logic so health can be 1500 instead of 1024
     private VillagerBoss(Player summoner, boolean disabledMusic) {
-        super("The Exiled One", 3, 3, 1024, 0, 10, 0.2, 5);
+        super("The Exiled One", 3, 3, MAX_HEALTH, 0, 10, 0.2, 5);
         this.summoner = summoner;
         this.disabledMusic = disabledMusic;
     }
@@ -254,7 +255,7 @@ public class VillagerBoss extends Boss {
                 if (count == 3) {
                     healing = false;
                     inAction = false;
-                    villager.setHealth(Math.min(villager.getHealth() + villager.getHealth() * 0.5, getMaxHealth()));
+                    villager.setHealth(Math.min(villager.getHealth() * 1.5, getEntityMaxHealth()));
                     spawnRandomParticlesAroundBoss(Particle.HAPPY_VILLAGER, 1, 10);
                     villager.getWorld().playSound(villager.getLocation(), Sound.ENTITY_GENERIC_DRINK, 1, 1);
                     cancel();
@@ -270,7 +271,7 @@ public class VillagerBoss extends Boss {
 
 
     public void mobAttack() {
-        villager.setHealth(getMaxHealth() / 1.5);
+        setHealth(getMaxHealth() / 1.5);
         // One time attack
         mobAttackCalled = true;
         World world = villager.getWorld();
@@ -560,6 +561,15 @@ public class VillagerBoss extends Boss {
 
     public boolean isHealing() {
         return healing;
+    }
+
+    public double scaleIncomingDamage(double damage) {
+        return damage * ENTITY_MAX_HEALTH / MAX_HEALTH;
+    }
+
+    @Override
+    protected double getEntityMaxHealth() {
+        return ENTITY_MAX_HEALTH;
     }
 
     private void spawnParticleSphere(Location center, Particle particle, int count, double step, double radius, Object data) {

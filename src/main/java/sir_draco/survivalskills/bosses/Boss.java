@@ -103,7 +103,7 @@ public abstract class Boss extends BukkitRunnable {
             return false;
         }
 
-        bossBarManager = new BossBarManager(boss, name, maxHealth);
+        bossBarManager = new BossBarManager(boss, name, () -> getHealthPercentage());
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -122,7 +122,7 @@ public abstract class Boss extends BukkitRunnable {
      */
     public void attachToEntity(LivingEntity entity) {
         this.boss = entity;
-        this.bossBarManager = new BossBarManager(boss, name, maxHealth);
+        this.bossBarManager = new BossBarManager(boss, name, () -> getHealthPercentage());
     }
 
 
@@ -149,9 +149,10 @@ public abstract class Boss extends BukkitRunnable {
         if (speedAttribute != null) speedAttribute.setBaseValue(this.speed);
         AttributeInstance knockbackResistance = boss.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
         if (knockbackResistance != null) knockbackResistance.setBaseValue(1);
+        double entityMaxHealth = getEntityMaxHealth();
         AttributeInstance health = boss.getAttribute(Attribute.MAX_HEALTH);
-        if (health != null) health.setBaseValue(maxHealth);
-        boss.setHealth(maxHealth);
+        if (health != null) health.setBaseValue(entityMaxHealth);
+        boss.setHealth(entityMaxHealth);
         appliedAttributes = true;
     }
 
@@ -271,7 +272,7 @@ public abstract class Boss extends BukkitRunnable {
     }
 
     public void setHealth(double health) {
-        boss.setHealth(health);
+        boss.setHealth((health / maxHealth) * getEntityMaxHealth());
     }
 
     public double getSpeed() {
@@ -288,7 +289,7 @@ public abstract class Boss extends BukkitRunnable {
     }
 
     public double getHealthPercentage() {
-        return boss.getHealth() / maxHealth;
+        return boss.getHealth() / getEntityMaxHealth();
     }
 
     public void setHealthPercentage(double healthPercentage) {
@@ -296,7 +297,16 @@ public abstract class Boss extends BukkitRunnable {
         if (healthPercentage <= 0) {
             throw new IllegalArgumentException("[Survival Skills] Can not set bosses health to 0 or below. Use commands to kill the boss directly.");
         }
-        boss.setHealth((healthPercentage / 100d) * maxHealth);
+        boss.setHealth((healthPercentage / 100d) * getEntityMaxHealth());
+    }
+
+    /**
+     * Gets the maximum health stored on the Bukkit entity. Bosses normally use
+     * their logical maximum directly, but may override this when Minecraft's
+     * attribute range cannot represent their full health pool.
+     */
+    protected double getEntityMaxHealth() {
+        return maxHealth;
     }
 
     public LivingEntity getBoss() {

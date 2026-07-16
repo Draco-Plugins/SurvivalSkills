@@ -11,18 +11,19 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
+import java.util.function.DoubleSupplier;
 
 public class BossBarManager {
 
     private final LivingEntity boss;
     private final String name;
-    private final double maxHealth;
+    private final DoubleSupplier healthPercentageSupplier;
     private BossBar bossBar;
 
-    public BossBarManager(LivingEntity boss, String name, double maxHealth) {
+    public BossBarManager(LivingEntity boss, String name, DoubleSupplier healthPercentageSupplier) {
         this.boss = boss;
         this.name = name;
-        this.maxHealth = maxHealth;
+        this.healthPercentageSupplier = healthPercentageSupplier;
     }
 
     public void create() {
@@ -38,7 +39,7 @@ public class BossBarManager {
 
     public void update() {
         if (bossBar == null) return;
-        double healthPercentage = boss.getHealth() / maxHealth;
+        double healthPercentage = healthPercentageSupplier.getAsDouble();
         bossBar.setProgress(healthPercentage);
         if (healthPercentage < 0.33) bossBar.setColor(BarColor.RED);
         else if (healthPercentage < 0.66) bossBar.setColor(BarColor.YELLOW);

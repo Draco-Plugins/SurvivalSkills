@@ -354,6 +354,17 @@ public class BossManager {
         p.playSound(p, Sound.BLOCK_ANVIL_LAND, 1, 1);
     }
 
+    public void scaleExiledDamage(EntityDamageEvent e) {
+        if (!isBoss(e.getEntity()) || !e.getEntity().getType().equals(EntityType.VILLAGER))
+            return;
+        for (VillagerBoss villager : villagers) {
+            if (!villager.getBoss().equals(e.getEntity()))
+                continue;
+            e.setDamage(villager.scaleIncomingDamage(e.getDamage()));
+            return;
+        }
+    }
+
     public void handleBossDamageByCorrectPlayer(EntityDamageByEntityEvent e) {
         if (!isBoss(e.getEntity()))
             return;

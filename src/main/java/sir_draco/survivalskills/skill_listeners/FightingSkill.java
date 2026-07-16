@@ -213,6 +213,11 @@ public class FightingSkill implements Listener {
         bossManager.handleBossDamageByCorrectPlayer(e);
     }
 
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    public void scaleExiledDamage(EntityDamageEvent e) {
+        bossManager.scaleExiledDamage(e);
+    }
+
     // =================================================================
     // Dragon lifecycle
     // =================================================================
