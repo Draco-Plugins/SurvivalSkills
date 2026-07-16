@@ -16,6 +16,8 @@ import sir_draco.survivalskills.skills.SkillCategory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.logging.Level;
 
 public class PlayerRewards {
 
@@ -68,12 +70,19 @@ public class PlayerRewards {
         }
         if (deaths >= 50) {
             PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+            if (rewards == null) {
+                Bukkit.getLogger().log(Level.WARNING,
+                        String.format("[SurvivalSkills] Player rewards not found for %s", p.getName()));
+                return;
+            }
+            if (rewards.isAddedDeathResistance()) return;
             rewards.setProtectionPercentage(rewards.getProtectionPercentage() + 0.1);
             rewards.setAddedDeathResistance(true);
         }
     }
 
     public PlayerRewards(HashMap<SkillCategory, ArrayList<Reward>> rewardList) {
+        Objects.requireNonNull(rewardList, "Reward list cannot be null");
         for (Map.Entry<SkillCategory, ArrayList<Reward>> skillType : rewardList.entrySet()) {
             ArrayList<Reward> rewards = new ArrayList<>();
             for (Reward reward : skillType.getValue()) rewards.add(reward.copyReward());
@@ -91,12 +100,16 @@ public class PlayerRewards {
     }
 
     public Reward getLevelReward(SkillCategory skillCategory, int level) {
-        for (Reward reward : rewardList.get(skillCategory)) if (reward.getLevel() == level && reward.isEnabled()) return reward;
+        ArrayList<Reward> rewards = rewardList.get(skillCategory);
+        if (rewards == null) return null;
+        for (Reward reward : rewards) if (reward.getLevel() == level && reward.isEnabled()) return reward;
         return null;
     }
 
     public Reward getReward(SkillCategory skillCategory, String name) {
-        for (Reward reward : rewardList.get(skillCategory)) if (reward.getName().equalsIgnoreCase(name)) return reward;
+        ArrayList<Reward> rewards = rewardList.get(skillCategory);
+        if (rewards == null) return null;
+        for (Reward reward : rewards) if (reward.getName().equalsIgnoreCase(name)) return reward;
         return null;
     }
 

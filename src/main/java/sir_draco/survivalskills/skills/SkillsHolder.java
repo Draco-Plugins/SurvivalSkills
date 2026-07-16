@@ -3,6 +3,7 @@ package sir_draco.survivalskills.skills;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class SkillsHolder {
 
@@ -13,8 +14,8 @@ public class SkillsHolder {
     private double skillMultiplier = 1;
 
     public SkillsHolder(ArrayList<Skill> skills, PlayerRewards playerRewards) {
-        this.skills.addAll(skills);
-        this.playerRewards = playerRewards;
+        this.skills.addAll(Objects.requireNonNull(skills, "Skills cannot be null"));
+        this.playerRewards = Objects.requireNonNull(playerRewards, "Player rewards cannot be null");
     }
 
     /**

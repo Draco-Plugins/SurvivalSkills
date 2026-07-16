@@ -150,6 +150,8 @@ public final class SurvivalSkills extends JavaPlugin {
 
         FileUtils.saveLeaderboard(leaderboardTracker, leaderboardData, leaderboardFile);
 
+        skillManager.clearPlayerData();
+
         FileUtils.saveTeleportAnchors(godListener.getTeleportAnchors());
         FileUtils.savePowerOreConversions();
         FileUtils.savePotionBags();

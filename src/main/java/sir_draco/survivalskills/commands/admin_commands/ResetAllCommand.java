@@ -80,7 +80,7 @@ public class ResetAllCommand implements CommandExecutor {
     private void resetInMemoryState() {
         plugin.getLeaderboardTracker().clear();
         plugin.getScoreboardTracker().clear();
-        plugin.getSkillManager().getPlayerSkills().clear();
+        plugin.getSkillManager().clearPlayerData();
         plugin.getTrophyManager().disableTrophies();
         plugin.getTrophyManager().getTrophyTracker().clear();
         plugin.getTrophyManager().getPlayerGodQuestData().clear();

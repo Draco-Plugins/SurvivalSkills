@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 
@@ -199,17 +200,21 @@ public class SkillManager {
     }
 
     public void loadPlayerRewards(Player p) {
+        Objects.requireNonNull(p, "Player cannot be null");
         if (defaultPlayerRewards == null || defaultPlayerRewards.getRewardList() == null) {
             Bukkit.getLogger().warning("Player rewards are not loaded");
             return;
         }
 
-        if (!playerSkills.containsKey(p.getUniqueId())) {
+        SkillsHolder holder = playerSkills.get(p.getUniqueId());
+        if (holder == null && p.isOnline()) {
+            holder = restorePlayerSkills(p);
+        }
+        if (holder == null) {
             Bukkit.getLogger().warning("Player " + p.getName() + " does not have any skills");
             return;
         }
 
-        SkillsHolder holder = playerSkills.get(p.getUniqueId());
         holder.getPlayerRewards().enableRewards(p, holder.getSkills());
     }
 
@@ -224,6 +229,29 @@ public class SkillManager {
 
         SkillsHolder holder = new SkillsHolder(skills, getNewPlayerRewards());
         playerSkills.put(uuid, holder);
+    }
+
+    private SkillsHolder restorePlayerSkills(Player p) {
+        UUID uuid = p.getUniqueId();
+        File dataFile = new File(plugin.getDataFolder(), FileUtils.PLAYERDATA_YML);
+        if (dataFile.exists()) {
+            FileConfiguration data = YamlConfiguration.loadConfiguration(dataFile);
+            if (data.contains(uuid.toString())) {
+                loadPlayerSkills(uuid, data);
+            }
+        }
+
+        if (!playerSkills.containsKey(uuid)) {
+            ArrayList<Skill> skills = new ArrayList<>();
+            for (SkillCategory skillCategory : SkillCategory.mainSkills()) {
+                skills.add(new Skill(0, 1, skillCategory));
+            }
+            playerSkills.put(uuid, new SkillsHolder(skills, getNewPlayerRewards()));
+        }
+
+        Bukkit.getLogger().log(Level.WARNING,
+                String.format("[SurvivalSkills] Restored missing skill data for online player %s", p.getName()));
+        return playerSkills.get(uuid);
     }
 
     public void loadRewardConfig(String type, FileConfiguration config) {
@@ -430,13 +458,22 @@ public class SkillManager {
     }
 
     public PlayerRewards getPlayerRewards(Player p) {
-        if (!playerSkills.containsKey(p.getUniqueId()))
-            return null;
-        return playerSkills.get(p.getUniqueId()).getPlayerRewards();
+        Objects.requireNonNull(p, "Player cannot be null");
+        SkillsHolder holder = playerSkills.get(p.getUniqueId());
+        if (holder == null && p.isOnline()) {
+            holder = restorePlayerSkills(p);
+            holder.getPlayerRewards().enableRewards(p, holder.getSkills());
+        }
+        return holder == null ? null : holder.getPlayerRewards();
     }
 
     public PlayerRewards getNewPlayerRewards() {
-        return new PlayerRewards(defaultPlayerRewards.getRewardList());
+        return new PlayerRewards(Objects.requireNonNull(defaultPlayerRewards, "Default rewards are not loaded").getRewardList());
+    }
+
+    public void clearPlayerData() {
+        playerSkills.clear();
+        maxLevelMessagesShown.clear();
     }
 
     public boolean isMaxSkillMessageEnabled(Player p) {
