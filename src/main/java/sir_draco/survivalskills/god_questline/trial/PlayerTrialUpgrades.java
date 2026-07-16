@@ -1,6 +1,5 @@
 package sir_draco.survivalskills.god_questline.trial;
 
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -8,9 +7,10 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public class PlayerTrialUpgrades {
 
@@ -20,7 +20,7 @@ public class PlayerTrialUpgrades {
 
     public PlayerTrialUpgrades(UUID playerId) {
         this.playerId = playerId;
-        this.upgradeLevels = new HashMap<>();
+        this.upgradeLevels = new ConcurrentHashMap<>();
         this.availablePoints = 0;
 
         // Initialize all upgrades to level 0
@@ -29,6 +29,11 @@ public class PlayerTrialUpgrades {
         }
     }
 
+    /**
+     * Defensive guard: getOrDefault ensures unknown upgrade IDs (e.g., from bugs
+     * or future upgrades not initialized at construction time) silently return 0
+     * rather than throwing NullPointerException.
+     */
     public int getUpgradeLevel(String upgradeId) {
         return upgradeLevels.getOrDefault(upgradeId, 0);
     }
@@ -45,12 +50,26 @@ public class PlayerTrialUpgrades {
     }
 
     public boolean purchaseUpgrade(String upgradeId) {
-        if (!canUpgrade(upgradeId)) return false;
+        TrialTree.TrialUpgrade upgrade = TrialTree.getUpgrade(upgradeId);
+        if (upgrade == null) return false;
+
         int currentLevel = getUpgradeLevel(upgradeId);
+        if (currentLevel >= upgrade.getMaxLevel()) return false;
 
-        resetPoints();
+        int cost = upgrade.getCost(currentLevel + 1);
+        if (!spendPoints(cost)) return false;
+
         upgradeLevels.put(upgradeId, currentLevel + 1);
+        return true;
+    }
 
+    /**
+     * Deducts points during a trial round. Points are transient (per-round) and
+     * do not persist across server restarts — that is by design.
+     */
+    public boolean spendPoints(int cost) {
+        if (cost < 0 || availablePoints < cost) return false;
+        availablePoints -= cost;
         return true;
     }
 
@@ -58,48 +77,49 @@ public class PlayerTrialUpgrades {
         this.availablePoints += points;
     }
 
+    /**
+     * Resets all unspent points for the current round. Points are
+     * round-scoped and intentionally do not survive server restarts.
+     */
     public void resetPoints() {
         this.availablePoints = 0;
-        saveToFile();
     }
 
     public int getAvailablePoints() {
         return availablePoints;
     }
 
+    public UUID getPlayerId() {
+        return playerId;
+    }
+
     public void saveToFile() {
-        File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trial-upgrades.yml");
-        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+        File folder = new File(SurvivalSkills.getInstance().getDataFolder(), "trial-upgrades");
+        folder.mkdirs();
+        File file = new File(folder, playerId + ".yml");
 
-        String path = playerId.toString();
-
+        FileConfiguration config = new YamlConfiguration();
         for (Map.Entry<String, Integer> entry : upgradeLevels.entrySet()) {
-            config.set(path + ".upgrades." + entry.getKey(), entry.getValue());
+            config.set(entry.getKey(), entry.getValue());
         }
 
         try {
             config.save(file);
         } catch (IOException e) {
-            SurvivalSkills.getInstance().getLogger().warning("Failed to save trial upgrades for " + playerId);
+            SurvivalSkills.getInstance().getLogger().log(Level.SEVERE,
+                    String.format("[SurvivalSkills] Failed to save trial upgrades for %s", playerId), e);
         }
     }
 
     public void loadFromFile() {
-        File file = new File(SurvivalSkills.getInstance().getDataFolder(), "trial-upgrades.yml");
+        File folder = new File(SurvivalSkills.getInstance().getDataFolder(), "trial-upgrades");
+        File file = new File(folder, playerId + ".yml");
         if (!file.exists()) return;
 
         FileConfiguration config = YamlConfiguration.loadConfiguration(file);
-        String path = playerId.toString();
-
-        if (!config.contains(path)) return;
-
-        if (config.contains(path + ".upgrades")) {
-            ConfigurationSection section = config.getConfigurationSection(path + ".upgrades");
-            if (section == null) return;
-            for (String upgradeId : section.getKeys(false)) {
-                int level = config.getInt(path + ".upgrades." + upgradeId, 0);
-                upgradeLevels.put(upgradeId, level);
-            }
+        for (String upgradeId : config.getKeys(false)) {
+            int level = config.getInt(upgradeId, 0);
+            upgradeLevels.put(upgradeId, level);
         }
     }
 

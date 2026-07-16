@@ -8,6 +8,8 @@ import sir_draco.survivalskills.god_questline.trial_mobs.TrialBoss;
 import sir_draco.survivalskills.god_questline.trial_mobs.WaveMob;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class Wave {
 
@@ -24,7 +26,9 @@ public class Wave {
     }
 
     public void addWaveMob(WaveMob waveMob, int count) {
-        for (int i = 0; i < count; i++) waveMobs.add(waveMob.duplicate());
+        for (int i = 0; i < count; i++) {
+            waveMobs.add(waveMob.duplicate());
+        }
     }
 
     public void addExtraMob(Entity entity) {
@@ -43,59 +47,66 @@ public class Wave {
         waveMob.spawnMob(location, players);
     }
 
-    public ArrayList<WaveMob> getWaveMobs() {
-        return waveMobs;
+    public List<WaveMob> getWaveMobs() {
+        return List.copyOf(waveMobs);
     }
 
-    public WaveMob getWaveMob(Entity entity) {
-        for (WaveMob waveMob : waveMobs) if (waveMob.getEntity() == entity) return waveMob;
-        return null;
+    public Optional<WaveMob> getWaveMob(Entity entity) {
+        return waveMobs.stream()
+                .filter(waveMob -> waveMob.getEntity() == entity)
+                .findFirst();
     }
 
     public Wave duplicate() {
         Wave wave = new Wave();
-        if (bossWave) {
-            wave.setBossWave(true);
-            wave.setBoss(boss.duplicate());
-            return wave;
+        for (WaveMob waveMob : waveMobs) {
+            wave.addWaveMob(waveMob.duplicate());
         }
-
-        for (WaveMob waveMob : waveMobs) wave.addWaveMob(waveMob.duplicate());
+        if (boss != null) {
+            wave.setBoss(boss.duplicate());
+        }
         return wave;
     }
 
-    public void scaleMobs(int scale) {
+    public void scaleWaveMobs(int scale) {
         ArrayList<WaveMob> mobsToAdd = new ArrayList<>();
-        for (int i = 0; i < scale; i++)
-            for (WaveMob waveMob : waveMobs) mobsToAdd.add(waveMob.duplicate());
+        for (int i = 0; i < scale; i++) {
+            for (WaveMob waveMob : waveMobs) {
+                mobsToAdd.add(waveMob.duplicate());
+            }
+        }
         waveMobs.addAll(mobsToAdd);
     }
 
     public int getMobsLeft() {
         int mobsLeft = 0;
-        for (WaveMob waveMob : waveMobs)
-            if (waveMob.getEntity() != null && !waveMob.getEntity().isDead()) mobsLeft++;
-        for (Entity entity : extraMobs) if (!entity.isDead()) mobsLeft++;
+        for (WaveMob waveMob : waveMobs) {
+            if (waveMob.getEntity() != null && !waveMob.getEntity().isDead()) {
+                mobsLeft++;
+            }
+        }
+        for (Entity entity : extraMobs) {
+            if (!entity.isDead()) {
+                mobsLeft++;
+            }
+        }
         return mobsLeft;
     }
 
-    public void setBossWave(boolean bossWave) {
-        this.bossWave = bossWave;
+    public void setBoss(TrialBoss boss) {
+        this.boss = boss;
+        this.bossWave = (boss != null);
     }
 
     public boolean isBossWave() {
         return bossWave;
     }
 
-    public void setBoss(TrialBoss boss) {
-        this.boss = boss;
-    }
-
     public TrialBoss getBoss() {
         return boss;
     }
 
-    public ArrayList<Entity> getExtraMobs() {
-        return extraMobs;
+    public List<Entity> getExtraMobs() {
+        return List.copyOf(extraMobs);
     }
 }

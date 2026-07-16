@@ -94,7 +94,7 @@ public class GodTrialCommand implements CommandExecutor {
 
     private boolean handleSpectateToggle(Player p) {
         // No target specified: if the player is already spectating, stop it.
-        if (TrialManager.getSpectatingPlayers().containsKey(p)) {
+        if (TrialManager.isSpectating(p)) {
             TrialUtils.removeTrialSpectator(p, null);
         }
         return true;
@@ -103,7 +103,7 @@ public class GodTrialCommand implements CommandExecutor {
     private boolean handleSpectate(Player p, String[] strings) {
         // A player currently in a trial cannot spectate another.
         for (Trial trial : TrialManager.getTrials()) {
-            if (trial.getPlayers().contains(p) && !TrialManager.getSpectatingPlayers().containsKey(p)) {
+            if (trial.getPlayers().contains(p) && !TrialManager.isSpectating(p)) {
                 sendError(p, "You cannot spectate while in a trial");
                 return true;
             }
@@ -119,7 +119,7 @@ public class GodTrialCommand implements CommandExecutor {
         Player target = targetOpt.get();
 
         // Already spectating: switch to (or stop spectating) the new target.
-        if (TrialManager.getSpectatingPlayers().containsKey(p)) {
+        if (TrialManager.isSpectating(p)) {
             TrialUtils.removeTrialSpectator(p, target);
             return true;
         }
@@ -171,11 +171,11 @@ public class GodTrialCommand implements CommandExecutor {
         }
 
         // No active trial: look for a protected trial building to remove.
-        ProtectedArea area = TrialManager.getProtectedAreas().get(p.getUniqueId());
+        ProtectedArea area = TrialManager.getProtectedArea(p.getUniqueId());
         if (area != null) {
             TrialUtils.removeProtectedArea(area);
             TrialUtils.removeSavedProtectedArea(p.getUniqueId());
-            TrialManager.getProtectedAreas().remove(p.getUniqueId());
+            TrialManager.removeProtectedArea(p.getUniqueId());
             sendSuccess(p, "Your trial building has been deleted");
             return true;
         }
@@ -201,15 +201,14 @@ public class GodTrialCommand implements CommandExecutor {
                     player.playSound(player, ERROR_SOUND, 1, 1);
                     player.closeInventory();
                 });
-                trial.getPlayers().clear();
-                TrialManager.getPendingTrials().remove(p);
+                trial.clearPlayers();
+                TrialManager.removePendingTrial(p);
                 sendSuccess(p, "You have quit the trial");
                 return true;
             }
 
             if (!trial.getPlayers().contains(p)) continue;
-            trial.getPlayers().remove(p);
-            trial.updatePlayerManager();
+            trial.removePlayer(p);
             sendSuccess(p, "You have quit the trial");
             return true;
         }
@@ -312,10 +311,10 @@ public class GodTrialCommand implements CommandExecutor {
         }
 
         // No active trial: look for a protected trial building to delink.
-        ProtectedArea area = TrialManager.getProtectedAreas().get(target.getUniqueId());
+        ProtectedArea area = TrialManager.getProtectedArea(target.getUniqueId());
         if (area != null) {
             TrialUtils.removeSavedProtectedArea(target.getUniqueId());
-            TrialManager.getProtectedAreas().remove(target.getUniqueId());
+            TrialManager.removeProtectedArea(target.getUniqueId());
             target.sendRawMessage(ChatColor.GREEN + "Your trial building has been delinked by: " + p.getName());
             sendSuccess(p, "Delinked trial building for " + target.getName());
             return true;

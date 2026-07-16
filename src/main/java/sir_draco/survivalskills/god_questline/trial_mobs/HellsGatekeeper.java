@@ -1,183 +1,202 @@
 package sir_draco.survivalskills.god_questline.trial_mobs;
 
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
 import sir_draco.survivalskills.utils.ColorParser;
 
-import java.util.HashMap;
-import java.util.Random;
+import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class HellsGatekeeper extends TrialBoss {
 
-    private final int maxCooldown = 20 * 3;
+	// ======================== CONSTANTS ========================
 
-    private int cooldown = maxCooldown;
-    private int summonCooldown = 0;
+	// Constructor defaults
+	private static final String BOSS_ID = "hellsGatekeeper";
+	private static final String BOSS_NAME = "Hell's Gatekeeper";
+	private static final double BASE_HEALTH = 166;
+	private static final double BASE_DAMAGE = 10;
+	private static final double BASE_SPEED = 0.3;
+	private static final double BASE_SCALE = 2;
+	private static final int GRADIENT_LENGTH = 17;
 
-    private WitherSkeleton witherSkeleton = null;
+	// Cooldowns
+	private static final int ATTACK_COOLDOWN_TICKS = 20 * 3;
+	private static final int SUMMON_COOLDOWN_TICKS = 20 * 20;
 
-    public HellsGatekeeper(HashMap<ItemStack, Double> drops) {
-        super("hellsGatekeeper", ColorParser.colorizeString("Hell's Gatekeeper",
-                ColorParser.generateGradient("#EC6000", "#FB0808", 17), true),
-                166, 10, 0, 0.3, 2, EntityType.WITHER_SKELETON, drops);
-    }
+	// Fire storm attack
+	private static final int FIRE_STORM_DURATION_TICKS = 20 * 5;
+	private static final int FIRE_STORM_PARTICLES_PER_TICK = 10;
+	private static final double FIRE_STORM_DAMAGE = 4;
+	private static final int FIRE_TICK_DURATION = 40;
+	private static final double FIRE_STORM_SPREAD = 3.0;
+	private static final double HEIGHT_SPREAD = 5.0;
+	private static final double FIRE_DETECTION_RADIUS = 2.0;
 
-    public HellsGatekeeper(HashMap<ItemStack, Double> drops, double healthMultiplier, double damageMultiplier) {
-        super("hellsGatekeeper", ColorParser.colorizeString("Hell's Gatekeeper",
-                ColorParser.generateGradient("#EC6000", "#FB0808", 17), true),
-                166 * healthMultiplier, 10 * damageMultiplier, 0, 0.3, 2, EntityType.WITHER_SKELETON, drops);
-    }
+	// Minion spawning
+	private static final int MINION_SPAWN_COUNT = 5;
+	private static final int MAGMA_CUBE_SIZE = 3;
+	private static final double MAGMA_CUBE_HEALTH = 10;
+
+	// ======================== FIELDS ========================
+
+	private int attackCooldown = ATTACK_COOLDOWN_TICKS;
+	private int summonCooldown = 0;
+	private WitherSkeleton witherSkeleton;
+
+	// ======================== FACTORY & CONSTRUCTORS ========================
+
+	private static TrialBoss.Builder createBuilder(Map<ItemStack, Double> drops,
+												   double healthMultiplier,
+												   double damageMultiplier) {
+		return new TrialBoss.Builder()
+				.id(BOSS_ID)
+				.name(ColorParser.colorizeString(BOSS_NAME,
+						ColorParser.generateGradient("#EC6000", "#FB0808", GRADIENT_LENGTH), true))
+				.maxHealth(BASE_HEALTH * healthMultiplier)
+				.damage(BASE_DAMAGE * damageMultiplier)
+				.defense(0)
+				.speed(BASE_SPEED)
+				.scale(BASE_SCALE)
+				.type(EntityType.WITHER_SKELETON)
+				.drops(drops);
+	}
+
+	public HellsGatekeeper(Map<ItemStack, Double> drops) {
+		this(drops, 1.0, 1.0);
+	}
+
+	public HellsGatekeeper(Map<ItemStack, Double> drops, double healthMultiplier, double damageMultiplier) {
+		super(createBuilder(drops, healthMultiplier, damageMultiplier));
+	}
+
+	// ======================== RUN LOOP ========================
 
     @Override
-    public void run() {
-        if (getBoss() == null || getBoss().isDead()) {
-            cancel();
-            return;
-        }
-
-        updateBossBar();
-        manageBossBarPlayers();
-
+    protected void onTick() {
         if (summonCooldown > 0) summonCooldown--;
 
-        // Handle attacks
-        if (cooldown > 0) cooldown--;
+        if (attackCooldown > 0) attackCooldown--;
         else {
-            cooldown = maxCooldown;
+            attackCooldown = ATTACK_COOLDOWN_TICKS;
             attack();
         }
     }
 
-    @Override
-    public void attack() {
-        double chance = Math.random();
-        if (chance < 0.5) fireStorm();
-        else if (summonCooldown == 0) {
-            if (chance < 0.65) spawnMagmaCubes();
-            else if (chance < 0.85) spawnBlazes();
-            else spawnPiglinBrutes();
-            summonCooldown = 20 * 20;
-        }
-    }
+	// ======================== ATTACK SELECTION ========================
 
-    @Override
-    public void handleTypeSpecificSpawn() {
-        this.witherSkeleton = (WitherSkeleton) getBoss();
-        ItemStack[] armor = new ItemStack[4];
-        armor[0] = null;
-        armor[1] = null;
-        armor[2] = TrialManager.getTrialItem(Material.NETHERITE_CHESTPLATE, 1);
-        armor[3] = null;
-        if (witherSkeleton.getEquipment() != null)
-            witherSkeleton.getEquipment().setArmorContents(armor);
-    }
+	@Override
+	public void attack() {
+		if (ThreadLocalRandom.current().nextDouble() < 0.5) {
+			fireStorm();
+			return;
+		}
 
-    public void startScript() {
-        this.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
-    }
+		if (summonCooldown > 0) return;
 
-    public void fireStorm() {
-        new BukkitRunnable() {
-            int ticks = 0;
-            @Override
-            public void run() {
-                if (ticks >= 20 * 5) {
-                    cancel();
-                    return;
-                }
+		double roll = ThreadLocalRandom.current().nextDouble();
+		if (roll < 0.3) spawnMagmaCubes();
+		else if (roll < 0.7) spawnBlazes();
+		else spawnPiglinBrutes();
+		summonCooldown = SUMMON_COOLDOWN_TICKS;
+	}
 
-                Random random = new Random();
-                Location bossLocation = witherSkeleton.getLocation();
-                World world = bossLocation.getWorld();
-                if (world == null) {
-                    cancel();
-                    return;
-                }
+	// ======================== STARTUP ========================
 
-                // Generate fire particles and deal damage
-                for (int i = 0; i < 10; i++) { // Spawn 10 particle clusters per tick
-                    double angle = random.nextDouble() * 2 * Math.PI;
-                    double distance = random.nextDouble() * 3;
-                    double x = bossLocation.getX() + distance * Math.cos(angle);
-                    double z = bossLocation.getZ() + distance * Math.sin(angle);
-                    double y = bossLocation.getY() + random.nextDouble() * 5; // Slightly above the ground
+	@Override
+	public void startScript() {
+		this.runTaskTimer(SurvivalSkills.getInstance(), 0, 1);
+	}
 
-                    Location particleLocation = new Location(world, x, y, z);
+	// ======================== ABILITIES ========================
 
-                    // Display fire particles
-                    world.spawnParticle(Particle.FLAME, particleLocation, 20, 0.5, 0.5, 0.5, 0.01);
+	private void fireStorm() {
+		new BukkitRunnable() {
+			int ticks = 0;
 
-                    // Damage players near the particle location
-                    for (Player player : world.getPlayers())
-                        if (player.getLocation().distance(particleLocation) <= 2) {
-                            player.damage(4);
-                            player.setFireTicks(40);
-                        }
-                }
-                ticks++;
-            }
-        }.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 1);
-    }
+			@Override
+			public void run() {
+				if (ticks >= FIRE_STORM_DURATION_TICKS) {
+					cancel();
+					return;
+				}
 
-    public void spawnMagmaCubes() {
-        if (getSpawnLocations() == null) return;
-        for (int i = 0; i <= 4; i++) {
-            Location randomSpawnLocation = getSpawnLocations().get((int) (Math.random() * getSpawnLocations().size()));
-            if (randomSpawnLocation.getWorld() == null) continue;
-            MagmaCube magmaCube = (MagmaCube) randomSpawnLocation.getWorld().spawnEntity(randomSpawnLocation, EntityType.MAGMA_CUBE);
-            magmaCube.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
-            magmaCube.setMetadata("spawned", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
-            magmaCube.setCustomName(ChatColor.RED + "Hell's Cube");
-            magmaCube.setCustomNameVisible(true);
-            magmaCube.setSize(3);
-            getSummons().add(magmaCube);
+				Location bossLocation = witherSkeleton.getLocation();
+				World world = bossLocation.getWorld();
+				if (world == null) {
+					cancel();
+					return;
+				}
 
-            AttributeInstance healthAttribute = magmaCube.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
-            if (healthAttribute != null) healthAttribute.setBaseValue(10);
-            magmaCube.setHealth(10);
-        }
-    }
+				ThreadLocalRandom random = ThreadLocalRandom.current();
 
-    public void spawnBlazes() {
-        if (getSpawnLocations() == null) return;
-        for (int i = 0; i <= 4; i++) {
-            Location randomSpawnLocation = getSpawnLocations().get((int) (Math.random() * getSpawnLocations().size()));
-            if (randomSpawnLocation.getWorld() == null) continue;
-            Blaze blaze = (Blaze) randomSpawnLocation.getWorld().spawnEntity(randomSpawnLocation, EntityType.BLAZE);
-            blaze.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
-            blaze.setMetadata("spawned", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
-            blaze.setCustomName(ChatColor.RED + "Hell's Blaze");
-            blaze.setCustomNameVisible(true);
-            getSummons().add(blaze);
-        }
-    }
+				for (int i = 0; i < FIRE_STORM_PARTICLES_PER_TICK; i++) {
+					double angle = random.nextDouble() * 2 * Math.PI;
+					double distance = random.nextDouble() * FIRE_STORM_SPREAD;
+					double x = bossLocation.getX() + distance * Math.cos(angle);
+					double z = bossLocation.getZ() + distance * Math.sin(angle);
+					double y = bossLocation.getY() + random.nextDouble() * HEIGHT_SPREAD;
 
-    public void spawnPiglinBrutes() {
-        if (getSpawnLocations() == null) return;
-        for (int i = 0; i <= 4; i++) {
-            Location randomSpawnLocation = getSpawnLocations().get((int) (Math.random() * getSpawnLocations().size()));
-            if (randomSpawnLocation.getWorld() == null) continue;
-            PiglinBrute piglinBrute = (PiglinBrute) randomSpawnLocation.getWorld().spawnEntity(randomSpawnLocation, EntityType.PIGLIN_BRUTE);
-            piglinBrute.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
-            piglinBrute.setMetadata("spawned", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
-            piglinBrute.setCustomName(ChatColor.RED + "Hell's Brute");
-            piglinBrute.setCustomNameVisible(true);
-            getSummons().add(piglinBrute);
-        }
-    }
+					Location particleLocation = new Location(world, x, y, z);
+					world.spawnParticle(Particle.FLAME, particleLocation, 20, 0.5, 0.5, 0.5, 0.01);
 
-    public HellsGatekeeper duplicate(double healthMultiplier, double damageMultiplier) {
-        return new HellsGatekeeper(getDrops(), healthMultiplier, damageMultiplier);
-    }
+					for (Player player : world.getPlayers()) {
+						if (player.getLocation().distance(particleLocation) <= FIRE_DETECTION_RADIUS) {
+							player.damage(FIRE_STORM_DAMAGE);
+							player.setFireTicks(FIRE_TICK_DURATION);
+						}
+					}
+				}
+				ticks++;
+			}
+		}.runTaskTimer(SurvivalSkills.getPlugin(SurvivalSkills.class), 0, 1);
+	}
 
-    public HellsGatekeeper duplicate() {
-        return new HellsGatekeeper(getDrops());
-    }
+	private void spawnMagmaCubes() {
+		spawnMinions(EntityType.MAGMA_CUBE, ChatColor.RED + "Hell's Cube", MINION_SPAWN_COUNT, cube -> {
+			MagmaCube magmaCube = (MagmaCube) cube;
+			magmaCube.setSize(MAGMA_CUBE_SIZE);
+			AttributeInstance health = magmaCube.getAttribute(Attribute.MAX_HEALTH);
+			if (health != null) health.setBaseValue(MAGMA_CUBE_HEALTH);
+			magmaCube.setHealth(MAGMA_CUBE_HEALTH);
+		});
+	}
+
+	private void spawnBlazes() {
+		spawnMinions(EntityType.BLAZE, ChatColor.RED + "Hell's Blaze", MINION_SPAWN_COUNT, null);
+	}
+
+	private void spawnPiglinBrutes() {
+		spawnMinions(EntityType.PIGLIN_BRUTE, ChatColor.RED + "Hell's Brute", MINION_SPAWN_COUNT, null);
+	}
+
+	// ======================== TYPE-SPECIFIC SPAWN ========================
+
+	@Override
+	public void handleTypeSpecificSpawn() {
+		this.witherSkeleton = (WitherSkeleton) getBoss();
+		ItemStack[] armor = new ItemStack[4];
+		armor[2] = TrialManager.getTrialItem(Material.NETHERITE_CHESTPLATE, 1);
+		if (witherSkeleton.getEquipment() != null)
+			witherSkeleton.getEquipment().setArmorContents(armor);
+	}
+
+	// ======================== DUPLICATE ========================
+
+	@Override
+	public HellsGatekeeper duplicate(double healthMultiplier, double damageMultiplier) {
+		return new HellsGatekeeper(getDrops(), healthMultiplier, damageMultiplier);
+	}
+
+	@Override
+	public HellsGatekeeper duplicate() {
+		return new HellsGatekeeper(getDrops());
+	}
 }

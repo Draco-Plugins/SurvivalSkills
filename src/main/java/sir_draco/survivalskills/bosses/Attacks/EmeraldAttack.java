@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.bosses.Attacks;
+package sir_draco.survivalskills.bosses.attacks;
 
 import java.util.HashSet;
 import java.util.List;

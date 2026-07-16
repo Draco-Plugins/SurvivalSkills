@@ -4,12 +4,15 @@ import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class WaveMob {
 
@@ -19,17 +22,17 @@ public class WaveMob {
     private final double size;
     private final ItemStack hand;
     private final ItemStack[] armor;
-    private final HashMap<ItemStack, Double> drops;
+    private final Map<ItemStack, Double> drops;
 
-    private int health;
+    private int maxHealth;
     private int damage;
     private Entity entity = null;
 
-    public WaveMob(String name, EntityType type, int health, int damage, double speed, double size, ItemStack hand,
-                   ItemStack[] armor, HashMap<ItemStack, Double> drops) {
+    public WaveMob(String name, EntityType type, int maxHealth, int damage, double speed, double size, ItemStack hand,
+                   ItemStack[] armor, Map<ItemStack, Double> drops) {
         this.name = name;
         this.type = type;
-        this.health = health;
+        this.maxHealth = maxHealth;
         this.damage = damage;
         this.speed = speed;
         this.size = size;
@@ -39,65 +42,47 @@ public class WaveMob {
     }
 
     public void spawnMob(Location location, ArrayList<Player> players) {
-        // Add mob to wave
         if (location.getWorld() == null) return;
+
         Entity mob = location.getWorld().spawnEntity(location, type);
         mob.setMetadata("trialmob", new FixedMetadataValue(SurvivalSkills.getInstance(), true));
         entity = mob;
 
-        if (entity instanceof Ageable ageable) ageable.setAdult();
-        if (mob instanceof Spider spider) {
-            Player closestPlayer = null;
-            double closestDistance = Double.MAX_VALUE;
-            for (Player player : players) {
-                double distance = player.getLocation().distance(location);
-                if (distance < closestDistance) {
-                    closestPlayer = player;
-                    closestDistance = distance;
-                }
-            }
-            spider.setTarget(closestPlayer);
-        }
-        if (mob instanceof Enderman enderman) {
-            Player closestPlayer = null;
-            double closestDistance = Double.MAX_VALUE;
-            for (Player player : players) {
-                double distance = player.getLocation().distance(location);
-                if (distance < closestDistance) {
-                    closestPlayer = player;
-                    closestDistance = distance;
-                }
-            }
-            enderman.setTarget(closestPlayer);
-        }
+        if (mob instanceof Ageable ageable) ageable.setAdult();
 
-        LivingEntity livingEntity = (LivingEntity) mob;
+        Player closestPlayer = findClosestPlayer(location, players);
+        if (mob instanceof Spider spider) spider.setTarget(closestPlayer);
+        if (mob instanceof Enderman enderman) enderman.setTarget(closestPlayer);
+
+        if (!(mob instanceof LivingEntity livingEntity)) return;
+
         livingEntity.setCanPickupItems(false);
         livingEntity.setCustomName(name);
         livingEntity.setCustomNameVisible(true);
 
-        // Ensure the mob isn't wearing armor
-        if (livingEntity.getEquipment() != null) livingEntity.getEquipment().clear();
-        // Give the mob the specified equipment
-        if (livingEntity.getEquipment() != null) {
+        EntityEquipment equipment = livingEntity.getEquipment();
+        if (equipment != null) {
+            equipment.clear();
             if (hand != null) {
-                livingEntity.getEquipment().setItemInMainHand(hand);
-                livingEntity.getEquipment().setItemInMainHandDropChance(0.1f);
+                equipment.setItemInMainHand(hand);
+                equipment.setItemInMainHandDropChance(0.1f);
             }
             if (armor != null) {
-                for (int i = 0; i < armor.length; i++)
-                    livingEntity.getEquipment().setArmorContents(armor);
-                livingEntity.getEquipment().setHelmetDropChance(0.1f);
-                livingEntity.getEquipment().setChestplateDropChance(0.1f);
-                livingEntity.getEquipment().setLeggingsDropChance(0.1f);
-                livingEntity.getEquipment().setBootsDropChance(0.1f);
+                if (armor.length > 0) equipment.setBoots(armor[0]);
+                if (armor.length > 1) equipment.setLeggings(armor[1]);
+                if (armor.length > 2) equipment.setChestplate(armor[2]);
+                if (armor.length > 3) equipment.setHelmet(armor[3]);
+                equipment.setHelmetDropChance(0.1f);
+                equipment.setChestplateDropChance(0.1f);
+                equipment.setLeggingsDropChance(0.1f);
+                equipment.setBootsDropChance(0.1f);
             }
         }
 
         AttributeInstance healthAttribute = livingEntity.getAttribute(Attribute.MAX_HEALTH);
         if (healthAttribute != null) {
-            healthAttribute.setBaseValue(health);
-            livingEntity.setHealth(health);
+            healthAttribute.setBaseValue(maxHealth);
+            livingEntity.setHealth(maxHealth);
         }
 
         AttributeInstance damageAttribute = livingEntity.getAttribute(Attribute.ATTACK_DAMAGE);
@@ -110,12 +95,25 @@ public class WaveMob {
         if (sizeAttribute != null) sizeAttribute.setBaseValue(size);
     }
 
-    public int getHealth() {
-        return health;
+    private Player findClosestPlayer(Location location, List<Player> players) {
+        Player closestPlayer = null;
+        double closestDistance = Double.MAX_VALUE;
+        for (Player player : players) {
+            double distance = player.getLocation().distance(location);
+            if (distance < closestDistance) {
+                closestPlayer = player;
+                closestDistance = distance;
+            }
+        }
+        return closestPlayer;
     }
 
-    public void setMaxHealth(int health) {
-        this.health = health;
+    public int getMaxHealth() {
+        return maxHealth;
+    }
+
+    public void setMaxHealth(int maxHealth) {
+        this.maxHealth = maxHealth;
     }
 
     public int getDamage() {
@@ -127,19 +125,51 @@ public class WaveMob {
     }
 
     public void dropItems() {
-        if (entity == null) return;
-        if (drops == null) return;
-        for (ItemStack item : drops.keySet()) {
-            double chance = drops.get(item);
-            if (Math.random() < chance) entity.getWorld().dropItemNaturally(entity.getLocation(), item);
-        }
+        if (entity == null || drops == null) return;
+        drops.forEach((item, chance) -> {
+            if (chance != null && Math.random() < chance) {
+                entity.getWorld().dropItemNaturally(entity.getLocation(), item);
+            }
+        });
     }
 
     public Entity getEntity() {
         return entity;
     }
 
+    public static class Builder {
+        private final String name;
+        private final EntityType type;
+        private int maxHealth;
+        private int damage;
+        private double speed;
+        private double size;
+        private ItemStack hand;
+        private ItemStack[] armor;
+        private Map<ItemStack, Double> drops;
+
+        public Builder(String name, EntityType type) {
+            this.name = name;
+            this.type = type;
+        }
+
+        public Builder health(int maxHealth) { this.maxHealth = maxHealth; return this; }
+        public Builder damage(int damage) { this.damage = damage; return this; }
+        public Builder speed(double speed) { this.speed = speed; return this; }
+        public Builder size(double size) { this.size = size; return this; }
+        public Builder hand(ItemStack hand) { this.hand = hand; return this; }
+        public Builder armor(ItemStack[] armor) { this.armor = armor; return this; }
+        public Builder drops(Map<ItemStack, Double> drops) { this.drops = drops; return this; }
+
+        public WaveMob build() {
+            return new WaveMob(name, type, maxHealth, damage, speed, size, hand, armor, drops);
+        }
+    }
+
     public WaveMob duplicate() {
-        return new WaveMob(name, type, health, damage, speed, size, hand, armor, drops);
+        ItemStack handClone = hand != null ? hand.clone() : null;
+        ItemStack[] armorClone = armor != null ? armor.clone() : null;
+        Map<ItemStack, Double> dropsClone = drops != null ? new HashMap<>(drops) : null;
+        return new WaveMob(name, type, maxHealth, damage, speed, size, handClone, armorClone, dropsClone);
     }
 }

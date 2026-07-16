@@ -81,7 +81,7 @@ public class SkillScoreboard {
 
         // Add the scoreboard to the tracker
         p.setScoreboard(board);
-        TrialManager.getTrialScoreboards().put(p, board);
+        TrialManager.setTrialScoreboard(p, board);
     }
 
     /**
@@ -102,7 +102,7 @@ public class SkillScoreboard {
 
         // Add the scoreboard to the tracker
         p.setScoreboard(board);
-        TrialManager.getSpectatorScoreboards().put(p, board);
+        TrialManager.setSpectatorScoreboard(p, board);
     }
 
     /**
@@ -171,7 +171,7 @@ public class SkillScoreboard {
      * @param timeAmount the current trial time
      */
     public static void updateTrialScoreboard(Player p, int scoreAmount, int timeAmount) {
-        Scoreboard board = TrialManager.getTrialScoreboards().get(p);
+        Scoreboard board = TrialManager.getTrialScoreboard(p);
         if (board == null) {
             initializeTrialScoreboard(p);
             return;
@@ -196,7 +196,7 @@ public class SkillScoreboard {
      */
     public static void updateTrialSpectatorScoreboard(Player p, String targetName, double health, int food,
             int scoreAmount, int timeAmount) {
-        Scoreboard board = TrialManager.getSpectatorScoreboards().get(p);
+        Scoreboard board = TrialManager.getSpectatorScoreboard(p);
         if (board == null) {
             initializeTrialSpectatorScoreboard(p, targetName);
             return;

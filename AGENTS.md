@@ -7,6 +7,7 @@
 - **Streams and Lambdas**: Use the Streams API and lambda expressions for collection processing. Employ method references (e.g., `stream.map(Foo::toBar)`) only when they do not produce null-type-safety warnings.
 - **Null Handling**: Avoid returning or accepting `null`. Use `Optional<T>` for possibly-absent values and `Objects` utility methods like `equals()` and `requireNonNull()`.
 - **Null-Safe Functional Expressions**: Do not use an unbound instance method reference such as `Type::method` when Eclipse null analysis requires its receiver to be `@Nonnull` but the functional interface parameter has unspecified nullness. Use an explicitly typed lambda instead (e.g., `(TrophyType trophyType) -> trophyType.getName()` or `(TrophyEffects trophyEffects) -> trophyEffects.checkForPlayers()`). Apply this rule to stream collectors, `Optional.ifPresent`, and other generic functional APIs whenever the method reference would require an unchecked null conversion.
+- **Reading Files**: Always read the full file to avoid missing important context or making tool calls several times to read the same file
 
 ### Naming Conventions
 

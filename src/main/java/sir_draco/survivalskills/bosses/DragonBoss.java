@@ -9,8 +9,8 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.bosses.Attacks.DeathRainProjectile;
-import sir_draco.survivalskills.bosses.Attacks.DragonCannon;
+import sir_draco.survivalskills.bosses.attacks.DeathRainProjectile;
+import sir_draco.survivalskills.bosses.attacks.DragonCannon;
 import sir_draco.survivalskills.utils.Utils;
 
 import java.util.ArrayList;

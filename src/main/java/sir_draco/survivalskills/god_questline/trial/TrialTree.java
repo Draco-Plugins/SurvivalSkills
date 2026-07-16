@@ -48,9 +48,35 @@ public class TrialTree {
         public int getMaxLevel() { return maxLevel; }
         public int getCost(int level) { return costPerLevel.getOrDefault(level, 0); }
         public Map<String, Object> getUpgradeData() { return upgradeData; }
+
+        // --- Typed accessors with localized suppression ---
+
+        public List<Material> getMaterialList(String key) {
+            Object value = upgradeData.get(key);
+            if (value instanceof List<?> list) {
+                return (List<Material>) list;
+            }
+            return List.of();
+        }
+
+        public List<Integer> getIntegerList(String key) {
+            Object value = upgradeData.get(key);
+            if (value instanceof List<?> list) {
+                return (List<Integer>) list;
+            }
+            return List.of();
+        }
+
+        public List<Double> getDoubleList(String key) {
+            Object value = upgradeData.get(key);
+            if (value instanceof List<?> list) {
+                return (List<Double>) list;
+            }
+            return List.of();
+        }
     }
 
-    private static final Map<String, TrialUpgrade> UPGRADES = new HashMap<>();
+    private static final Map<String, TrialUpgrade> UPGRADES = new LinkedHashMap<>();
 
     static {
         initializeUpgrades();
@@ -116,7 +142,7 @@ public class TrialTree {
     }
 
     public static Map<String, TrialUpgrade> getAllUpgrades() {
-        return new HashMap<>(UPGRADES);
+        return new LinkedHashMap<>(UPGRADES);
     }
 
     public static TrialUpgrade getUpgrade(String id) {

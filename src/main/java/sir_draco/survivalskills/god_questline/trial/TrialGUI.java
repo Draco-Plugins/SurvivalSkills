@@ -9,103 +9,152 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitRunnable;
+import sir_draco.survivalskills.utils.ItemNameUtils;
 
-import sir_draco.survivalskills.SurvivalSkills;
+import java.util.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+public final class TrialGUI {
 
-public class TrialGUI {
-
-    private static final List<Inventory> upgradeInventories = new ArrayList<>();
+    private static final Map<UUID, Inventory> playerInventories = new HashMap<>();
+    private static final Map<Inventory, Map<Integer, String>> upgradeSlotMappings = new HashMap<>();
 
     private TrialGUI() {
-        // Private constructor to prevent instantiation
     }
 
     public static void openUpgradeGUI(Player player) {
         Inventory inv = Bukkit.createInventory(null, 54, ChatColor.DARK_PURPLE + "Trial Upgrades");
 
-        PlayerTrialUpgrades playerUpgrades = TrialUpgradeManager.getPlayerUpgrades(player);
-        Map<String, TrialTree.TrialUpgrade> allUpgrades = TrialTree.getAllUpgrades();
-
-        // Create header with player points
-        ItemStack pointsDisplay = new ItemStack(Material.EXPERIENCE_BOTTLE);
-        ItemMeta pointsMeta = pointsDisplay.getItemMeta();
-        if (pointsMeta == null)
-            return; // Safety check
-        pointsMeta.setDisplayName(ChatColor.GOLD + "Trial Points: " + playerUpgrades.getAvailablePoints());
-        pointsMeta.setLore(List.of(ChatColor.GRAY + "Earn points by completing trials",
-                ChatColor.GRAY + "the inventory closes if you can't afford anything else",
-                ChatColor.RED + "Your points reset every trial!"));
-        pointsDisplay.setItemMeta(pointsMeta);
-        inv.setItem(4, pointsDisplay);
-
-        // Place upgrades in specific slots
-        int[] upgradeSlots = { 19, 21, 23, 25, 28, 30, 32, 34 };
-        int slotIndex = 0;
-
-        for (String upgradeId : List.of("starting_weapon", "starting_armor", "starting_food",
-                "arrow_quantity", "damage_boost", "speed_boost",
-                "dodge_chance", "enchant_chance")) {
-            if (slotIndex >= upgradeSlots.length)
-                break;
-
-            TrialTree.TrialUpgrade upgrade = allUpgrades.get(upgradeId);
-            if (upgrade != null) {
-                ItemStack upgradeItem = createUpgradeItem(upgrade, playerUpgrades);
-                inv.setItem(upgradeSlots[slotIndex], upgradeItem);
-                slotIndex++;
-            }
+        ItemStack border = createBorderItem();
+        if (border == null) {
+            return;
         }
-
-        // Add border decoration
-        ItemStack border = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-        ItemMeta borderMeta = border.getItemMeta();
-        if (borderMeta == null)
-            return; // Safety check
-        borderMeta.setDisplayName(" ");
-        border.setItemMeta(borderMeta);
 
         for (int i = 0; i < 9; i++) {
-            if (i == 4)
+            if (i == 4) {
                 continue;
+            }
             inv.setItem(i, border);
         }
-        for (int i = 45; i < 54; i++)
+        for (int i = 45; i < 54; i++) {
             inv.setItem(i, border);
+        }
         for (int i = 9; i < 45; i += 9) {
             inv.setItem(i, border);
             inv.setItem(i + 8, border);
         }
 
-        upgradeInventories.add(inv);
+        playerInventories.put(player.getUniqueId(), inv);
         player.openInventory(inv);
+        populateUpgradeInventory(inv, player);
     }
 
+    /**
+     * Refreshes the upgrade items in-place so the player can upgrade multiple
+     * items without closing and reopening the inventory. This allows the close
+     * event to act as a reliable "round of upgrading is done" signal.
+     */
+    public static void refreshUpgradeGUI(Player player) {
+        Inventory inv = playerInventories.get(player.getUniqueId());
+        if (inv == null) {
+            return;
+        }
+        populateUpgradeInventory(inv, player);
+    }
+
+    // --- Border decoration ---
+
+    private static ItemStack createBorderItem() {
+        ItemStack border = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        ItemMeta meta = border.getItemMeta();
+        if (meta == null) {
+            return null;
+        }
+        meta.setDisplayName(" ");
+        border.setItemMeta(meta);
+        return border;
+    }
+
+    // --- Inventory population ---
+
+    private static void populateUpgradeInventory(Inventory inv, Player player) {
+        PlayerTrialUpgrades playerUpgrades = TrialUpgradeManager.getPlayerUpgrades(player);
+        Map<String, TrialTree.TrialUpgrade> allUpgrades = TrialTree.getAllUpgrades();
+
+        // Update points display
+        ItemStack pointsDisplay = inv.getItem(4);
+        if (pointsDisplay != null) {
+            ItemMeta meta = pointsDisplay.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(ChatColor.GOLD + "Trial Points: " + playerUpgrades.getAvailablePoints());
+                pointsDisplay.setItemMeta(meta);
+            }
+        }
+
+        // Build fresh slot -> upgradeId mapping for this inventory
+        Map<Integer, String> slotMapping = new HashMap<>();
+        upgradeSlotMappings.put(inv, slotMapping);
+
+        final int[] upgradeSlots = {19, 21, 23, 25, 28, 30, 32, 34};
+        int slotIndex = 0;
+
+        for (TrialTree.TrialUpgrade upgrade : allUpgrades.values()) {
+            if (slotIndex >= upgradeSlots.length) {
+                break;
+            }
+
+            final int slot = upgradeSlots[slotIndex];
+            if (upgrade != null) {
+                ItemStack upgradeItem = createUpgradeItem(upgrade, playerUpgrades);
+                inv.setItem(slot, upgradeItem);
+                slotMapping.put(slot, upgrade.getId());
+            } else {
+                inv.setItem(slot, createLockedSlotItem());
+            }
+            slotIndex++;
+        }
+
+        // Fill any remaining empty slots
+        while (slotIndex < upgradeSlots.length) {
+            inv.setItem(upgradeSlots[slotIndex], createLockedSlotItem());
+            slotIndex++;
+        }
+    }
+
+    private static ItemStack createLockedSlotItem() {
+        ItemStack item = new ItemStack(Material.BARRIER);
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return item;
+        }
+        meta.setDisplayName(ChatColor.RED + "Locked");
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    // --- Upgrade item rendering ---
+
     private static ItemStack createUpgradeItem(TrialTree.TrialUpgrade upgrade, PlayerTrialUpgrades playerUpgrades) {
-        int currentLevel = playerUpgrades.getUpgradeLevel(upgrade.getId());
-        Material material = getUpgradeMaterial(upgrade.getType());
+        final int currentLevel = playerUpgrades.getUpgradeLevel(upgrade.getId());
+        final Material material = getUpgradeMaterial(upgrade.getType());
 
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        if (meta == null)
-            return item; // Safety check
+        if (meta == null) {
+            return item;
+        }
 
-        // Set display name with level
-        String levelDisplay = currentLevel > 0 ? " §7(Level " + currentLevel + "/" + upgrade.getMaxLevel() + ")" : "";
+        final String levelDisplay = currentLevel > 0
+                ? " §7(Level " + currentLevel + "/" + upgrade.getMaxLevel() + ")"
+                : "";
         meta.setDisplayName(ChatColor.AQUA + upgrade.getName() + levelDisplay);
 
-        // Create lore
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.GRAY + upgrade.getDescription());
         lore.add("");
 
         if (currentLevel < upgrade.getMaxLevel()) {
-            int nextLevel = currentLevel + 1;
-            int cost = upgrade.getCost(nextLevel);
+            final int nextLevel = currentLevel + 1;
+            final int cost = upgrade.getCost(nextLevel);
 
             lore.add(ChatColor.YELLOW + "Next Level Benefits:");
             lore.addAll(getUpgradeBenefits(upgrade, nextLevel));
@@ -123,9 +172,10 @@ public class TrialGUI {
 
         meta.setLore(lore);
         item.setItemMeta(meta);
-
         return item;
     }
+
+    // --- Material mapping ---
 
     private static Material getUpgradeMaterial(TrialTree.UpgradeType type) {
         return switch (type) {
@@ -140,147 +190,157 @@ public class TrialGUI {
         };
     }
 
-    @SuppressWarnings("unchecked")
+    // --- Benefit text generation (no more unchecked casts) ---
+
     private static List<String> getUpgradeBenefits(TrialTree.TrialUpgrade upgrade, int level) {
         List<String> benefits = new ArrayList<>();
 
         switch (upgrade.getType()) {
             case STARTING_WEAPON -> {
-                List<Material> materials = (List<Material>) upgrade.getUpgradeData().get("materials");
-                benefits.add(ChatColor.WHITE + "• Start with: " + formatMaterialName(materials.get(level)));
+                List<Material> materials = upgrade.getMaterialList("materials");
+                if (!materials.isEmpty()) {
+                    benefits.add(ChatColor.WHITE + "• Start with: " + ItemNameUtils.formatMaterialName(materials.get(level)));
+                }
             }
             case STARTING_ARMOR -> {
-                Map<String, Object> armorData = upgrade.getUpgradeData();
-                List<Material> helmets = (List<Material>) armorData.get("helmet");
-                benefits.add(ChatColor.WHITE + "• Full " + formatArmorTier(helmets.get(level)) + " armor set");
+                List<Material> helmets = upgrade.getMaterialList("helmet");
+                if (!helmets.isEmpty()) {
+                    benefits.add(ChatColor.WHITE + "• Full " + ItemNameUtils.formatArmorTier(helmets.get(level)) + " armor set");
+                }
             }
             case STARTING_FOOD -> {
-                List<Integer> amounts = (List<Integer>) upgrade.getUpgradeData().get("amounts");
-                benefits.add(ChatColor.WHITE + "• Start with: " + amounts.get(level) + " cooked beef");
+                List<Integer> amounts = upgrade.getIntegerList("amounts");
+                if (!amounts.isEmpty()) {
+                    benefits.add(ChatColor.WHITE + "• Start with: " + amounts.get(level) + " cooked beef");
+                }
             }
             case ARROW_QUANTITY -> {
-                List<Integer> amounts = (List<Integer>) upgrade.getUpgradeData().get("amounts");
-                benefits.add(ChatColor.WHITE + "• Start with: " + amounts.get(level) + " arrows + bow");
+                List<Integer> amounts = upgrade.getIntegerList("amounts");
+                if (!amounts.isEmpty()) {
+                    benefits.add(ChatColor.WHITE + "• Start with: " + amounts.get(level) + " arrows + bow");
+                }
             }
             case DAMAGE_BOOST -> {
-                List<Double> multipliers = (List<Double>) upgrade.getUpgradeData().get("multipliers");
-                int percentage = (int) ((multipliers.get(level) - 1.0) * 100);
-                benefits.add(ChatColor.WHITE + "• +" + percentage + "% damage to trial mobs");
+                List<Double> multipliers = upgrade.getDoubleList("multipliers");
+                if (!multipliers.isEmpty()) {
+                    final int percentage = (int) ((multipliers.get(level) - 1.0) * 100);
+                    benefits.add(ChatColor.WHITE + "• +" + percentage + "% damage to trial mobs");
+                }
             }
             case SPEED_BOOST -> {
-                List<Double> multipliers = (List<Double>) upgrade.getUpgradeData().get("multipliers");
-                int percentage = (int) ((multipliers.get(level) - 1.0) * 100);
-                benefits.add(ChatColor.WHITE + "• +" + percentage + "% movement speed");
+                List<Double> multipliers = upgrade.getDoubleList("multipliers");
+                if (!multipliers.isEmpty()) {
+                    final int percentage = (int) ((multipliers.get(level) - 1.0) * 100);
+                    benefits.add(ChatColor.WHITE + "• +" + percentage + "% movement speed");
+                }
             }
             case DODGE_CHANCE -> {
-                List<Double> chances = (List<Double>) upgrade.getUpgradeData().get("chances");
-                int percentage = (int) (chances.get(level) * 100);
-                benefits.add(ChatColor.WHITE + "• " + percentage + "% chance to dodge attacks");
+                List<Double> chances = upgrade.getDoubleList("chances");
+                if (!chances.isEmpty()) {
+                    final int percentage = (int) (chances.get(level) * 100);
+                    benefits.add(ChatColor.WHITE + "• " + percentage + "% chance to dodge attacks");
+                }
             }
             case ENCHANT_CHANCE -> {
-                List<Double> chances = (List<Double>) upgrade.getUpgradeData().get("chances");
-                int percentage = (int) (chances.get(level) * 100);
-                benefits.add(ChatColor.WHITE + "• " + percentage + "% chance for enchanted rewards");
+                List<Double> chances = upgrade.getDoubleList("chances");
+                if (!chances.isEmpty()) {
+                    final int percentage = (int) (chances.get(level) * 100);
+                    benefits.add(ChatColor.WHITE + "• " + percentage + "% chance for enchanted rewards");
+                }
             }
         }
 
         return benefits;
     }
 
-    private static String formatMaterialName(Material material) {
-        String name = material.name().toLowerCase().replace("_", " ");
-        String[] words = name.split(" ");
-        StringBuilder formatted = new StringBuilder();
-
-        for (String word : words) {
-            if (!formatted.isEmpty())
-                formatted.append(" ");
-            formatted.append(word.substring(0, 1).toUpperCase()).append(word.substring(1));
-        }
-
-        return formatted.toString();
-    }
-
-    private static String formatArmorTier(Material helmet) {
-        String name = helmet.name().toLowerCase();
-        if (name.contains("leather"))
-            return "Leather";
-        if (name.contains("chainmail"))
-            return "Chainmail";
-        if (name.contains("iron"))
-            return "Iron";
-        if (name.contains("diamond"))
-            return "Diamond";
-        if (name.contains("netherite"))
-            return "Netherite";
-        return "Unknown";
-    }
+    // --- Click handling (slot-based lookup, no more substring matching) ---
 
     public static void handleUpgradeClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player))
+        if (!(event.getWhoClicked() instanceof Player player)) {
             return;
-        if (event.getCurrentItem() == null)
+        }
+        if (event.getCurrentItem() == null) {
             return;
+        }
 
-        ItemStack item = event.getCurrentItem();
-        if (item.getItemMeta() == null || !item.getItemMeta().hasDisplayName())
+        final int slot = event.getSlot();
+        Map<Integer, String> slotMapping = upgradeSlotMappings.get(event.getInventory());
+        if (slotMapping == null) {
             return;
+        }
 
-        String displayName = item.getItemMeta().getDisplayName();
+        final String upgradeId = slotMapping.get(slot);
+        if (upgradeId == null) {
+            return;
+        }
+
+        TrialTree.TrialUpgrade upgrade = TrialTree.getUpgrade(upgradeId);
+        if (upgrade == null) {
+            return;
+        }
+
         PlayerTrialUpgrades playerUpgrades = TrialUpgradeManager.getPlayerUpgrades(player);
-
-        // Find the upgrade based on display name
-        for (Map.Entry<String, TrialTree.TrialUpgrade> entry : TrialTree.getAllUpgrades().entrySet()) {
-            TrialTree.TrialUpgrade upgrade = entry.getValue();
-
-            if (!displayName.contains(upgrade.getName()))
-                continue;
-            // Purchase the upgrade
-            boolean success = playerUpgrades.purchaseUpgrade(upgrade.getId());
-            if (!success) {
-                player.sendMessage(ChatColor.RED + "You are unable to upgrade " + upgrade.getName() + "!");
-                return;
-            }
-
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    playerUpgrades.saveToFile();
-                }
-            }.runTaskAsynchronously(SurvivalSkills.getInstance());
-
-            player.sendMessage(ChatColor.GREEN + "Upgraded " + upgrade.getName() + "!");
-            player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-
-            if (!canUpgradeAnythingElse(player)) {
-                player.sendMessage(ChatColor.RED + "You have no more upgrades available!");
-                player.closeInventory();
-            } else {
-                // Reopen the upgrade GUI to reflect changes
-                openUpgradeGUI(player);
-            }
+        boolean success = playerUpgrades.purchaseUpgrade(upgradeId);
+        if (!success) {
+            player.sendMessage(ChatColor.RED + "You are unable to upgrade " + upgrade.getName() + "!");
             return;
+        }
+
+        player.sendMessage(ChatColor.GREEN + "Upgraded " + upgrade.getName() + "!");
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+
+        if (!canUpgradeAnythingElse(player)) {
+            player.sendMessage(ChatColor.RED + "You have no more upgrades available!");
+            player.closeInventory();
+        } else {
+            refreshUpgradeGUI(player);
         }
     }
 
-    public static List<Inventory> getUpgradeInventories() {
-        return upgradeInventories;
-    }
+    // --- Upgrade availability check (fixed: now checks max level) ---
 
-    public static void removeInventory(Inventory inventory) {
-        upgradeInventories.remove(inventory);
-    }
-
-    public static boolean canUpgradeAnythingElse(Player p) {
-        PlayerTrialUpgrades playerUpgrades = TrialUpgradeManager.getPlayerUpgrades(p);
+    public static boolean canUpgradeAnythingElse(Player player) {
+        PlayerTrialUpgrades playerUpgrades = TrialUpgradeManager.getPlayerUpgrades(player);
 
         for (TrialTree.TrialUpgrade upgrade : TrialTree.getAllUpgrades().values()) {
-            if (playerUpgrades.getAvailablePoints() >= upgrade
-                    .getCost(playerUpgrades.getUpgradeLevel(upgrade.getId()) + 1)) {
+            final int currentLevel = playerUpgrades.getUpgradeLevel(upgrade.getId());
+            if (currentLevel >= upgrade.getMaxLevel()) {
+                continue; // Already maxed out — no further levels
+            }
+
+            final int nextLevel = currentLevel + 1;
+            if (playerUpgrades.getAvailablePoints() >= upgrade.getCost(nextLevel)) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    // --- Lifecycle management ---
+
+    public static boolean isUpgradeInventory(Inventory inv) {
+        return playerInventories.containsValue(inv);
+    }
+
+    public static Collection<Inventory> getUpgradeInventories() {
+        return playerInventories.values();
+    }
+
+    public static void removeInventory(Inventory inventory) {
+        upgradeSlotMappings.remove(inventory);
+        playerInventories.values().remove(inventory);
+    }
+
+    public static void removePlayer(UUID playerId) {
+        Inventory inv = playerInventories.remove(playerId);
+        if (inv != null) {
+            upgradeSlotMappings.remove(inv);
+        }
+    }
+
+    public static void clearAll() {
+        playerInventories.clear();
+        upgradeSlotMappings.clear();
     }
 }

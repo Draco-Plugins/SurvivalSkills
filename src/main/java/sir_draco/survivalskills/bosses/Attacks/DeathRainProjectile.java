@@ -1,4 +1,4 @@
-package sir_draco.survivalskills.bosses.Attacks;
+package sir_draco.survivalskills.bosses.attacks;
 
 import org.bukkit.Color;
 import org.bukkit.Location;

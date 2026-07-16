@@ -8,8 +8,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class PendingTrial {
 
@@ -43,9 +46,10 @@ public class PendingTrial {
         updatePlayerManager();
     }
 
-    public void handleOfflinePlayerRemoval(Player p) {
-        p.sendRawMessage(ChatColor.RED + "This player is no longer online");
-        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+    public void handleOfflinePlayerRemoval(Player notifier, String offlinePlayerName) {
+        players.removeIf(player -> player.getName().equals(offlinePlayerName));
+        notifier.sendRawMessage(ChatColor.RED + offlinePlayerName + " is no longer online and has been removed from the party");
+        notifier.playSound(notifier, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
         updatePlayerManager();
     }
 
@@ -59,17 +63,23 @@ public class PendingTrial {
             ItemMeta meta = head.getItemMeta();
             if (meta == null) continue;
             meta.setDisplayName(ChatColor.GREEN + players.get(i).getName());
+            if (meta instanceof SkullMeta skullMeta) {
+                skullMeta.setOwningPlayer(players.get(i));
+            }
             head.setItemMeta(meta);
             playerManager.setItem(i, head);
         }
 
         ItemStack confirm = new ItemStack(Material.LIME_DYE);
         ItemMeta confirmMeta = confirm.getItemMeta();
-        if (confirmMeta == null) return;
-        confirmMeta.setDisplayName(ChatColor.GREEN + "Confirm Party");
-        confirm.setItemMeta(confirmMeta);
-        playerManager.setItem(8, confirm);
-        TrialManager.getTrialSelectionInventories().add(playerManager);
+        if (confirmMeta != null) {
+            confirmMeta.setDisplayName(ChatColor.GREEN + "Confirm Party");
+            confirm.setItemMeta(confirmMeta);
+            playerManager.setItem(8, confirm);
+        }
+        if (!TrialManager.isTrialSelectionInventory(playerManager)) {
+            TrialManager.registerTrialSelectionInventory(playerManager);
+        }
 
         trialMaster.openInventory(playerManager);
     }
@@ -99,16 +109,25 @@ public class PendingTrial {
         return trialDifficulty;
     }
 
-    public ArrayList<Player> getPlayers() {
-        return players;
+    public List<Player> getPlayers() {
+        return Collections.unmodifiableList(players);
+    }
+
+    public void clearPlayers() {
+        players.clear();
+    }
+
+    public void removePlayer(Player player) {
+        players.remove(player);
+        updatePlayerManager();
     }
 
     public Player getTrialMaster() {
         return trialMaster;
     }
 
-    public ArrayList<Player> getBlockedPlayers() {
-        return blockedPlayers;
+    public List<Player> getBlockedPlayers() {
+        return Collections.unmodifiableList(blockedPlayers);
     }
 
     public boolean isChosenDifficulty() {

@@ -1,0 +1,91 @@
+# Reward items for each trial stage. A stage covers a range of waves:
+#   stage 1 -> waves 1-4, stage 2 -> waves 5-9, stage 3 -> waves 10-14,
+#   stage 4 -> waves 15-19, stage 5 -> waves 20+.
+# Each item is materialized as a "trial item" (marked with the trialobject
+# persistent-data key) and drawn from its stage loot table by weight.
+# Edit freely; the plugin reloads this file on enable/restart.
+
+stages:
+  1:
+    - { material: WOODEN_SWORD, amount: 1, weight: 3 }
+    - { material: STONE_SWORD, amount: 1, weight: 2 }
+    - { material: IRON_SWORD, amount: 1, weight: 1 }
+    - { material: WOODEN_AXE, amount: 1, weight: 2 }
+    - { material: COOKED_BEEF, amount: 3, weight: 4 }
+    - { material: LEATHER_BOOTS, amount: 1, weight: 2 }
+    - { material: LEATHER_CHESTPLATE, amount: 1, weight: 2 }
+    - { material: LEATHER_HELMET, amount: 1, weight: 2 }
+    - { material: LEATHER_LEGGINGS, amount: 1, weight: 2 }
+    - { material: GOLDEN_APPLE, amount: 2, weight: 1 }
+    - { material: SHIELD, amount: 1, weight: 1 }
+    - { material: ARROW, amount: 32, weight: 1 }
+  2:
+    - { material: STONE_SWORD, amount: 1, weight: 3 }
+    - { material: IRON_SWORD, amount: 1, weight: 2 }
+    - { material: DIAMOND_SWORD, amount: 1, weight: 1 }
+    - { material: STONE_AXE, amount: 1, weight: 3 }
+    - { material: IRON_AXE, amount: 1, weight: 1 }
+    - { material: COOKED_BEEF, amount: 5, weight: 4 }
+    - { material: CHAINMAIL_BOOTS, amount: 1, weight: 3 }
+    - { material: CHAINMAIL_CHESTPLATE, amount: 1, weight: 3 }
+    - { material: CHAINMAIL_HELMET, amount: 1, weight: 3 }
+    - { material: CHAINMAIL_LEGGINGS, amount: 1, weight: 3 }
+    - { material: IRON_HELMET, amount: 1, weight: 1 }
+    - { material: IRON_CHESTPLATE, amount: 1, weight: 1 }
+    - { material: IRON_LEGGINGS, amount: 1, weight: 1 }
+    - { material: IRON_BOOTS, amount: 1, weight: 1 }
+    - { material: GOLDEN_APPLE, amount: 3, weight: 1 }
+    - { material: SHIELD, amount: 1, weight: 2 }
+    - { material: ARROW, amount: 64, weight: 1 }
+    - { material: BOW, amount: 1, weight: 1 }
+  3:
+    - { material: IRON_SWORD, amount: 1, weight: 3 }
+    - { material: DIAMOND_SWORD, amount: 1, weight: 2 }
+    - { material: NETHERITE_SWORD, amount: 1, weight: 1 }
+    - { material: IRON_AXE, amount: 1, weight: 3 }
+    - { material: DIAMOND_AXE, amount: 1, weight: 1 }
+    - { material: COOKED_BEEF, amount: 7, weight: 3 }
+    - { material: IRON_BOOTS, amount: 1, weight: 3 }
+    - { material: IRON_CHESTPLATE, amount: 1, weight: 3 }
+    - { material: IRON_HELMET, amount: 1, weight: 3 }
+    - { material: IRON_LEGGINGS, amount: 1, weight: 3 }
+    - { material: DIAMOND_BOOTS, amount: 1, weight: 1 }
+    - { material: DIAMOND_CHESTPLATE, amount: 1, weight: 1 }
+    - { material: DIAMOND_HELMET, amount: 1, weight: 1 }
+    - { material: DIAMOND_LEGGINGS, amount: 1, weight: 1 }
+    - { material: CROSSBOW, amount: 1, weight: 2 }
+    - { material: BOW, amount: 1, weight: 3 }
+    - { material: ARROW, amount: 64, weight: 2 }
+    - { material: SHIELD, amount: 2, weight: 2 }
+    - { material: GOLDEN_APPLE, amount: 5, weight: 1 }
+  4:
+    - { material: DIAMOND_SWORD, amount: 1, weight: 3 }
+    - { material: NETHERITE_SWORD, amount: 1, weight: 2 }
+    - { material: DIAMOND_AXE, amount: 1, weight: 3 }
+    - { material: NETHERITE_AXE, amount: 1, weight: 1 }
+    - { material: COOKED_BEEF, amount: 16, weight: 3 }
+    - { material: DIAMOND_BOOTS, amount: 1, weight: 3 }
+    - { material: DIAMOND_CHESTPLATE, amount: 1, weight: 3 }
+    - { material: DIAMOND_HELMET, amount: 1, weight: 3 }
+    - { material: DIAMOND_LEGGINGS, amount: 1, weight: 3 }
+    - { material: NETHERITE_BOOTS, amount: 1, weight: 1 }
+    - { material: NETHERITE_CHESTPLATE, amount: 1, weight: 1 }
+    - { material: NETHERITE_HELMET, amount: 1, weight: 1 }
+    - { material: NETHERITE_LEGGINGS, amount: 1, weight: 1 }
+    - { material: CROSSBOW, amount: 1, weight: 3 }
+    - { material: BOW, amount: 1, weight: 3 }
+    - { material: ARROW, amount: 64, weight: 3 }
+    - { material: GOLDEN_APPLE, amount: 8, weight: 1 }
+    - { material: ENCHANTED_GOLDEN_APPLE, amount: 1, weight: 1 }
+  5:
+    - { material: NETHERITE_SWORD, amount: 1, weight: 2 }
+    - { material: NETHERITE_AXE, amount: 1, weight: 2 }
+    - { material: COOKED_BEEF, amount: 32, weight: 2 }
+    - { material: NETHERITE_BOOTS, amount: 1, weight: 3 }
+    - { material: NETHERITE_CHESTPLATE, amount: 1, weight: 4 }
+    - { material: NETHERITE_HELMET, amount: 1, weight: 4 }
+    - { material: NETHERITE_LEGGINGS, amount: 1, weight: 3 }
+    - { material: CROSSBOW, amount: 1, weight: 2 }
+    - { material: BOW, amount: 1, weight: 2 }
+    - { material: ARROW, amount: 64, weight: 3 }
+    - { material: ENCHANTED_GOLDEN_APPLE, amount: 3, weight: 1 }

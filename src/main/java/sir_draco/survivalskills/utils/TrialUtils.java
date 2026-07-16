@@ -216,7 +216,7 @@ public class TrialUtils {
     }
 
     private static void saveCompletedTrialsSync(Player p, FileConfiguration data) {
-        ArrayList<Integer> completedTrials = TrialManager.getPlayerGamemodesBeaten().get(p);
+        ArrayList<Integer> completedTrials = TrialManager.getCompletedGamemodes(p);
         if (completedTrials == null || completedTrials.isEmpty()) return;
         data.set(p.getUniqueId() + ".CompletedTrials", completedTrials);
         saveConfig(data, TRIAL_DATA_FILE, "Failed to save completed trials for " + p.getName());
@@ -233,8 +233,7 @@ public class TrialUtils {
     public static boolean addTrialSpectator(Player p, Player target) {
         for (Trial trial : TrialManager.getTrials()) {
             if (!trial.getPlayers().contains(target)) continue;
-            TrialManager.getSpectatingPlayers().put(p, p.getLocation());
-            TrialManager.getSpectatorTargets().put(p, target);
+            TrialManager.addSpectator(p, target, p.getLocation());
             trial.addSpectator(p, target);
             p.teleport(target.getLocation()); // Teleport the spectator to the target
             p.setGameMode(GameMode.SPECTATOR);
@@ -252,14 +251,13 @@ public class TrialUtils {
     }
 
     public static void removeTrialSpectator(Player p, Player target) {
-        if (!TrialManager.getSpectatingPlayers().containsKey(p)) return;
+        if (!TrialManager.isSpectating(p)) return;
 
         // Show the spectator to the player
         if (target != null) target.showPlayer(SurvivalSkills.getInstance(), p);
         if (p.getGameMode().equals(GameMode.SPECTATOR)) p.setSpectatorTarget(null);
-        p.teleport(TrialManager.getSpectatingPlayers().get(p));
-        TrialManager.getSpectatingPlayers().remove(p);
-        TrialManager.getSpectatorTargets().remove(p);
+        p.teleport(TrialManager.getSpectatorOrigin(p));
+        TrialManager.removeSpectator(p);
         p.setGameMode(GameMode.SURVIVAL);
         p.sendMessage(ChatColor.GREEN + "You are no longer spectating");
         p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
@@ -280,8 +278,8 @@ public class TrialUtils {
         if (trialSpaceConflict(p, pLocation)) return;
 
         // Check if the player can create a new building
-        if (!TrialManager.getProtectedAreas().containsKey(p.getUniqueId())) {
-            Long lastCreation = TrialManager.getTrialBuildingCreationCooldownList().get(p.getUniqueId());
+        if (!TrialManager.hasProtectedArea(p.getUniqueId())) {
+            Long lastCreation = TrialManager.getBuildingCreationCooldown(p.getUniqueId());
             if (lastCreation != null) {
                 long timeSinceLastCreation = System.currentTimeMillis() - lastCreation;
                 if (timeSinceLastCreation < COOLDOWN) {
@@ -295,7 +293,7 @@ public class TrialUtils {
                 }
             } else {
                 // Store the time that a new trial building is created
-                TrialManager.getTrialBuildingCreationCooldownList().put(p.getUniqueId(), System.currentTimeMillis());
+                TrialManager.setBuildingCreationCooldown(p.getUniqueId(), System.currentTimeMillis());
             }
         }
 
@@ -304,10 +302,10 @@ public class TrialUtils {
 
         // Create bounding box around the trial building
         ProtectedArea protectedArea = createProtectedArea(pLocation);
-        TrialManager.getProtectedAreas().put(p.getUniqueId(), protectedArea);
+        TrialManager.putProtectedArea(p.getUniqueId(), protectedArea);
 
         // Get pending trial
-        PendingTrial trial = TrialManager.getPendingTrials().get(p);
+        PendingTrial trial = TrialManager.getPendingTrial(p);
         if (trial == null) {
             sendError(p, "You do not have a pending trial", "Use /trial to start a trial");
             return;
@@ -318,10 +316,10 @@ public class TrialUtils {
     }
 
     public static boolean previousStructure(Player p, Location pLocation) {
-        if (!TrialManager.getProtectedAreas().containsKey(p.getUniqueId())) return false;
+        if (!TrialManager.hasProtectedArea(p.getUniqueId())) return false;
 
         // Get the center block of the trial building from the protected area
-        ProtectedArea area = TrialManager.getProtectedAreas().get(p.getUniqueId());
+        ProtectedArea area = TrialManager.getProtectedArea(p.getUniqueId());
         if (!p.getWorld().equals(area.world())) {
             sendError(p, "You are in the wrong world to start the trial");
             return true;
@@ -338,7 +336,7 @@ public class TrialUtils {
         }
 
         // Get pending trial
-        PendingTrial trial = TrialManager.getPendingTrials().get(p);
+        PendingTrial trial = TrialManager.getPendingTrial(p);
         if (trial == null) {
             sendError(p, "You do not have a pending trial", "Use /trial to start a trial");
             return true;
@@ -405,7 +403,7 @@ public class TrialUtils {
 
         if (pendingTrial.getPlayers().isEmpty()) {
             sendError(pendingTrial.getTrialMaster(), "You must have at least one player in your trial");
-            TrialManager.getPendingTrials().remove(pendingTrial.getTrialMaster());
+            TrialManager.removePendingTrial(pendingTrial.getTrialMaster());
             pendingTrial.getTrialMaster().closeInventory();
             return;
         }
@@ -418,8 +416,8 @@ public class TrialUtils {
 
         trial.initializeScoreboards();
         trial.setSolo(pendingTrial.isSolo());
-        TrialManager.getPendingTrials().remove(pendingTrial.getTrialMaster());
-        TrialManager.getTrials().add(trial);
+        TrialManager.removePendingTrial(pendingTrial.getTrialMaster());
+        TrialManager.registerTrial(trial);
         trial.runTaskTimer(SurvivalSkills.getInstance(), 60, 1);
         if (trial.isExistingStructure()) trial.startTrial();
     }
@@ -522,7 +520,7 @@ public class TrialUtils {
         inv.setItem(1, easy);
         inv.setItem(2, filler);
 
-        ArrayList<Integer> beaten = TrialManager.getPlayerGamemodesBeaten().get(p);
+        ArrayList<Integer> beaten = TrialManager.getCompletedGamemodes(p);
         if (beaten != null) {
             inv.setItem(3, beaten.contains(1) ? medium : filler);
             inv.setItem(4, filler);
@@ -539,7 +537,7 @@ public class TrialUtils {
     public static void handleTrialSelectionClick(Inventory inv, Player p, ItemStack item) {
         if (item == null || item.getType() == Material.AIR) return;
         if (item.getItemMeta() == null) return;
-        TrialManager.getTrialSelectionInventories().remove(inv);
+        TrialManager.unregisterTrialSelectionInventory(inv);
         String name = item.getItemMeta().getDisplayName();
         Material type = item.getType();
 
@@ -565,19 +563,19 @@ public class TrialUtils {
     }
 
     public static void partyDifficulty(Player p, int difficulty) {
-        PendingTrial trial = TrialManager.getPendingTrials().get(p);
+        PendingTrial trial = TrialManager.getPendingTrial(p);
         // Check if they can attempt this trial difficulty
         int trueDifficulty = difficulty * 2;
         if (trial.isSolo()) trueDifficulty -= 1;
 
         // If co-op, check if they have beaten the solo version of this difficulty
         if (!trial.isSolo()) {
-            if (!TrialManager.getPlayerGamemodesBeaten().containsKey(p)) {
+            if (!TrialManager.hasCompletedGamemodes(p)) {
                 sendError(p, "You have not beaten any solo mode trials");
                 return;
             }
             int difficultyToBeat = (trueDifficulty + 1) / 2;
-            ArrayList<Integer> gamemodesBeaten = TrialManager.getPlayerGamemodesBeaten().get(p);
+            ArrayList<Integer> gamemodesBeaten = TrialManager.getCompletedGamemodes(p);
             if (!gamemodesBeaten.contains(difficultyToBeat)) {
                 p.sendMessage(ChatColor.RED + String.format("You have not beaten solo mode on this difficulty: %s",
                         WaveGenerator.getDifficultyName(difficultyToBeat)));
@@ -589,8 +587,8 @@ public class TrialUtils {
             }
         }
 
-        if (trial.isSolo() && trueDifficulty != 1 && TrialManager.getPlayerGamemodesBeaten().containsKey(p)
-                && !TrialManager.getPlayerGamemodesBeaten().get(p).contains(trueDifficulty - 2)) {
+        if (trial.isSolo() && trueDifficulty != 1 && TrialManager.hasCompletedGamemodes(p)
+                && !TrialManager.getCompletedGamemodes(p).contains(trueDifficulty - 2)) {
             sendError(p, "You have not beaten the previous difficulty");
             return;
         }
@@ -636,7 +634,7 @@ public class TrialUtils {
     }
 
     private static void registerAndOpen(Player p, Inventory inv) {
-        TrialManager.getTrialSelectionInventories().add(inv);
+        TrialManager.registerTrialSelectionInventory(inv);
         p.openInventory(inv);
     }
 
@@ -652,19 +650,19 @@ public class TrialUtils {
     }
 
     private static void startSoloTrial(Player p) {
-        TrialManager.getPendingTrials().put(p, new PendingTrial(p));
+        TrialManager.putPendingTrial(p, new PendingTrial(p));
         openDifficultySelection(p);
     }
 
     private static void startNewCoopTrial(Player p) {
         PendingTrial trial = new PendingTrial(p);
         trial.setSolo(false);
-        TrialManager.getPendingTrials().put(p, trial);
+        TrialManager.putPendingTrial(p, trial);
         openDifficultySelection(p);
     }
 
     private static void confirmParty(Player p) {
-        PendingTrial trial = TrialManager.getPendingTrials().get(p);
+        PendingTrial trial = TrialManager.getPendingTrial(p);
         Bukkit.getLogger().info("Starting trial for " + p.getName());
         if (trial == null) {
             sendError(p, "You do not have a pending trial anymore");
@@ -685,11 +683,11 @@ public class TrialUtils {
 
     private static void handlePartyMemberClick(Inventory inv, Player p, ItemStack item, String name) {
         // If the clicking player is a party manager, they are blocking/removing a member
-        if (TrialManager.getPendingTrials().containsKey(p)) {
-            PendingTrial trial = TrialManager.getPendingTrials().get(p);
+        if (TrialManager.hasPendingTrial(p)) {
+            PendingTrial trial = TrialManager.getPendingTrial(p);
             Player target = Bukkit.getPlayer(ChatColor.stripColor(name));
             if (target == null) {
-                trial.handleOfflinePlayerRemoval(p);
+                trial.handleOfflinePlayerRemoval(p, ChatColor.stripColor(name));
                 return;
             }
             trial.handleBlockPartyMember(target);
@@ -700,7 +698,7 @@ public class TrialUtils {
 
     private static void joinParty(Inventory inv, Player p, ItemStack item, String name) {
         Player target = Bukkit.getPlayer(ChatColor.stripColor(name));
-        PendingTrial trial = TrialManager.getPendingTrials().get(target);
+        PendingTrial trial = TrialManager.getPendingTrial(target);
         if (trial == null) {
             sendError(p, "The party leader does not have a pending trial anymore");
             inv.remove(item);
@@ -716,7 +714,8 @@ public class TrialUtils {
         }
 
         // Check if they have beaten solo mode on this difficulty
-        if (!TrialManager.getPlayerGamemodesBeaten().get(p).contains((trial.getTrialDifficulty() + 1) / 2)) {
+        ArrayList<Integer> beaten = TrialManager.getCompletedGamemodes(p);
+        if (beaten == null || !beaten.contains((trial.getTrialDifficulty() + 1) / 2)) {
             sendError(p, "You have not beaten solo mode on this difficulty and can't join this party");
             return;
         }

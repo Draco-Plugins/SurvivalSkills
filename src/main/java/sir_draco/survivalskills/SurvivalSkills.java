@@ -17,6 +17,7 @@ import sir_draco.survivalskills.external.listeners.CitizensTrophyListener;
 import sir_draco.survivalskills.external.providers.WorldGuardProvider;
 import sir_draco.survivalskills.god_questline.*;
 import sir_draco.survivalskills.god_questline.trial.Trial;
+import sir_draco.survivalskills.god_questline.trial.TrialEventListener;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
 import sir_draco.survivalskills.god_questline.trial.TrialUpgradeManager;
 import sir_draco.survivalskills.rewards.PlayerRewards;
@@ -196,7 +197,8 @@ public final class SurvivalSkills extends JavaPlugin {
         godListener.register(this);
         getServer().getPluginManager().registerEvents(sortWandListener, this);
         getServer().getPluginManager().registerEvents(flightRespawnListener, this);
-        getServer().getPluginManager().registerEvents(new TrialManager(), this);
+        TrialManager.initialize();
+        getServer().getPluginManager().registerEvents(new TrialEventListener(), this);
         getServer().getPluginManager().registerEvents(new TrialUpgradeManager(), this);
         
         if (citizensEnabled) {
