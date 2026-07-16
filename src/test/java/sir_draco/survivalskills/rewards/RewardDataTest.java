@@ -245,8 +245,8 @@ class RewardDataTest {
         var e4 = RewardData.getNotification("Fishing", "EpicLootIV");
         assertNotNull(e1);
         assertNotNull(e4);
-        assertTrue(e1.get(0).contains("2%"), "EpicLootI should have 2%");
-        assertTrue(e4.get(0).contains("4.5%"), "EpicLootIV should have 4.5%");
+        assertTrue(e1.get(0).contains("0.5%"), "EpicLootI should have 0.5%");
+        assertTrue(e4.get(0).contains("2%"), "EpicLootIV should have 2%");
     }
 
     @Test

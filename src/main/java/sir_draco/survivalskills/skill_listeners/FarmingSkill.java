@@ -2,7 +2,11 @@ package sir_draco.survivalskills.skill_listeners;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Levelled;
+import org.bukkit.block.data.type.AmethystCluster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -33,7 +37,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class FarmingSkill implements Listener {
 
@@ -53,6 +59,60 @@ public class FarmingSkill implements Listener {
     private static final int WATERING_CAN_ID = ItemModelData.WATERING_CAN.getId();
     private static final int BONEMEAL_ID = ItemModelData.UNLIMITED_BONE_MEAL.getId();
     private static final int HARVESTER_ID = ItemModelData.HARVESTER.getId();
+    private static final int MAX_CACTUS_HEIGHT = 3;
+    private static final int MAX_SUGAR_CANE_HEIGHT = 3;
+    private static final List<BlockFace> AMETHYST_GROWTH_FACES = List.of(BlockFace.UP, BlockFace.DOWN,
+            BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST);
+    private static final Map<Material, Material> COPPER_OXIDATION_STAGES = Map.ofEntries(
+            Map.entry(Material.COPPER_BLOCK, Material.EXPOSED_COPPER),
+            Map.entry(Material.EXPOSED_COPPER, Material.WEATHERED_COPPER),
+            Map.entry(Material.WEATHERED_COPPER, Material.OXIDIZED_COPPER),
+            Map.entry(Material.CHISELED_COPPER, Material.EXPOSED_CHISELED_COPPER),
+            Map.entry(Material.EXPOSED_CHISELED_COPPER, Material.WEATHERED_CHISELED_COPPER),
+            Map.entry(Material.WEATHERED_CHISELED_COPPER, Material.OXIDIZED_CHISELED_COPPER),
+            Map.entry(Material.CUT_COPPER, Material.EXPOSED_CUT_COPPER),
+            Map.entry(Material.EXPOSED_CUT_COPPER, Material.WEATHERED_CUT_COPPER),
+            Map.entry(Material.WEATHERED_CUT_COPPER, Material.OXIDIZED_CUT_COPPER),
+            Map.entry(Material.CUT_COPPER_STAIRS, Material.EXPOSED_CUT_COPPER_STAIRS),
+            Map.entry(Material.EXPOSED_CUT_COPPER_STAIRS, Material.WEATHERED_CUT_COPPER_STAIRS),
+            Map.entry(Material.WEATHERED_CUT_COPPER_STAIRS, Material.OXIDIZED_CUT_COPPER_STAIRS),
+            Map.entry(Material.CUT_COPPER_SLAB, Material.EXPOSED_CUT_COPPER_SLAB),
+            Map.entry(Material.EXPOSED_CUT_COPPER_SLAB, Material.WEATHERED_CUT_COPPER_SLAB),
+            Map.entry(Material.WEATHERED_CUT_COPPER_SLAB, Material.OXIDIZED_CUT_COPPER_SLAB),
+            Map.entry(Material.COPPER_BARS, Material.EXPOSED_COPPER_BARS),
+            Map.entry(Material.EXPOSED_COPPER_BARS, Material.WEATHERED_COPPER_BARS),
+            Map.entry(Material.WEATHERED_COPPER_BARS, Material.OXIDIZED_COPPER_BARS),
+            Map.entry(Material.COPPER_CHAIN, Material.EXPOSED_COPPER_CHAIN),
+            Map.entry(Material.EXPOSED_COPPER_CHAIN, Material.WEATHERED_COPPER_CHAIN),
+            Map.entry(Material.WEATHERED_COPPER_CHAIN, Material.OXIDIZED_COPPER_CHAIN),
+            Map.entry(Material.LIGHTNING_ROD, Material.EXPOSED_LIGHTNING_ROD),
+            Map.entry(Material.EXPOSED_LIGHTNING_ROD, Material.WEATHERED_LIGHTNING_ROD),
+            Map.entry(Material.WEATHERED_LIGHTNING_ROD, Material.OXIDIZED_LIGHTNING_ROD),
+            Map.entry(Material.COPPER_DOOR, Material.EXPOSED_COPPER_DOOR),
+            Map.entry(Material.EXPOSED_COPPER_DOOR, Material.WEATHERED_COPPER_DOOR),
+            Map.entry(Material.WEATHERED_COPPER_DOOR, Material.OXIDIZED_COPPER_DOOR),
+            Map.entry(Material.COPPER_TRAPDOOR, Material.EXPOSED_COPPER_TRAPDOOR),
+            Map.entry(Material.EXPOSED_COPPER_TRAPDOOR, Material.WEATHERED_COPPER_TRAPDOOR),
+            Map.entry(Material.WEATHERED_COPPER_TRAPDOOR, Material.OXIDIZED_COPPER_TRAPDOOR),
+            Map.entry(Material.COPPER_LANTERN, Material.EXPOSED_COPPER_LANTERN),
+            Map.entry(Material.EXPOSED_COPPER_LANTERN, Material.WEATHERED_COPPER_LANTERN),
+            Map.entry(Material.WEATHERED_COPPER_LANTERN, Material.OXIDIZED_COPPER_LANTERN),
+            Map.entry(Material.COPPER_GRATE, Material.EXPOSED_COPPER_GRATE),
+            Map.entry(Material.EXPOSED_COPPER_GRATE, Material.WEATHERED_COPPER_GRATE),
+            Map.entry(Material.WEATHERED_COPPER_GRATE, Material.OXIDIZED_COPPER_GRATE),
+            Map.entry(Material.COPPER_BULB, Material.EXPOSED_COPPER_BULB),
+            Map.entry(Material.EXPOSED_COPPER_BULB, Material.WEATHERED_COPPER_BULB),
+            Map.entry(Material.WEATHERED_COPPER_BULB, Material.OXIDIZED_COPPER_BULB),
+            Map.entry(Material.COPPER_CHEST, Material.EXPOSED_COPPER_CHEST),
+            Map.entry(Material.EXPOSED_COPPER_CHEST, Material.WEATHERED_COPPER_CHEST),
+            Map.entry(Material.WEATHERED_COPPER_CHEST, Material.OXIDIZED_COPPER_CHEST),
+            Map.entry(Material.COPPER_GOLEM_STATUE, Material.EXPOSED_COPPER_GOLEM_STATUE),
+            Map.entry(Material.EXPOSED_COPPER_GOLEM_STATUE, Material.WEATHERED_COPPER_GOLEM_STATUE),
+            Map.entry(Material.WEATHERED_COPPER_GOLEM_STATUE, Material.OXIDIZED_COPPER_GOLEM_STATUE));
+    private static final Map<Material, Material> AMETHYST_GROWTH_STAGES = Map.of(
+            Material.SMALL_AMETHYST_BUD, Material.MEDIUM_AMETHYST_BUD,
+            Material.MEDIUM_AMETHYST_BUD, Material.LARGE_AMETHYST_BUD,
+            Material.LARGE_AMETHYST_BUD, Material.AMETHYST_CLUSTER);
 
     public FarmingSkill(SurvivalSkills plugin) {
         this.plugin = plugin;
@@ -248,16 +308,127 @@ public class FarmingSkill implements Listener {
             for (int z = -2; z <= 2; z++) {
                 Block b = block.getRelative(x, 0, z);
                 spawnWateringCanParticle(particleStart, b.getLocation().clone().add(0.5, 0, 0.5));
-                if (plugin.getFarmingList().contains(b.getType())) {
-                    if (!(b.getState().getBlockData() instanceof Ageable age))
-                        continue;
-                    increaseCropAge(age, b);
-                } else if (b.getType().equals(Material.DIRT)) {
+                if (growWateredBlock(b)) continue;
+                if (b.getType().equals(Material.DIRT)) {
                     b.setType(Material.GRASS_BLOCK);
-                    b.getState().update();
                 }
             }
         }
+    }
+
+    private boolean growWateredBlock(Block block) {
+        Material type = block.getType();
+        if (type == Material.BUDDING_AMETHYST) return growAmethyst(block);
+        if (oxidizeCopper(block)) return true;
+        if (Tag.SAPLINGS.isTagged(type)) return block.applyBoneMeal(BlockFace.UP);
+
+        return switch (type) {
+            case CACTUS -> growVerticalPlant(block, Material.CACTUS, MAX_CACTUS_HEIGHT);
+            case SUGAR_CANE -> growVerticalPlant(block, Material.SUGAR_CANE, MAX_SUGAR_CANE_HEIGHT);
+            case KELP, KELP_PLANT, BAMBOO -> block.applyBoneMeal(BlockFace.UP);
+            case CHORUS_FLOWER -> growChorusFlower(block);
+            case SWEET_BERRY_BUSH -> growAgeable(block);
+            default -> (Tag.CROPS.isTagged(type) || plugin.getFarmingList().contains(type)) && growAgeable(block);
+        };
+    }
+
+    private static boolean growAgeable(Block block) {
+        if (!(block.getBlockData() instanceof Ageable age)) return false;
+        if (age.getAge() == age.getMaximumAge()) return false;
+        increaseCropAge(age, block);
+        return true;
+    }
+
+    private static boolean growVerticalPlant(Block block, Material material, int maximumHeight) {
+        Block bottom = block;
+        while (bottom.getRelative(BlockFace.DOWN).getType() == material)
+            bottom = bottom.getRelative(BlockFace.DOWN);
+
+        Block top = block;
+        while (top.getRelative(BlockFace.UP).getType() == material)
+            top = top.getRelative(BlockFace.UP);
+
+        int height = top.getY() - bottom.getY() + 1;
+        Block growthBlock = top.getRelative(BlockFace.UP);
+        if (height >= maximumHeight || !growthBlock.getType().isAir()) return false;
+        growthBlock.setType(material);
+        return true;
+    }
+
+    private static boolean growChorusFlower(Block block) {
+        if (!(block.getBlockData() instanceof Ageable flower) || flower.getAge() == flower.getMaximumAge())
+            return false;
+
+        Block growthBlock = block.getRelative(BlockFace.UP);
+        if (!growthBlock.getType().isAir()) return false;
+
+        Ageable growthData = (Ageable) Material.CHORUS_FLOWER.createBlockData();
+        growthData.setAge(flower.getAge());
+        BlockData originalFlower = block.getBlockData();
+        block.setType(Material.CHORUS_PLANT);
+        if (!growthData.isSupported(growthBlock.getLocation())) {
+            block.setBlockData(originalFlower);
+            return false;
+        }
+        growthBlock.setBlockData(growthData);
+        return true;
+    }
+
+    private static boolean growAmethyst(Block buddingAmethyst) {
+        int startIndex = ThreadLocalRandom.current().nextInt(AMETHYST_GROWTH_FACES.size());
+        for (int offset = 0; offset < AMETHYST_GROWTH_FACES.size(); offset++) {
+            BlockFace growthFace = AMETHYST_GROWTH_FACES.get((startIndex + offset) % AMETHYST_GROWTH_FACES.size());
+            Block growthBlock = buddingAmethyst.getRelative(growthFace);
+            if (advanceAmethystBud(growthBlock, growthFace) || placeAmethystBud(growthBlock, growthFace)) return true;
+        }
+        return false;
+    }
+
+    private static boolean advanceAmethystBud(Block block, BlockFace growthFace) {
+        if (!(block.getBlockData() instanceof AmethystCluster cluster) || cluster.getFacing() != growthFace)
+            return false;
+
+        Optional<Material> nextStage = getNextAmethystGrowthStage(block.getType());
+        if (nextStage.isEmpty()) return false;
+        BlockData nextData = nextStage.get().createBlockData();
+        cluster.copyTo(nextData);
+        block.setBlockData(nextData);
+        return true;
+    }
+
+    private static boolean placeAmethystBud(Block block, BlockFace growthFace) {
+        boolean waterlogged = isWaterSource(block);
+        if (!block.getType().isAir() && !waterlogged) return false;
+
+        AmethystCluster bud = (AmethystCluster) Material.SMALL_AMETHYST_BUD.createBlockData();
+        bud.setFacing(growthFace);
+        bud.setWaterlogged(waterlogged);
+        if (!bud.isSupported(block.getLocation())) return false;
+        block.setBlockData(bud);
+        return true;
+    }
+
+    private static boolean isWaterSource(Block block) {
+        return block.getType() == Material.WATER && block.getBlockData() instanceof Levelled water
+                && water.getLevel() == 0;
+    }
+
+    private static boolean oxidizeCopper(Block block) {
+        Optional<Material> nextStage = getNextOxidationStage(block.getType());
+        if (nextStage.isEmpty()) return false;
+
+        BlockData nextData = nextStage.get().createBlockData();
+        block.getBlockData().copyTo(nextData);
+        block.setBlockData(nextData);
+        return true;
+    }
+
+    static Optional<Material> getNextOxidationStage(Material material) {
+        return Optional.ofNullable(COPPER_OXIDATION_STAGES.get(material));
+    }
+
+    static Optional<Material> getNextAmethystGrowthStage(Material material) {
+        return Optional.ofNullable(AMETHYST_GROWTH_STAGES.get(material));
     }
 
     private static void increaseCropAge(Ageable age, Block b) {
@@ -265,7 +436,6 @@ public class FarmingSkill implements Listener {
         if (Math.random() < 0.1) return;
         age.setAge(age.getAge() + 1);
         b.setBlockData(age);
-        b.getState().update();
     }
 
     public void spawnWateringCanParticle(Location from, Location to) {

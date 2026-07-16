@@ -80,7 +80,7 @@ public class RewardEffects {
         // -- Fishing --
         tieredDouble(m, "Fishing", "CommonLoot", map(1, 0.25, 2, 0.40, 3, 0.55, 4, 0.65, 5, 0.75), (pr, val) -> pr.setCommonFishingLootChance(val));
         tieredDouble(m, "Fishing", "RareLoot", map(1, 0.05, 2, 0.15, 3, 0.20, 4, 0.25, 5, 0.30), (pr, val) -> pr.setRareFishingLootChance(val));
-        tieredDouble(m, "Fishing", "EpicLoot", map(1, 0.005, 2, 0.01, 3, 0.015, 4, 0.020, 5, 0.25), (pr, val) -> pr.setEpicFishingLootChance(val));
+        tieredDouble(m, "Fishing", "EpicLoot", map(1, 0.005, 2, 0.01, 3, 0.015, 4, 0.02, 5, 0.025), (pr, val) -> pr.setEpicFishingLootChance(val));
         tieredDouble(m, "Fishing", "LegendaryLoot", map(1, 0.002, 2, 0.0035, 3, 0.005), (pr, val) -> pr.setLegendaryFishingLootChance(val));
         linearDouble(m, "Fishing", "Experience", 10, 1.1, 0.1, (pr, val) -> pr.setExperienceMultiplier(val));
         fasterFishingEffects(m);
