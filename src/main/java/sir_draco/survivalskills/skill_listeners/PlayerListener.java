@@ -95,7 +95,7 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent e) {
         Player p = e.getPlayer();
-        plugin.getSkillManager().updateExploringStats(p.getUniqueId());
+        plugin.getExploringListener().flushPlayerSteps(p);
         plugin.getSkillManager().clearMaxLevelMessages(p.getUniqueId());
         FileUtils.savePlayerData(p);
         FileUtils.savePermaTrash(p, plugin.getPermaTrashData(), plugin.getPermaTrashFile());

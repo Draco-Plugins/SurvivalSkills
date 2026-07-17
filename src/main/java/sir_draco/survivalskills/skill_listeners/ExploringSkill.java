@@ -1,15 +1,18 @@
 package sir_draco.survivalskills.skill_listeners;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
@@ -52,6 +55,8 @@ public class ExploringSkill implements Listener {
     private final HashMap<UUID, Location> locationTracker = new HashMap<>();
     private final HashMap<UUID, Integer> stepCounter = new HashMap<>();
 
+    record MovementExperience(int awardableSteps, int remainingSteps) {}
+
     public static Set<UUID> getActiveMagnetPlayers() {
         return Collections.unmodifiableSet(activeMagnets);
     }
@@ -85,22 +90,40 @@ public class ExploringSkill implements Listener {
             locationTracker.put(uuid, loc);
             return;
         }
-        if (!loc.getWorld().getEnvironment().equals(locTrackerWorld.getEnvironment())) {
+        if (!loc.getWorld().equals(locTrackerWorld)) {
             locationTracker.put(uuid, loc);
             return;
         }
 
         double distanceCovered = Math.ceil(loc.distance(locationTracker.get(uuid)));
         locationTracker.put(uuid, loc);
-        int steps = stepCounter.get(uuid) + (int) distanceCovered;
-        if (steps < STEP_XP_THRESHOLD) {
-            stepCounter.put(uuid, steps);
+        MovementExperience movementExperience = calculateMovementExperience(stepCounter.get(uuid),
+                (int) distanceCovered);
+        stepCounter.put(uuid, movementExperience.remainingSteps());
+        if (movementExperience.awardableSteps() == 0) {
             return;
         }
 
         SkillManager.experienceEvent(plugin, p,
-                plugin.getSkillManager().getExploringXP() * STEP_XP_THRESHOLD, SkillCategory.EXPLORING);
-        stepCounter.put(uuid, 0);
+                plugin.getSkillManager().getExploringXP() * movementExperience.awardableSteps(),
+                SkillCategory.EXPLORING);
+    }
+
+    static MovementExperience calculateMovementExperience(int trackedSteps, int distanceCovered) {
+        int totalSteps = trackedSteps + distanceCovered;
+        int awardableSteps = totalSteps / STEP_XP_THRESHOLD * STEP_XP_THRESHOLD;
+        return new MovementExperience(awardableSteps, totalSteps % STEP_XP_THRESHOLD);
+    }
+
+    public void flushPlayerSteps(Player player) {
+        UUID uuid = player.getUniqueId();
+        int remainingSteps = stepCounter.getOrDefault(uuid, 0);
+        if (remainingSteps > 0) {
+            SkillManager.experienceEvent(plugin, player,
+                    plugin.getSkillManager().getExploringXP() * remainingSteps, SkillCategory.EXPLORING);
+        }
+        stepCounter.remove(uuid);
+        locationTracker.remove(uuid);
     }
 
     @EventHandler
@@ -164,8 +187,7 @@ public class ExploringSkill implements Listener {
         UUID uuid = p.getUniqueId();
 
         if (!ItemStackGeneratorUtils.isCustomItem(mainHand, ItemModelData.MAGNET.getId())) {
-            activeMagnets.remove(uuid);
-            cancelMagnetTask(uuid);
+            deactivateMagnet(uuid);
             return;
         }
 
@@ -179,8 +201,25 @@ public class ExploringSkill implements Listener {
         }
         activeMagnets.add(uuid);
         cancelMagnetTask(uuid);
-        BukkitTask task = new Magnet(p).runTaskTimer(plugin, 0, 5);
+        BukkitTask task = new Magnet(p, () -> deactivateMagnet(uuid)).runTaskTimer(plugin, 0, 5);
         magnetTasks.put(uuid, task);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onMagnetDrop(PlayerDropItemEvent e) {
+        if (!ItemStackGeneratorUtils.isCustomItem(e.getItemDrop().getItemStack(), ItemModelData.MAGNET.getId()))
+            return;
+        Player player = e.getPlayer();
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!ItemStackGeneratorUtils.isCustomItem(player.getInventory().getItemInMainHand(),
+                    ItemModelData.MAGNET.getId()))
+                deactivateMagnet(player.getUniqueId());
+        });
+    }
+
+    private void deactivateMagnet(UUID uuid) {
+        activeMagnets.remove(uuid);
+        cancelMagnetTask(uuid);
     }
 
     private void cancelMagnetTask(UUID uuid) {
@@ -188,11 +227,6 @@ public class ExploringSkill implements Listener {
         if (existingTask != null) {
             existingTask.cancel();
         }
-    }
-
-    public int getPlayerSteps(UUID uuid) {
-        if (!stepCounter.containsKey(uuid)) return 0;
-        return stepCounter.get(uuid);
     }
 
     public boolean sameBlock(Location loc1, Location loc2) {

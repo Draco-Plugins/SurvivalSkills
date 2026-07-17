@@ -338,12 +338,6 @@ public class SkillManager {
         return uuid + "." + field;
     }
 
-    public void updateExploringStats(UUID uuid) {
-        Skill exploring = getSkill(uuid, SkillCategory.EXPLORING);
-        exploring.changeExperience(plugin.getExploringListener().getPlayerSteps(uuid) * getXpMultiplier(SkillCategory.EXPLORING),
-                plugin.getTrophyManager().playerMaxSkillLevel(uuid));
-    }
-
     /**
      * Recalculate and synchronize the Main skill's experience as the average of
      * the (capped) total experience of the 7 base skills. Works identically for

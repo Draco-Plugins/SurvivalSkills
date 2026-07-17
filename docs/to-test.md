@@ -1,10 +1,6 @@
 GodTrialCommand -> Trials
-Beacon Armor
-Sort Wand
-Test blocks back and output doubling for crafting
 Test exploring skill XP (same block)
 Cave finder
-Magnet
 Test swim speed
 Mob XP
 Berserker Ability

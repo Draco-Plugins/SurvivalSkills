@@ -10,6 +10,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
 import sir_draco.survivalskills.utils.ProjectileCalculator;
+import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import static sir_draco.survivalskills.skill_listeners.ExploringSkill.getActiveMagnetPlayers;
@@ -17,15 +18,22 @@ import static sir_draco.survivalskills.skill_listeners.ExploringSkill.getActiveM
 public class Magnet extends BukkitRunnable {
 
     private final Player p;
+    private final Runnable deactivate;
 
-    public Magnet(Player p) {
+    public Magnet(Player p, Runnable deactivate) {
         this.p = p;
+        this.deactivate = deactivate;
     }
 
     @Override
     public void run() {
         if (!getActiveMagnetPlayers().contains(p.getUniqueId())) {
             cancel();
+            return;
+        }
+        if (!ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(),
+                ItemModelData.MAGNET.getId())) {
+            deactivate.run();
             return;
         }
 
