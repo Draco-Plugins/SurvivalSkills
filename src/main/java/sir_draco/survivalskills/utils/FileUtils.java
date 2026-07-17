@@ -49,7 +49,7 @@ public class FileUtils {
     public static final String TRAIL = ".Trail";
     public static final String NO_PHANTOMS = ".NoPhantoms";
 
-    private static final double CURRENT_CONFIG_VERSION = 2.22;
+    private static final double CURRENT_CONFIG_VERSION = 2.23;
 
     private FileUtils() {
         // Prevent instantiation
@@ -109,6 +109,7 @@ public class FileUtils {
                 .loadConfiguration(new InputStreamReader(defConfigStream, StandardCharsets.UTF_8));
 
         mergeConfigWithOrder(config, defConfig, "");
+        config.set("Version", CURRENT_CONFIG_VERSION);
 
         File file = new File(SurvivalSkills.getInstance().getDataFolder(), CONFIG_YML);
         try {

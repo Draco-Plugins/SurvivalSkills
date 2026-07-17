@@ -664,6 +664,10 @@ Crafting:
         Enabled: true
         Level: 35
         Type: "State"
+    ItemTransferPipes:
+        Enabled: true
+        Level: 38
+        Type: "Crafting"
     ExtraOutputVI:
         Enabled: true
         Level: 40

@@ -129,6 +129,8 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
         ITEM_SUPPLIERS.put("powerchestplate", ItemStackGenerator::getPowerChestplate);
         ITEM_SUPPLIERS.put("powerleggings", ItemStackGenerator::getPowerLeggings);
         ITEM_SUPPLIERS.put("powerboots", ItemStackGenerator::getPowerBoots);
+        ITEM_SUPPLIERS.put("pipewrench", ItemStackGenerator::getWrench);
+        ITEM_SUPPLIERS.put("transferpipe", ItemStackGenerator::getTransferPipe);
     }
 
     public SurvivalSkillsGetCommand(SurvivalSkills plugin) {

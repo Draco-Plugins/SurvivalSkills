@@ -13,6 +13,7 @@ import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.rewards.RewardItemInfo;
 import sir_draco.survivalskills.rewards.RewardNotifications;
+import sir_draco.survivalskills.pipes.PipeRewardGate;
 import sir_draco.survivalskills.boards.Leaderboard;
 import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
@@ -526,6 +527,8 @@ public class SkillsCommand implements CommandExecutor {
         addSingleReward(ItemStackGenerator.getUnlimitedBoneMeal(), SkillCategory.FARMING, "UnlimitedBonemeal");
         addSingleReward(ItemStackGenerator.getHarvester(), SkillCategory.FARMING, "Harvester");
         addSingleReward(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), SkillCategory.CRAFTING, "EnchantedGapple");
+        addSingleReward(ItemStackGenerator.getWrench(), SkillCategory.CRAFTING, PipeRewardGate.REWARD_NAME);
+        addSingleReward(ItemStackGenerator.getTransferPipe(), SkillCategory.CRAFTING, PipeRewardGate.REWARD_NAME);
         addSingleReward(ItemStackGenerator.getFireworkCannon(), SkillCategory.MAIN, "FireworkCannon");
         addSingleReward(ItemStackGenerator.getSortWand(), SkillCategory.BUILDING, "AutoSortWand");
         addSingleReward(ItemStackGenerator.getGiantSummoner(), SkillCategory.FIGHTING, "GiantSummon");

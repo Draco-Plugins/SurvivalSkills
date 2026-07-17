@@ -45,6 +45,11 @@ public final class PipeListener implements Listener {
     public void interact(PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND || !isWrench(event.getPlayer().getInventory().getItemInMainHand())) return;
         Player player = event.getPlayer();
+        if (!PipeRewardGate.isUnlocked(plugin, player)) {
+            event.setCancelled(true);
+            PipeRewardGate.sendLockedMessage(plugin, player);
+            return;
+        }
         if (event.getAction() == Action.RIGHT_CLICK_AIR) {
             event.setCancelled(true);
             showLinkingHud(player);
@@ -70,8 +75,12 @@ public final class PipeListener implements Listener {
         if (event.getAction() != Action.LEFT_CLICK_BLOCK) return;
         event.setCancelled(true);
         if (player.isSneaking()) {
-            if (pipe.isPresent()) remove(player, pipe.orElseThrow(), block);
-            else attachSender(player, block);
+            if (pipe.isPresent()) remove(player, pipe.orElseThrow());
+            else {
+                Optional<PipeRecord> sender = activeSender(player);
+                if (sender.isPresent()) attachReceiver(player, block, sender.orElseThrow());
+                else attachSender(player, block);
+            }
             return;
         }
         if (pipe.isPresent()) {
@@ -144,13 +153,13 @@ public final class PipeListener implements Listener {
         player.sendMessage(ChatColor.GREEN + "Sender selected; linking timer reset.");
     }
 
-    private void remove(Player player, PipeRecord record, Block block) {
+    private void remove(Player player, PipeRecord record) {
         if (!record.ownerUuid().equals(player.getUniqueId())) {
             deny(player);
             return;
         }
         manager.remove(record.pipeUuid());
-        block.getWorld().dropItemNaturally(block.getLocation().add(.5, .5, .5), ItemStackGenerator.getTransferPipe());
+        givePipe(player);
         sessions.entrySet().removeIf(entry -> entry.getValue().senderUuid().equals(record.pipeUuid()));
         player.sendMessage(ChatColor.GREEN + "Pipe removed.");
     }

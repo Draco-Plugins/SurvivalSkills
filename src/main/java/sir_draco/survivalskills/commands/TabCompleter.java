@@ -158,6 +158,8 @@ public class TabCompleter implements Listener {
         words.add("powerchestplate");
         words.add("powerhelmet");
         words.add("powerleggings");
+        words.add("pipewrench");
+        words.add("transferpipe");
         e.setCompletions(getCompletions(buffer, words));
     }
 

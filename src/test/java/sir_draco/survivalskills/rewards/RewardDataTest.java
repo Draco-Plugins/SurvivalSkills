@@ -3,6 +3,8 @@ package sir_draco.survivalskills.rewards;
 import org.bukkit.ChatColor;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class RewardDataTest {
@@ -291,6 +293,14 @@ class RewardDataTest {
         assertNotNull(m5);
         assertTrue(m1.get(0).contains("10%"), "MaterialsBackI should have 10%");
         assertTrue(m5.get(0).contains("50%"), "MaterialsBackV should have 50%");
+    }
+
+    @Test
+    void itemTransferPipesDescribeCraftingAndUse() {
+        List<String> notification = RewardData.getNotification("Crafting", "ItemTransferPipes");
+        assertNotNull(notification);
+        assertTrue(notification.get(0).contains("craft and use Item Transfer Pipes"));
+        assertTrue(RewardData.getDescription("Crafting", "ItemTransferPipes").contains("transfer items"));
     }
 
     // -- Spot checks: Main --

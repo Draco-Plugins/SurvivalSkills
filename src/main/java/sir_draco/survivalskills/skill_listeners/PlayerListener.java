@@ -43,6 +43,7 @@ import sir_draco.survivalskills.boards.LeaderboardPlayer;
 import sir_draco.survivalskills.boards.SkillScoreboard;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.RewardNotifications;
+import sir_draco.survivalskills.pipes.PipeRewardGate;
 import sir_draco.survivalskills.trophy.TrophyType;
 import sir_draco.survivalskills.SurvivalSkills;
 
@@ -79,7 +80,11 @@ public class PlayerListener implements Listener {
             Map.entry(ItemModelData.FIREWORK_CANNON.getId(), new CraftRestriction(SkillCategory.MAIN, "FireworkCannon")),
             Map.entry(ItemModelData.GILL_ARMOR.getId(), new CraftRestriction(SkillCategory.EXPLORING, "GillArmor")),
             Map.entry(ItemModelData.ZAP_WAND.getId(), new CraftRestriction(SkillCategory.MINING, "ZapWand")),
-            Map.entry(ItemModelData.MAGNET.getId(), new CraftRestriction(SkillCategory.EXPLORING, "Magnet"))
+            Map.entry(ItemModelData.MAGNET.getId(), new CraftRestriction(SkillCategory.EXPLORING, "Magnet")),
+            Map.entry(ItemModelData.WRENCH.getId(), new CraftRestriction(SkillCategory.CRAFTING,
+                    PipeRewardGate.REWARD_NAME)),
+            Map.entry(ItemModelData.TRANSFER_PIPE.getId(), new CraftRestriction(SkillCategory.CRAFTING,
+                    PipeRewardGate.REWARD_NAME))
     );
 
     public PlayerListener(SurvivalSkills plugin) {

@@ -405,6 +405,11 @@ public class RewardData {
                 List.of(GRAY + "This does not apply to infinitely repeatable recipes " +
                         "(Coal -> Coal Block -> Coal...)"));
 
+        staticEntry(m, "ItemTransferPipes", lines(
+                NEW_ITEM + "You can now craft and use Item Transfer Pipes",
+                GRAY + "See the crafting recipes by using the command" + AQUA + " /skills recipes"),
+                GRAY + "Craft and use pipes to transfer items between chests");
+
         staticEntry(m, "EnchantedGapple", lines(
                 NEW_ITEM + "You can now craft an Enchanted Golden Apple"),
                 GRAY + "Craftable Item");
