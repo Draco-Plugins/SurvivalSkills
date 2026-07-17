@@ -102,16 +102,18 @@ public final class SurvivalSkills extends JavaPlugin {
             }
         }
 
-        // Check for plugin dependencies
-        DependencyChecker.check();
-
         FileUtils.loadFiles();
+
+        // Check for plugin dependencies after loading configuration because
+        // optional providers may read configuration during initialization.
+        DependencyChecker.check();
 
         PipeConfiguration pipeConfiguration = PipeConfiguration.load(this, config);
         pipeManager = new PipeManager(this, pipeConfiguration);
         FileUtils.loadPipeData(pipeManager);
 
         // Load plugin features
+        abilityManager = new AbilityManager(this);
         loadListeners();
         trophyManager = new TrophyManager(this);
 
@@ -126,7 +128,6 @@ public final class SurvivalSkills extends JavaPlugin {
             }
         }.runTaskAsynchronously(this);
 
-        abilityManager = new AbilityManager(this);
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -492,6 +493,10 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public WorldGuardProvider getWorldGuardProvider() {
         return worldGuardProvider;
+    }
+
+    public void setWorldGuardProvider(WorldGuardProvider worldGuardProvider) {
+        this.worldGuardProvider = Objects.requireNonNull(worldGuardProvider);
     }
 
     public void setSkillManager(SkillManager skillManager) {

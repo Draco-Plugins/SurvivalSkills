@@ -527,8 +527,7 @@ public class ItemStackGenerator {
                 ColorParser.gradientName("Weather Artifact", "#FFF000", "#2E3435", true))
                 .lore(List.of(
                         ChatColor.GRAY + "Right click to change the weather",
-                        ChatColor.GRAY + "1 Hour Cooldown",
-                        ChatColor.GRAY + "Last Used: Never"))
+                        ChatColor.GRAY + "1 Hour Cooldown"))
                 .modelData(ItemModelData.WEATHER_ARTIFACT.getId())
                 .build();
     }
@@ -538,8 +537,7 @@ public class ItemStackGenerator {
                 ColorParser.gradientName("Time Artifact", "#FFFFFF", "#000000", true))
                 .lore(List.of(
                         ChatColor.GRAY + "Right click to change the time",
-                        ChatColor.GRAY + "1 Hour Cooldown",
-                        ChatColor.GRAY + "Last Used: Never"))
+                        ChatColor.GRAY + "1 Hour Cooldown"))
                 .modelData(ItemModelData.TIME_ARTIFACT.getId())
                 .build();
     }

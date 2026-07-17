@@ -18,6 +18,7 @@ import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.skills.SkillCategory;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Berserker ability lifecycle and on-hit bonus. Previously the FightingSkill
@@ -58,8 +59,8 @@ public class BerserkerManager {
     private final AbilityManager abilityManager;
 
     public BerserkerManager(SurvivalSkills plugin, AbilityManager abilityManager) {
-        this.plugin = plugin;
-        this.abilityManager = abilityManager;
+        this.plugin = Objects.requireNonNull(plugin, "plugin");
+        this.abilityManager = Objects.requireNonNull(abilityManager, "abilityManager");
     }
 
     /** True iff the player currently has an actively-running Berserker ability. */
