@@ -12,6 +12,8 @@ import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import sir_draco.survivalskills.boards.SkillScoreboard;
 import sir_draco.survivalskills.god_questline.trial_mobs.WaveMob;
@@ -41,6 +43,9 @@ public class Trial extends BukkitRunnable {
     private static final double BASE_WALK_SPEED = 0.3;
     private static final int TIME_BONUS_BASE = 3600;
     private static final int CONTAINMENT_INTERVAL = 40;
+    private static final double PHANTOM_CAGE_MARGIN = 1.5;
+    private static final double PHANTOM_RECOVERY_HEIGHT = 5.0;
+    private static final double PHANTOM_RECOVERY_SPEED = 0.35;
     private static final int MIN_POINTS_AWARDED = 100;
     private static final int POINTS_DIVISOR = 10;
     private static final int MAX_CLOSEST_PLAYER_DISTANCE = 1000;
@@ -123,6 +128,7 @@ public class Trial extends BukkitRunnable {
             timeSpent++;
 
         handleMobTargeting();
+        keepPhantomsInCage();
 
         if (tryEndWave())
             return;
@@ -167,12 +173,26 @@ public class Trial extends BukkitRunnable {
             if (!(mob.getEntity() instanceof Mob waveMob))
                 continue;
 
-            if (waveMob.getTarget() == null) {
+            if (!isValidTrialTarget(waveMob.getTarget())) {
                 Player target = getClosestPlayer(waveMob.getLocation());
                 if (target != null)
                     waveMob.setTarget(target);
             }
+
+            if (waveMob instanceof Phantom phantom) {
+                Player target = getClosestPlayer(phantom.getLocation());
+                if (target != null && !target.equals(phantom.getTarget()))
+                    phantom.setTarget(target);
+                phantom.setFireTicks(0);
+            }
         }
+    }
+
+    private boolean isValidTrialTarget(Entity target) {
+        return target instanceof Player player
+                && player.isOnline()
+                && !player.isDead()
+                && players.contains(player);
     }
 
     private boolean tryEndWave() {
@@ -364,12 +384,7 @@ public class Trial extends BukkitRunnable {
             if (mob.getEntity() == null || mob.getEntity().isDead())
                 continue;
 
-            if (mob.getEntity() instanceof Phantom phantom) {
-                double distance = phantom.getLocation().distance(centerLocation);
-                double boxWidth = protectedArea.boundingBox().getWidthX();
-                if (distance > boxWidth / 2 - 1) {
-                    mob.getEntity().teleport(centerLocation.clone().add(0.5, 1, 0.5));
-                }
+            if (mob.getEntity() instanceof Phantom) {
                 continue;
             }
 
@@ -385,6 +400,72 @@ public class Trial extends BukkitRunnable {
                 continue;
             entity.teleport(centerLocation.clone().add(0.5, 1, 0.5));
         }
+    }
+
+    /**
+     * Phantoms move quickly enough to cross the cage between the slower generic containment
+     * checks. Recover them every tick as soon as their hit position leaves an inset of the
+     * arena bounds.
+     */
+    private void keepPhantomsInCage() {
+        if (wave == null)
+            return;
+
+        BoundingBox cage = protectedArea.boundingBox();
+        for (WaveMob waveMob : wave.getWaveMobs()) {
+            if (!(waveMob.getEntity() instanceof Phantom phantom) || phantom.isDead())
+                continue;
+
+            if (containsPhantom(cage, phantom.getLocation()))
+                continue;
+
+            Player target = getClosestPlayer(phantom.getLocation());
+            Location recoveryLocation = getPhantomRecoveryLocation(cage, target);
+            phantom.teleport(recoveryLocation);
+            if (target != null) {
+                phantom.setTarget(target);
+                Vector direction = target.getEyeLocation().toVector()
+                        .subtract(recoveryLocation.toVector());
+                if (direction.lengthSquared() > 0)
+                    phantom.setVelocity(direction.normalize().multiply(PHANTOM_RECOVERY_SPEED));
+            } else {
+                phantom.setVelocity(new Vector());
+            }
+        }
+    }
+
+    static boolean containsPhantom(BoundingBox cage, Location location) {
+        double minimumX = cage.getMinX() + PHANTOM_CAGE_MARGIN;
+        double maximumX = cage.getMaxX() - PHANTOM_CAGE_MARGIN;
+        double minimumY = cage.getMinY() + PHANTOM_CAGE_MARGIN;
+        double maximumY = cage.getMaxY() - PHANTOM_CAGE_MARGIN;
+        double minimumZ = cage.getMinZ() + PHANTOM_CAGE_MARGIN;
+        double maximumZ = cage.getMaxZ() - PHANTOM_CAGE_MARGIN;
+        return location.getX() >= minimumX && location.getX() <= maximumX
+                && location.getY() >= minimumY && location.getY() <= maximumY
+                && location.getZ() >= minimumZ && location.getZ() <= maximumZ;
+    }
+
+    private Location getPhantomRecoveryLocation(BoundingBox cage, Player target) {
+        Location preferred = target == null
+                ? centerLocation.clone().add(0.5, PHANTOM_RECOVERY_HEIGHT, 0.5)
+                : target.getLocation().clone().add(0, PHANTOM_RECOVERY_HEIGHT, 0);
+        double minimumX = cage.getMinX() + PHANTOM_CAGE_MARGIN;
+        double maximumX = cage.getMaxX() - PHANTOM_CAGE_MARGIN;
+        double minimumY = cage.getMinY() + PHANTOM_CAGE_MARGIN;
+        double maximumY = cage.getMaxY() - PHANTOM_CAGE_MARGIN;
+        double minimumZ = cage.getMinZ() + PHANTOM_CAGE_MARGIN;
+        double maximumZ = cage.getMaxZ() - PHANTOM_CAGE_MARGIN;
+        preferred.setX(clamp(preferred.getX(), minimumX, maximumX));
+        preferred.setY(clamp(preferred.getY(), minimumY, maximumY));
+        preferred.setZ(clamp(preferred.getZ(), minimumZ, maximumZ));
+        return preferred;
+    }
+
+    private static double clamp(double value, double minimum, double maximum) {
+        if (minimum > maximum)
+            return (minimum + maximum) / 2;
+        return Math.max(minimum, Math.min(maximum, value));
     }
 
     public void removeWaveMobs() {
