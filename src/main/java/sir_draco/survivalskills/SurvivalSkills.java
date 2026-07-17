@@ -29,6 +29,7 @@ import sir_draco.survivalskills.skill_listeners.ArmorListener.ArmorType;
 import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
+import sir_draco.survivalskills.super_enchanting.SuperEnchantingTableManager;
 import sir_draco.survivalskills.trophy.Trophy;
 import sir_draco.survivalskills.trophy.TrophyEffects;
 import sir_draco.survivalskills.trophy.TrophyListener;
@@ -60,6 +61,7 @@ public final class SurvivalSkills extends JavaPlugin {
     private SkillManager skillManager;
     private TrophyManager trophyManager;
     private PipeManager pipeManager;
+    private SuperEnchantingTableManager superEnchantingTableManager;
 
     // Listeners
     private MiningSkill miningListener;
@@ -123,6 +125,7 @@ public final class SurvivalSkills extends JavaPlugin {
                 RecipeMaker.trophyRecipes(SurvivalSkills.getInstance());
                 RecipeMaker.rewardRecipes(SurvivalSkills.getInstance());
                 RecipeMaker.pipeRecipes(SurvivalSkills.getInstance());
+                RecipeMaker.superEnchantingRecipe(SurvivalSkills.getInstance());
                 RecipeMaker.godRecipes(SurvivalSkills.getInstance());
                 RecipeRegistrar.emptyRecipeStack(SurvivalSkills.getInstance());
             }
@@ -184,6 +187,8 @@ public final class SurvivalSkills extends JavaPlugin {
 
         getMiningListener().endSpelunkerAll();
         FileUtils.savePipeDataNow(pipeManager);
+        if (superEnchantingTableManager != null)
+            superEnchantingTableManager.shutdown();
     }
 
     public void loadListeners() {
@@ -208,6 +213,7 @@ public final class SurvivalSkills extends JavaPlugin {
         FlightRespawnListener flightRespawnListener = new FlightRespawnListener(this);
         PipeConfiguration pipeConfiguration = PipeConfiguration.load(this, config);
         PipeListener pipeListener = new PipeListener(this, pipeManager, pipeConfiguration);
+        superEnchantingTableManager = new SuperEnchantingTableManager(this);
 
         getServer().getPluginManager().registerEvents(buildingListener, this);
         getServer().getPluginManager().registerEvents(miningListener, this);
@@ -225,6 +231,7 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(sortWandListener, this);
         getServer().getPluginManager().registerEvents(flightRespawnListener, this);
         getServer().getPluginManager().registerEvents(pipeListener, this);
+        superEnchantingTableManager.start();
         TrialManager.initialize();
         getServer().getPluginManager().registerEvents(new TrialEventListener(), this);
         getServer().getPluginManager().registerEvents(new TrialUpgradeManager(), this);

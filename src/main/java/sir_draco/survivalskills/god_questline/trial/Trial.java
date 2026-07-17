@@ -20,6 +20,8 @@ import sir_draco.survivalskills.god_questline.trial_mobs.WaveMob;
 import sir_draco.survivalskills.rewards.RewardNotifications;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.super_enchanting.SuperEnchantingItems;
+import sir_draco.survivalskills.super_enchanting.SuperEnchantingRules;
 import sir_draco.survivalskills.utils.TrialUtils;
 
 import java.util.ArrayList;
@@ -662,6 +664,7 @@ public class Trial extends BukkitRunnable {
 
         for (Player p : players) {
             TrialManager.addCompletedGamemode(p, trueDifficulty);
+            awardTrialFragments(p);
 
             int finalScore = score / Math.max(1, playerCount);
             boolean newHighScore;
@@ -674,6 +677,16 @@ public class Trial extends BukkitRunnable {
             scheduleRewardDisplay(p, finalScore, newHighScore);
             scheduleUpgradeGUI(p, finalScore);
         }
+    }
+
+    private void awardTrialFragments(Player player) {
+        int fragmentAmount = SuperEnchantingRules.getTrialFragmentReward(difficulty);
+        ItemStack fragments = SuperEnchantingItems.createTrialFragment(
+                SurvivalSkills.getInstance(), fragmentAmount);
+        Map<Integer, ItemStack> leftovers = player.getInventory().addItem(fragments);
+        leftovers.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "You earned " + fragmentAmount + " trial fragment"
+                + (fragmentAmount == 1 ? "!" : "s!"));
     }
 
     private boolean updateLeaderboardIfBetter(Player player, SkillCategory category, int finalScore) {

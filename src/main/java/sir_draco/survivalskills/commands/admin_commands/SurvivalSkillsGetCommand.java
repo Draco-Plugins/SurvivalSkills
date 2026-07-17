@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.super_enchanting.SuperEnchantingItems;
 import sir_draco.survivalskills.utils.items.ItemStackGenerator;
 
 import java.util.HashMap;
@@ -131,6 +132,10 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
         ITEM_SUPPLIERS.put("powerboots", ItemStackGenerator::getPowerBoots);
         ITEM_SUPPLIERS.put("pipewrench", ItemStackGenerator::getWrench);
         ITEM_SUPPLIERS.put("transferpipe", ItemStackGenerator::getTransferPipe);
+        ITEM_SUPPLIERS.put("trialfragment", () -> SuperEnchantingItems.createTrialFragment(
+                SurvivalSkills.getInstance(), 1));
+        ITEM_SUPPLIERS.put("superenchantingtable", () -> SuperEnchantingItems.createSuperEnchantingTable(
+                SurvivalSkills.getInstance()));
     }
 
     public SurvivalSkillsGetCommand(SurvivalSkills plugin) {

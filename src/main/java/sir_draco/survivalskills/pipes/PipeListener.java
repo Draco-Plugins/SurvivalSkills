@@ -220,7 +220,8 @@ public final class PipeListener implements Listener {
         event.setCancelled(true);
         UUID receiverUuid = openFilters.get(player.getUniqueId());
         if (receiverUuid == null) return;
-        Set<Material> whitelist = new HashSet<>(manager.getPipe(receiverUuid).map(PipeRecord::whitelist).orElse(Set.of()));
+        Set<Material> whitelist = new HashSet<>(manager.getPipe(receiverUuid)
+                .map((PipeRecord record) -> record.whitelist()).orElse(Set.of()));
         if (event.getClickedInventory() == event.getView().getTopInventory()) {
             ItemStack clicked = event.getCurrentItem();
             if (clicked != null && !clicked.getType().isAir()) whitelist.remove(clicked.getType());
@@ -293,7 +294,8 @@ public final class PipeListener implements Listener {
     }
 
     private void showSenderHud(Player player, PipeRecord sender, Block block) {
-        long withinRange = sender.receiverUuids().stream().map(manager::getPipe).flatMap(Optional::stream)
+        long withinRange = sender.receiverUuids().stream().map((UUID pipeUuid) -> manager.getPipe(pipeUuid))
+                .flatMap((Optional<PipeRecord> optionalRecord) -> optionalRecord.stream())
                 .filter(receiver -> manager.isWithinRange(sender.location(), receiver.location())).count();
         boolean powered = block.isBlockPowered() || block.isBlockIndirectlyPowered();
         player.sendMessage(ChatColor.BLUE + "Sender Pipe " + ChatColor.GRAY + format(sender.location()));

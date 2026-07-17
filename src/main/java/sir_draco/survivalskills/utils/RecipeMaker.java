@@ -14,6 +14,7 @@ import sir_draco.survivalskills.utils.Recipes.SmallShapedSpec;
 import sir_draco.survivalskills.utils.Recipes.TrophyRecipeData;
 import sir_draco.survivalskills.utils.Recipes.TrophyRecipeData.TrophyRecipe;
 import sir_draco.survivalskills.utils.items.ItemModelData;
+import sir_draco.survivalskills.super_enchanting.SuperEnchantingItems;
 
 import java.util.*;
 
@@ -331,6 +332,18 @@ public class RecipeMaker {
                 pipe.setIngredient('C', Material.COPPER_INGOT);
                 pipe.setIngredient('R', Material.REDSTONE_BLOCK);
                 RecipeRegistrar.addShapedRecipe(pipe, pipeKey);
+        }
+
+        public static void superEnchantingRecipe(SurvivalSkills plugin) {
+                NamespacedKey key = createKey("super_enchanting_table", plugin);
+                ShapedRecipe recipe = new ShapedRecipe(key,
+                                SuperEnchantingItems.createSuperEnchantingTable(plugin));
+                recipe.shape(" F ", "SES", " S ");
+                recipe.setIngredient('S', Material.SCULK);
+                recipe.setIngredient('F', new RecipeChoice.ExactChoice(
+                                SuperEnchantingItems.createTrialFragment(plugin, 1)));
+                recipe.setIngredient('E', Material.ENCHANTING_TABLE);
+                RecipeRegistrar.addShapedRecipe(recipe, key);
         }
 
         // ── God recipes ──────────────────────────────────────────────────────

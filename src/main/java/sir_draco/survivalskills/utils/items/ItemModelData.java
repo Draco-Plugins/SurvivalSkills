@@ -63,6 +63,8 @@ public enum ItemModelData {
     WRENCH(54),
     TELEPORT_ANCHOR(55),
     TRANSFER_PIPE(56),
+    TRIAL_FRAGMENT(57),
+    SUPER_ENCHANTING_TABLE(58),
     TROPHY(999);
 
     private final int id;

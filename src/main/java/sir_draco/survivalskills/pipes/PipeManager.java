@@ -85,8 +85,9 @@ public final class PipeManager {
         if (locations.stream().anyMatch(byLocation::containsKey)) {
             throw new IllegalStateException("Chest already has a pipe");
         }
-        PipeLocation canonical = locations.stream().min(Comparator.comparingInt(PipeLocation::x)
-                .thenComparingInt(PipeLocation::y).thenComparingInt(PipeLocation::z)).orElseThrow();
+        PipeLocation canonical = locations.stream().min(Comparator.comparingInt((PipeLocation location) -> location.x())
+                .thenComparingInt((PipeLocation location) -> location.y())
+                .thenComparingInt((PipeLocation location) -> location.z())).orElseThrow();
         PipeRecord record = new PipeRecord(UUID.randomUUID(), owner, canonical, type,
                 type == PipeType.RECEIVER ? senderUuid : Optional.empty(), List.of(), Set.of());
         if (record.senderUuid().isPresent()) validateLink(record, byUuid.get(record.senderUuid().orElseThrow()));
@@ -206,7 +207,7 @@ public final class PipeManager {
             ItemStack offered = item.clone();
             offered.setAmount(Math.min(item.getAmount(), item.getMaxStackSize()));
             Map<Integer, ItemStack> leftovers = target.addItem(offered);
-            int rejected = leftovers.values().stream().mapToInt(ItemStack::getAmount).sum();
+            int rejected = leftovers.values().stream().mapToInt((ItemStack itemStack) -> itemStack.getAmount()).sum();
             int accepted = offered.getAmount() - rejected;
             if (accepted <= 0) continue;
             item.setAmount(item.getAmount() - accepted);
@@ -308,7 +309,7 @@ public final class PipeManager {
     private PipeSnapshot snapshot() {
         List<PersistedPipe> pipes = byUuid.values().stream().map(record -> {
             World world = Bukkit.getWorld(record.location().worldUuid());
-            Set<String> whitelist = record.whitelist().stream().map(Material::name)
+            Set<String> whitelist = record.whitelist().stream().map((Material material) -> material.name())
                     .collect(java.util.stream.Collectors.toUnmodifiableSet());
             return new PersistedPipe(record.pipeUuid(), record.ownerUuid(), record.location(),
                     world == null ? "" : world.getName(), record.type(), record.senderUuid(),
@@ -328,7 +329,8 @@ public final class PipeManager {
             yaml.set(path + ".x", pipe.location().x());
             yaml.set(path + ".y", pipe.location().y());
             yaml.set(path + ".z", pipe.location().z());
-            if (pipe.type() == PipeType.SENDER) yaml.set(path + ".receivers", pipe.receiverUuids().stream().map(UUID::toString).toList());
+            if (pipe.type() == PipeType.SENDER) yaml.set(path + ".receivers",
+                    pipe.receiverUuids().stream().map((UUID uuid) -> uuid.toString()).toList());
             else {
                 pipe.senderUuid().ifPresent(sender -> yaml.set(path + ".sender", sender.toString()));
                 yaml.set(path + ".whitelist", pipe.whitelist().stream().sorted().toList());
