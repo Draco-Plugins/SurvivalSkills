@@ -24,6 +24,8 @@ public class PowerOreSimonSaysTask implements PowerOreTask {
     private static final int TICK_INTERVAL = 2;
     private static final int CENTER_SLOT = 4;
     private static final float SOUND_PITCH_INCREMENT = 0.1f;
+    private static final float ROUND_COMPLETION_SOUND_VOLUME = 1.0f;
+    private static final float ROUND_COMPLETION_SOUND_PITCH = 1.0f;
     private static final int NEXT_ROUND_DELAY_TICKS = 40;
 
     private enum DisplayStep {
@@ -184,6 +186,8 @@ public class PowerOreSimonSaysTask implements PowerOreTask {
     }
 
     private void advanceRound() {
+        player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, ROUND_COMPLETION_SOUND_VOLUME,
+                ROUND_COMPLETION_SOUND_PITCH);
         roundIndex++;
         if (roundIndex >= SEQUENCE_LENGTHS.length) {
             finished = true;
