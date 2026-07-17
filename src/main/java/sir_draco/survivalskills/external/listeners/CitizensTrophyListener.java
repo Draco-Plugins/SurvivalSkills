@@ -5,6 +5,8 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import net.citizensnpcs.api.ai.speech.Talkable;
+import net.citizensnpcs.api.ai.speech.event.NPCSpeechEvent;
 
 import net.citizensnpcs.api.event.NPCRightClickEvent;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -19,6 +21,18 @@ public class CitizensTrophyListener implements Listener {
         this.plugin = plugin;
     }
 
+    @EventHandler
+    public void formatGodNPCSpeech(NPCSpeechEvent event) {
+        if (!plugin.getTrophyManager().getGodNPCIDs().containsValue(event.getNPC().getId()))
+            return;
+
+        event.setCancelled(true);
+        String message = TrophyManager.npcName + ChatColor.WHITE + ": " + event.getContext().getMessage();
+        for (Talkable recipient : event.getContext()) {
+            if (recipient.getEntity() instanceof Player player)
+                player.sendRawMessage(message);
+        }
+    }
 
     @EventHandler
     public void clickGodNPC(NPCRightClickEvent e) {

@@ -383,10 +383,12 @@ public class GodTrophyEffects {
         }
 
         if (npcPlayer == null)
-            npcPlayer = registry.createNPC(EntityType.PLAYER, TrophyManager.npcName);
+            npcPlayer = registry.createNPC(EntityType.PLAYER, TrophyManager.CITIZENS_NPC_NAME);
         if (npcPlayer == null)
             return false;
 
+        if (!Objects.equals(npcPlayer.getRawName(), TrophyManager.CITIZENS_NPC_NAME))
+            npcPlayer.setName(TrophyManager.CITIZENS_NPC_NAME);
         npcPlayer.data().setPersistent(NPC_OWNER_KEY, trophyId);
         npcPlayer.setProtected(true);
         plugin.getTrophyManager().getGodNPCIDs().put(playerUUID, npcPlayer.getId());
@@ -409,7 +411,8 @@ public class GodTrophyEffects {
     private boolean isGodTrophyNPCName(NPC candidateNPC) {
         return Objects.equals(candidateNPC.getName(), TrophyManager.npcName)
                 || Objects.equals(candidateNPC.getFullName(), TrophyManager.npcName)
-                || Objects.equals(candidateNPC.getRawName(), TrophyManager.npcName);
+                || Objects.equals(candidateNPC.getRawName(), TrophyManager.npcName)
+                || Objects.equals(candidateNPC.getRawName(), TrophyManager.CITIZENS_NPC_NAME);
     }
 
     private void destroyNPC(NPCRegistry registry, NPC removedNPC) {

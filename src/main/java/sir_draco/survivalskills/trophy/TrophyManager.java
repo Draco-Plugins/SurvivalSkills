@@ -26,6 +26,8 @@ public class TrophyManager {
 
     public static final String npcName = ColorParser.colorizeString("God Trophy",
             ColorParser.generateGradient("#FFFF00", "#FFFFFF", 10), true);
+    public static final String CITIZENS_NPC_NAME =
+            "<gradient:#FFFF00:#FFFFFF><bold>God Trophy</bold></gradient>";
 
     private static final int MAX_TROPHY_ID = 1_000_000;
     private static final int BASE_SKILL_CAP = 10;
