@@ -21,6 +21,9 @@ import sir_draco.survivalskills.god_questline.trial.TrialEventListener;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
 import sir_draco.survivalskills.god_questline.trial.TrialUpgradeManager;
 import sir_draco.survivalskills.rewards.PlayerRewards;
+import sir_draco.survivalskills.pipes.PipeConfiguration;
+import sir_draco.survivalskills.pipes.PipeListener;
+import sir_draco.survivalskills.pipes.PipeManager;
 import sir_draco.survivalskills.skill_listeners.*;
 import sir_draco.survivalskills.skill_listeners.ArmorListener.ArmorType;
 import sir_draco.survivalskills.skills.Skill;
@@ -56,6 +59,7 @@ public final class SurvivalSkills extends JavaPlugin {
     private AbilityManager abilityManager;
     private SkillManager skillManager;
     private TrophyManager trophyManager;
+    private PipeManager pipeManager;
 
     // Listeners
     private MiningSkill miningListener;
@@ -103,6 +107,10 @@ public final class SurvivalSkills extends JavaPlugin {
 
         FileUtils.loadFiles();
 
+        PipeConfiguration pipeConfiguration = PipeConfiguration.load(this, config);
+        pipeManager = new PipeManager(this, pipeConfiguration);
+        FileUtils.loadPipeData(pipeManager);
+
         // Load plugin features
         loadListeners();
         trophyManager = new TrophyManager(this);
@@ -112,12 +120,25 @@ public final class SurvivalSkills extends JavaPlugin {
             public void run() {
                 RecipeMaker.trophyRecipes(SurvivalSkills.getInstance());
                 RecipeMaker.rewardRecipes(SurvivalSkills.getInstance());
+                RecipeMaker.pipeRecipes(SurvivalSkills.getInstance());
                 RecipeMaker.godRecipes(SurvivalSkills.getInstance());
                 RecipeRegistrar.emptyRecipeStack(SurvivalSkills.getInstance());
             }
         }.runTaskAsynchronously(this);
 
         abilityManager = new AbilityManager(this);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                pipeManager.processTick();
+            }
+        }.runTaskTimer(this, 1, 1);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                FileUtils.savePipeData(pipeManager);
+            }
+        }.runTaskTimer(this, 6000, 6000);
         CommandRegistry.registerAll(this);
 
         TrialManager.loadProtectedAreas();
@@ -161,6 +182,7 @@ public final class SurvivalSkills extends JavaPlugin {
         TrialManager.handleTrials();
 
         getMiningListener().endSpelunkerAll();
+        FileUtils.savePipeDataNow(pipeManager);
     }
 
     public void loadListeners() {
@@ -183,6 +205,8 @@ public final class SurvivalSkills extends JavaPlugin {
         godListener = new GodListener();
         SortWandListener sortWandListener = new SortWandListener(this);
         FlightRespawnListener flightRespawnListener = new FlightRespawnListener(this);
+        PipeConfiguration pipeConfiguration = PipeConfiguration.load(this, config);
+        PipeListener pipeListener = new PipeListener(this, pipeManager, pipeConfiguration);
 
         getServer().getPluginManager().registerEvents(buildingListener, this);
         getServer().getPluginManager().registerEvents(miningListener, this);
@@ -199,6 +223,7 @@ public final class SurvivalSkills extends JavaPlugin {
         godListener.register(this);
         getServer().getPluginManager().registerEvents(sortWandListener, this);
         getServer().getPluginManager().registerEvents(flightRespawnListener, this);
+        getServer().getPluginManager().registerEvents(pipeListener, this);
         TrialManager.initialize();
         getServer().getPluginManager().registerEvents(new TrialEventListener(), this);
         getServer().getPluginManager().registerEvents(new TrialUpgradeManager(), this);
@@ -451,6 +476,10 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public TrophyManager getTrophyManager() {
         return trophyManager;
+    }
+
+    public PipeManager getPipeManager() {
+        return pipeManager;
     }
 
     public SkillManager getSkillManager() {

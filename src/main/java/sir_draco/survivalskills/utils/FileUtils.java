@@ -13,6 +13,7 @@ import sir_draco.survivalskills.abilities.AutoTrash;
 import sir_draco.survivalskills.abilities.TrailEffect;
 import sir_draco.survivalskills.abilities.godItems.TeleporterAnchor;
 import sir_draco.survivalskills.boards.LeaderboardPlayer;
+import sir_draco.survivalskills.pipes.PipeManager;
 import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
@@ -35,6 +36,7 @@ public class FileUtils {
     public static final String BIG_TRASH = ".BigTrash";
     public static final String PLAYER = "Player ";
     public static final String PLAYERDATA_YML = "playerdata.yml";
+    public static final String PIPEDATA_YML = "pipedata.yml";
     public static final String GODQUESTS_YML = "godquests.yml";
     public static final String SCOREBOARD = ".Scoreboard";
     public static final String NO_BOSS_MUSIC = ".NoBossMusic";
@@ -72,6 +74,18 @@ public class FileUtils {
         loadLeaderboard(plugin.getLeaderboardData(), plugin.getLeaderboardTracker());
         loadDataFile("permatrash.yml", plugin::setPermaTrashFile, plugin::setPermaTrashData);
         loadDataFile("toolbelt.yml", plugin::setToolBeltFile, plugin::setToolBeltData);
+    }
+
+    public static void loadPipeData(PipeManager pipeManager) {
+        Objects.requireNonNull(pipeManager).load();
+    }
+
+    public static void savePipeData(PipeManager pipeManager) {
+        Objects.requireNonNull(pipeManager).requestSave();
+    }
+
+    public static void savePipeDataNow(PipeManager pipeManager) {
+        Objects.requireNonNull(pipeManager).saveNow();
     }
 
     private static void loadDataFile(String fileName,

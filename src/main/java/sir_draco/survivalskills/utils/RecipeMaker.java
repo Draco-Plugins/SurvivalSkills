@@ -313,6 +313,26 @@ public class RecipeMaker {
                                         spec.matA(), spec.matB(), spec.matC());
         }
 
+        public static void pipeRecipes(SurvivalSkills plugin) {
+                NamespacedKey wrenchKey = createKey("pipe_wrench", plugin);
+                ShapedRecipe wrench = new ShapedRecipe(wrenchKey, ItemStackGenerator.getWrench());
+                wrench.shape("III", " R ", " D ");
+                wrench.setIngredient('I', Material.IRON_INGOT);
+                wrench.setIngredient('R', Material.REDSTONE_BLOCK);
+                wrench.setIngredient('D', Material.DIAMOND);
+                RecipeRegistrar.addShapedRecipe(wrench, wrenchKey);
+
+                NamespacedKey pipeKey = createKey("transfer_pipe", plugin);
+                ItemStack result = ItemStackGenerator.getTransferPipe();
+                result.setAmount(2);
+                ShapedRecipe pipe = new ShapedRecipe(pipeKey, result);
+                pipe.shape("GGG", "CRC", "GGG");
+                pipe.setIngredient('G', Material.GLASS);
+                pipe.setIngredient('C', Material.COPPER_INGOT);
+                pipe.setIngredient('R', Material.REDSTONE_BLOCK);
+                RecipeRegistrar.addShapedRecipe(pipe, pipeKey);
+        }
+
         // ── God recipes ──────────────────────────────────────────────────────
 
         public static void godRecipes(SurvivalSkills plugin) {

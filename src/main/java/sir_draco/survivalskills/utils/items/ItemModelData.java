@@ -60,7 +60,9 @@ public enum ItemModelData {
     POWER_ARMOR(51),
     UNLIMITED_POWDER_SNOW_BUCKET(52),
     SNOWBALL_CANNON(53),
+    WRENCH(54),
     TELEPORT_ANCHOR(55),
+    TRANSFER_PIPE(56),
     TROPHY(999);
 
     private final int id;

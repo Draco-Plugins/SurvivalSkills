@@ -217,6 +217,24 @@ public class ItemStackGenerator {
                 .build();
     }
 
+    public static ItemStack getWrench() {
+        return new ItemStackBuilder(Material.IRON_PICKAXE, 1,
+                ChatColor.AQUA.toString() + ChatColor.BOLD + "Pipe Wrench")
+                .lore(List.of(ChatColor.GRAY + "Sneak + left-click: attach/remove a pipe",
+                        ChatColor.GRAY + "Left-click: select and link chests",
+                        ChatColor.GRAY + "Right-click: pipe information and filters"))
+                .modelData(ItemModelData.WRENCH.getId())
+                .build();
+    }
+
+    public static ItemStack getTransferPipe() {
+        return new ItemStackBuilder(Material.GLASS, 1,
+                ChatColor.AQUA.toString() + ChatColor.BOLD + "Transfer Pipe")
+                .lore(ChatColor.GRAY + "Consumed when attached to a chest")
+                .modelData(ItemModelData.TRANSFER_PIPE.getId())
+                .build();
+    }
+
     // Exploring
 
     public static ItemStack getMagnet() {
