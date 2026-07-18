@@ -553,7 +553,8 @@ public class MiningSkill implements Listener {
                 Material.WRITABLE_BOOK,
                 Material.MAP,
                 Material.ENDER_PEARL,
-                Material.ENDER_EYE));
+                Material.ENDER_EYE,
+                Material.SHIELD));
     }
 
     public Map<Player, SpelunkerAbilitySync> getSpelunkerTracker() {
