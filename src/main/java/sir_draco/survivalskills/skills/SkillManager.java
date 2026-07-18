@@ -389,6 +389,7 @@ public class SkillManager {
 
         // Update leaderboard scores for Main
         updateLeaderboardScore(p, main.getSkillCategory());
+        SkillScoreboard.updateNametags(p);
     }
 
     private void awardGodTrophy(Player p) {

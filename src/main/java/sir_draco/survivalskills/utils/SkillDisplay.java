@@ -43,6 +43,6 @@ public final class SkillDisplay {
     public static void levelUpNotification(Player p, Skill skill) {
         p.sendRawMessage(ChatColor.GREEN + "Skill " + ChatColor.AQUA + skill.getSkillCategory().getDisplayName()
                 + ChatColor.GREEN + " has leveled up to level: " + ChatColor.GOLD + skill.getLevel());
-        p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+        p.playSound(p, Sound.ENTITY_PLAYER_LEVELUP, 0.25f, 1);
     }
 }
