@@ -184,6 +184,7 @@ public final class SuperEnchantingGui implements Listener {
         refresh(player, holder);
     }
 
+    @SuppressWarnings({ "deprecation" })
     private void refresh(Player player, SuperEnchantingInventoryHolder holder) {
         if (!player.isOnline())
             return;
@@ -335,6 +336,7 @@ public final class SuperEnchantingGui implements Listener {
         return remaining == 0;
     }
 
+    @SuppressWarnings("deprecation")
     private String formatEnchantmentName(Enchantment enchantment) {
         String[] words = enchantment.getKey().toString().split("_");
         StringBuilder name = new StringBuilder();

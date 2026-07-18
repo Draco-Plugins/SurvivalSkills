@@ -2,6 +2,7 @@ package sir_draco.survivalskills.abilities;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -11,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import sir_draco.survivalskills.commands.skill_commands.FlightCommand;
+import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -82,6 +84,7 @@ public class AbilityManager {
      * Restore the Flight ability for a player, including handling of offline cooldown.
      */
     public void loadFlight(Player p, FileConfiguration data) {
+        clearStaleFlightState(p);
         if (!data.contains(p.getUniqueId() + FLIGHT)) return;
         final String base = p.getUniqueId() + FLIGHT;
 
@@ -96,7 +99,7 @@ public class AbilityManager {
         AbilityTimer timer = new AbilityTimer(plugin, "Flight", p, activeTime, cooldownTime);
         timer.setFlightSpeed(speed);
         FlightCommand.configureFlightTimer(timer);
-        timer.runTaskTimerAsynchronously(plugin, 0, 20);
+        timer.runTaskTimer(plugin, 0, 20);
         addAbility(p, timer);
 
         if (activeTime <= 0) return;
@@ -426,5 +429,25 @@ public class AbilityManager {
         }
 
         return updatedCooldown;
+    }
+
+    /**
+     * Clear Bukkit's persisted flight flags before restoring a timed flight timer. This prevents
+     * a stale allow-flight value from granting flight after the plugin timer has expired. Creative,
+     * spectator, and unlimited-flight players own their flight state outside the timed timer.
+     */
+    private void clearStaleFlightState(Player p) {
+        GameMode gameMode = p.getGameMode();
+        if (gameMode == GameMode.CREATIVE || gameMode == GameMode.SPECTATOR || hasUnlimitedFlight(p)) return;
+
+        p.setFlying(false);
+        p.setAllowFlight(false);
+    }
+
+    private boolean hasUnlimitedFlight(Player p) {
+        PlayerRewards playerRewards = plugin.getSkillManager().getPlayerRewards(p);
+        if (playerRewards == null) return false;
+        Reward reward = playerRewards.getReward(SkillCategory.BUILDING, FlightCommand.FLIGHT_IV);
+        return reward != null && reward.isEnabled() && reward.isApplied();
     }
 }

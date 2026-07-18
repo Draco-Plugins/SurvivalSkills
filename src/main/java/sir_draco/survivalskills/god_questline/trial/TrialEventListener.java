@@ -593,6 +593,7 @@ public class TrialEventListener implements Listener {
             e.setCancelled(true);
     }
 
+    @SuppressWarnings("deprecation")
     @EventHandler
     public void onSlimeSplit(SlimeSplitEvent e) {
         if (e.getEntity().hasMetadata("trialmob"))

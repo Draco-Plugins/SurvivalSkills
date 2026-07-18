@@ -104,7 +104,7 @@ public class FlightCommand implements CommandExecutor {
         AbilityTimer timer = new AbilityTimer(plugin, "Flight", p, tier.activeTime(), tier.resetTime());
         timer.setFlightSpeed(flySpeed);
         configureFlightTimer(timer);
-        timer.runTaskTimerAsynchronously(plugin, 0, 20);
+        timer.runTaskTimer(plugin, 0, 20);
         plugin.getAbilityManager().addAbility(p, timer);
 
         p.sendRawMessage(ChatColor.GREEN + "You have enabled your flight for "
