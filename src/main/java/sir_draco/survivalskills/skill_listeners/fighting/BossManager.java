@@ -22,6 +22,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityTransformEvent;
 import org.bukkit.inventory.ItemStack;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.abilities.items.GiantSword;
 import sir_draco.survivalskills.bosses.Boss;
 import sir_draco.survivalskills.bosses.BroodMotherBoss;
 import sir_draco.survivalskills.bosses.GiantBoss;
@@ -161,6 +162,8 @@ public class BossManager {
             switch (type) {
                 case GIANT -> {
                     giveBossItemOrDrop(p, type.getBossItem(), drops);
+                    if (GiantSword.shouldDrop(Math.random()))
+                        drops.add(ItemStackGenerator.getGiantSword());
                     removeBossEntity(e.getEntity());
                     broadcastSlain(type);
                     awardBossXP(p, type.getXpMultiplier());

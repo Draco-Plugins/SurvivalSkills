@@ -667,12 +667,11 @@ public class TrialUtils {
 
     private static void confirmParty(Player p) {
         PendingTrial trial = TrialManager.getPendingTrial(p);
-        Bukkit.getLogger().info("Starting trial for " + p.getName());
         if (trial == null) {
             sendError(p, "You do not have a pending trial anymore");
             return;
         }
-        trial.setSuccess(true);
+        trial.confirmParty();
         initializeTrial(p, p.getLocation());
     }
 

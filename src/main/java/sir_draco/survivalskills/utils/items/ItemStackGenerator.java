@@ -434,6 +434,21 @@ public class ItemStackGenerator {
                 .build();
     }
 
+    public static ItemStack getGiantSword() {
+        ItemStack item = new ItemStackBuilder(Material.DIAMOND_SWORD, 1,
+                ColorParser.gradientName("Giant's Sword", "#55FFFF", "#228B22", true))
+                .lore(List.of(
+                        ChatColor.GRAY + "A massive blade made for a giant",
+                        ChatColor.LIGHT_PURPLE + "Mob kills drop double enchanting experience"))
+                .modelData(ItemModelData.GIANT_SWORD.getId())
+                .build();
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+        meta.setUnbreakable(true);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     public static ItemStack getFishingBossItem() {
         return new ItemStackBuilder(Material.PRISMARINE_SHARD, 1,
                 ColorParser.gradientName("Sea King Scale", "#00FFFF", "#0000FF", true))

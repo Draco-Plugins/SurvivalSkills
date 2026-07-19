@@ -93,6 +93,11 @@ public class PendingTrial {
         }
     }
 
+    public void confirmParty() {
+        success = true;
+        trialMaster.closeInventory();
+    }
+
     public void setSolo(boolean solo) {
         this.solo = solo;
     }
@@ -155,7 +160,4 @@ public class PendingTrial {
         this.chosenDifficulty = chosenDifficulty;
     }
 
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
 }

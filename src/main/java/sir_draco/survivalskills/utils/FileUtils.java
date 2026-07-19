@@ -51,6 +51,7 @@ public class FileUtils {
 
     private static final double CURRENT_CONFIG_VERSION = 2.23;
     private static final String BUILDERS_WAND_CONFIG_PATH = "Building.BuildersWand";
+    private static final String SUPER_ENCHANTING_TABLE_CONFIG_PATH = "Crafting.SuperEnchantingTable";
 
     private FileUtils() {
         // Prevent instantiation
@@ -66,7 +67,8 @@ public class FileUtils {
         plugin.setConfig(config);
 
         if (config.get("Version") == null || config.getDouble("Version") != CURRENT_CONFIG_VERSION
-                || !config.contains(BUILDERS_WAND_CONFIG_PATH))
+                || !config.contains(BUILDERS_WAND_CONFIG_PATH)
+                || !config.contains(SUPER_ENCHANTING_TABLE_CONFIG_PATH))
             updateConfig(config);
         plugin.setSkillManager(new SkillManager(plugin));
 

@@ -422,6 +422,11 @@ public class RewardData {
                 GRAY + "See the crafting recipes by using the command" + AQUA + " /skills recipes"),
                 GRAY + "Craft and use pipes to transfer items between chests");
 
+        staticEntry(m, "SuperEnchantingTable", lines(
+                NEW_ITEM + "You can now craft a Super Enchanting Table",
+                GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),
+                GRAY + "Craftable Item used to upgrade enchantments beyond their vanilla limits");
+
         staticEntry(m, "EnchantedGapple", lines(
                 NEW_ITEM + "You can now craft an Enchanted Golden Apple"),
                 GRAY + "Craftable Item");

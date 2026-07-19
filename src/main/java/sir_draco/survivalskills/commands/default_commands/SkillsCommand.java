@@ -18,6 +18,8 @@ import sir_draco.survivalskills.boards.Leaderboard;
 import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.super_enchanting.SuperEnchantingItems;
+import sir_draco.survivalskills.super_enchanting.SuperEnchantingTableManager;
 import sir_draco.survivalskills.utils.RecipeSlotLayout;
 import sir_draco.survivalskills.utils.SkillDisplay;
 import sir_draco.survivalskills.utils.items.ItemStackGenerator;
@@ -529,6 +531,8 @@ public class SkillsCommand implements CommandExecutor {
         addSingleReward(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE), SkillCategory.CRAFTING, "EnchantedGapple");
         addSingleReward(ItemStackGenerator.getWrench(), SkillCategory.CRAFTING, PipeRewardGate.REWARD_NAME);
         addSingleReward(ItemStackGenerator.getTransferPipe(), SkillCategory.CRAFTING, PipeRewardGate.REWARD_NAME);
+        addSingleReward(SuperEnchantingItems.createSuperEnchantingTable(plugin), SkillCategory.CRAFTING,
+                SuperEnchantingTableManager.REWARD_NAME);
         addSingleReward(ItemStackGenerator.getFireworkCannon(), SkillCategory.MAIN, "FireworkCannon");
         addSingleReward(ItemStackGenerator.getSortWand(), SkillCategory.BUILDING, "AutoSortWand");
         addSingleReward(ItemStackGenerator.getBuilderWand(), SkillCategory.BUILDING, "BuildersWand");

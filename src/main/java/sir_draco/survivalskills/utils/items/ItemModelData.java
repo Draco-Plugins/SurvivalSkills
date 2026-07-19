@@ -72,6 +72,7 @@ public enum ItemModelData {
     ELDER_GUARDIAN_SPAWN_EGG(63),
     WITHER_SKULL_CANNON(64),
     FIREBALL_CANNON(65),
+    GIANT_SWORD(66),
     TROPHY(999);
 
     private final int id;

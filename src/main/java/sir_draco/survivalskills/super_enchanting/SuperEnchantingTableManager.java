@@ -29,6 +29,8 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.rewards.PlayerRewards;
+import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 
@@ -41,6 +43,7 @@ import java.util.UUID;
 
 public final class SuperEnchantingTableManager implements Listener {
 
+    public static final String REWARD_NAME = "SuperEnchantingTable";
     public static final int REQUIRED_CRAFTING_LEVEL = 42;
 
     private static final String BOOK_DISPLAY_TAG = "survivalskills_super_enchanting_book";
@@ -83,14 +86,28 @@ public final class SuperEnchantingTableManager implements Listener {
             return;
         if (!(event.getWhoClicked() instanceof Player player))
             return;
-        if (SkillManager.getSkillLevel(player.getUniqueId(), SkillCategory.CRAFTING)
-                >= REQUIRED_CRAFTING_LEVEL)
-            return;
+        if (isUnlocked(player)) return;
 
         event.setCancelled(true);
         player.sendMessage(ChatColor.RED + "You need crafting level " + ChatColor.AQUA
-                + REQUIRED_CRAFTING_LEVEL + ChatColor.RED + " to craft a Super Enchanting Table.");
+                + getUnlockLevel() + ChatColor.RED + " to craft a Super Enchanting Table.");
         player.playSound(player, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+    }
+
+    private boolean isUnlocked(Player player) {
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(player);
+        Reward reward = rewards == null ? null : rewards.getReward(SkillCategory.CRAFTING, REWARD_NAME);
+        if (reward != null) return reward.isApplied();
+        return SkillManager.getSkillLevel(player.getUniqueId(), SkillCategory.CRAFTING)
+                >= REQUIRED_CRAFTING_LEVEL;
+    }
+
+    private int getUnlockLevel() {
+        PlayerRewards defaultRewards = plugin.getSkillManager().getDefaultPlayerRewards();
+        Reward reward = defaultRewards == null
+                ? null
+                : defaultRewards.getReward(SkillCategory.CRAFTING, REWARD_NAME);
+        return reward == null ? REQUIRED_CRAFTING_LEVEL : reward.getLevel();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

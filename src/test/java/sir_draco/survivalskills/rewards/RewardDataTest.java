@@ -303,6 +303,15 @@ class RewardDataTest {
         assertTrue(RewardData.getDescription("Crafting", "ItemTransferPipes").contains("transfer items"));
     }
 
+    @Test
+    void superEnchantingTableDescribesCraftingAndUpgradingEnchantments() {
+        List<String> notification = RewardData.getNotification("Crafting", "SuperEnchantingTable");
+        assertNotNull(notification);
+        assertTrue(notification.get(0).contains("craft a Super Enchanting Table"));
+        assertTrue(RewardData.getDescription("Crafting", "SuperEnchantingTable")
+                .contains("upgrade enchantments"));
+    }
+
     // -- Spot checks: Main --
 
     @Test

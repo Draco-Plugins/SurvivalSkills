@@ -680,6 +680,10 @@ Crafting:
         Enabled: true
         Level: 40
         Type: "State"
+    SuperEnchantingTable:
+        Enabled: true
+        Level: 42
+        Type: "Crafting"
     MaterialsBackIII:
         Enabled: true
         Level: 45

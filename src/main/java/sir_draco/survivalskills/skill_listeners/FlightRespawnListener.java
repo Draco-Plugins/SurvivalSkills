@@ -7,7 +7,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.abilities.AbilityTimer;
 
-public class FlightRespawnListener implements Listener {
+public final class FlightRespawnListener implements Listener {
 
     private final SurvivalSkills plugin;
 
@@ -22,6 +22,16 @@ public class FlightRespawnListener implements Listener {
         if (timer == null || !timer.isActive()) {
             return;
         }
+
+        plugin.getServer().getScheduler().runTask(plugin, () -> restoreFlight(p));
+    }
+
+    private void restoreFlight(Player p) {
+        AbilityTimer timer = plugin.getAbilityManager().getAbility(p, "Flight");
+        if (timer == null || !timer.isActive()) {
+            return;
+        }
+
         p.setAllowFlight(true);
         p.setFlying(true);
         p.setFlySpeed(timer.getFlightSpeed());

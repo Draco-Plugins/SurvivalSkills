@@ -8,6 +8,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class TrailEffect extends BukkitRunnable {
 
+    private static final float DEFAULT_FLOAT_PARTICLE_DATA = 1.0F;
+
     private final Player p;
     private final Particle particle;
     private final int dustType;
@@ -29,7 +31,7 @@ public class TrailEffect extends BukkitRunnable {
         if (location != null && location.equals(p.getLocation())) return;
         location = p.getLocation();
         Location loc = location.clone().add(0, 0.3, 0);
-        if (dustType == 1) p.getWorld().spawnParticle(particle, loc, 0, 0., 0., 0.);
+        if (dustType == 1) spawnStandardParticle(loc);
         else if (dustType == 2) p.getWorld().spawnParticle(particle, loc, 1, 0, 0, 0, new Particle.DustOptions(Color.WHITE, 1));
         else {
             Color color = getNextColor();
@@ -37,6 +39,14 @@ public class TrailEffect extends BukkitRunnable {
             count++;
             if (count >= 500) count = 0;
         }
+    }
+
+    private void spawnStandardParticle(Location loc) {
+        if (Float.class.equals(particle.getDataType())) {
+            p.getWorld().spawnParticle(particle, loc, 0, 0., 0., 0., DEFAULT_FLOAT_PARTICLE_DATA);
+            return;
+        }
+        p.getWorld().spawnParticle(particle, loc, 0, 0., 0., 0.);
     }
 
     public Color getNextColor() {

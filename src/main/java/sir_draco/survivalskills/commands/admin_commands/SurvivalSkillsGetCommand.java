@@ -127,6 +127,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
         ITEM_SUPPLIERS.put("godtrophybase", ItemStackGenerator::getGodTrophyBase);
         ITEM_SUPPLIERS.put("unlimitedsponge", ItemStackGenerator::getUnlimitedSponge);
         ITEM_SUPPLIERS.put("giantbossitem", ItemStackGenerator::getGiantBossItem);
+        ITEM_SUPPLIERS.put("giantsword", ItemStackGenerator::getGiantSword);
         ITEM_SUPPLIERS.put("broodmotherbossitem", ItemStackGenerator::getBroodMotherBossItem);
         ITEM_SUPPLIERS.put("villagerbossitem", ItemStackGenerator::getVillagerBossItem);
         ITEM_SUPPLIERS.put("fishingbossitem", ItemStackGenerator::getFishingBossItem);

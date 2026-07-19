@@ -26,6 +26,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.abilities.items.GiantSword;
 import sir_draco.survivalskills.bosses.Boss;
 import sir_draco.survivalskills.bosses.BroodMotherBoss;
 import sir_draco.survivalskills.bosses.DragonBoss;
@@ -111,6 +112,7 @@ public class FightingSkill implements Listener {
         }
 
         handleSpecialDrops(e);
+        GiantSword.applyExperienceBonus(e, p);
         mobXPManager.handleExperience(p, e.getEntity());
     }
 

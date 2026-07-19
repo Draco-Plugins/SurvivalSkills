@@ -75,6 +75,16 @@ class TrialRegistryLifecycleTest {
         verify(inventory).clear();
     }
 
+    @Test
+    void confirmingPartyClosesSelectionInventory() {
+        Player player = mockPlayer();
+        PendingTrial pendingTrial = new PendingTrial(player);
+
+        pendingTrial.confirmParty();
+
+        verify(player).closeInventory();
+    }
+
     private Player mockPlayer() {
         Player player = mock(Player.class);
         when(player.getUniqueId()).thenReturn(UUID.randomUUID());
