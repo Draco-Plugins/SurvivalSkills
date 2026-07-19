@@ -192,7 +192,7 @@ Exploring:
         Type: "State"
     TravelerArmor:
         Enabled: true
-        Level: 70
+        Level: 42
         Type: "Crafting"
     FallII:
         Enabled: true
@@ -212,7 +212,7 @@ Exploring:
         Type: "State"
     AdventurerArmor:
         Enabled: true
-        Level: 100
+        Level: 60
         Type: "Crafting"
 
 Farming:

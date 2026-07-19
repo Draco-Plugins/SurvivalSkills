@@ -137,7 +137,8 @@ public class BlazingGhast extends TrialBoss {
         new BukkitRunnable() {
             @Override
             public void run() {
-                ghast.setAI(true);
+                if (isSpawned() && ghast != null)
+                    ghast.setAI(true);
             }
         }.runTaskLater(SurvivalSkills.getPlugin(SurvivalSkills.class), PERCH_AI_FREEZE_TICKS);
     }
@@ -147,11 +148,11 @@ public class BlazingGhast extends TrialBoss {
             int fireballCount = 0;
             @Override
             public void run() {
-                if (fireballCount >= FIREBALL_COUNT) {
+                if (!isSpawned() || ghast == null || ghast.getTarget() == null
+                        || fireballCount >= FIREBALL_COUNT) {
                     cancel();
                     return;
                 }
-                if (ghast.getTarget() == null) return;
                 Location target = ghast.getTarget().getLocation();
                 Fireball fireball = ghast.getWorld().spawn(ghast.getLocation(), Fireball.class);
                 fireball.setAcceleration(ProjectileCalculator.getNoGravityVector(

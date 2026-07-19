@@ -332,13 +332,13 @@ public class MiningSkill implements Listener {
     public double getMultiplier(Material mat) {
         return switch (mat) {
             case DEEPSLATE -> 2.0;
-            case COAL_ORE, DEEPSLATE_COAL_ORE, COPPER_ORE, DEEPSLATE_COPPER_ORE -> 3.0;
-            case IRON_ORE, DEEPSLATE_IRON_ORE, NETHER_QUARTZ_ORE, NETHER_GOLD_ORE -> 4.0;
-            case REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE, LAPIS_ORE, DEEPSLATE_LAPIS_ORE -> 5.0;
-            case GOLD_ORE, DEEPSLATE_GOLD_ORE -> 7.0;
-            case DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE -> 10.0;
-            case EMERALD_ORE, DEEPSLATE_EMERALD_ORE, ANCIENT_DEBRIS -> 20.0;
-            case OBSIDIAN -> 30.0;
+            case COAL_ORE, DEEPSLATE_COAL_ORE, COPPER_ORE, DEEPSLATE_COPPER_ORE -> 5.0;
+            case IRON_ORE, DEEPSLATE_IRON_ORE, NETHER_QUARTZ_ORE, NETHER_GOLD_ORE -> 8.0;
+            case REDSTONE_ORE, DEEPSLATE_REDSTONE_ORE, LAPIS_ORE, DEEPSLATE_LAPIS_ORE -> 10.0;
+            case GOLD_ORE, DEEPSLATE_GOLD_ORE -> 14.0;
+            case DIAMOND_ORE, DEEPSLATE_DIAMOND_ORE -> 20.0;
+            case EMERALD_ORE, DEEPSLATE_EMERALD_ORE, ANCIENT_DEBRIS -> 30.0;
+            case OBSIDIAN -> 15.0;
             default -> 1.0;
         };
     }

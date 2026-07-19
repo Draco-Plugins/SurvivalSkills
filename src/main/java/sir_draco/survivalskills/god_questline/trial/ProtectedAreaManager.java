@@ -95,4 +95,9 @@ public class ProtectedAreaManager {
     public Map<UUID, Long> getTrialBuildingCreationCooldowns() {
         return Collections.unmodifiableMap(trialBuildingCreationCooldowns);
     }
+
+    public void clearAll() {
+        protectedAreas.clear();
+        trialBuildingCreationCooldowns.clear();
+    }
 }

@@ -1,6 +1,5 @@
 package sir_draco.survivalskills.commands.admin_commands;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
@@ -17,8 +16,6 @@ public class SkillsMultiplierCommand implements CommandExecutor {
 
     private static final String XPVOUCHER = "XPVoucher";
     private static final int DEFAULT_DURATION_SECONDS = 3600;
-    private static final Sound SUCCESS_SOUND = Sound.ENTITY_EXPERIENCE_ORB_PICKUP;
-    private static final Sound ERROR_SOUND = Sound.ENTITY_ENDERMAN_TELEPORT;
 
     private final SurvivalSkills plugin;
 
@@ -30,22 +27,47 @@ public class SkillsMultiplierCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String s, String[] strings) {
         if (strings.length < 2) {
-            sendError(sender, "Usage: /skillsmultiplier <player/all> <multiplier> [seconds]");
+            sendUsage(sender);
             return false;
         }
 
-        Optional<Double> multiplier = parseDouble(strings[1]);
+        if (strings[0].equalsIgnoreCase("all")) {
+            Optional<Double> multiplier = parseDouble(strings[1]);
+            if (multiplier.isEmpty()) {
+                sendError(sender, "Invalid multiplier");
+                return false;
+            }
+
+            applyGlobalMultiplier(sender, multiplier.get());
+            return true;
+        }
+
+        boolean explicitPlayerTarget = strings[0].equalsIgnoreCase("player");
+        int targetIndex = explicitPlayerTarget ? 1 : 0;
+        int multiplierIndex = explicitPlayerTarget ? 2 : 1;
+        int durationIndex = explicitPlayerTarget ? 3 : 2;
+        if (strings.length <= multiplierIndex) {
+            sendUsage(sender);
+            return false;
+        }
+
+        Optional<Double> multiplier = parseDouble(strings[multiplierIndex]);
         if (multiplier.isEmpty()) {
             sendError(sender, "Invalid multiplier");
             return false;
         }
 
-        if (strings[0].equalsIgnoreCase("all")) {
-            applyGlobalMultiplier(sender, multiplier.get());
-        } else {
-            applyPlayerMultiplier(sender, strings[0], multiplier.get(), strings);
+        int durationSeconds = DEFAULT_DURATION_SECONDS;
+        if (strings.length > durationIndex) {
+            Optional<Integer> seconds = parseInt(strings[durationIndex]);
+            if (seconds.isEmpty()) {
+                sendError(sender, "Invalid time");
+                return false;
+            }
+            durationSeconds = seconds.get();
         }
 
+        applyPlayerMultiplier(sender, strings[targetIndex], multiplier.get(), durationSeconds);
         return true;
     }
 
@@ -54,7 +76,8 @@ public class SkillsMultiplierCommand implements CommandExecutor {
         sendSuccess(sender, "Skills multiplier set to " + multiplier);
     }
 
-    private void applyPlayerMultiplier(CommandSender sender, String targetName, double multiplier, String[] strings) {
+    private void applyPlayerMultiplier(CommandSender sender, String targetName, double multiplier,
+                                       int durationSeconds) {
         Player target = findPlayer(targetName);
         if (target == null) {
             sendError(sender, "Player not found");
@@ -62,16 +85,6 @@ public class SkillsMultiplierCommand implements CommandExecutor {
         }
 
         removeExistingMultiplier(target);
-
-        int durationSeconds = DEFAULT_DURATION_SECONDS;
-        if (strings.length >= 3) {
-            Optional<Integer> seconds = parseInt(strings[2]);
-            if (seconds.isEmpty()) {
-                sendError(sender, "Invalid time");
-                return;
-            }
-            durationSeconds = seconds.get();
-        }
 
         int minutes = durationSeconds / 60;
 
@@ -94,9 +107,9 @@ public class SkillsMultiplierCommand implements CommandExecutor {
         }
     }
 
-    private static Player findPlayer(String name) {
-        return Bukkit.getOnlinePlayers().stream()
-                .filter(p -> p.getName().equalsIgnoreCase(name))
+    private Player findPlayer(String name) {
+        return plugin.getServer().getOnlinePlayers().stream()
+                .filter((Player player) -> player.getName().equalsIgnoreCase(name))
                 .findFirst()
                 .orElse(null);
     }
@@ -118,16 +131,21 @@ public class SkillsMultiplierCommand implements CommandExecutor {
     }
 
     private void sendSuccess(CommandSender sender, String message) {
+        sender.sendMessage(ChatColor.GREEN + message);
         if (sender instanceof Player p) {
-            p.sendRawMessage(ChatColor.GREEN + message);
-            p.playSound(p, SUCCESS_SOUND, 1, 1);
+            p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         }
     }
 
     private void sendError(CommandSender sender, String message) {
+        sender.sendMessage(ChatColor.RED + message);
         if (sender instanceof Player p) {
-            p.sendRawMessage(ChatColor.RED + message);
-            p.playSound(p, ERROR_SOUND, 1, 1);
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
         }
+    }
+
+    private void sendUsage(CommandSender sender) {
+        sendError(sender, "Usage: /skillsmultiplier all <multiplier> | "
+                + "/skillsmultiplier player <name> <multiplier> [seconds]");
     }
 }

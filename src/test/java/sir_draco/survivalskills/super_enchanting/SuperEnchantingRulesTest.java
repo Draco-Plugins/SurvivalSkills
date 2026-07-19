@@ -20,16 +20,23 @@ class SuperEnchantingRulesTest {
     }
 
     @Test
-    void assignsCostsByLevelAboveVanillaMaximum() {
+    void assignsCostsByUpgradeLevel() {
+        UpgradeCost vanillaUpgradeCost = new UpgradeCost(1, 20);
+        assertEquals(Optional.of(vanillaUpgradeCost), SuperEnchantingRules.getUpgradeCost(5, 1));
+        assertEquals(Optional.of(vanillaUpgradeCost), SuperEnchantingRules.getUpgradeCost(5, 2));
+        assertEquals(Optional.of(vanillaUpgradeCost), SuperEnchantingRules.getUpgradeCost(5, 3));
+        assertEquals(Optional.of(vanillaUpgradeCost), SuperEnchantingRules.getUpgradeCost(5, 4));
         assertEquals(Optional.of(new UpgradeCost(1, 30)), SuperEnchantingRules.getUpgradeCost(5, 5));
         assertEquals(Optional.of(new UpgradeCost(5, 50)), SuperEnchantingRules.getUpgradeCost(5, 6));
         assertEquals(Optional.of(new UpgradeCost(20, 100)), SuperEnchantingRules.getUpgradeCost(5, 7));
         assertTrue(SuperEnchantingRules.getUpgradeCost(5, 8).isEmpty());
-        assertTrue(SuperEnchantingRules.getUpgradeCost(5, 4).isEmpty());
+        assertTrue(SuperEnchantingRules.getUpgradeCost(5, 0).isEmpty());
     }
 
     @Test
     void limitsLowerBaseTiersToTheirSpecifiedMaximums() {
+        assertEquals(Optional.of(new UpgradeCost(1, 20)), SuperEnchantingRules.getUpgradeCost(3, 1));
+        assertEquals(Optional.of(new UpgradeCost(1, 20)), SuperEnchantingRules.getUpgradeCost(3, 2));
         assertEquals(Optional.of(new UpgradeCost(1, 30)), SuperEnchantingRules.getUpgradeCost(3, 3));
         assertEquals(Optional.of(new UpgradeCost(5, 50)), SuperEnchantingRules.getUpgradeCost(3, 4));
         assertTrue(SuperEnchantingRules.getUpgradeCost(3, 5).isEmpty());

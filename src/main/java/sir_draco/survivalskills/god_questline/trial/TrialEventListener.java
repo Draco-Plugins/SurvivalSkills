@@ -74,6 +74,10 @@ public class TrialEventListener implements Listener {
     private static final HashMap<UUID, Long> lastSneakStartTimes = new HashMap<>();
     private static final String GOD_TRIAL_COMMAND = "/godtrial";
 
+    static void clearRuntimeState() {
+        lastSneakStartTimes.clear();
+    }
+
     @EventHandler
     public void onPlayerSneakToggle(PlayerToggleSneakEvent e) {
         // Only react when the player begins sneaking; toggling back to standing is ignored.
@@ -369,6 +373,8 @@ public class TrialEventListener implements Listener {
         Optional<Trial> trialOpt = TrialRegistry.getInstance().getPlayerTrial(e.getEntity());
         if (trialOpt.isEmpty())
             return;
+        e.getDrops().clear();
+        e.setDroppedExp(0);
         trialOpt.get().endTrial();
         e.getEntity().getInventory().clear();
     }
@@ -521,6 +527,7 @@ public class TrialEventListener implements Listener {
     @EventHandler
     public void onTrialPartyInventoryClose(InventoryCloseEvent e) {
         TrialRegistry registry = TrialRegistry.getInstance();
+        registry.unregisterTrialSelectionInventory(e.getInventory());
         if (registry.getPendingTrials().isEmpty())
             return;
         Player p = (Player) e.getPlayer();
@@ -672,6 +679,25 @@ public class TrialEventListener implements Listener {
 
     @EventHandler
     public void playerQuit(PlayerQuitEvent e) {
-        TrialDataPersistence.getInstance().saveCompletedTrialsOnQuit(e.getPlayer(), TrialRegistry.getInstance());
+        Player player = e.getPlayer();
+        UUID playerId = player.getUniqueId();
+        TrialRegistry registry = TrialRegistry.getInstance();
+
+        TrialDataPersistence.getInstance().saveCompletedTrialsOnQuit(player, registry);
+        lastSneakStartTimes.remove(playerId);
+
+        TrialSpectatorManager spectatorManager = TrialSpectatorManager.getInstance();
+        if (spectatorManager.isSpectating(player))
+            TrialUtils.removeTrialSpectator(player, spectatorManager.getSpectatorTarget(player));
+
+        for (Trial trial : registry.getTrials()) {
+            trial.removeSpectator(player);
+            trial.removeSpectatorsForTarget(player);
+        }
+
+        TrialGUI.removePlayer(playerId);
+        TrialRewardManager.getInstance().removeInventory(player.getOpenInventory().getTopInventory());
+        spectatorManager.removePlayer(player);
+        registry.cleanupPlayer(player);
     }
 }

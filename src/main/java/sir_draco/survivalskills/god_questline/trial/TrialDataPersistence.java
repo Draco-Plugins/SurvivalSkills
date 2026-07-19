@@ -7,6 +7,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.TrialUtils;
@@ -38,6 +39,7 @@ public class TrialDataPersistence {
     private FileConfiguration trialDataConfig = null;
     private FileConfiguration trialBuildingConfig = null;
     private final HashMap<UUID, TrialBuildingData> trialBuildingOwnership = new HashMap<>();
+    private BukkitTask cleanupTask;
 
     public static synchronized TrialDataPersistence getInstance() {
         if (instance == null)
@@ -113,23 +115,29 @@ public class TrialDataPersistence {
         }
     }
 
-public void saveAllAndShutdown(TrialRegistry registry) {
-        // End active trials first so their state is flushed.
-        if (registry.hasActiveTrials())
-            for (Trial trial : new ArrayList<>(registry.getTrials()))
-                trial.endTrial();
+    public void saveAllAndShutdown(TrialRegistry registry) {
+        stopCleanupTask();
 
-        // Preserve the original behaviour: with no protected areas there is nothing to persist.
-        if (!ProtectedAreaManager.getInstance().hasProtectedAreas())
-            return;
+        try {
+            if (registry.hasActiveTrials()) {
+                for (Trial trial : new ArrayList<>(registry.getTrials()))
+                    trial.endTrial();
+            }
 
-        saveProtectedAreas();
-        saveTrialBuildingData(false);
+            if (ProtectedAreaManager.getInstance().hasProtectedAreas())
+                saveProtectedAreas();
+            saveTrialBuildingData(false);
 
-        for (Map.Entry<org.bukkit.entity.Player, ArrayList<Integer>> entry : registry.getPlayerGamemodesBeaten().entrySet())
-            TrialUtils.saveCompletedTrials(entry.getKey(), getOrLoadTrialDataConfig(), true);
+            for (Map.Entry<UUID, ArrayList<Integer>> entry : registry.getPlayerGamemodesBeaten().entrySet()) {
+                TrialUtils.saveCompletedTrials(entry.getKey(), entry.getValue(), getOrLoadTrialDataConfig(), true);
+            }
 
-        saveTrialDataFile("Failed to save protected areas to " + TRIAL_DATA_FILE);
+            saveTrialDataFile("Failed to save trial data to " + TRIAL_DATA_FILE);
+        } finally {
+            trialBuildingOwnership.clear();
+            trialDataConfig = null;
+            trialBuildingConfig = null;
+        }
     }
 
     private void saveProtectedAreas() {
@@ -261,7 +269,11 @@ public void saveAllAndShutdown(TrialRegistry registry) {
     }
 
     public void saveCompletedTrialsOnQuit(org.bukkit.entity.Player p, TrialRegistry registry) {
-        TrialUtils.saveCompletedTrials(p, getOrLoadTrialDataConfig(), false);
+        ArrayList<Integer> completedGamemodes = registry.getCompletedGamemodes(p);
+        if (completedGamemodes == null || completedGamemodes.isEmpty())
+            return;
+        TrialUtils.saveCompletedTrials(p.getUniqueId(), List.copyOf(completedGamemodes),
+                getOrLoadTrialDataConfig(), false);
     }
 
     private void saveTrialDataFile(String failureMessage) {
@@ -289,13 +301,23 @@ public void saveAllAndShutdown(TrialRegistry registry) {
 
     // --- Cleanup task ----------------------------------------------------
 
-    public void startCleanupTask() {
-        new BukkitRunnable() {
+    public synchronized void startCleanupTask() {
+        if (cleanupTask != null && !cleanupTask.isCancelled())
+            return;
+
+        cleanupTask = new BukkitRunnable() {
             @Override
             public void run() {
                 cleanupExpiredTrialBuildings();
             }
         }.runTaskTimer(SurvivalSkills.getInstance(), CLEANUP_INTERVAL, CLEANUP_INTERVAL);
+    }
+
+    public synchronized void stopCleanupTask() {
+        if (cleanupTask == null)
+            return;
+        cleanupTask.cancel();
+        cleanupTask = null;
     }
 
     private void cleanupExpiredTrialBuildings() {
@@ -338,4 +360,4 @@ public void saveAllAndShutdown(TrialRegistry registry) {
             saveTrialBuildingData(true);
     }
 
-    }
+}

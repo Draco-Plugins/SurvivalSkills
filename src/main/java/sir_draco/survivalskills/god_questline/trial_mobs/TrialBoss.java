@@ -55,6 +55,7 @@ public abstract class TrialBoss extends BukkitRunnable {
     private LivingEntity boss;
     private BossBar bossBar;
     private List<Location> spawnLocations = null;
+    private boolean deathHandled;
 
     protected TrialBoss(Builder builder) {
         this.id = builder.id;
@@ -93,8 +94,7 @@ public abstract class TrialBoss extends BukkitRunnable {
     @Override
     public final void run() {
         if (boss == null || boss.isDead()) {
-            if (boss != null) boss.remove();
-            cancel();
+            death();
             return;
         }
         updateBossBar();
@@ -206,17 +206,34 @@ public abstract class TrialBoss extends BukkitRunnable {
     public abstract TrialBoss duplicate(double healthMultiplier, double damageMultiplier);
 
     public void death() {
-        if (!isSpawned()) return;
-        dropItems();
-        if (bossBar != null) bossBar.removeAll();
-        NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), "boss" + boss.getUniqueId());
-        if (Bukkit.getBossBar(key) != null) Bukkit.removeBossBar(key);
-        boss.getWorld().playSound(boss.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, DEATH_SOUND_VOLUME, DEATH_SOUND_PITCH);
-        if (!boss.isDead()) boss.remove();
-        for (Entity e : summons) {
-            if (!e.isDead()) e.remove();
+        if (deathHandled) return;
+        deathHandled = true;
+
+        if (boss != null) {
+            boolean bossWasAlive = !boss.isDead();
+            if (bossWasAlive) {
+                dropItems();
+                boss.getWorld().playSound(boss.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE,
+                        DEATH_SOUND_VOLUME, DEATH_SOUND_PITCH);
+                boss.remove();
+            }
+            removeBossBar();
         }
+
+        summons.stream()
+                .filter(entity -> !entity.isDead())
+                .forEach(entity -> entity.remove());
         cancel();
+    }
+
+    private void removeBossBar() {
+        if (bossBar != null)
+            bossBar.removeAll();
+
+        NamespacedKey key = new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class),
+                "boss" + boss.getUniqueId());
+        if (Bukkit.getBossBar(key) != null)
+            Bukkit.removeBossBar(key);
     }
 
     // Method for giant health bar

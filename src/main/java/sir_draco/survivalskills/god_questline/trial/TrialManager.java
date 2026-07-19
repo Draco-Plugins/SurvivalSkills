@@ -201,7 +201,21 @@ public final class TrialManager {
     }
 
     public static void handleTrials() {
-        TrialDataPersistence.getInstance().saveAllAndShutdown(TrialRegistry.getInstance());
+        TrialRegistry registry = TrialRegistry.getInstance();
+        try {
+            TrialDataPersistence.getInstance().saveAllAndShutdown(registry);
+        } finally {
+            try {
+                TrialUpgradeManager.saveAndClear();
+            } finally {
+                TrialEventListener.clearRuntimeState();
+                TrialGUI.clearAll();
+                TrialRewardManager.getInstance().clearAll();
+                TrialSpectatorManager.getInstance().clearAll();
+                ProtectedAreaManager.getInstance().clearAll();
+                registry.clearAll();
+            }
+        }
     }
 
     public static void registerTrialBuilding(UUID userId, Location location) {

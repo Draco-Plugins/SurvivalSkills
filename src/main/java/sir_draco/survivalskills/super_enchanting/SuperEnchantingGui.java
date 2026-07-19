@@ -242,10 +242,11 @@ public final class SuperEnchantingGui implements Listener {
         lore.add("");
 
         Optional<UpgradeCost> costOptional = SuperEnchantingRules.getUpgradeCost(baseMaximum, currentLevel);
-        if (currentLevel < baseMaximum) {
-            lore.add(ChatColor.YELLOW + "Reach vanilla level " + baseMaximum + " first.");
-        } else if (costOptional.isEmpty()) {
-            lore.add(ChatColor.GREEN + "Maximum level reached");
+        if (costOptional.isEmpty()) {
+            if (currentLevel < baseMaximum)
+                lore.add(ChatColor.YELLOW + "Reach vanilla level " + baseMaximum + " first.");
+            else
+                lore.add(ChatColor.GREEN + "Maximum level reached");
         } else {
             UpgradeCost cost = costOptional.get();
             lore.add(ChatColor.GOLD + "Upgrade to level " + (currentLevel + 1));

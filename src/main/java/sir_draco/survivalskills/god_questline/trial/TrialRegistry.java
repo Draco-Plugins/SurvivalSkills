@@ -6,9 +6,12 @@ import org.bukkit.inventory.Inventory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Owns the activeTrial collection of active {@link Trial}s and the pending trials, and maintains
@@ -23,8 +26,8 @@ public class TrialRegistry {
     private final List<Trial> trials = new ArrayList<>();
     private final Map<Player, Trial> playerTrialIndex = new HashMap<>();
     private final Map<Player, PendingTrial> pendingTrials = new HashMap<>();
-    private final Map<Player, ArrayList<Integer>> playerGamemodesBeaten = new HashMap<>();
-    private final List<Inventory> trialSelectionInventories = new ArrayList<>();
+    private final Map<UUID, ArrayList<Integer>> playerGamemodesBeaten = new HashMap<>();
+    private final Set<Inventory> trialSelectionInventories = new HashSet<>();
 
     private TrialRegistry() {
     }
@@ -72,7 +75,11 @@ public class TrialRegistry {
     // --- Pending trials ---------------------------------------------------
 
     public void putPendingTrial(Player master, PendingTrial trial) {
-        pendingTrials.put(master, trial);
+        PendingTrial previousTrial = pendingTrials.put(master, trial);
+        if (previousTrial == null || previousTrial == trial)
+            return;
+        previousTrial.endPendingTrial();
+        previousTrial.dispose();
     }
 
     public PendingTrial getPendingTrial(Player master) {
@@ -84,7 +91,9 @@ public class TrialRegistry {
     }
 
     public void removePendingTrial(Player master) {
-        pendingTrials.remove(master);
+        PendingTrial pendingTrial = pendingTrials.remove(master);
+        if (pendingTrial != null)
+            pendingTrial.dispose();
     }
 
     public Map<Player, PendingTrial> getPendingTrials() {
@@ -94,25 +103,41 @@ public class TrialRegistry {
     // --- Completed gamemodes ---------------------------------------------
 
     public void addCompletedGamemode(Player player, int difficulty) {
-        ArrayList<Integer> modes = playerGamemodesBeaten.computeIfAbsent(player, k -> new ArrayList<>());
+        ArrayList<Integer> modes = playerGamemodesBeaten.computeIfAbsent(
+                player.getUniqueId(), (UUID key) -> new ArrayList<>());
         if (!modes.contains(difficulty))
             modes.add(difficulty);
     }
 
     public ArrayList<Integer> getCompletedGamemodes(Player player) {
-        return playerGamemodesBeaten.get(player);
+        return playerGamemodesBeaten.get(player.getUniqueId());
     }
 
     public boolean hasCompletedGamemodes(Player player) {
-        return playerGamemodesBeaten.containsKey(player);
+        return playerGamemodesBeaten.containsKey(player.getUniqueId());
     }
 
-    public Map<Player, ArrayList<Integer>> getPlayerGamemodesBeaten() {
+    public Map<UUID, ArrayList<Integer>> getPlayerGamemodesBeaten() {
         return Collections.unmodifiableMap(playerGamemodesBeaten);
     }
 
     public void setCompletedGamemodes(Player player, ArrayList<Integer> gamemodes) {
-        playerGamemodesBeaten.put(player, gamemodes);
+        playerGamemodesBeaten.put(player.getUniqueId(), gamemodes);
+    }
+
+    /** Removes all trial-owned references to a player who is leaving the server. */
+    public void cleanupPlayer(Player player) {
+        playerTrialIndex.remove(player);
+        playerGamemodesBeaten.remove(player.getUniqueId());
+
+        PendingTrial ownedTrial = pendingTrials.remove(player);
+        if (ownedTrial != null) {
+            ownedTrial.endPendingTrial();
+            ownedTrial.dispose();
+        }
+
+        pendingTrials.values().forEach(
+                (PendingTrial pendingTrial) -> pendingTrial.removeDisconnectedPlayer(player));
     }
 
     // --- Trial selection inventories ------------------------------------
@@ -127,5 +152,15 @@ public class TrialRegistry {
 
     public boolean isTrialSelectionInventory(Inventory inv) {
         return trialSelectionInventories.contains(inv);
+    }
+
+    /** Clears all session-only state after it has been persisted during plugin shutdown. */
+    public void clearAll() {
+        pendingTrials.values().forEach((PendingTrial pendingTrial) -> pendingTrial.dispose());
+        pendingTrials.clear();
+        playerTrialIndex.clear();
+        playerGamemodesBeaten.clear();
+        trialSelectionInventories.clear();
+        trials.clear();
     }
 }

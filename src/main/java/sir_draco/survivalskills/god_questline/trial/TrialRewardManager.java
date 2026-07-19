@@ -20,8 +20,9 @@ import sir_draco.survivalskills.SurvivalSkills;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Builds and owns the per-stage trial reward loot tables, and handles the reward GUI. Reward
@@ -36,7 +37,7 @@ public class TrialRewardManager {
     private static final TrialRewardManager INSTANCE = new TrialRewardManager();
 
     private final Map<Integer, TrialLootTable> lootTables = new HashMap<>();
-    private final List<Inventory> rewardInventories = new ArrayList<>();
+    private final Set<Inventory> rewardInventories = new HashSet<>();
     private final NamespacedKey trialObjectKey =
             new NamespacedKey(SurvivalSkills.getInstance(), "trialobject");
 
@@ -167,9 +168,16 @@ public class TrialRewardManager {
     }
 
     public void handleRewardClose(InventoryCloseEvent e) {
-        if (!rewardInventories.contains(e.getInventory()))
-            return;
-        rewardInventories.remove(e.getInventory());
+        removeInventory(e.getInventory());
     }
 
+    public void removeInventory(Inventory inventory) {
+        rewardInventories.remove(inventory);
     }
+
+    public void clearAll() {
+        rewardInventories.clear();
+        lootTables.clear();
+    }
+
+}

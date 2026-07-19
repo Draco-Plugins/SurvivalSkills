@@ -140,7 +140,7 @@ public class GodTrialCommand implements CommandExecutor {
         Trial trial = trialOpt.get();
         if (!isTrialMaster(trial, p, "end")) return true;
 
-        trial.endTrial();
+        trial.endTrialAndTeleportPlayers();
         notifyAllTrialPlayers(trial, p, "Trial ended");
         return true;
     }
@@ -228,7 +228,7 @@ public class GodTrialCommand implements CommandExecutor {
             return true;
         }
 
-        trialOpt.get().endTrial();
+        trialOpt.get().endTrialAndTeleportPlayers();
         target.sendRawMessage(ChatColor.GREEN + "Your trial has been ended by: " + p.getName());
         sendSuccess(p, "Ended trial for " + target.getName());
         return true;

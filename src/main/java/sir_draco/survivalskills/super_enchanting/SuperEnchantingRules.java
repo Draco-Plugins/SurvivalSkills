@@ -4,6 +4,7 @@ import java.util.Optional;
 
 public final class SuperEnchantingRules {
 
+    private static final UpgradeCost VANILLA_UPGRADE = new UpgradeCost(1, 20);
     private static final UpgradeCost FIRST_UPGRADE = new UpgradeCost(1, 30);
     private static final UpgradeCost SECOND_UPGRADE = new UpgradeCost(5, 50);
     private static final UpgradeCost THIRD_UPGRADE = new UpgradeCost(20, 100);
@@ -21,8 +22,10 @@ public final class SuperEnchantingRules {
     }
 
     public static Optional<UpgradeCost> getUpgradeCost(int baseMaximumLevel, int currentLevel) {
-        if (currentLevel < baseMaximumLevel || currentLevel >= getMaximumLevel(baseMaximumLevel))
+        if (currentLevel < 1 || currentLevel >= getMaximumLevel(baseMaximumLevel))
             return Optional.empty();
+        if (currentLevel < baseMaximumLevel)
+            return Optional.of(VANILLA_UPGRADE);
 
         return switch (currentLevel - baseMaximumLevel + 1) {
             case 1 -> Optional.of(FIRST_UPGRADE);

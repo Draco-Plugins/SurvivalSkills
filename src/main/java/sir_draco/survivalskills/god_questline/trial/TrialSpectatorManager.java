@@ -5,7 +5,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -38,10 +40,11 @@ public class TrialSpectatorManager {
 
     /**
      * Removes the spectator, returning the location they should be teleported back to. Clears
-     * both the origin and target entries atomically.
+     * the origin, target, and spectator scoreboard entries atomically.
      */
     public Optional<Location> removeSpectator(Player spectator) {
         spectatorTargets.remove(spectator);
+        spectatorScoreboards.remove(spectator);
         Location origin = spectatingPlayers.remove(spectator);
         return Optional.ofNullable(origin);
     }
@@ -56,6 +59,20 @@ public class TrialSpectatorManager {
 
     public Player getSpectatorTarget(Player player) {
         return spectatorTargets.get(player);
+    }
+
+    /** Removes a player as a spectator, target, and scoreboard owner. */
+    public void removePlayer(Player player) {
+        removeSpectator(player);
+
+        List<Player> orphanedSpectators = spectatorTargets.entrySet().stream()
+                .filter(entry -> Objects.equals(entry.getValue(), player))
+                .map((Map.Entry<Player, Player> entry) -> entry.getKey())
+                .toList();
+        orphanedSpectators.forEach((Player spectator) -> removeSpectator(spectator));
+
+        trialScoreboards.remove(player);
+        spectatorScoreboards.remove(player);
     }
 
     // --- Trial scoreboards ----------------------------------------------
@@ -84,5 +101,12 @@ public class TrialSpectatorManager {
 
     public void removeSpectatorScoreboard(Player player) {
         spectatorScoreboards.remove(player);
+    }
+
+    public void clearAll() {
+        spectatingPlayers.clear();
+        spectatorTargets.clear();
+        trialScoreboards.clear();
+        spectatorScoreboards.clear();
     }
 }

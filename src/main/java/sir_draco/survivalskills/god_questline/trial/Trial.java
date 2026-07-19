@@ -6,6 +6,7 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mob;
 import org.bukkit.entity.Phantom;
@@ -474,10 +475,8 @@ public class Trial extends BukkitRunnable {
         if (wave == null)
             return;
 
-        if (wave.isBossWave()) {
+        if (wave.isBossWave() && wave.getBoss() != null)
             wave.getBoss().death();
-            return;
-        }
 
         List<WaveMob> waveMobs = wave.getWaveMobs();
         if (!waveMobs.isEmpty())
@@ -582,6 +581,14 @@ public class Trial extends BukkitRunnable {
         }
     }
 
+    public void endTrialAndTeleportPlayers() {
+        endTrial();
+        for (Player player : players) {
+            if (player.isOnline())
+                teleportOutOfTrial(player);
+        }
+    }
+
     public void deleteTrial() {
         removeAllSpectators();
         state = TrialState.COMPLETED;
@@ -642,6 +649,7 @@ public class Trial extends BukkitRunnable {
             p.getInventory().clear();
             TrialManager.removeTrialScoreboard(p);
             SkillScoreboard.updateScoreboard(p);
+            teleportOutOfTrial(p);
         }
 
         int timeBonus = (TIME_BONUS_BASE * difficulty) - timeSpent;
@@ -665,6 +673,7 @@ public class Trial extends BukkitRunnable {
         for (Player p : players) {
             TrialManager.addCompletedGamemode(p, trueDifficulty);
             awardTrialFragments(p);
+            awardHardTrialMendingBook(p);
 
             int finalScore = score / Math.max(1, playerCount);
             boolean newHighScore;
@@ -679,14 +688,34 @@ public class Trial extends BukkitRunnable {
         }
     }
 
+    private void teleportOutOfTrial(Player player) {
+        Location respawnLocation = player.getRespawnLocation();
+        Location exitLocation = respawnLocation != null
+                ? respawnLocation
+                : player.getWorld().getSpawnLocation();
+        player.teleport(exitLocation);
+    }
+
     private void awardTrialFragments(Player player) {
         int fragmentAmount = SuperEnchantingRules.getTrialFragmentReward(difficulty);
         ItemStack fragments = SuperEnchantingItems.createTrialFragment(
                 SurvivalSkills.getInstance(), fragmentAmount);
-        Map<Integer, ItemStack> leftovers = player.getInventory().addItem(fragments);
-        leftovers.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item));
+        giveOrDropItem(player, fragments);
         player.sendMessage(ChatColor.LIGHT_PURPLE + "You earned " + fragmentAmount + " trial fragment"
                 + (fragmentAmount == 1 ? "!" : "s!"));
+    }
+
+    private void awardHardTrialMendingBook(Player player) {
+        if (difficulty != WaveGenerator.HARD)
+            return;
+
+        giveOrDropItem(player, WaveGenerator.getEBook(Enchantment.MENDING));
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "You earned a Mending enchanted book!");
+    }
+
+    private void giveOrDropItem(Player player, ItemStack item) {
+        Map<Integer, ItemStack> leftovers = player.getInventory().addItem(item);
+        leftovers.values().forEach(leftover -> player.getWorld().dropItemNaturally(player.getLocation(), leftover));
     }
 
     private boolean updateLeaderboardIfBetter(Player player, SkillCategory category, int finalScore) {
@@ -797,6 +826,19 @@ public class Trial extends BukkitRunnable {
         for (ArrayList<UUID> spectatorList : spectators.values())
             if (spectatorList.remove(playerId))
                 return;
+    }
+
+    /** Restores and removes every spectator following a participant who disconnects. */
+    public void removeSpectatorsForTarget(Player target) {
+        ArrayList<UUID> spectatorIds = spectators.remove(target.getUniqueId());
+        if (spectatorIds == null)
+            return;
+
+        for (UUID spectatorId : spectatorIds) {
+            Player spectator = Bukkit.getPlayer(spectatorId);
+            if (spectator != null)
+                TrialUtils.removeTrialSpectator(spectator, target);
+        }
     }
 
     // --- Getters and Setters ---

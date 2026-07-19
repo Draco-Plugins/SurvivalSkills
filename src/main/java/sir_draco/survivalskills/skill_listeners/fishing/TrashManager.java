@@ -74,6 +74,8 @@ public class TrashManager {
         Player p = (Player) e.getPlayer();
         if (!openTrashInventories.contains(p))
             return;
+        if (resolveTrashForPlayer(p, e.getInventory(), e.getInventory()) == null)
+            return;
         openTrashInventories.remove(p);
     }
 

@@ -124,6 +124,7 @@ public class ExploringSkill implements Listener {
         }
         stepCounter.remove(uuid);
         locationTracker.remove(uuid);
+        cancelSwimTask(uuid);
     }
 
     @EventHandler
@@ -241,8 +242,20 @@ public class ExploringSkill implements Listener {
         swimTasks.put(uuid, new BukkitRunnable() {
             @Override
             public void run() {
-                double speed = plugin.getSkillManager().getPlayerRewards(p).getSwimSpeed();
-                if (!p.isSwimming() || !p.isOnline() || speed == 0) {
+                if (!p.isOnline() || !p.isSwimming()) {
+                    cancel();
+                    swimTasks.remove(uuid);
+                    return;
+                }
+
+                PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+                if (rewards == null) {
+                    cancel();
+                    swimTasks.remove(uuid);
+                    return;
+                }
+                double speed = rewards.getSwimSpeed();
+                if (speed == 0) {
                     cancel();
                     swimTasks.remove(uuid);
                     return;
@@ -255,5 +268,12 @@ public class ExploringSkill implements Listener {
                 p.setVelocity(p.getLocation().getDirection().multiply(speed * multiplier));
             }
         }.runTaskTimer(plugin, 0, SWIM_SPEED_TASK_INTERVAL));
+    }
+
+    private void cancelSwimTask(UUID uuid) {
+        BukkitTask task = swimTasks.remove(uuid);
+        if (task != null) {
+            task.cancel();
+        }
     }
 }

@@ -26,6 +26,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.abilities.DeathLocationTimer;
 import sir_draco.survivalskills.abilities.Grave;
+import sir_draco.survivalskills.god_questline.trial.TrialManager;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.utils.items.ItemModelData;
@@ -62,6 +63,9 @@ public class MainSkill implements Listener {
     @EventHandler (priority = EventPriority.LOWEST)
     public void onPlayerDeath(PlayerDeathEvent e) {
         Player p = e.getEntity();
+        if (TrialManager.isInTrial(p))
+            return;
+
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
 
         trackDeathLocation(p);

@@ -66,6 +66,7 @@ public class TrialUpgradeManager implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         UUID playerId = event.getPlayer().getUniqueId();
+        TrialGUI.removePlayer(playerId);
         PlayerTrialUpgrades upgrades = playerUpgrades.get(playerId);
         if (upgrades != null) {
             upgrades.saveToFile();
@@ -108,5 +109,10 @@ public class TrialUpgradeManager implements Listener {
         PlayerTrialUpgrades upgrades = loadPlayer(player);
         upgrades.resetPoints();
         upgrades.saveToFile();
+    }
+
+    public static void saveAndClear() {
+        playerUpgrades.values().forEach((PlayerTrialUpgrades upgrades) -> upgrades.saveToFile());
+        playerUpgrades.clear();
     }
 }

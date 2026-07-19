@@ -122,6 +122,23 @@ public class PendingTrial {
         updatePlayerManager();
     }
 
+    /** Removes an offline player without reopening the party manager during a quit event. */
+    public void removeDisconnectedPlayer(Player player) {
+        players.remove(player);
+        blockedPlayers.remove(player);
+    }
+
+    /** Releases the inventory and player references owned by this pending trial. */
+    public void dispose() {
+        if (playerManager != null) {
+            TrialManager.unregisterTrialSelectionInventory(playerManager);
+            playerManager.clear();
+            playerManager = null;
+        }
+        players.clear();
+        blockedPlayers.clear();
+    }
+
     public Player getTrialMaster() {
         return trialMaster;
     }

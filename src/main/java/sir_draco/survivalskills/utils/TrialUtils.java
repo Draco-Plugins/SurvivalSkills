@@ -202,24 +202,28 @@ public class TrialUtils {
 
     // --- Completed trial persistence ---
 
-    public static void saveCompletedTrials(Player p, FileConfiguration data, boolean disabling) {
+    public static void saveCompletedTrials(UUID playerId, List<Integer> completedTrials,
+                                           FileConfiguration data, boolean disabling) {
+        List<Integer> completedTrialSnapshot = List.copyOf(completedTrials);
+        if (completedTrialSnapshot.isEmpty())
+            return;
+
         if (disabling) {
-            saveCompletedTrialsSync(p, data);
+            saveCompletedTrialsSync(playerId, completedTrialSnapshot, data);
             return;
         }
         new BukkitRunnable() {
             @Override
             public void run() {
-                saveCompletedTrialsSync(p, data);
+                saveCompletedTrialsSync(playerId, completedTrialSnapshot, data);
             }
         }.runTaskAsynchronously(SurvivalSkills.getInstance());
     }
 
-    private static void saveCompletedTrialsSync(Player p, FileConfiguration data) {
-        ArrayList<Integer> completedTrials = TrialManager.getCompletedGamemodes(p);
-        if (completedTrials == null || completedTrials.isEmpty()) return;
-        data.set(p.getUniqueId() + ".CompletedTrials", completedTrials);
-        saveConfig(data, TRIAL_DATA_FILE, "Failed to save completed trials for " + p.getName());
+    private static void saveCompletedTrialsSync(UUID playerId, List<Integer> completedTrials,
+                                                FileConfiguration data) {
+        data.set(playerId + ".CompletedTrials", completedTrials);
+        saveConfig(data, TRIAL_DATA_FILE, "Failed to save completed trials for " + playerId);
     }
 
     public static boolean isTrialItem(Item item) {
@@ -470,7 +474,7 @@ public class TrialUtils {
         Inventory inv = Bukkit.createInventory(null, 9, "Party Selection");
         ItemStack solo = createMenuItem(Material.DIAMOND_SWORD, ChatColor.GREEN + "Solo");
         if (solo == null) return;
-        ItemStack coop = createMenuItem(Material.PLAYER_HEAD, ChatColor.GREEN + "Co-op");
+        ItemStack coop = createMenuItem(Material.PLAYER_HEAD, TrialSelectionClassifier.COOP_OPTION_NAME);
         if (coop == null) return;
         ItemStack filler = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
 
@@ -541,14 +545,14 @@ public class TrialUtils {
         String name = item.getItemMeta().getDisplayName();
         Material type = item.getType();
 
-        if (type == Material.PLAYER_HEAD) {
+        if (TrialSelectionClassifier.isPartyMemberSelection(type, name)) {
             handlePartyMemberClick(inv, p, item, name);
             return;
         }
 
         if (name.equals(ChatColor.GREEN + "Solo")) {
             startSoloTrial(p);
-        } else if (name.equals(ChatColor.GREEN + "Co-op")) {
+        } else if (name.equals(TrialSelectionClassifier.COOP_OPTION_NAME)) {
             openPartyTypeSelection(p);
         } else if (name.equals(ChatColor.GREEN + "New")) {
             startNewCoopTrial(p);

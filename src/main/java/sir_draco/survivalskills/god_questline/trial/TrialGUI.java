@@ -15,6 +15,7 @@ import java.util.*;
 
 public final class TrialGUI {
 
+    private static final int POINTS_DISPLAY_SLOT = 4;
     private static final Map<UUID, Inventory> playerInventories = new HashMap<>();
     private static final Map<Inventory, Map<Integer, String>> upgradeSlotMappings = new HashMap<>();
 
@@ -30,7 +31,7 @@ public final class TrialGUI {
         }
 
         for (int i = 0; i < 9; i++) {
-            if (i == 4) {
+            if (i == POINTS_DISPLAY_SLOT) {
                 continue;
             }
             inv.setItem(i, border);
@@ -43,7 +44,9 @@ public final class TrialGUI {
             inv.setItem(i + 8, border);
         }
 
-        playerInventories.put(player.getUniqueId(), inv);
+        Inventory previousInventory = playerInventories.put(player.getUniqueId(), inv);
+        if (previousInventory != null)
+            upgradeSlotMappings.remove(previousInventory);
         player.openInventory(inv);
         populateUpgradeInventory(inv, player);
     }
@@ -80,15 +83,7 @@ public final class TrialGUI {
         PlayerTrialUpgrades playerUpgrades = TrialUpgradeManager.getPlayerUpgrades(player);
         Map<String, TrialTree.TrialUpgrade> allUpgrades = TrialTree.getAllUpgrades();
 
-        // Update points display
-        ItemStack pointsDisplay = inv.getItem(4);
-        if (pointsDisplay != null) {
-            ItemMeta meta = pointsDisplay.getItemMeta();
-            if (meta != null) {
-                meta.setDisplayName(ChatColor.GOLD + "Trial Points: " + playerUpgrades.getAvailablePoints());
-                pointsDisplay.setItemMeta(meta);
-            }
-        }
+        inv.setItem(POINTS_DISPLAY_SLOT, createPointsDisplay(playerUpgrades.getAvailablePoints()));
 
         // Build fresh slot -> upgradeId mapping for this inventory
         Map<Integer, String> slotMapping = new HashMap<>();
@@ -118,6 +113,18 @@ public final class TrialGUI {
             inv.setItem(upgradeSlots[slotIndex], createLockedSlotItem());
             slotIndex++;
         }
+    }
+
+    private static ItemStack createPointsDisplay(int availablePoints) {
+        ItemStack item = new ItemStack(Material.NETHER_STAR);
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) {
+            return item;
+        }
+        meta.setDisplayName(ChatColor.GOLD + "Trial Points: " + ChatColor.YELLOW + availablePoints);
+        meta.setLore(List.of(ChatColor.GRAY + "Available to spend on upgrades"));
+        item.setItemMeta(meta);
+        return item;
     }
 
     private static ItemStack createLockedSlotItem() {
