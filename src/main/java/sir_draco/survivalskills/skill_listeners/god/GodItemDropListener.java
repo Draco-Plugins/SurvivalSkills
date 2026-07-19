@@ -32,10 +32,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public class GodItemDropListener implements Listener {
 
     // Drop chances
-    private static final double DRAGON_DROP_CHANCE = 0.1;
-    private static final double CREEPER_CHARGED_DROP_CHANCE = 0.01;
-    private static final double CREEPER_DROP_CHANCE = 0.001;
-    private static final double BREEZE_DROP_CHANCE = 0.01;
+    private static final double BOSS_DROP_CHANCE = 0.1;
+    private static final double SPECIAL_DROP_CHANCE = 0.01;
     private static final double GENERIC_DROP_CHANCE = 0.001;
 
     // Tipped arrow effect
@@ -60,17 +58,28 @@ public class GodItemDropListener implements Listener {
         double chance = Math.random();
 
         // Special cases
-        if (EntityType.ENDER_DRAGON.equals(type) && chance <= DRAGON_DROP_CHANCE) {
+        if (EntityType.ENDER_DRAGON.equals(type) && chance <= BOSS_DROP_CHANCE) {
             dropItemNaturally(e, type);
         } else if (EntityType.CREEPER.equals(type)) {
             Creeper creeper = (Creeper) e.getEntity();
-            if (creeper.isPowered() && chance <= CREEPER_CHARGED_DROP_CHANCE) {
-                addToDrops(e, type);
-            } else if (chance <= CREEPER_DROP_CHANCE) {
+            if (creeper.isPowered() && chance <= SPECIAL_DROP_CHANCE) {
+                addToDrops(e, ItemStackGenerator.getChargedCreeperEssence());
+            } else if (chance <= GENERIC_DROP_CHANCE) {
                 addToDrops(e, type);
             }
-        } else if (EntityType.BREEZE.equals(type) && chance <= BREEZE_DROP_CHANCE) {
+            return;
+        } else if (EntityType.BREEZE.equals(type) && chance <= SPECIAL_DROP_CHANCE) {
             addToDrops(e, type);
+        } else if (EntityType.WITHER.equals(type)) {
+            if (chance <= SPECIAL_DROP_CHANCE) {
+                addToDrops(e, type);
+            }
+            return;
+        } else if (EntityType.ELDER_GUARDIAN.equals(type)) {
+            if (chance <= BOSS_DROP_CHANCE) {
+                addToDrops(e, type);
+            }
+            return;
         }
 
         // Rest of the mobs
@@ -108,7 +117,11 @@ public class GodItemDropListener implements Listener {
     }
 
     private void addToDrops(EntityDeathEvent e, EntityType type) {
-        e.getDrops().add(godItems.get(type));
+        addToDrops(e, godItems.get(type));
+    }
+
+    private void addToDrops(EntityDeathEvent e, ItemStack item) {
+        e.getDrops().add(item);
         playGuitarSound(e);
     }
 
@@ -132,9 +145,13 @@ public class GodItemDropListener implements Listener {
         godItems.put(EntityType.DROWNED, ItemStackGenerator.getTridentLauncher());
         godItems.put(EntityType.BREEZE, ItemStackGenerator.getMagicBagOfWind());
         godItems.put(EntityType.STRAY, ItemStackGenerator.getSnowballCannon());
+        godItems.put(EntityType.BLAZE, ItemStackGenerator.getFireballCannon());
         godItems.put(EntityType.ENDER_DRAGON, ItemStackGenerator.getDragonBreathCannon());
         godItems.put(EntityType.GUARDIAN, ItemStackGenerator.getUnlimitedSponge());
         godItems.put(EntityType.WITHER_SKELETON, ItemStackGenerator.getUnlimitedWitherRose());
+        godItems.put(EntityType.WITHER, ItemStackGenerator.getWitherSkullCannon());
+        godItems.put(EntityType.RAVAGER, ItemStackGenerator.getRavagerDash());
+        godItems.put(EntityType.ELDER_GUARDIAN, ItemStackGenerator.getBiomeFinder());
     }
 
     private void createPotionList() {

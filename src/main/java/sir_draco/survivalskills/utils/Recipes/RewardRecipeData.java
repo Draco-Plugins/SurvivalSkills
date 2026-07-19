@@ -124,6 +124,9 @@ public final class RewardRecipeData {
 
             new SmallShapedSpec("giantboss", ItemStackGenerator.getGiantSummoner(), "AAA:ABA:AAA",
                     null, null, null, Material.ROTTEN_FLESH, Material.EGG, null),
+            new SmallShapedSpec("elderguardianspawnegg", ItemStackGenerator.getElderGuardianSpawnEgg(),
+                    "ABA:BCB:ABA", null, null, null, Material.PRISMARINE_BRICKS,
+                    Material.SPONGE, Material.EGG),
             new SmallShapedSpec("broodmotherboss", ItemStackGenerator.getBroodMotherSummoner(),
                     "AAA:CBC:AAA", null, null, null, Material.STRING, Material.EGG,
                     Material.SPIDER_EYE),

@@ -306,6 +306,13 @@ public class RewardData {
                 GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),
                 GRAY + "Craftable Item");
 
+        staticEntry(m, "ElderGuardianSpawnEgg", lines(
+                NEW_ITEM + "You can now craft an Elder Guardian Spawn Egg",
+                GRAY + "It can only be used underwater inside an Ocean Monument",
+                GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),
+                GRAY + "Craftable Item\n" + GRAY
+                        + "Can only be used underwater inside an Ocean Monument");
+
         staticEntry(m, "BroodMotherSummon", lines(
                 NEW_ITEM + "You can now craft a Brood Mother Boss Summoning item",
                 GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),

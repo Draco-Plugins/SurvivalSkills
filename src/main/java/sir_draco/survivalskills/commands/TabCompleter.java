@@ -158,11 +158,18 @@ public class TabCompleter implements Listener {
         words.add("powerchestplate");
         words.add("powerhelmet");
         words.add("powerleggings");
+        words.add("powerarmor");
         words.add("pipewrench");
         words.add("transferpipe");
         words.add("trialfragment");
         words.add("superenchantingtable");
         words.add("builderwand");
+        words.add("chargedcreeperessence");
+        words.add("ravagerdash");
+        words.add("biomefinder");
+        words.add("elderguardianspawnegg");
+        words.add("witherskullcannon");
+        words.add("fireballcannon");
         e.setCompletions(getCompletions(buffer, words));
     }
 

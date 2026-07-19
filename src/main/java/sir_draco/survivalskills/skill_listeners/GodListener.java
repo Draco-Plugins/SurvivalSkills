@@ -13,6 +13,7 @@ import sir_draco.survivalskills.god_questline.GodRecipeUI;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.skill_listeners.god.GodItemDropListener;
 import sir_draco.survivalskills.skill_listeners.god.GodItemUseHandler;
+import sir_draco.survivalskills.skill_listeners.god.BiomeFinderListener;
 import sir_draco.survivalskills.skill_listeners.god.PotionBagListener;
 import sir_draco.survivalskills.skill_listeners.god.PowerOreChallengeListener;
 import sir_draco.survivalskills.skill_listeners.god.TeleportAnchorListener;
@@ -32,10 +33,11 @@ import java.util.UUID;
 public class GodListener implements Listener {
 
     private final PotionBagListener potionBagListener = new PotionBagListener();
+    private final BiomeFinderListener biomeFinderListener = new BiomeFinderListener();
     private final GodItemDropListener godItemDropListener = new GodItemDropListener();
     private final TeleportAnchorListener teleportAnchorListener = new TeleportAnchorListener();
     private final PowerOreChallengeListener powerOreChallengeListener = new PowerOreChallengeListener();
-    private final GodItemUseHandler godItemUseHandler = new GodItemUseHandler(potionBagListener);
+    private final GodItemUseHandler godItemUseHandler = new GodItemUseHandler(potionBagListener, biomeFinderListener);
 
     private final Map<Player, GodRecipeUI> openGodRecipeUI = new HashMap<>();
 
@@ -46,6 +48,7 @@ public class GodListener implements Listener {
     public void register(Plugin plugin) {
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
         plugin.getServer().getPluginManager().registerEvents(potionBagListener, plugin);
+        plugin.getServer().getPluginManager().registerEvents(biomeFinderListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(godItemDropListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(teleportAnchorListener, plugin);
         plugin.getServer().getPluginManager().registerEvents(powerOreChallengeListener, plugin);

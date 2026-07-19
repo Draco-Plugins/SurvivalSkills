@@ -384,6 +384,10 @@ Fighting:
         Enabled: true
         Level: 15
         Type: "State"
+    ElderGuardianSpawnEgg:
+        Enabled: true
+        Level: 18
+        Type: "Crafting"
     BerserkerII:
         Enabled: true
         Level: 20

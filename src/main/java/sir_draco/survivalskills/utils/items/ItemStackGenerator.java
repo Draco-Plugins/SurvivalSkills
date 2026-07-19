@@ -511,6 +511,16 @@ public class ItemStackGenerator {
                 .build();
     }
 
+    public static ItemStack getElderGuardianSpawnEgg() {
+        return new ItemStackBuilder(Material.ELDER_GUARDIAN_SPAWN_EGG, 1,
+                ColorParser.gradientName("Elder Guardian Spawn Egg", "#00FFFF", "#003F5F", true))
+                .lore(List.of(
+                        ChatColor.GRAY + "Summons an Elder Guardian",
+                        ChatColor.AQUA + "Can only be used underwater inside an Ocean Monument"))
+                .modelData(ItemModelData.ELDER_GUARDIAN_SPAWN_EGG.getId())
+                .build();
+    }
+
     // Fishing Exotics
 
     public static ItemStack getUnlimitedWaterBucket() {
@@ -676,6 +686,41 @@ public class ItemStackGenerator {
                 .build();
     }
 
+    public static ItemStack getChargedCreeperEssence() {
+        return new ItemStackBuilder(Material.GUNPOWDER, 1,
+                ColorParser.gradientName("Charged Creeper Essence", "#199D00", "#55FFFF", true))
+                .lore(List.of(
+                        ChatColor.GRAY + "Right click to create a large explosion",
+                        "",
+                        "~Charged Creeper Exotic~"))
+                .modelData(ItemModelData.CHARGED_CREEPER_ESSENCE.getId())
+                .build();
+    }
+
+    public static ItemStack getRavagerDash() {
+        return new ItemStackBuilder(Material.SADDLE, 1,
+                ColorParser.gradientName("RavagerDash", "#7A4B32", "#A6A6A6", true))
+                .lore(List.of(
+                        ChatColor.GRAY + "Right click to charge forward",
+                        ChatColor.GRAY + "Deals 8 damage to mobs in your path",
+                        "",
+                        "~Ravager Exotic~"))
+                .modelData(ItemModelData.RAVAGER_DASH.getId())
+                .build();
+    }
+
+    public static ItemStack getBiomeFinder() {
+        return new ItemStackBuilder(Material.RECOVERY_COMPASS, 1,
+                ColorParser.gradientName("Biome Finder", "#D7FF8A", "#3C7A3A", true))
+                .lore(List.of(
+                        ChatColor.GRAY + "Right click to select a biome",
+                        ChatColor.GRAY + "Reveals the closest matching coordinates",
+                        "",
+                        "~Elder Guardian Exotic~"))
+                .modelData(ItemModelData.BIOME_FINDER.getId())
+                .build();
+    }
+
     public static ItemStack getPotionBag(int id) {
         ItemStack item = new ItemStackBuilder(Material.CHEST, 1,
                 ColorParser.gradientName("Potion Bag", "#FFFFFF", "#000000", true))
@@ -720,6 +765,17 @@ public class ItemStackGenerator {
                 .build();
     }
 
+    public static ItemStack getFireballCannon() {
+        return new ItemStackBuilder(Material.FIRE_CHARGE, 1,
+                ColorParser.gradientName("Fireball Cannon", "#FF4500", "#FFD700", true))
+                .lore(List.of(
+                        ChatColor.GRAY + "Right click to shoot infinite fireballs",
+                        "",
+                        "~Blaze Exotic~"))
+                .modelData(ItemModelData.FIREBALL_CANNON.getId())
+                .build();
+    }
+
     public static ItemStack getDragonBreathCannon() {
         return new ItemStackBuilder(Material.DRAGON_BREATH, 1,
                 ColorParser.gradientName("Dragon Breath Cannon", "#5608FB", "#343434", true))
@@ -741,6 +797,17 @@ public class ItemStackGenerator {
                         "",
                         "~Wither Skeleton Exotic~"))
                 .modelData(ItemModelData.UNLIMITED_WITHER_ROSE.getId())
+                .build();
+    }
+
+    public static ItemStack getWitherSkullCannon() {
+        return new ItemStackBuilder(Material.WITHER_SKELETON_SKULL, 1,
+                ColorParser.gradientName("Wither Skull Cannon", "#000000", "#515151", true))
+                .lore(List.of(
+                        ChatColor.GRAY + "Right click to shoot wither skulls",
+                        "",
+                        "~Wither Skeleton Exotic~"))
+                .modelData(ItemModelData.WITHER_SKULL_CANNON.getId())
                 .build();
     }
 

@@ -2,6 +2,8 @@ package sir_draco.survivalskills.skill_listeners;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,6 +18,8 @@ import org.bukkit.event.entity.EntityTransformEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.generator.structure.GeneratedStructure;
+import org.bukkit.generator.structure.Structure;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -36,6 +40,8 @@ import sir_draco.survivalskills.skill_listeners.fighting.CombatMechanicsManager;
 import sir_draco.survivalskills.skill_listeners.fighting.DragonManager;
 import sir_draco.survivalskills.skill_listeners.fighting.MobXPManager;
 import sir_draco.survivalskills.utils.items.ItemStackGenerator;
+import sir_draco.survivalskills.utils.items.ItemModelData;
+import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -128,6 +134,11 @@ public class FightingSkill implements Listener {
     public void onPlayerInteract(PlayerInteractEvent e) {
         Player p = e.getPlayer();
 
+        if (isElderGuardianSpawnEgg(e.getItem())) {
+            handleElderGuardianSpawnEgg(e);
+            return;
+        }
+
         // A boss summoning item may never be used from the offhand.
         if (BossManager.isSummoningBoss(p.getInventory().getItemInOffHand())) {
             e.setCancelled(true);
@@ -164,6 +175,37 @@ public class FightingSkill implements Listener {
             return;
 
         berserkerManager.tryActivate(p);
+    }
+
+    private static boolean isElderGuardianSpawnEgg(ItemStack item) {
+        return item != null
+                && item.getType().equals(Material.ELDER_GUARDIAN_SPAWN_EGG)
+                && ItemStackGeneratorUtils.isCustomItem(item,
+                        ItemModelData.ELDER_GUARDIAN_SPAWN_EGG.getId());
+    }
+
+    private static void handleElderGuardianSpawnEgg(PlayerInteractEvent event) {
+        if (!event.getAction().equals(Action.RIGHT_CLICK_BLOCK) || event.getClickedBlock() == null) {
+            event.setCancelled(true);
+            return;
+        }
+
+        Block spawnBlock = event.getClickedBlock().getRelative(event.getBlockFace());
+        if (!spawnBlock.getType().equals(Material.WATER)) {
+            event.setCancelled(true);
+            event.getPlayer().sendRawMessage(ChatColor.RED
+                    + "The Elder Guardian Spawn Egg must be used in water inside an Ocean Monument");
+            return;
+        }
+
+        boolean insideMonument = spawnBlock.getChunk().getStructures(Structure.MONUMENT).stream()
+                .map((GeneratedStructure generatedStructure) -> generatedStructure.getBoundingBox())
+                .anyMatch(boundingBox -> boundingBox.contains(spawnBlock.getLocation().toVector()));
+        if (!insideMonument) {
+            event.setCancelled(true);
+            event.getPlayer().sendRawMessage(ChatColor.RED
+                    + "The Elder Guardian Spawn Egg can only be used inside an Ocean Monument");
+        }
     }
 
     // =================================================================

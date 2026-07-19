@@ -34,7 +34,8 @@ public class GodItemUseHandler implements Listener {
     private static final int MODEL_WEB_SHOOTER = ItemModelData.WEB_SHOOTER.getId();
     private static final int MODEL_VILLAGER_REVIVAL = ItemModelData.VILLAGER_REVIVAL_ARTIFACT.getId();
     private static final int MODEL_ENDER_ESSENCE = ItemModelData.ENDER_ESSENCE.getId();
-    private static final int MODEL_DRAGON_BREATH_CANNON = ItemModelData.DRAGON_BREATH_CANNON.getId();
+    private static final int MODEL_CREEPER_ESSENCE = ItemModelData.CREEPER_ESSENCE.getId();
+    private static final int MODEL_CHARGED_CREEPER_ESSENCE = ItemModelData.CHARGED_CREEPER_ESSENCE.getId();
     private static final int MODEL_POTION_BAG = ItemModelData.POTION_BAG.getId();
     private static final int MODEL_WIND_CHARGE = ItemModelData.MAGIC_BAG_OF_WIND.getId();
     private static final int MODEL_DRAGON_FIREBALL = ItemModelData.DRAGON_BREATH_CANNON.getId();
@@ -44,6 +45,13 @@ public class GodItemUseHandler implements Listener {
     private static final int MODEL_POWER_SWORD = ItemModelData.POWER_SWORD.getId();
     private static final int MODEL_POWER_LASER = ItemModelData.POWER_LASER.getId();
     private static final int MODEL_SNOWBALL_CANNON = ItemModelData.SNOWBALL_CANNON.getId();
+    private static final int MODEL_RAVAGER_DASH = ItemModelData.RAVAGER_DASH.getId();
+    private static final int MODEL_BIOME_FINDER = ItemModelData.BIOME_FINDER.getId();
+    private static final int MODEL_WITHER_SKULL_CANNON = ItemModelData.WITHER_SKULL_CANNON.getId();
+    private static final int MODEL_FIREBALL_CANNON = ItemModelData.FIREBALL_CANNON.getId();
+
+    private static final float CREEPER_ESSENCE_EXPLOSION_POWER = 5.0f;
+    private static final float CHARGED_CREEPER_ESSENCE_EXPLOSION_POWER = 10.0f;
 
     // Villager revival
     private static final int CONVERSION_TIME_TICKS = 40;
@@ -52,10 +60,13 @@ public class GodItemUseHandler implements Listener {
     private final Map<Integer, GodItemAction> itemActions = new LinkedHashMap<>();
     private final Set<Player> powerLaserCooldowns = new HashSet<>();
 
-    public GodItemUseHandler(PotionBagListener potionBagListener) {
+    public GodItemUseHandler(PotionBagListener potionBagListener, BiomeFinderListener biomeFinderListener) {
         register(MODEL_WEB_SHOOTER, new GodItemActions.WebShooterItemAction());
         register(MODEL_ENDER_ESSENCE, new GodItemActions.EnderEssenceItemAction());
-        register(MODEL_DRAGON_BREATH_CANNON, new GodItemActions.DragonBreathCannonItemAction());
+        register(MODEL_CREEPER_ESSENCE,
+                new GodItemActions.CreeperEssenceItemAction(CREEPER_ESSENCE_EXPLOSION_POWER));
+        register(MODEL_CHARGED_CREEPER_ESSENCE,
+                new GodItemActions.CreeperEssenceItemAction(CHARGED_CREEPER_ESSENCE_EXPLOSION_POWER));
         register(MODEL_POTION_BAG, new GodItemActions.PotionBagItemAction(potionBagListener));
         register(MODEL_WIND_CHARGE, new GodItemActions.WindChargeItemAction());
         register(MODEL_DRAGON_FIREBALL, new GodItemActions.DragonFireballItemAction());
@@ -65,6 +76,10 @@ public class GodItemUseHandler implements Listener {
         register(MODEL_POWER_SWORD, new GodItemActions.PowerSwordItemAction());
         register(MODEL_POWER_LASER, new GodItemActions.PowerLaserItemAction(this));
         register(MODEL_SNOWBALL_CANNON, new GodItemActions.SnowballCannonItemAction());
+        register(MODEL_RAVAGER_DASH, new GodItemActions.RavagerDashItemAction());
+        register(MODEL_BIOME_FINDER, new GodItemActions.BiomeFinderItemAction(biomeFinderListener));
+        register(MODEL_WITHER_SKULL_CANNON, new GodItemActions.WitherSkullCannonItemAction());
+        register(MODEL_FIREBALL_CANNON, new GodItemActions.FireballCannonItemAction());
     }
 
     private void register(int modelData, GodItemAction action) {
@@ -122,7 +137,9 @@ public class GodItemUseHandler implements Listener {
     public void handleGodDamage(EntityDamageEvent e) {
         if (!(e.getEntity() instanceof Player p))
             return;
-        if (!ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), MODEL_DRAGON_BREATH_CANNON))
+        ItemStack mainHand = p.getInventory().getItemInMainHand();
+        if (!ItemStackGeneratorUtils.isCustomItem(mainHand, MODEL_CREEPER_ESSENCE)
+                && !ItemStackGeneratorUtils.isCustomItem(mainHand, MODEL_CHARGED_CREEPER_ESSENCE))
             return;
         if (!EntityDamageEvent.DamageCause.BLOCK_EXPLOSION.equals(e.getCause())
                 && !EntityDamageEvent.DamageCause.ENTITY_EXPLOSION.equals(e.getCause()))

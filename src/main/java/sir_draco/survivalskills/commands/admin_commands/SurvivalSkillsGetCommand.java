@@ -79,6 +79,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
         ITEM_SUPPLIERS.put("unlimitedbonemeal", ItemStackGenerator::getUnlimitedBoneMeal);
         ITEM_SUPPLIERS.put("harvester", ItemStackGenerator::getHarvester);
         ITEM_SUPPLIERS.put("giantsummoner", ItemStackGenerator::getGiantSummoner);
+        ITEM_SUPPLIERS.put("elderguardianspawnegg", ItemStackGenerator::getElderGuardianSpawnEgg);
         ITEM_SUPPLIERS.put("broodmothersummoner", ItemStackGenerator::getBroodMotherSummoner);
         ITEM_SUPPLIERS.put("exiledsummoner", ItemStackGenerator::getVillagerSummoner);
         ITEM_SUPPLIERS.put("dragonhead", ItemStackGenerator::getEnderDragonBossItem);
@@ -100,10 +101,15 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
         ITEM_SUPPLIERS.put("villagerrevivalartifact", ItemStackGenerator::getVillagerRevivalArtifact);
         ITEM_SUPPLIERS.put("enderessence", ItemStackGenerator::getEnderEssence);
         ITEM_SUPPLIERS.put("creeperessence", ItemStackGenerator::getCreeperEssence);
+        ITEM_SUPPLIERS.put("chargedcreeperessence", ItemStackGenerator::getChargedCreeperEssence);
+        ITEM_SUPPLIERS.put("ravagerdash", ItemStackGenerator::getRavagerDash);
+        ITEM_SUPPLIERS.put("biomefinder", ItemStackGenerator::getBiomeFinder);
         ITEM_SUPPLIERS.put("potionbag", ItemStackGenerator::getNewPotionBag);
         ITEM_SUPPLIERS.put("magicbagowind", ItemStackGenerator::getMagicBagOfWind);
+        ITEM_SUPPLIERS.put("fireballcannon", ItemStackGenerator::getFireballCannon);
         ITEM_SUPPLIERS.put("dragonbreathcannon", ItemStackGenerator::getDragonBreathCannon);
         ITEM_SUPPLIERS.put("unlimitedwitherrose", ItemStackGenerator::getUnlimitedWitherRose);
+        ITEM_SUPPLIERS.put("witherskullcannon", ItemStackGenerator::getWitherSkullCannon);
         ITEM_SUPPLIERS.put("turtlehelmet", ItemStackGenerator::getTurtleHelmet);
         ITEM_SUPPLIERS.put("goathorn", ItemStackGenerator::getGoatHorn);
         ITEM_SUPPLIERS.put("firstalbum", ItemStackGenerator::getFirstAlbum);

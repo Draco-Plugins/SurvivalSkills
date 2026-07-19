@@ -8,10 +8,12 @@ import org.bukkit.block.BlockState;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.DragonFireball;
 import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Snowball;
 import org.bukkit.entity.Trident;
 import org.bukkit.entity.WindCharge;
+import org.bukkit.entity.WitherSkull;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -21,6 +23,8 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.abilities.godItems.EnderEssence;
 import sir_draco.survivalskills.abilities.items.PowerLaser;
 import sir_draco.survivalskills.abilities.items.PowerSword;
+import sir_draco.survivalskills.abilities.godItems.RavagerDash;
+import sir_draco.survivalskills.skill_listeners.god.BiomeFinderListener;
 import sir_draco.survivalskills.skill_listeners.god.GodItemUseHandler;
 import sir_draco.survivalskills.skill_listeners.god.PotionBagListener;
 import sir_draco.survivalskills.utils.Utils;
@@ -57,11 +61,17 @@ public final class GodItemActions {
         }
     }
 
-    /** Custom model data 37 - creates an explosion centred on the player. */
-    public static final class DragonBreathCannonItemAction implements GodItemAction {
+    /** Creates an explosion centred on the player. */
+    public static final class CreeperEssenceItemAction implements GodItemAction {
+        private final float explosionPower;
+
+        public CreeperEssenceItemAction(float explosionPower) {
+            this.explosionPower = explosionPower;
+        }
+
         @Override
         public void execute(Player p, ItemStack item, ItemMeta meta, PlayerInteractEvent e) {
-            p.getWorld().createExplosion(p.getLocation(), 5, false, true, p);
+            p.getWorld().createExplosion(p.getLocation(), explosionPower, false, true, p);
         }
     }
 
@@ -83,12 +93,54 @@ public final class GodItemActions {
         }
     }
 
+    /** Custom model data 65 - launches a fireball without consuming the cannon. */
+    public static final class FireballCannonItemAction implements GodItemAction {
+        @Override
+        public void execute(Player p, ItemStack item, ItemMeta meta, PlayerInteractEvent e) {
+            e.setCancelled(true);
+            p.launchProjectile(Fireball.class, p.getLocation().getDirection().multiply(2));
+        }
+    }
+
+    /** Custom model data 61 - charges forward and damages mobs in the player's path. */
+    public static final class RavagerDashItemAction implements GodItemAction {
+        @Override
+        public void execute(Player p, ItemStack item, ItemMeta meta, PlayerInteractEvent e) {
+            e.setCancelled(true);
+            RavagerDash.activate(p);
+        }
+    }
+
+    /** Custom model data 62 - opens the biome selection picker. */
+    public static final class BiomeFinderItemAction implements GodItemAction {
+        private final BiomeFinderListener biomeFinderListener;
+
+        public BiomeFinderItemAction(BiomeFinderListener biomeFinderListener) {
+            this.biomeFinderListener = biomeFinderListener;
+        }
+
+        @Override
+        public void execute(Player p, ItemStack item, ItemMeta meta, PlayerInteractEvent e) {
+            e.setCancelled(true);
+            biomeFinderListener.openBiomePicker(p, 0);
+        }
+    }
+
     /** Custom model data 40 - launches a dragon fireball. */
     public static final class DragonFireballItemAction implements GodItemAction {
         @Override
         public void execute(Player p, ItemStack item, ItemMeta meta, PlayerInteractEvent e) {
             e.setCancelled(true);
             p.launchProjectile(DragonFireball.class, p.getLocation().getDirection().multiply(2));
+        }
+    }
+
+    /** Custom model data 64 - launches a wither skull. */
+    public static final class WitherSkullCannonItemAction implements GodItemAction {
+        @Override
+        public void execute(Player p, ItemStack item, ItemMeta meta, PlayerInteractEvent e) {
+            e.setCancelled(true);
+            p.launchProjectile(WitherSkull.class, p.getLocation().getDirection().multiply(2));
         }
     }
 
