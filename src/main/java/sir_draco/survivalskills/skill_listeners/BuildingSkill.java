@@ -16,6 +16,7 @@ import sir_draco.survivalskills.skills.SkillManager;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public class BuildingSkill implements Listener {
 
@@ -29,6 +30,7 @@ public class BuildingSkill implements Listener {
 
     private final SurvivalSkills plugin;
     private final Set<Material> bannedReturns = new HashSet<>();
+    private final Set<UUID> wandPlacementPlayers = new HashSet<>();
 
     public BuildingSkill(SurvivalSkills plugin) {
         this.plugin = plugin;
@@ -46,13 +48,18 @@ public class BuildingSkill implements Listener {
         if (plugin.getFarmingList().contains(blockType)) {
             return;
         }
-        if (isHoldingToolInOffHand(e, p)) {
+        if (!wandPlacementPlayers.contains(p.getUniqueId()) && isHoldingToolInOffHand(e, p)) {
             return;
         }
 
-        SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getBuildingXP(), SkillCategory.BUILDING);
+        if (!wandPlacementPlayers.contains(p.getUniqueId())) {
+            SkillManager.experienceEvent(plugin, p, plugin.getSkillManager().getBuildingXP(), SkillCategory.BUILDING);
+        }
 
-        // Handle block return
+        handleBlockReturn(e, p, blockType);
+    }
+
+    private void handleBlockReturn(BlockPlaceEvent e, Player p, Material blockType) {
         if (isBannedReturn(blockType)) {
             return;
         }
@@ -80,6 +87,18 @@ public class BuildingSkill implements Listener {
 
             p.getInventory().addItem(item);
         }
+    }
+
+    public void beginWandPlacement(Player player) {
+        wandPlacementPlayers.add(player.getUniqueId());
+    }
+
+    public void endWandPlacement(Player player) {
+        wandPlacementPlayers.remove(player.getUniqueId());
+    }
+
+    public void awardWandExperience(Player player) {
+        SkillManager.experienceEvent(plugin, player, plugin.getSkillManager().getBuildingXP(), SkillCategory.BUILDING);
     }
 
     private boolean isHoldingToolInOffHand(BlockPlaceEvent e, Player p) {

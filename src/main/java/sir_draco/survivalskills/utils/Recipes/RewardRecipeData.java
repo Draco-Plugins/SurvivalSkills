@@ -139,6 +139,8 @@ public final class RewardRecipeData {
                     Material.BLAZE_POWDER),
             new SmallShapedSpec("sortwand", ItemStackGenerator.getSortWand(), "CAC:ABA:CAC",
                     null, null, null, Material.COMPARATOR, Material.BLAZE_ROD, Material.CHEST),
+            new SmallShapedSpec("builderwand", ItemStackGenerator.getBuilderWand(), " A :BCB: A ",
+                    null, null, null, Material.RESIN_CLUMP, Material.NETHERITE_SCRAP, Material.STICK),
             new SmallShapedSpec("magnet", ItemStackGenerator.getMagnet(), "ABA:BCB:ABA",
                     null, null, null, Material.IRON_BLOCK, Material.REDSTONE_BLOCK,
                     Material.COPPER_BLOCK),

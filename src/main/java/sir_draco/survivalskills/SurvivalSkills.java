@@ -26,6 +26,7 @@ import sir_draco.survivalskills.pipes.PipeListener;
 import sir_draco.survivalskills.pipes.PipeManager;
 import sir_draco.survivalskills.skill_listeners.*;
 import sir_draco.survivalskills.skill_listeners.ArmorListener.ArmorType;
+import sir_draco.survivalskills.skill_listeners.builderswand.BuilderWandListener;
 import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
@@ -62,6 +63,7 @@ public final class SurvivalSkills extends JavaPlugin {
     private TrophyManager trophyManager;
     private PipeManager pipeManager;
     private SuperEnchantingTableManager superEnchantingTableManager;
+    private BuilderWandListener builderWandListener;
 
     // Listeners
     private MiningSkill miningListener;
@@ -189,6 +191,8 @@ public final class SurvivalSkills extends JavaPlugin {
         FileUtils.savePipeDataNow(pipeManager);
         if (superEnchantingTableManager != null)
             superEnchantingTableManager.shutdown();
+        if (builderWandListener != null)
+            builderWandListener.shutdown();
     }
 
     public void loadListeners() {
@@ -210,6 +214,7 @@ public final class SurvivalSkills extends JavaPlugin {
         TabCompleter tabCompleter = new TabCompleter(this);
         godListener = new GodListener();
         SortWandListener sortWandListener = new SortWandListener(this);
+        builderWandListener = new BuilderWandListener(this, buildingListener);
         FlightRespawnListener flightRespawnListener = new FlightRespawnListener(this);
         PipeConfiguration pipeConfiguration = PipeConfiguration.load(this, config);
         PipeListener pipeListener = new PipeListener(this, pipeManager, pipeConfiguration);
@@ -229,6 +234,7 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(armorListener, this);
         godListener.register(this);
         getServer().getPluginManager().registerEvents(sortWandListener, this);
+        getServer().getPluginManager().registerEvents(builderWandListener, this);
         getServer().getPluginManager().registerEvents(flightRespawnListener, this);
         getServer().getPluginManager().registerEvents(pipeListener, this);
         superEnchantingTableManager.start();

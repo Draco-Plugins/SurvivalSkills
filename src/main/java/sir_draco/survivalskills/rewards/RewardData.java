@@ -280,6 +280,11 @@ public class RewardData {
                 GREEN + "\nUse it to automatically sort a chests inventory!"),
                 GRAY + "Craftable Item");
 
+        staticEntry(m, "BuildersWand", lines(
+                NEW_ITEM + "You can now craft a Builder's Wand",
+                GREEN + "\nUse it to place matching blocks in groups!"),
+                GRAY + "Craftable Item");
+
         return m;
     }
 

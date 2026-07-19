@@ -84,6 +84,7 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
         ITEM_SUPPLIERS.put("dragonhead", ItemStackGenerator::getEnderDragonBossItem);
         ITEM_SUPPLIERS.put("fireworkcannon", ItemStackGenerator::getFireworkCannon);
         ITEM_SUPPLIERS.put("sortwand", ItemStackGenerator::getSortWand);
+        ITEM_SUPPLIERS.put("builderwand", ItemStackGenerator::getBuilderWand);
         ITEM_SUPPLIERS.put("unlimitedtropicalfishbucket", ItemStackGenerator::getUnlimitedTropicalFishBucket);
         ITEM_SUPPLIERS.put("unlimitedwaterbucket", ItemStackGenerator::getUnlimitedWaterBucket);
         ITEM_SUPPLIERS.put("unlimitedlavabucket", ItemStackGenerator::getUnlimitedLavaBucket);

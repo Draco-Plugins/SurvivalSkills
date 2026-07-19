@@ -162,6 +162,7 @@ public class TabCompleter implements Listener {
         words.add("transferpipe");
         words.add("trialfragment");
         words.add("superenchantingtable");
+        words.add("builderwand");
         e.setCompletions(getCompletions(buffer, words));
     }
 

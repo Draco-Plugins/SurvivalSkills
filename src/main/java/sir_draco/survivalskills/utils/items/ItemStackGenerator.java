@@ -217,6 +217,21 @@ public class ItemStackGenerator {
                 .build();
     }
 
+    public static ItemStack getBuilderWand() {
+        ItemStack item = new ItemStackBuilder(Material.NETHERITE_AXE, 1,
+                ChatColor.GOLD.toString() + ChatColor.BOLD + "Builder's Wand")
+                .lore(List.of(
+                        ChatColor.GRAY + "Right click a block to extend its visible face",
+                        ChatColor.GRAY + "Left click air to change placement mode"))
+                .modelData(ItemModelData.BUILDER_WAND.getId())
+                .build();
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+        meta.setUnbreakable(true);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     public static ItemStack getWrench() {
         return new ItemStackBuilder(Material.IRON_PICKAXE, 1,
                 ChatColor.AQUA.toString() + ChatColor.BOLD + "Pipe Wrench")

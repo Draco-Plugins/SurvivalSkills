@@ -330,6 +330,10 @@ Building:
         Enabled: true
         Level: 30
         Type: "Command"
+    BuildersWand:
+        Enabled: true
+        Level: 32
+        Type: "Crafting"
     BlockReturnV:
         Enabled: true
         Level: 35

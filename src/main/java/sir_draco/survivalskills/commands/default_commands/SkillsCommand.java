@@ -531,6 +531,7 @@ public class SkillsCommand implements CommandExecutor {
         addSingleReward(ItemStackGenerator.getTransferPipe(), SkillCategory.CRAFTING, PipeRewardGate.REWARD_NAME);
         addSingleReward(ItemStackGenerator.getFireworkCannon(), SkillCategory.MAIN, "FireworkCannon");
         addSingleReward(ItemStackGenerator.getSortWand(), SkillCategory.BUILDING, "AutoSortWand");
+        addSingleReward(ItemStackGenerator.getBuilderWand(), SkillCategory.BUILDING, "BuildersWand");
         addSingleReward(ItemStackGenerator.getGiantSummoner(), SkillCategory.FIGHTING, "GiantSummon");
         addSingleReward(ItemStackGenerator.getFishingBossItem(), SkillCategory.FIGHTING, "FishingKing");
         addSingleReward(ItemStackGenerator.getBroodMotherSummoner(), SkillCategory.FIGHTING, "BroodMotherSummon");

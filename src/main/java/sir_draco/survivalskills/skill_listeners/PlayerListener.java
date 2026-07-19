@@ -77,6 +77,7 @@ public class PlayerListener implements Listener {
             Map.entry(ItemModelData.BROOD_MOTHER_SUMMON.getId(), new CraftRestriction(SkillCategory.FIGHTING, "BroodMotherSummon")),
             Map.entry(ItemModelData.THE_EXILED_ONE_SUMMON.getId(), new CraftRestriction(SkillCategory.FIGHTING, "TheExiledOneSummon")),
             Map.entry(ItemModelData.SORT_WAND.getId(), new CraftRestriction(SkillCategory.BUILDING, "AutoSortWand")),
+            Map.entry(ItemModelData.BUILDER_WAND.getId(), new CraftRestriction(SkillCategory.BUILDING, "BuildersWand")),
             Map.entry(ItemModelData.FIREWORK_CANNON.getId(), new CraftRestriction(SkillCategory.MAIN, "FireworkCannon")),
             Map.entry(ItemModelData.GILL_ARMOR.getId(), new CraftRestriction(SkillCategory.EXPLORING, "GillArmor")),
             Map.entry(ItemModelData.ZAP_WAND.getId(), new CraftRestriction(SkillCategory.MINING, "ZapWand")),
