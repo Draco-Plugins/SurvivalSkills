@@ -7,6 +7,8 @@ import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.utils.items.ItemStackBuilder;
 import sir_draco.survivalskills.utils.items.ItemStackGenerator;
 import sir_draco.survivalskills.utils.Recipes.GodRecipeData;
+import sir_draco.survivalskills.utils.Recipes.ArmorUpgradeRecipeData;
+import sir_draco.survivalskills.utils.Recipes.ArmorUpgradeRecipeData.ArmorUpgradeRecipe;
 import sir_draco.survivalskills.utils.Recipes.RecipeSpec;
 import sir_draco.survivalskills.utils.Recipes.RewardRecipeData;
 import sir_draco.survivalskills.utils.Recipes.ShapedSpec;
@@ -87,6 +89,12 @@ public class RecipeMaker {
 
         public static void createSmallShapedRecipe(NamespacedKey key, ItemStack result, String shape, ItemStack as,
                         ItemStack bs, ItemStack cs, Material am, Material bm, Material cm) {
+                createSmallShapedRecipe(key, result, shape, as, bs, cs, am, bm, cm, Optional.empty());
+        }
+
+        private static void createSmallShapedRecipe(NamespacedKey key, ItemStack result, String shape, ItemStack as,
+                        ItemStack bs, ItemStack cs, Material am, Material bm, Material cm,
+                        Optional<Character> flexibleExactSlot) {
                 ShapedRecipe recipe = new ShapedRecipe(key, result);
                 String[] shapes = shape.split(":");
 
@@ -98,9 +106,9 @@ public class RecipeMaker {
                 else
                         recipe.shape(shapes[0], shapes[1], shapes[2]);
 
-                setOptionalIngredient(recipe, 'A', as, am);
-                setOptionalIngredient(recipe, 'B', bs, bm);
-                setOptionalIngredient(recipe, 'C', cs, cm);
+                setOptionalIngredient(recipe, 'A', as, am, flexibleExactSlot.filter(slot -> slot == 'A').isPresent());
+                setOptionalIngredient(recipe, 'B', bs, bm, flexibleExactSlot.filter(slot -> slot == 'B').isPresent());
+                setOptionalIngredient(recipe, 'C', cs, cm, flexibleExactSlot.filter(slot -> slot == 'C').isPresent());
 
                 RecipeRegistrar.addShapedRecipe(recipe, key);
         }
@@ -308,10 +316,13 @@ public class RecipeMaker {
         // ── Reward recipes ───────────────────────────────────────────────────
 
         public static void rewardRecipes(SurvivalSkills plugin) {
-                for (SmallShapedSpec spec : RewardRecipeData.ALL)
+                for (SmallShapedSpec spec : RewardRecipeData.ALL) {
+                        Optional<Character> flexibleExactSlot = ArmorUpgradeRecipeData.find(spec.keyName())
+                                        .map((ArmorUpgradeRecipe upgrade) -> upgrade.ingredientSlot());
                         createSmallShapedRecipe(createKey(spec.keyName(), plugin), spec.result(), spec.shape(),
                                         spec.exactA(), spec.exactB(), spec.exactC(),
-                                        spec.matA(), spec.matB(), spec.matC());
+                                        spec.matA(), spec.matB(), spec.matC(), flexibleExactSlot);
+                }
         }
 
         public static void pipeRecipes(SurvivalSkills plugin) {
@@ -379,9 +390,13 @@ public class RecipeMaker {
         // ── Shared building blocks ──────────────────────────────────────────
 
         private static void setOptionalIngredient(ShapedRecipe recipe, char slot, ItemStack exactChoice,
-                        Material material) {
-                if (exactChoice != null)
-                        recipe.setIngredient(slot, new RecipeChoice.ExactChoice(exactChoice));
+                        Material material, boolean flexibleExactChoice) {
+                if (exactChoice != null) {
+                        if (flexibleExactChoice)
+                                recipe.setIngredient(slot, exactChoice.getType());
+                        else
+                                recipe.setIngredient(slot, new RecipeChoice.ExactChoice(exactChoice));
+                }
                 else if (material != null)
                         recipe.setIngredient(slot, material);
         }
