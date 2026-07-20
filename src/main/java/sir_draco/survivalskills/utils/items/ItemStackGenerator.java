@@ -425,11 +425,16 @@ public class ItemStackGenerator {
     }
 
     public static ItemStack getSilkyShears() {
-        return new ItemStackBuilder(Material.SHEARS, 1,
+        ItemStack item = new ItemStackBuilder(Material.SHEARS, 1,
                 ColorParser.gradientName("Silky Shears", "#FFFFFF", "#D3D3D3", true))
                 .lore(ChatColor.GRAY + "Triples wool drops when shearing sheep")
                 .modelData(ItemModelData.SILKY_SHEARS.getId())
                 .build();
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+        meta.setUnbreakable(true);
+        item.setItemMeta(meta);
+        return item;
     }
 
     public static ItemStack getDenseWhiteWool() {
