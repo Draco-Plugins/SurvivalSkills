@@ -9,6 +9,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackBuilder;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
@@ -44,12 +45,21 @@ public final class SpawnerMover {
             throw new IllegalStateException("Spawner Mover does not support block-state metadata");
         }
         storeSpawner(blockStateMeta, spawner);
+        prepareCarryingMover(blockStateMeta);
         mover.setItemMeta(blockStateMeta);
         return mover;
     }
 
     public static boolean isSpawnerMover(ItemStack item) {
-        return ItemStackGeneratorUtils.isCustomItem(item, ItemModelData.SPAWNER_MOVER.getId());
+        if (item == null || !item.getType().equals(Material.SPAWNER)) return false;
+        ItemMeta meta = item.getItemMeta();
+        boolean isCarryingMover = meta instanceof BlockStateMeta blockStateMeta
+                && blockStateMeta.hasBlockState()
+                && DISPLAY_NAME.equals(meta.getDisplayName())
+                && blockStateMeta.getBlockState() instanceof CreatureSpawner;
+        return isCarryingMover
+                || hasSpawnerMoverMarker(meta)
+                || ItemStackGeneratorUtils.isCustomItem(item, ItemModelData.SPAWNER_MOVER.getId());
     }
 
     public static Optional<CreatureSpawner> getStoredSpawner(ItemStack item) {
@@ -65,6 +75,20 @@ public final class SpawnerMover {
     static void storeSpawner(BlockStateMeta meta, CreatureSpawner spawner) {
         meta.setBlockState(spawner);
         meta.setLore(createLore(spawner));
+    }
+
+    private static void prepareCarryingMover(BlockStateMeta meta) {
+        meta.setDisplayName(DISPLAY_NAME);
+        meta.setMaxStackSize(1);
+        // Placeable spawners use the plugin marker to avoid custom-model-data collisions with other plugins.
+        meta.setCustomModelDataComponent(null);
+        meta.getPersistentDataContainer().set(ItemStackGeneratorUtils.skillsItemKey,
+                PersistentDataType.BOOLEAN, true);
+    }
+
+    private static boolean hasSpawnerMoverMarker(ItemMeta meta) {
+        return meta != null && meta.getPersistentDataContainer().has(
+                ItemStackGeneratorUtils.skillsItemKey, PersistentDataType.BOOLEAN);
     }
 
     public static boolean placeSpawner(CreatureSpawner spawner, org.bukkit.Location location) {
@@ -86,12 +110,13 @@ public final class SpawnerMover {
                 ChatColor.DARK_GRAY + "Right click a block to place this spawner");
     }
 
+    @SuppressWarnings("deprecation")
     private static String getSpawnerType(CreatureSpawner spawner) {
         EntitySnapshot spawnedEntity = spawner.getSpawnedEntity();
         EntityType entityType = spawnedEntity == null ? spawner.getSpawnedType() : spawnedEntity.getEntityType();
         if (entityType == null) return "Custom / Random";
 
-        String[] words = entityType.getKeyOrThrow().getKey().split("_");
+        String[] words = entityType.getKey().getKey().split("_");
         return java.util.Arrays.stream(words)
                 .map((String word) -> word.substring(0, 1).toUpperCase(Locale.ROOT) + word.substring(1))
                 .collect(java.util.stream.Collectors.joining(" "));

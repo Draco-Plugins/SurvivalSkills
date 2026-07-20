@@ -282,10 +282,12 @@ public class RecipeMaker {
                 ItemStack wool1 = new ItemStackBuilder(color.material(), 1, "Compacted " + color.displayName() + " Wool")
                                 .lore(List.of("Very soft")).modelData(DENSE_WOOL_MODEL_DATA).hideEnchants(true)
                                 .enchants(KNOCKBACK_ENCHANTS).build();
-                ItemStack wool2 = new ItemStackBuilder(color.material(), 1,
-                                color.chatColor() + "Dense " + color.displayName() + " Wool")
-                                .lore(List.of("Not very soft")).modelData(DENSE_WOOL_MODEL_DATA).hideEnchants(true)
-                                .enchants(KNOCKBACK_ENCHANTS).build();
+                ItemStack wool2 = color == DenseWoolColor.WHITE
+                                ? ItemStackGenerator.getDenseWhiteWool()
+                                : new ItemStackBuilder(color.material(), 1,
+                                                color.chatColor() + "Dense " + color.displayName() + " Wool")
+                                                .lore(List.of("Not very soft")).modelData(DENSE_WOOL_MODEL_DATA)
+                                                .hideEnchants(true).enchants(KNOCKBACK_ENCHANTS).build();
                 ItemStack wool3 = buildDenseWoolBundle(color);
                 NamespacedKey tag1 = makeRecipeWithSingleIngredient(plugin, new ItemStack(color.material()), wool1, tag + "1");
                 NamespacedKey tag2 = makeRecipeWithSingleIngredient(plugin, wool1, wool2, tag + "2");

@@ -668,6 +668,10 @@ Crafting:
         Enabled: true
         Level: 25
         Type: "State"
+    SilkyShears:
+        Enabled: true
+        Level: 28
+        Type: "Crafting"
     MaterialsBackII:
         Enabled: true
         Level: 30

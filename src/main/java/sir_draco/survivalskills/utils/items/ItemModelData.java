@@ -74,6 +74,7 @@ public enum ItemModelData {
     FIREBALL_CANNON(65),
     GIANT_SWORD(66),
     SPAWNER_MOVER(67),
+    SILKY_SHEARS(68),
     TROPHY(999);
 
     private final int id;

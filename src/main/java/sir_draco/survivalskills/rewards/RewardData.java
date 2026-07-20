@@ -433,6 +433,12 @@ public class RewardData {
                 GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),
                 GRAY + "Moves one spawner while retaining all of its settings");
 
+        staticEntry(m, "SilkyShears", lines(
+                NEW_ITEM + "You can now craft Silky Shears",
+                GRAY + "Shear sheep to receive triple wool drops",
+                GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),
+                GRAY + "Craftable shears that triple wool drops from sheep");
+
         staticEntry(m, "EnchantedGapple", lines(
                 NEW_ITEM + "You can now craft an Enchanted Golden Apple"),
                 GRAY + "Craftable Item");

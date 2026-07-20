@@ -171,6 +171,8 @@ public class TabCompleter implements Listener {
         words.add("witherskullcannon");
         words.add("fireballcannon");
         words.add("giantsword");
+        words.add("spawnermover");
+        words.add("silkyshears");
         e.setCompletions(getCompletions(buffer, words));
     }
 

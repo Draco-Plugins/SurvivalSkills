@@ -9,6 +9,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Event.Result;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -111,8 +112,13 @@ public class MiningSkill implements Listener {
         e.setDropItems(false);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void placeTorch(PlayerInteractEvent e) {
+        if (Result.DENY.equals(e.useInteractedBlock()) || Result.DENY.equals(e.useItemInHand())) return;
+        if (e.getHand() == null) return;
+        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+        if (!isUnlimitedTorch(e.getItem())) return;
+
         Player p = e.getPlayer();
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
 
@@ -122,25 +128,13 @@ public class MiningSkill implements Listener {
         }
 
         if (!rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").isApplied()) {
-            if (ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), CUSTOM_ITEM_UNLIMITED_TORCH)
-                    || ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInOffHand(), CUSTOM_ITEM_UNLIMITED_TORCH)) {
-                e.setCancelled(true);
-                p.sendRawMessage(ChatColor.RED + "Unlimited Torch unlocks at mining level "
-                        + ChatColor.AQUA + rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").getLevel());
-                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            }
+            e.setCancelled(true);
+            p.sendRawMessage(ChatColor.RED + "Unlimited Torch unlocks at mining level "
+                    + ChatColor.AQUA + rewards.getReward(SkillCategory.MINING, "UnlimitedTorch").getLevel());
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
 
-        if (e.getHand() == null) return;
-        if (!e.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
-
-        if (e.getHand().equals(EquipmentSlot.OFF_HAND)
-                && !ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInOffHand(), CUSTOM_ITEM_UNLIMITED_TORCH))
-            return;
-        else if (e.getHand().equals(EquipmentSlot.HAND)
-                && !ItemStackGeneratorUtils.isCustomItem(p.getInventory().getItemInMainHand(), CUSTOM_ITEM_UNLIMITED_TORCH))
-            return;
         e.setCancelled(true);
 
         if (e.getClickedBlock() == null) return;
@@ -165,6 +159,12 @@ public class MiningSkill implements Listener {
         }
         desiredBlock.getState().update(true);
         markUnlimitedTorch(desiredBlock);
+    }
+
+    static boolean isUnlimitedTorch(ItemStack item) {
+        return item != null
+                && item.getType().equals(Material.TORCH)
+                && ItemStackGeneratorUtils.isCustomItem(item, CUSTOM_ITEM_UNLIMITED_TORCH);
     }
 
     public void markUnlimitedTorch(Block block) {

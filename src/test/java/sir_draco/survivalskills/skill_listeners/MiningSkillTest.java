@@ -1,16 +1,24 @@
 package sir_draco.survivalskills.skill_listeners;
 
 import org.bukkit.Chunk;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event.Result;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.Test;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.abilities.items.PowerDrillTask;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -21,6 +29,37 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class MiningSkillTest {
+
+    @Test
+    void unlimitedTorchRunsAfterSpawnerMoverAndIgnoresCancelledInteractions() throws NoSuchMethodException {
+        EventHandler eventHandler = MiningSkill.class
+                .getMethod("placeTorch", PlayerInteractEvent.class)
+                .getAnnotation(EventHandler.class);
+
+        assertEquals(EventPriority.HIGHEST, eventHandler.priority());
+        assertTrue(eventHandler.ignoreCancelled());
+    }
+
+    @Test
+    void cancelledInteractionCannotPlaceUnlimitedTorch() {
+        SurvivalSkills plugin = mock(SurvivalSkills.class);
+        when(plugin.getName()).thenReturn("SurvivalSkills");
+        MiningSkill miningSkill = new MiningSkill(plugin, 0);
+        PlayerInteractEvent event = mock(PlayerInteractEvent.class);
+        when(event.useInteractedBlock()).thenReturn(Result.DENY);
+
+        miningSkill.placeTorch(event);
+
+        verify(event, never()).getPlayer();
+    }
+
+    @Test
+    void spawnerItemCannotBeClassifiedAsUnlimitedTorch() {
+        ItemStack spawnerMover = mock(ItemStack.class);
+        when(spawnerMover.getType()).thenReturn(Material.SPAWNER);
+
+        assertFalse(MiningSkill.isUnlimitedTorch(spawnerMover));
+    }
 
     @Test
     void unlimitedTorchDoesNotDropWhenBroken() {

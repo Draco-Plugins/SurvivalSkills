@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.abilities.items.SpawnerMover;
 import sir_draco.survivalskills.super_enchanting.SuperEnchantingItems;
 import sir_draco.survivalskills.utils.items.ItemStackGenerator;
 
@@ -144,6 +145,8 @@ public class SurvivalSkillsGetCommand implements CommandExecutor {
                 SurvivalSkills.getInstance(), 1));
         ITEM_SUPPLIERS.put("superenchantingtable", () -> SuperEnchantingItems.createSuperEnchantingTable(
                 SurvivalSkills.getInstance()));
+        ITEM_SUPPLIERS.put("spawnermover", SpawnerMover::createEmpty);
+        ITEM_SUPPLIERS.put("silkyshears", ItemStackGenerator::getSilkyShears);
     }
 
     public SurvivalSkillsGetCommand(SurvivalSkills plugin) {

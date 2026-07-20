@@ -207,6 +207,7 @@ public final class SurvivalSkills extends JavaPlugin {
         farmingListener = new FarmingSkill(this);
         fightingListener = new FightingSkill(this);
         CraftingSkill craftingListener = new CraftingSkill(this);
+        SilkyShearsListener silkyShearsListener = new SilkyShearsListener(this);
         ArmorUpgradeCraftingListener armorUpgradeCraftingListener = new ArmorUpgradeCraftingListener();
         mainListener = new MainSkill(this);
         playerListener = new PlayerListener(this);
@@ -229,6 +230,7 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(farmingListener, this);
         getServer().getPluginManager().registerEvents(fightingListener, this);
         getServer().getPluginManager().registerEvents(craftingListener, this);
+        getServer().getPluginManager().registerEvents(silkyShearsListener, this);
         getServer().getPluginManager().registerEvents(armorUpgradeCraftingListener, this);
         getServer().getPluginManager().registerEvents(mainListener, this);
         getServer().getPluginManager().registerEvents(playerListener, this);

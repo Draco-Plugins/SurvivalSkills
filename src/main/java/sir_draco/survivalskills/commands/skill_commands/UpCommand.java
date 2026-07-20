@@ -1,6 +1,7 @@
 package sir_draco.survivalskills.commands.skill_commands;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -11,6 +12,8 @@ import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.utils.LocationUtils;
+
+import java.util.Optional;
 
 
 public class UpCommand implements CommandExecutor {
@@ -56,7 +59,13 @@ public class UpCommand implements CommandExecutor {
         }
 
         // Teleport the player to the surface
-        p.teleport(LocationUtils.getSurfaceBlock(p.getLocation()));
+        Optional<Location> surfaceLocation = LocationUtils.getSurfaceBlock(p.getLocation());
+        if (surfaceLocation.isEmpty() || !p.teleport(surfaceLocation.get())) {
+            p.sendRawMessage(ChatColor.RED + "Unable to find a safe surface location");
+            return true;
+        }
+
+        p.setFallDistance(0.0F);
         p.playSound(p, Sound.ENTITY_PLAYER_TELEPORT, 1, 1);
         p.sendRawMessage(ChatColor.YELLOW + "Teleported to the surface");
         return true;

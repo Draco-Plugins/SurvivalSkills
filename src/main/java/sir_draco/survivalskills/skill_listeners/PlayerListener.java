@@ -87,7 +87,9 @@ public class PlayerListener implements Listener {
             Map.entry(ItemModelData.TRANSFER_PIPE.getId(), new CraftRestriction(SkillCategory.CRAFTING,
                     PipeRewardGate.REWARD_NAME)),
             Map.entry(ItemModelData.SPAWNER_MOVER.getId(), new CraftRestriction(SkillCategory.CRAFTING,
-                    "SpawnerMover"))
+                    "SpawnerMover")),
+            Map.entry(ItemModelData.SILKY_SHEARS.getId(), new CraftRestriction(SkillCategory.CRAFTING,
+                    SilkyShearsListener.REWARD_NAME))
     );
 
     public PlayerListener(SurvivalSkills plugin) {

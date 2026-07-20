@@ -150,6 +150,8 @@ public final class RewardRecipeData {
                     Material.COPPER_BLOCK),
             new SmallShapedSpec("spawnermover", SpawnerMover.createEmpty(), " A :ABA: A ",
                     null, null, null, Material.DIAMOND, Material.MUSIC_DISC_13, null),
+            new SmallShapedSpec("silky_shears", ItemStackGenerator.getSilkyShears(), "AAA:ABA:AAA",
+                    ItemStackGenerator.getDenseWhiteWool(), null, null, null, Material.SHEARS, null),
 
             new SmallShapedSpec("powersword", ItemStackGenerator.getPowerSword(), "DAD:BAB:DCD",
                     ItemStackGenerator.getPowerOre(), ItemStackGenerator.getZapWand(),

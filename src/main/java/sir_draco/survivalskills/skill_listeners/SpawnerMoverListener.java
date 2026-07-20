@@ -4,7 +4,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,10 +14,10 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.abilities.items.SpawnerMover;
 import sir_draco.survivalskills.utils.Utils;
-import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
 import java.util.Optional;
 
@@ -39,21 +38,34 @@ public final class SpawnerMoverListener implements Listener {
 
         Player player = event.getPlayer();
         EquipmentSlot hand = event.getHand();
-        ItemStack mover = ItemStackGeneratorUtils.getItemInHand(player, hand);
-        if (!SpawnerMover.isSpawnerMover(mover)) return;
+        ItemStack mover = getItemInHand(player, hand);
+        if (!SpawnerMover.isSpawnerMover(mover)) {
+            return;
+        }
 
-        event.setCancelled(true);
         if (mover.getAmount() != 1) {
+            event.setCancelled(true);
             sendFailure(player, "Spawner Movers cannot be stacked.");
             return;
         }
 
+        event.setCancelled(true);
         Optional<CreatureSpawner> storedSpawner = SpawnerMover.getStoredSpawner(mover);
-        if (storedSpawner.isPresent()) {
-            placeSpawner(event, hand, mover, storedSpawner.get());
-        } else {
+        if (!storedSpawner.isPresent()) {
             pickUpSpawner(event.getClickedBlock(), player, hand);
+        } else {
+            placeSpawner(event, hand, storedSpawner.get());
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onSpawnerMoverPlace(BlockPlaceEvent event) {
+        ItemStack mover = event.getItemInHand();
+        if (!SpawnerMover.isSpawnerMover(mover)) {
+            return;
+        }
+
+        event.setCancelled(true);
     }
 
     private void pickUpSpawner(Block block, Player player, EquipmentSlot hand) {
@@ -73,13 +85,13 @@ public final class SpawnerMoverListener implements Listener {
         player.sendRawMessage(ChatColor.GREEN + "Spawner picked up. Place it before picking up another.");
     }
 
-    private void placeSpawner(PlayerInteractEvent interactEvent, EquipmentSlot hand, ItemStack mover,
-                              CreatureSpawner storedSpawner) {
+    void placeSpawner(PlayerInteractEvent interactEvent, EquipmentSlot hand,
+                      CreatureSpawner storedSpawner) {
         Player player = interactEvent.getPlayer();
         Block clickedBlock = interactEvent.getClickedBlock();
         if (clickedBlock == null) return;
         Block target = clickedBlock.getRelative(interactEvent.getBlockFace());
-        if (!target.getType().isAir()) {
+        if (!target.isEmpty()) {
             sendFailure(player, "There is no room to place the stored spawner there.");
             return;
         }
@@ -88,18 +100,8 @@ public final class SpawnerMoverListener implements Listener {
             return;
         }
 
-        BlockState replacedState = target.getState();
         if (!SpawnerMover.placeSpawner(storedSpawner, target.getLocation())) {
             sendFailure(player, "The stored spawner could not be placed.");
-            return;
-        }
-
-        BlockPlaceEvent placeEvent = new BlockPlaceEvent(target, replacedState, clickedBlock, mover,
-                player, true, hand);
-        plugin.getServer().getPluginManager().callEvent(placeEvent);
-        if (placeEvent.isCancelled() || !placeEvent.canBuild()) {
-            replacedState.update(true, false);
-            sendFailure(player, "You cannot place a spawner here.");
             return;
         }
 
@@ -127,6 +129,12 @@ public final class SpawnerMoverListener implements Listener {
         } else {
             player.getInventory().setItemInMainHand(item);
         }
+    }
+
+    private static ItemStack getItemInHand(Player player, EquipmentSlot hand) {
+        return hand.equals(EquipmentSlot.OFF_HAND)
+                ? player.getInventory().getItemInOffHand()
+                : player.getInventory().getItemInMainHand();
     }
 
     private static void sendFailure(Player player, String message) {

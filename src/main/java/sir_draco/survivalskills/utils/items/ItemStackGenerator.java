@@ -424,6 +424,24 @@ public class ItemStackGenerator {
         return item;
     }
 
+    public static ItemStack getSilkyShears() {
+        return new ItemStackBuilder(Material.SHEARS, 1,
+                ColorParser.gradientName("Silky Shears", "#FFFFFF", "#D3D3D3", true))
+                .lore(ChatColor.GRAY + "Triples wool drops when shearing sheep")
+                .modelData(ItemModelData.SILKY_SHEARS.getId())
+                .build();
+    }
+
+    public static ItemStack getDenseWhiteWool() {
+        return new ItemStackBuilder(Material.WHITE_WOOL, 1,
+                ChatColor.GRAY + "Dense White Wool")
+                .lore("Not very soft")
+                .modelData(ItemModelData.DENSE_WOOL.getId())
+                .hideEnchants(true)
+                .enchants(Map.of(Enchantment.KNOCKBACK, 1))
+                .build();
+    }
+
     // Boss Items
 
     public static ItemStack getGiantBossItem() {

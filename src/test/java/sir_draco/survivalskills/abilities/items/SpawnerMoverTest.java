@@ -1,20 +1,45 @@
 package sir_draco.survivalskills.abilities.items;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.entity.EntityType;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class SpawnerMoverTest {
+
+    @Test
+    void torchCannotBeClassifiedAsSpawnerMover() {
+        ItemStack torch = mock(ItemStack.class);
+        when(torch.getType()).thenReturn(Material.TORCH);
+
+        assertFalse(SpawnerMover.isSpawnerMover(torch));
+    }
+
+    @Test
+    void carryingSpawnerMoverIsRecognizedWithoutCustomModelData() {
+        ItemStack mover = mock(ItemStack.class);
+        BlockStateMeta meta = mock(BlockStateMeta.class);
+        when(mover.getType()).thenReturn(Material.SPAWNER);
+        when(mover.getItemMeta()).thenReturn(meta);
+        when(meta.hasBlockState()).thenReturn(true);
+        when(meta.getDisplayName()).thenReturn(ChatColor.LIGHT_PURPLE + "Spawner Mover");
+        when(meta.getBlockState()).thenReturn(mock(CreatureSpawner.class));
+
+        assertTrue(SpawnerMover.isSpawnerMover(mover));
+    }
 
     @Test
     void storesTheCompleteSpawnerBlockStateInTheItemMetadata() {
