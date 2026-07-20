@@ -346,9 +346,17 @@ Building:
         Enabled: true
         Level: 45
         Type: "Attribute"
+    BuildersWandII:
+        Enabled: true
+        Level: 48
+        Type: "State"
     BlockReturnVII:
         Enabled: true
         Level: 50
+        Type: "State"
+    BuildersWandIII:
+        Enabled: true
+        Level: 55
         Type: "State"
     FlightIII:
         Enabled: true

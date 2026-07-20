@@ -49,7 +49,7 @@ public class FileUtils {
     public static final String TRAIL = ".Trail";
     public static final String NO_PHANTOMS = ".NoPhantoms";
 
-    private static final double CURRENT_CONFIG_VERSION = 2.3;
+    private static final double CURRENT_CONFIG_VERSION = 2.31;
 
     private FileUtils() {
         // Prevent instantiation
@@ -64,7 +64,7 @@ public class FileUtils {
         FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
         plugin.setConfig(config);
 
-        if (config.get("Version") == null || config.getDouble("Version") != CURRENT_CONFIG_VERSION)
+        if (requiresConfigUpdate(config))
             updateConfig(config);
         plugin.setSkillManager(new SkillManager(plugin));
 
@@ -74,6 +74,10 @@ public class FileUtils {
         loadLeaderboard(plugin.getLeaderboardData(), plugin.getLeaderboardTracker());
         loadDataFile("permatrash.yml", plugin::setPermaTrashFile, plugin::setPermaTrashData);
         loadDataFile("toolbelt.yml", plugin::setToolBeltFile, plugin::setToolBeltData);
+    }
+
+    static boolean requiresConfigUpdate(FileConfiguration config) {
+        return config.get("Version") == null || config.getDouble("Version") != CURRENT_CONFIG_VERSION;
     }
 
     public static void loadPipeData(PipeManager pipeManager) {

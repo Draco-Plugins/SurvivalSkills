@@ -285,6 +285,16 @@ public class RewardData {
                 GREEN + "\nUse it to place matching blocks in groups!"),
                 GRAY + "Craftable Item");
 
+        staticEntry(m, "BuildersWandII", lines(
+                NEW_ABILITY + "Your Builder's Wand can now use Reinforced mode",
+                GREEN + "\nReinforced mode reaches 2 blocks farther and places up to 11 blocks"),
+                GRAY + "Unlocks Reinforced mode for the Builder's Wand");
+
+        staticEntry(m, "BuildersWandIII", lines(
+                NEW_ABILITY + "Your Builder's Wand can now use Master mode",
+                GREEN + "\nMaster mode reaches 4 blocks farther and places up to 21 blocks"),
+                GRAY + "Unlocks Master mode for the Builder's Wand");
+
         return m;
     }
 

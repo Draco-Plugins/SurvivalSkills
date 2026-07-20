@@ -14,6 +14,8 @@ class BuilderWandTierTest {
         assertEquals(List.of(BuilderWandTier.BASIC), BuilderWandTier.unlockedAt(32));
         assertEquals(List.of(BuilderWandTier.BASIC, BuilderWandTier.REINFORCED),
                 BuilderWandTier.unlockedAt(48));
+        assertEquals(List.of(BuilderWandTier.BASIC, BuilderWandTier.REINFORCED),
+                BuilderWandTier.unlockedAt(54));
         assertEquals(List.of(BuilderWandTier.BASIC, BuilderWandTier.REINFORCED, BuilderWandTier.MASTER),
                 BuilderWandTier.unlockedAt(55));
         assertEquals(4, BuilderWandTier.highestUnlockedAt(55).getReachBonus());

@@ -227,6 +227,20 @@ class RewardDataTest {
                 "ExtendedReach should mention 'reach'");
     }
 
+    @Test
+    void buildersWandTiersDescribeTheirUnlockedModes() {
+        List<String> basic = RewardData.getNotification("Building", "BuildersWand");
+        List<String> reinforced = RewardData.getNotification("Building", "BuildersWandII");
+        List<String> master = RewardData.getNotification("Building", "BuildersWandIII");
+
+        assertNotNull(basic);
+        assertNotNull(reinforced);
+        assertNotNull(master);
+        assertTrue(basic.get(0).contains("craft a Builder's Wand"));
+        assertTrue(reinforced.get(0).contains("Reinforced mode"));
+        assertTrue(master.get(0).contains("Master mode"));
+    }
+
     // -- Spot checks: Fighting --
 
     @Test
