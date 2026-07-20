@@ -132,6 +132,7 @@ public class TrialRewardManager {
         inv.setItem(6, rewards.get(2));
 
         rewardInventories.add(inv);
+        TrialCursorItemManager.returnToInventory(p);
         p.openInventory(inv);
     }
 

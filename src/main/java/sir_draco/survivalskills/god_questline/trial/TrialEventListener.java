@@ -56,7 +56,6 @@ import sir_draco.survivalskills.utils.TrialUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -434,26 +433,30 @@ public class TrialEventListener implements Listener {
 
     @EventHandler
     public void onUseEnchantedBook(InventoryClickEvent e) {
+        if (e.isCancelled()
+                || TrialRewardManager.getInstance().isRewardInventory(e.getView().getTopInventory()))
+            return;
         if (e.getCurrentItem() == null || e.getCursor() == null)
             return;
 
         ItemStack item = e.getCurrentItem();
         ItemStack book = e.getCursor();
-        if (!book.getType().equals(Material.ENCHANTED_BOOK))
+        if (item.getType().equals(Material.AIR) || !book.getType().equals(Material.ENCHANTED_BOOK))
             return;
         if (!hasTrialObjectKey(item) || !hasTrialObjectKey(book))
             return;
 
+        boolean applied;
         if (item.getType().equals(Material.ENCHANTED_BOOK)) {
-            applyBookToBook(item, book);
-            e.setCancelled(true);
-            e.getWhoClicked().setItemOnCursor(null);
-            return;
+            applied = applyBookToBook(item, book);
+        } else {
+            applied = applyBookToItem(item, book);
         }
 
-        applyBookToItem(item, book);
-        e.getWhoClicked().setItemOnCursor(null);
+        if (!applied)
+            return;
         e.setCancelled(true);
+        e.getWhoClicked().setItemOnCursor(new ItemStack(Material.AIR));
     }
 
     private boolean hasTrialObjectKey(ItemStack item) {
@@ -462,36 +465,54 @@ public class TrialEventListener implements Listener {
                 && meta.getPersistentDataContainer().has(trialObjectKey, PersistentDataType.STRING);
     }
 
-    private void applyBookToBook(ItemStack item, ItemStack book) {
-        EnchantmentStorageMeta itemMeta = (EnchantmentStorageMeta) item.getItemMeta();
-        EnchantmentStorageMeta bookMeta = (EnchantmentStorageMeta) book.getItemMeta();
-        if (itemMeta == null || bookMeta == null)
-            return;
+    private boolean applyBookToBook(ItemStack item, ItemStack book) {
+        if (!(item.getItemMeta() instanceof EnchantmentStorageMeta itemMeta)
+                || !(book.getItemMeta() instanceof EnchantmentStorageMeta bookMeta))
+            return false;
+
+        boolean changed = false;
         for (Map.Entry<Enchantment, Integer> enchant : bookMeta.getStoredEnchants().entrySet()) {
             Enchantment enchantment = enchant.getKey();
-            if (item.getEnchantments().containsKey(enchantment)
-                    && Objects.equals(item.getEnchantments().get(enchantment), enchant.getValue())) {
-                itemMeta.removeStoredEnchant(enchantment);
-                itemMeta.addEnchant(enchantment, enchant.getValue() + 1, true);
+            int currentLevel = itemMeta.getStoredEnchantLevel(enchantment);
+            int combinedLevel = getCombinedEnchantmentLevel(
+                    currentLevel, enchant.getValue(), enchantment.getMaxLevel());
+            if (combinedLevel <= currentLevel)
                 continue;
-            }
-            itemMeta.addStoredEnchant(enchantment, enchant.getValue(), true);
+            itemMeta.addStoredEnchant(enchantment, combinedLevel, true);
+            changed = true;
         }
+        if (!changed)
+            return false;
         item.setItemMeta(itemMeta);
+        return true;
     }
 
-    private void applyBookToItem(ItemStack item, ItemStack book) {
-        EnchantmentStorageMeta bookMeta = (EnchantmentStorageMeta) book.getItemMeta();
-        if (bookMeta == null)
-            return;
+    private boolean applyBookToItem(ItemStack item, ItemStack book) {
+        if (!(book.getItemMeta() instanceof EnchantmentStorageMeta bookMeta))
+            return false;
+
+        Map<Enchantment, Integer> enchantmentsToApply = new HashMap<>();
         for (Map.Entry<Enchantment, Integer> enchant : bookMeta.getStoredEnchants().entrySet()) {
-            if (item.getEnchantments().containsKey(enchant.getKey())
-                    && Objects.equals(item.getEnchantments().get(enchant.getKey()), enchant.getValue())) {
-                item.addEnchantment(enchant.getKey(), enchant.getValue() + 1);
-                return;
-            }
-            item.addEnchantment(enchant.getKey(), enchant.getValue());
+            Enchantment enchantment = enchant.getKey();
+            if (!enchantment.canEnchantItem(item))
+                return false;
+            int currentLevel = item.getEnchantmentLevel(enchantment);
+            int combinedLevel = getCombinedEnchantmentLevel(
+                    currentLevel, enchant.getValue(), enchantment.getMaxLevel());
+            if (combinedLevel > currentLevel)
+                enchantmentsToApply.put(enchantment, combinedLevel);
         }
+
+        if (enchantmentsToApply.isEmpty())
+            return false;
+        for (Map.Entry<Enchantment, Integer> enchantment : enchantmentsToApply.entrySet())
+            item.addEnchantment(enchantment.getKey(), enchantment.getValue());
+        return true;
+    }
+
+    static int getCombinedEnchantmentLevel(int currentLevel, int bookLevel, int maximumLevel) {
+        int combinedLevel = currentLevel == bookLevel ? currentLevel + 1 : Math.max(currentLevel, bookLevel);
+        return Math.min(combinedLevel, maximumLevel);
     }
 
     @EventHandler
