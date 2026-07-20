@@ -631,7 +631,7 @@ public class Trial extends BukkitRunnable {
         TrialManager.removePlayerFromTrialIndex(p);
 
         p.getInventory().clear();
-        p.teleport(p.getBedLocation());
+        teleportOutOfTrial(p);
         p.sendRawMessage(ChatColor.RED + "You have left the trial");
         p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
         TrialManager.removeTrialScoreboard(p);
