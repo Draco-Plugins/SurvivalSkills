@@ -274,10 +274,8 @@ public final class SurvivalSkills extends JavaPlugin {
         farmingListener.getAutoEatModes().remove(p);
         fishingListener.removePlayerTrashData(p);
 
-        if (!TrialManager.getTrials().isEmpty())
-            for (Trial trial : TrialManager.getTrials())
-                if (trial.getPlayers().contains(p))
-                    trial.quitTrial(p);
+        TrialManager.getPlayerTrial(p)
+                .ifPresent((Trial trial) -> trial.quitTrial(p));
     }
 
     public void playerJoin(Player p) {

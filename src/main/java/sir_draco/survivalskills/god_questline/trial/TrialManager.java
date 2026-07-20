@@ -49,6 +49,10 @@ public final class TrialManager {
         return TrialRegistry.getInstance().isInTrial(p);
     }
 
+    public static Optional<Trial> getPlayerTrial(Player p) {
+        return TrialRegistry.getInstance().getPlayerTrial(p);
+    }
+
     public static List<Trial> getTrials() {
         return TrialRegistry.getInstance().getTrials();
     }
