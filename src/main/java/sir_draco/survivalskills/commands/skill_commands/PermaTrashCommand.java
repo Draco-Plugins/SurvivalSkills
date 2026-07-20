@@ -48,7 +48,7 @@ public class PermaTrashCommand implements CommandExecutor {
             if (!trash.isBig() && big) trash.upgradeTrashSize();
         }
 
-        plugin.getFishingListener().getOpenTrashInventories().add(p);
+        plugin.getFishingListener().markTrashInventoryOpen(p);
         trash.openTrashInventory(p);
         return true;
     }

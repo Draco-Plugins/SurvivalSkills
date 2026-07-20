@@ -13,6 +13,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class PendingTrial {
 
@@ -81,7 +82,15 @@ public class PendingTrial {
             TrialManager.registerTrialSelectionInventory(playerManager);
         }
 
-        trialMaster.openInventory(playerManager);
+        openPlayerManagerIfNeeded();
+    }
+
+    /** Keeps live content updates from closing and unregistering the inventory already on screen. */
+    void openPlayerManagerIfNeeded() {
+        Inventory manager = Objects.requireNonNull(playerManager, "playerManager");
+        Inventory openInventory = trialMaster.getOpenInventory().getTopInventory();
+        if (Objects.equals(openInventory, manager)) return;
+        trialMaster.openInventory(manager);
     }
 
     public void endPendingTrial() {

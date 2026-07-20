@@ -427,6 +427,12 @@ public class RewardData {
                 GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),
                 GRAY + "Craftable Item used to upgrade enchantments beyond their vanilla limits");
 
+        staticEntry(m, "SpawnerMover", lines(
+                NEW_ITEM + "You can now craft a Spawner Mover",
+                GRAY + "Pick up and place one spawner while retaining all of its settings",
+                GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),
+                GRAY + "Moves one spawner while retaining all of its settings");
+
         staticEntry(m, "EnchantedGapple", lines(
                 NEW_ITEM + "You can now craft an Enchanted Golden Apple"),
                 GRAY + "Craftable Item");

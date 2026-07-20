@@ -167,6 +167,14 @@ public class FishingSkill implements Listener {
         trashManager.addTrashInventory(p, trash);
     }
 
+    public void markTrashInventoryOpen(Player p) {
+        trashManager.markTrashInventoryOpen(p);
+    }
+
+    public void removePlayerTrashData(Player p) {
+        trashManager.removePlayer(p);
+    }
+
     public void spawnFishingBoss(World world, Location loc, Vector velocity) {
         mechanicsManager.spawnFishingBoss(world, loc, velocity);
     }

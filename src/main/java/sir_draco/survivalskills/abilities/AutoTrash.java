@@ -3,6 +3,7 @@ package sir_draco.survivalskills.abilities;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -11,21 +12,22 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class AutoTrash {
 
     private final ArrayList<Enchantment> enchants = new ArrayList<>();
     private final ArrayList<Material> trashMaterials = new ArrayList<>();
+    private final String inventoryName;
 
-    private Boolean big;
+    private boolean big;
 
     private Inventory trashInventory;
 
     public AutoTrash(boolean big, boolean permaTrash) {
         this.big = big;
-        String inventoryName = permaTrash ? "Perma Trash" : "Auto Trash";
-        if (big) trashInventory = Bukkit.createInventory(null, 54, inventoryName);
-        else trashInventory = Bukkit.createInventory(null, 27, inventoryName);
+        inventoryName = permaTrash ? "Perma Trash" : "Auto Trash";
+        trashInventory = createTrashInventory(big);
     }
 
     public void addTrashItem(ItemStack item, int slot) {
@@ -88,8 +90,10 @@ public class AutoTrash {
     }
 
     public void upgradeTrashSize() {
-        Inventory newTrashInventory = Bukkit.createInventory(null, 54, "Auto Trash");
-        trashInventory.clear();
+        if (big) return;
+
+        List<HumanEntity> viewers = List.copyOf(trashInventory.getViewers());
+        Inventory newTrashInventory = createTrashInventory(true);
         trashInventory = newTrashInventory;
         if (!trashMaterials.isEmpty()) {
             for (Material mat : trashMaterials) {
@@ -113,9 +117,19 @@ public class AutoTrash {
             }
         }
         big = true;
+
+        for (HumanEntity viewer : viewers) {
+            viewer.openInventory(newTrashInventory);
+        }
+    }
+
+    private Inventory createTrashInventory(boolean useLargeInventory) {
+        int size = useLargeInventory ? 54 : 27;
+        return Bukkit.createInventory(null, size, inventoryName);
     }
 
     public void openTrashInventory(Player p) {
+        if (Objects.equals(p.getOpenInventory().getTopInventory(), trashInventory)) return;
         p.openInventory(trashInventory);
     }
 
@@ -131,7 +145,7 @@ public class AutoTrash {
         return trashInventory;
     }
 
-    public Boolean isBig() {
+    public boolean isBig() {
         return big;
     }
 }

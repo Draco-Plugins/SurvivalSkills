@@ -9,6 +9,7 @@ import org.bukkit.block.DoubleChest;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -432,15 +433,21 @@ public final class PipeManager {
         Block block = world.getBlockAt(location.x(), location.y(), location.z());
         if (!(block.getState() instanceof Chest chest)) return Optional.empty();
         if (!(chest.getInventory().getHolder() instanceof DoubleChest doubleChest)) return Optional.of(Set.of(location));
-        Set<PipeLocation> locations = new HashSet<>();
-        for (Inventory inventory : List.of(doubleChest.getLeftSide().getInventory(), doubleChest.getRightSide().getInventory())) {
-            if (inventory.getHolder() instanceof Chest half) {
-                Block halfBlock = half.getBlock();
-                locations.add(new PipeLocation(halfBlock.getWorld().getUID(), halfBlock.getX(), halfBlock.getY(), halfBlock.getZ()));
-            }
-        }
-        if (locations.stream().anyMatch(value -> !world.isChunkLoaded(value.chunkX(), value.chunkZ()))) return Optional.empty();
-        return Optional.of(Set.copyOf(locations));
+        return doubleChestLocations(doubleChest)
+                .filter(locations -> locations.stream()
+                        .allMatch(value -> world.isChunkLoaded(value.chunkX(), value.chunkZ())));
+    }
+
+    static Optional<Set<PipeLocation>> doubleChestLocations(DoubleChest doubleChest) {
+        Set<PipeLocation> locations = java.util.stream.Stream.of(
+                        doubleChest.getLeftSide(), doubleChest.getRightSide())
+                .flatMap((InventoryHolder holder) -> holder instanceof Chest chest
+                        ? java.util.stream.Stream.of(chest.getBlock())
+                        : java.util.stream.Stream.empty())
+                .map((Block halfBlock) -> new PipeLocation(halfBlock.getWorld().getUID(),
+                        halfBlock.getX(), halfBlock.getY(), halfBlock.getZ()))
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
+        return locations.size() == 2 ? Optional.of(locations) : Optional.empty();
     }
 
     private void changed() { dirty = true; version++; }

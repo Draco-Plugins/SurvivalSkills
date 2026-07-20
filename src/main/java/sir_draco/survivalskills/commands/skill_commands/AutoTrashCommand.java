@@ -49,13 +49,17 @@ public class AutoTrashCommand implements CommandExecutor {
         }
         if (autoTrashII.isEnabled() && autoTrashII.isApplied()) big = true;
 
+        AutoTrash trash;
         if (!plugin.getFishingListener().getTrashInventories().containsKey(p)) {
-            AutoTrash trash = new AutoTrash(big, false);
+            trash = new AutoTrash(big, false);
             plugin.getFishingListener().addTrashInventory(p, trash);
         }
+        else {
+            trash = plugin.getFishingListener().getTrashInventories().get(p);
+            if (!trash.isBig() && big) trash.upgradeTrashSize();
+        }
 
-        AutoTrash trash = plugin.getFishingListener().getTrashInventories().get(p);
-        plugin.getFishingListener().getOpenTrashInventories().add(p);
+        plugin.getFishingListener().markTrashInventoryOpen(p);
         trash.openTrashInventory(p);
         return true;
     }

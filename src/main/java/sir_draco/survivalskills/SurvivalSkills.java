@@ -215,6 +215,7 @@ public final class SurvivalSkills extends JavaPlugin {
         TabCompleter tabCompleter = new TabCompleter(this);
         godListener = new GodListener();
         SortWandListener sortWandListener = new SortWandListener(this);
+        SpawnerMoverListener spawnerMoverListener = new SpawnerMoverListener(this);
         builderWandListener = new BuilderWandListener(this, buildingListener);
         FlightRespawnListener flightRespawnListener = new FlightRespawnListener(this);
         PipeConfiguration pipeConfiguration = PipeConfiguration.load(this, config);
@@ -236,6 +237,7 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(armorListener, this);
         godListener.register(this);
         getServer().getPluginManager().registerEvents(sortWandListener, this);
+        getServer().getPluginManager().registerEvents(spawnerMoverListener, this);
         getServer().getPluginManager().registerEvents(builderWandListener, this);
         getServer().getPluginManager().registerEvents(flightRespawnListener, this);
         getServer().getPluginManager().registerEvents(pipeListener, this);
@@ -270,6 +272,7 @@ public final class SurvivalSkills extends JavaPlugin {
         fightingListener.getNoPhantomSpawns().remove(p);
         farmingListener.getBlacklistedFoods().remove(p);
         farmingListener.getAutoEatModes().remove(p);
+        fishingListener.removePlayerTrashData(p);
 
         if (!TrialManager.getTrials().isEmpty())
             for (Trial trial : TrialManager.getTrials())

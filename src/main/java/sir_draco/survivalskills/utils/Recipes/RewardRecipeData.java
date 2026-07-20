@@ -3,6 +3,7 @@ package sir_draco.survivalskills.utils.Recipes;
 import org.bukkit.Material;
 
 import org.bukkit.inventory.ItemStack;
+import sir_draco.survivalskills.abilities.items.SpawnerMover;
 import sir_draco.survivalskills.utils.items.ItemStackGenerator;
 
 import java.util.List;
@@ -147,6 +148,8 @@ public final class RewardRecipeData {
             new SmallShapedSpec("magnet", ItemStackGenerator.getMagnet(), "ABA:BCB:ABA",
                     null, null, null, Material.IRON_BLOCK, Material.REDSTONE_BLOCK,
                     Material.COPPER_BLOCK),
+            new SmallShapedSpec("spawnermover", SpawnerMover.createEmpty(), " A :ABA: A ",
+                    null, null, null, Material.DIAMOND, Material.MUSIC_DISC_13, null),
 
             new SmallShapedSpec("powersword", ItemStackGenerator.getPowerSword(), "DAD:BAB:DCD",
                     ItemStackGenerator.getPowerOre(), ItemStackGenerator.getZapWand(),

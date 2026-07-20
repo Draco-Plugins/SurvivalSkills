@@ -312,6 +312,17 @@ class RewardDataTest {
                 .contains("upgrade enchantments"));
     }
 
+    @Test
+    void spawnerMoverDescribesMovingOneSpawnerWithItsSettings() {
+        List<String> notification = RewardData.getNotification("Crafting", "SpawnerMover");
+        assertNotNull(notification);
+        assertTrue(notification.get(0).contains("craft a Spawner Mover"));
+        assertTrue(RewardData.getDescription("Crafting", "SpawnerMover")
+                .contains("one spawner"));
+        assertTrue(RewardData.getDescription("Crafting", "SpawnerMover")
+                .contains("all of its settings"));
+    }
+
     // -- Spot checks: Main --
 
     @Test

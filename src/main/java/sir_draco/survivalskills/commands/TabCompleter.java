@@ -170,6 +170,7 @@ public class TabCompleter implements Listener {
         words.add("elderguardianspawnegg");
         words.add("witherskullcannon");
         words.add("fireballcannon");
+        words.add("giantsword");
         e.setCompletions(getCompletions(buffer, words));
     }
 

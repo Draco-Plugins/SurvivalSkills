@@ -66,6 +66,18 @@ public class TrashManager {
         trashInventories.put(p, trash);
     }
 
+    public void markTrashInventoryOpen(Player p) {
+        if (!openTrashInventories.contains(p))
+            openTrashInventories.add(p);
+    }
+
+    public void removePlayer(Player p) {
+        trashInventories.remove(p);
+        permaTrash.remove(p);
+        disabledAutoTrash.removeIf((Player player) -> Objects.equals(player, p));
+        openTrashInventories.removeIf((Player player) -> Objects.equals(player, p));
+    }
+
     // =================================================================
     // Event handlers
     // =================================================================
@@ -76,7 +88,7 @@ public class TrashManager {
             return;
         if (resolveTrashForPlayer(p, e.getInventory(), e.getInventory()) == null)
             return;
-        openTrashInventories.remove(p);
+        openTrashInventories.removeIf((Player player) -> Objects.equals(player, p));
     }
 
     public void onClickTrashInventory(InventoryClickEvent e) {

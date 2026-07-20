@@ -807,12 +807,14 @@ public class Trial extends BukkitRunnable {
                 continue;
             String displayName = target.getDisplayName();
             double health = target.getHealth();
+            AttributeInstance maxHealthAttribute = target.getAttribute(Attribute.MAX_HEALTH);
+            double maxHealth = maxHealthAttribute == null ? health : maxHealthAttribute.getValue();
             int foodLevel = target.getFoodLevel();
             for (UUID spectatorId : entry.getValue()) {
                 Player spectator = Bukkit.getPlayer(spectatorId);
                 if (spectator != null)
                     SkillScoreboard.updateTrialSpectatorScoreboard(
-                            spectator, displayName, health, foodLevel, score, timeSpent);
+                            spectator, displayName, health, maxHealth, foodLevel, score, timeSpent);
             }
         }
     }

@@ -212,7 +212,7 @@ Exploring:
         Type: "State"
     AdventurerArmor:
         Enabled: true
-        Level: 60
+        Level: 58
         Type: "Crafting"
 
 Farming:
@@ -660,6 +660,10 @@ Crafting:
         Enabled: true
         Level: 20
         Type: "State"
+    SpawnerMover:
+        Enabled: true
+        Level: 22
+        Type: "Crafting"
     ExtraOutputIV:
         Enabled: true
         Level: 25

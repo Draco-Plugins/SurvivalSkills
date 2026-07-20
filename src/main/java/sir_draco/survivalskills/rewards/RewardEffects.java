@@ -5,6 +5,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.abilities.AutoTrash;
 
 import java.util.*;
 
@@ -85,7 +86,7 @@ public class RewardEffects {
         linearDouble(m, "Fishing", "Experience", 10, 1.1, 0.1, (pr, val) -> pr.setExperienceMultiplier(val));
         fasterFishingEffects(m);
         put(m, "Fishing", "AutoTrashII", (pr, p) -> {
-            var trash = SurvivalSkills.getInstance().getFishingListener().getTrashInventories().get(p);
+            AutoTrash trash = SurvivalSkills.getInstance().getFishingListener().getTrashInventories().get(p);
             if (trash != null) trash.upgradeTrashSize();
         });
 

@@ -1,5 +1,6 @@
 package sir_draco.survivalskills.boards;
 
+import java.util.Locale;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
@@ -21,6 +22,11 @@ public class SkillScoreboard {
 
     private static final String MAIN = SkillCategory.MAIN.getDisplayName();
     private static final String DEATHS = SkillCategory.DEATHS.getDisplayName();
+    private static final int MAX_FOOD_LEVEL = 20;
+    private static final String HEALTH_HOLDER = ChatColor.DARK_GRAY.toString();
+    private static final String FOOD_HOLDER = ChatColor.GRAY.toString();
+    private static final String SCORE_HOLDER = ChatColor.DARK_BLUE.toString();
+    private static final String TIME_HOLDER = ChatColor.BLUE.toString();
 
     private static final NavigableMap<Integer, ChatColor> LEVEL_COLORS = new TreeMap<>();
     static {
@@ -190,12 +196,13 @@ public class SkillScoreboard {
      * @param p the spectator player
      * @param targetName the name of the player being spectated
      * @param health the target's current health
+     * @param maxHealth the target's maximum health
      * @param food the target's current food level
      * @param scoreAmount the current trial score
      * @param timeAmount the current trial time
      */
-    public static void updateTrialSpectatorScoreboard(Player p, String targetName, double health, int food,
-            int scoreAmount, int timeAmount) {
+    public static void updateTrialSpectatorScoreboard(Player p, String targetName, double health, double maxHealth,
+            int food, int scoreAmount, int timeAmount) {
         Scoreboard board = TrialManager.getSpectatorScoreboard(p);
         if (board == null) {
             initializeTrialSpectatorScoreboard(p, targetName);
@@ -203,14 +210,15 @@ public class SkillScoreboard {
         }
 
         // Color the main level in the scoreboard display
-        String healthString = ChatColor.GOLD + "Health: " + ChatColor.AQUA + health;
-        String foodString = ChatColor.GOLD + "Food: " + ChatColor.AQUA + food;
+        String healthString = ChatColor.GOLD + "Health: " + ChatColor.AQUA
+                + formatStat(health) + "/" + formatStat(maxHealth);
+        String foodString = ChatColor.GOLD + "Food: " + ChatColor.AQUA + food + "/" + MAX_FOOD_LEVEL;
         String scoreString = ChatColor.GOLD + "Score: " + ChatColor.AQUA + scoreAmount;
         String timeString = ChatColor.GOLD + "Time: " + ChatColor.AQUA + formatTime(timeAmount);
-        updateTeam(board, "Health", ChatColor.GRAY.toString(), healthString, 1);
-        updateTeam(board, "Food", ChatColor.BLUE.toString(), foodString, 2);
-        updateTeam(board, "Score", ChatColor.GRAY.toString(), scoreString, 3);
-        updateTeam(board, "Time", ChatColor.BLUE.toString(), timeString, 4);
+        updateTeam(board, "Health", HEALTH_HOLDER, healthString, 1);
+        updateTeam(board, "Food", FOOD_HOLDER, foodString, 2);
+        updateTeam(board, "Score", SCORE_HOLDER, scoreString, 3);
+        updateTeam(board, "Time", TIME_HOLDER, timeString, 4);
         p.setScoreboard(board);
     }
 
@@ -292,6 +300,18 @@ public class SkillScoreboard {
         int minutes = time / 60;
         int seconds = time % 60;
         return String.format("%d:%02d", minutes, seconds);
+    }
+
+    /**
+     * Formats health values without a trailing decimal for whole numbers while retaining useful
+     * precision for partially filled hearts.
+     * @param value the health value
+     * @return the formatted health value
+     */
+    static String formatStat(double value) {
+        if (value == Math.rint(value))
+            return Long.toString(Math.round(value));
+        return String.format(Locale.ROOT, "%.1f", value);
     }
 
     /**

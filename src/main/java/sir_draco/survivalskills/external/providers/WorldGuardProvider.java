@@ -47,7 +47,15 @@ public class WorldGuardProvider {
     }
 
     
-    public boolean canPlaceBlockInRegion(Player p, Location loc) {
+    public boolean canPlaceBlockInRegion(Player player, Location loc) {
+        return canChangeBlockInRegion(player, loc, Flags.BLOCK_PLACE);
+    }
+
+    public boolean canBreakBlockInRegion(Player player, Location loc) {
+        return canChangeBlockInRegion(player, loc, Flags.BLOCK_BREAK);
+    }
+
+    private boolean canChangeBlockInRegion(Player player, Location loc, StateFlag flag) {
         World world = loc.getWorld();
         if (world == null) return true;
         if (container == null) return true;
@@ -62,9 +70,9 @@ public class WorldGuardProvider {
         for (ProtectedRegion protectedRegion : applicableRegions) {
             if (protectedRegion == null || !protectedRegion.contains(BlockVector3.at(x, y, z)))
                 continue;
-            StateFlag.State state = protectedRegion.getFlag(Flags.BLOCK_PLACE);
+            StateFlag.State state = protectedRegion.getFlag(flag);
             boolean allowed = StateFlag.test(state);
-            if (p.hasPermission("worldguard.region.bypass." + protectedRegion.getId()) || p.isOp())
+            if (player.hasPermission("worldguard.region.bypass." + protectedRegion.getId()) || player.isOp())
                 allowed = true;
             if (!allowed)
                 return false;
