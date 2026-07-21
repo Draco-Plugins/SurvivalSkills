@@ -61,7 +61,7 @@ public final class BuilderWandListener implements Listener {
 
     private static final int BUILDER_WAND_MODEL_DATA = ItemModelData.BUILDER_WAND.getId();
     private static final int PREVIEW_INTERVAL_TICKS = 2;
-    private static final int PLACEMENT_COOLDOWN_TICKS = 10;
+    private static final int PLACEMENT_COOLDOWN_TICKS = 5;
     private static final double DEFAULT_BLOCK_REACH = 4.5;
     private static final int FIRST_STORAGE_SLOT = 0;
     private static final int LAST_STORAGE_SLOT = 35;

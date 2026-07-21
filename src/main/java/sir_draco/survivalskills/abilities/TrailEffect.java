@@ -8,7 +8,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public class TrailEffect extends BukkitRunnable {
 
-    private static final float DEFAULT_FLOAT_PARTICLE_DATA = 1.0F;
+    private static final Float DEFAULT_FLOAT_PARTICLE_DATA = 1.0F;
 
     private final Player p;
     private final Particle particle;

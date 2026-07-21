@@ -26,6 +26,6 @@ class TrailEffectTest {
 
         trailEffect.run();
 
-        verify(world).spawnParticle(Particle.DRAGON_BREATH, particleLocation, 0, 0., 0., 0., 1.0F);
+        verify(world).spawnParticle(Particle.DRAGON_BREATH, particleLocation, 0, 0., 0., 0., Float.valueOf(1.0F));
     }
 }
