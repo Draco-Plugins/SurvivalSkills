@@ -204,7 +204,7 @@ public final class PipeListener implements Listener {
 
     private void openFilter(Player player, PipeRecord receiver) {
         Inventory inventory = Bukkit.createInventory(null, 9, FILTER_TITLE);
-        receiver.whitelist().stream().limit(9).forEach(material -> inventory.addItem(new ItemStack(material, 1)));
+        receiver.whitelist().stream().limit(9).forEach(filter -> inventory.addItem(filter.toDisplayItem()));
         openFilters.put(player.getUniqueId(), receiver.pipeUuid());
         player.openInventory(inventory);
     }
@@ -215,19 +215,21 @@ public final class PipeListener implements Listener {
         event.setCancelled(true);
         UUID receiverUuid = openFilters.get(player.getUniqueId());
         if (receiverUuid == null) return;
-        Set<Material> whitelist = new HashSet<>(manager.getPipe(receiverUuid)
+        Set<PipeFilter> whitelist = new HashSet<>(manager.getPipe(receiverUuid)
                 .map((PipeRecord record) -> record.whitelist()).orElse(Set.of()));
         if (event.getClickedInventory() == event.getView().getTopInventory()) {
             ItemStack clicked = event.getCurrentItem();
-            if (clicked != null && !clicked.getType().isAir()) whitelist.remove(clicked.getType());
+            if (clicked != null && !clicked.getType().isAir()) whitelist.remove(PipeFilter.fromItem(clicked));
         } else if (event.isShiftClick()) {
             ItemStack clicked = event.getCurrentItem();
-            if (clicked != null && !clicked.getType().isAir() && whitelist.size() < 9) whitelist.add(clicked.getType());
+            if (clicked != null && !clicked.getType().isAir() && whitelist.size() < 9) {
+                whitelist.add(PipeFilter.fromItem(clicked));
+            }
         }
         manager.setWhitelist(receiverUuid, whitelist);
         manager.getPipe(receiverUuid).ifPresent(record -> {
             event.getView().getTopInventory().clear();
-            record.whitelist().forEach(material -> event.getView().getTopInventory().addItem(new ItemStack(material, 1)));
+            record.whitelist().forEach(filter -> event.getView().getTopInventory().addItem(filter.toDisplayItem()));
         });
     }
 

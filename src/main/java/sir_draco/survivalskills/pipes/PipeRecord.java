@@ -1,7 +1,5 @@
 package sir_draco.survivalskills.pipes;
 
-import org.bukkit.Material;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -9,7 +7,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public record PipeRecord(UUID pipeUuid, UUID ownerUuid, PipeLocation location, PipeType type,
-        Optional<UUID> senderUuid, List<UUID> receiverUuids, Set<Material> whitelist) {
+        Optional<UUID> senderUuid, List<UUID> receiverUuids, Set<PipeFilter> whitelist) {
     public PipeRecord {
         Objects.requireNonNull(pipeUuid);
         Objects.requireNonNull(ownerUuid);

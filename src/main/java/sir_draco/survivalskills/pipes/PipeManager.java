@@ -130,11 +130,11 @@ public final class PipeManager {
         return Optional.of(removed);
     }
 
-    public void setWhitelist(UUID receiverUuid, Set<Material> whitelist) {
+    public void setWhitelist(UUID receiverUuid, Set<PipeFilter> whitelist) {
         requireMainThread();
         PipeRecord receiver = Objects.requireNonNull(byUuid.get(receiverUuid));
         if (receiver.type() != PipeType.RECEIVER) throw new IllegalArgumentException("Not a receiver");
-        Set<Material> immutable = Set.copyOf(whitelist);
+        Set<PipeFilter> immutable = Set.copyOf(whitelist);
         if (receiver.whitelist().equals(immutable)) return;
         replace(new PipeRecord(receiver.pipeUuid(), receiver.ownerUuid(), receiver.location(), receiver.type(),
                 receiver.senderUuid(), List.of(), immutable));
@@ -200,11 +200,12 @@ public final class PipeManager {
     }
 
     static int transferOneStack(Inventory source, ItemStack[] contents, Inventory target,
-            Set<Material> whitelist, int startSlot) {
+            Set<PipeFilter> whitelist, int startSlot) {
         for (int offset = 0; offset < contents.length; offset++) {
             int slot = (startSlot + offset) % contents.length;
             ItemStack item = contents[slot];
-            if (item == null || item.getType().isAir() || (!whitelist.isEmpty() && !whitelist.contains(item.getType()))) continue;
+            if (item == null || item.getType().isAir()
+                    || (!whitelist.isEmpty() && whitelist.stream().noneMatch(filter -> filter.matches(item)))) continue;
             ItemStack offered = item.clone();
             offered.setAmount(Math.min(item.getAmount(), item.getMaxStackSize()));
             Map<Integer, ItemStack> leftovers = target.addItem(offered);
@@ -246,8 +247,10 @@ public final class PipeManager {
                 UUID worldUuid = resolved == null ? storedWorld : resolved.getUID();
                 PipeType type = PipeType.valueOf(Objects.requireNonNull(value.getString("type")));
                 Optional<UUID> sender = Optional.ofNullable(value.getString("sender")).map(UUID::fromString);
-                Set<Material> whitelist = value.getStringList("whitelist").stream()
-                        .map(Material::matchMaterial).filter(Objects::nonNull).collect(java.util.stream.Collectors.toUnmodifiableSet());
+                Set<PipeFilter> whitelist = value.getStringList("whitelist").stream()
+                        .map((String serializedFilter) -> PipeFilter.deserialize(serializedFilter))
+                        .flatMap((Optional<PipeFilter> filter) -> filter.stream())
+                        .collect(java.util.stream.Collectors.toUnmodifiableSet());
                 PipeRecord record = new PipeRecord(id, owner,
                         new PipeLocation(worldUuid, value.getInt("x"), value.getInt("y"), value.getInt("z")),
                         type, type == PipeType.RECEIVER ? sender : Optional.empty(), List.of(), whitelist);
@@ -310,7 +313,7 @@ public final class PipeManager {
     private PipeSnapshot snapshot() {
         List<PersistedPipe> pipes = byUuid.values().stream().map(record -> {
             World world = Bukkit.getWorld(record.location().worldUuid());
-            Set<String> whitelist = record.whitelist().stream().map((Material material) -> material.name())
+            Set<String> whitelist = record.whitelist().stream().map((PipeFilter filter) -> filter.serialize())
                     .collect(java.util.stream.Collectors.toUnmodifiableSet());
             return new PersistedPipe(record.pipeUuid(), record.ownerUuid(), record.location(),
                     world == null ? "" : world.getName(), record.type(), record.senderUuid(),

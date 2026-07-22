@@ -16,7 +16,8 @@ class PipeRecordTest {
     @Test
     void defensivelyCopiesCollections() {
         List<UUID> receivers = new ArrayList<>(List.of(UUID.randomUUID()));
-        Set<Material> whitelist = new HashSet<>(Set.of(Material.STONE));
+        PipeFilter stoneFilter = new PipeFilter(Material.STONE, Set.of());
+        Set<PipeFilter> whitelist = new HashSet<>(Set.of(stoneFilter));
         PipeRecord record = new PipeRecord(UUID.randomUUID(), UUID.randomUUID(),
                 new PipeLocation(UUID.randomUUID(), 1, 2, 3), PipeType.SENDER,
                 Optional.empty(), receivers, whitelist);
@@ -25,7 +26,7 @@ class PipeRecordTest {
         whitelist.clear();
 
         assertEquals(1, record.receiverUuids().size());
-        assertEquals(Set.of(Material.STONE), record.whitelist());
+        assertEquals(Set.of(stoneFilter), record.whitelist());
         assertThrows(UnsupportedOperationException.class, () -> record.receiverUuids().clear());
         assertThrows(UnsupportedOperationException.class, () -> record.whitelist().clear());
     }
@@ -35,7 +36,7 @@ class PipeRecordTest {
         UUID sender = UUID.randomUUID();
         PipeRecord record = new PipeRecord(UUID.randomUUID(), UUID.randomUUID(),
                 new PipeLocation(UUID.randomUUID(), 1, 2, 3), PipeType.RECEIVER,
-                Optional.of(sender), List.of(), Set.of(Material.DIAMOND));
+                Optional.of(sender), List.of(), Set.of(new PipeFilter(Material.DIAMOND, Set.of())));
 
         assertEquals(Optional.of(sender), record.senderUuid());
     }
