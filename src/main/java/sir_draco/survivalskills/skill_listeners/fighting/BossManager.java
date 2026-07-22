@@ -13,6 +13,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Spider;
 import org.bukkit.entity.Trident;
 import org.bukkit.entity.Villager;
@@ -36,8 +37,11 @@ import sir_draco.survivalskills.utils.music.ExiledBossMusic;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -49,8 +53,6 @@ import java.util.Optional;
  */
 public class BossManager {
 
-    // Spawn-failure sounds
-    private static final Sound SUMMON_FAIL_SOUND = Sound.ENTITY_ENDERMAN_TELEPORT;
     // BroodMother bonus drop
     private static final double BROODING_SILK_DROP_CHANCE = 0.2;
     // Spider-bite self-heal
@@ -69,7 +71,7 @@ public class BossManager {
     private final List<GiantBoss> giants = new ArrayList<>();
     private final List<BroodMotherBoss> broodMothers = new ArrayList<>();
     private final List<VillagerBoss> villagers = new ArrayList<>();
-    private final Map<Player, Boss> summonTracker = new java.util.HashMap<>();
+    private final Map<Player, Boss> summonTracker = new HashMap<>();
     private final Map<BossType, List<? extends Boss>> bossRegistry = new EnumMap<>(BossType.class);
 
     public BossManager(SurvivalSkills plugin, DragonManager dragonManager,
@@ -100,7 +102,7 @@ public class BossManager {
     }
 
     public boolean isBoss(Entity entity) {
-        return entity.hasMetadata("boss");
+        return entity.hasMetadata("boss") || findSummoner(entity).isPresent();
     }
 
     /** Register a freshly spawned boss for cross-listener summon tracking. */
@@ -136,7 +138,7 @@ public class BossManager {
     private void removeBossEntity(LivingEntity entity) {
         for (List<? extends Boss> bosses : bossRegistry.values()) {
             bosses.removeIf(b -> {
-                if (b.getBoss().equals(entity)) {
+                if (Objects.equals(b.getBoss(), entity)) {
                     b.death();
                     return true;
                 }
@@ -145,12 +147,38 @@ public class BossManager {
         }
     }
 
+    private Optional<Player> findSummoner(Entity entity) {
+        return summonTracker.entrySet().stream()
+                .filter(entry -> Objects.equals(entry.getValue().getBoss(), entity))
+                .map((Map.Entry<Player, Boss> entry) -> entry.getKey())
+                .findFirst();
+    }
+
+    private Optional<Player> cleanupBossEntity(LivingEntity entity) {
+        Optional<Player> summoner = removeSummonTracker(entity);
+        removeBossEntity(entity);
+        return summoner;
+    }
+
+    private Optional<Player> removeSummonTracker(Entity entity) {
+        Iterator<Map.Entry<Player, Boss>> iterator = summonTracker.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Player, Boss> entry = iterator.next();
+            if (!Objects.equals(entry.getValue().getBoss(), entity))
+                continue;
+            Player summoner = entry.getKey();
+            iterator.remove();
+            return Optional.of(summoner);
+        }
+        return Optional.empty();
+    }
+
     // ---------------------------------------------------------------------
     // Death handlers
     // ---------------------------------------------------------------------
 
     public void handleBossKill(Player p, EntityDeathEvent e) {
-        summonTracker.remove(p);
+        cleanupBossEntity(e.getEntity());
 
         Location entLocation = e.getEntity().getLocation();
         if (entLocation.getWorld() == null)
@@ -164,7 +192,6 @@ public class BossManager {
                     giveBossItemOrDrop(p, type.getBossItem(), drops);
                     if (GiantSword.shouldDrop(Math.random()))
                         drops.add(ItemStackGenerator.getGiantSword());
-                    removeBossEntity(e.getEntity());
                     broadcastSlain(type);
                     awardBossXP(p, type.getXpMultiplier());
                 }
@@ -172,13 +199,11 @@ public class BossManager {
                     giveBossItemOrDrop(p, type.getBossItem(), drops);
                     if (Math.random() < BROODING_SILK_DROP_CHANCE)
                         drops.add(ItemStackGenerator.getBroodingSilk());
-                    removeBossEntity(e.getEntity());
                     broadcastSlain(type);
                     awardBossXP(p, type.getXpMultiplier());
                 }
                 case EXILED_ONE -> {
                     giveBossItemOrDrop(p, type.getBossItem(), drops);
-                    removeBossEntity(e.getEntity());
                     broadcastSlain(type);
                     awardBossXP(p, type.getXpMultiplier());
                 }
@@ -194,16 +219,8 @@ public class BossManager {
     public void handleUnnaturalBossDeath(EntityDeathEvent e) {
         if (!isBoss(e.getEntity()))
             return;
-        removeBossEntity(e.getEntity());
-
-        for (Map.Entry<Player, Boss> entry : summonTracker.entrySet()) {
-            if (!entry.getValue().getBoss().equals(e.getEntity()))
-                continue;
-            Player p = entry.getKey();
-            summonTracker.remove(p);
-            p.sendRawMessage(ChatColor.YELLOW + "Your boss died unnaturally");
-            break;
-        }
+        cleanupBossEntity(e.getEntity()).ifPresent((Player player) ->
+                player.sendRawMessage(ChatColor.YELLOW + "Your boss died unnaturally"));
     }
 
     /** Called when the summoning player dies: tear down their boss broadcast the defeat. */
@@ -238,20 +255,20 @@ public class BossManager {
 
     /** Generic boss spawn driven by {@link BossType}, replacing the per-type switch. */
     public void spawnBoss(BossType type, Location loc, Player p, ItemStack mainHand) {
-        if (summonTracker.containsKey(p)) {
+        if (hasActiveBoss(p)) {
             p.sendRawMessage(ChatColor.RED + "You can only summon one boss at a time");
-            p.playSound(p, SUMMON_FAIL_SOUND, 1, 1);
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
         if (type.requiresNight() && !isNight(p.getWorld())) {
             p.sendRawMessage(ChatColor.RED + "You can only spawn the " + type.getSpawnName() + " at night");
-            p.playSound(p, SUMMON_FAIL_SOUND, 1, 1);
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
         Boss boss = type.create(loc, p, noBossMusic.contains(p));
         if (boss == null) {
             p.sendRawMessage(ChatColor.RED + "Not enough space to spawn the " + type.getSpawnName());
-            p.playSound(p, SUMMON_FAIL_SOUND, 1, 1);
+            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             return;
         }
         boss.runTaskTimer(plugin, 0, 1);
@@ -261,6 +278,23 @@ public class BossManager {
             p.getInventory().setItemInMainHand(null);
         else
             mainHand.setAmount(mainHand.getAmount() - 1);
+    }
+
+    boolean hasActiveBoss(Player player) {
+        Boss trackedBoss = summonTracker.get(player);
+        if (trackedBoss == null) {
+            summonTracker.remove(player);
+            return false;
+        }
+
+        LivingEntity trackedEntity = trackedBoss.getBoss();
+        if (trackedEntity != null && !trackedEntity.isDead() && trackedEntity.isValid())
+            return true;
+
+        summonTracker.remove(player);
+        removeBoss(trackedBoss);
+        trackedBoss.cleanup();
+        return false;
     }
 
     public static boolean isSummoningBoss(ItemStack item) {
@@ -299,6 +333,15 @@ public class BossManager {
     public void handleBossDamage(EntityDamageEvent e) {
         if (!isBoss(e.getEntity()))
             return;
+        if (e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
+            dragonManager.handleDragonDamageImmunity(e);
+            return;
+        }
+        if (!(e instanceof EntityDamageByEntityEvent)) {
+            e.setCancelled(true);
+            return;
+        }
+
         EntityDamageEvent.DamageCause cause = e.getCause();
         EntityType type = e.getEntity().getType();
         if (type.equals(EntityType.VILLAGER)) {
@@ -306,10 +349,6 @@ public class BossManager {
                 e.setCancelled(true);
             if (cause.equals(EntityDamageEvent.DamageCause.LIGHTNING))
                 e.setCancelled(true);
-            return;
-        }
-        if (type.equals(EntityType.ENDER_DRAGON)) {
-            dragonManager.handleDragonDamageImmunity(e);
             return;
         }
         if ((type.equals(EntityType.ZOMBIE) || type.equals(EntityType.SPIDER))
@@ -372,31 +411,19 @@ public class BossManager {
         if (!isBoss(e.getEntity()))
             return;
         Optional<Player> attacker = getAttackingPlayer(e);
-        if (attacker.isEmpty()) {
-            e.setCancelled(true);
-            return;
-        }
-        Player p = attacker.get();
-        EntityType type = e.getEntity().getType();
-        if (type.equals(EntityType.VILLAGER))
-            handleVillagerDamageByCorrectPlayer(e, p);
-        else if (type.equals(EntityType.ENDER_DRAGON))
-            dragonManager.handleDragonDamageByCorrectPlayer(e, p);
-    }
-
-    private void handleVillagerDamageByCorrectPlayer(EntityDamageByEntityEvent e, Player p) {
-        if (summonTracker.containsKey(p)) {
-            Boss boss = summonTracker.get(p);
-            if (boss == null) {
-                summonTracker.remove(p);
+        if (e.getEntity().getType().equals(EntityType.ENDER_DRAGON)) {
+            if (attacker.isEmpty()) {
                 e.setCancelled(true);
                 return;
             }
-            if (!boss.getBoss().equals(e.getEntity()))
-                e.setCancelled(true);
-        } else {
-            e.setCancelled(true);
+            dragonManager.handleDragonDamageByCorrectPlayer(e, attacker.get());
+            return;
         }
+
+        Optional<Player> summoner = findSummoner(e.getEntity());
+        if (attacker.isEmpty() || summoner.isEmpty()
+                || !Objects.equals(attacker.get(), summoner.get()))
+            e.setCancelled(true);
     }
 
     public void handleVillagerTransform(EntityTransformEvent e) {
@@ -438,11 +465,8 @@ public class BossManager {
      * attacker, so callers cannot forget the absent case.
      */
     static Optional<Player> getAttackingPlayer(EntityDamageByEntityEvent e) {
-        if (e.getDamager() instanceof Arrow arrow) {
-            if (arrow.getShooter() instanceof Player player)
-                return Optional.of(player);
-        } else if (e.getDamager() instanceof Trident trident) {
-            if (trident.getShooter() instanceof Player player)
+        if (e.getDamager() instanceof Projectile projectile) {
+            if (projectile.getShooter() instanceof Player player)
                 return Optional.of(player);
         } else if (e.getDamager() instanceof Player player) {
             return Optional.of(player);
