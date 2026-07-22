@@ -3,6 +3,8 @@ package sir_draco.survivalskills.skill_listeners;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -39,6 +41,9 @@ import java.util.UUID;
 import java.util.function.Function;
 
 public class ArmorListener implements Listener {
+
+    private static final double DEFAULT_STEP_HEIGHT = 0.6;
+    private static final double ADVENTURER_STEP_HEIGHT = 1.0;
 
     public enum ArmorType {
         JUMPING_BOOTS(ItemModelData.JUMPING_BOOTS.getId(), SkillCategory.EXPLORING, "JumpingBoots", JumpingBoots::new, 20, false),
@@ -118,12 +123,14 @@ public class ArmorListener implements Listener {
 
     @EventHandler
     public void playerLeave(PlayerQuitEvent e) {
+        resetAdventurerStepHeight(e.getPlayer());
         removeArmors(e.getPlayer().getUniqueId());
     }
 
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
         Player p = e.getEntity();
+        resetAdventurerStepHeight(p);
 
         if (!e.getKeepInventory()) {
             removeArmors(p.getUniqueId());
@@ -210,9 +217,12 @@ public class ArmorListener implements Listener {
 
     @EventHandler
     public void onSneak(PlayerToggleSneakEvent e) {
+        Player p = e.getPlayer();
+        if (isWearingArmor(p.getUniqueId(), ArmorType.ADVENTURER))
+            updateAdventurerStepHeight(p, e.isSneaking());
+
         if (!e.isSneaking())
             return;
-        Player p = e.getPlayer();
         if (!isWearingArmor(p.getUniqueId(), ArmorType.POWER))
             return;
         long now = System.currentTimeMillis();
@@ -260,6 +270,8 @@ public class ArmorListener implements Listener {
             }
             if (!allMatch) {
                 players.remove(uuid);
+                if (type == ArmorType.ADVENTURER)
+                    resetAdventurerStepHeight(p);
                 return;
             }
         } else {
@@ -272,6 +284,8 @@ public class ArmorListener implements Listener {
             }
             if (!found) {
                 players.remove(uuid);
+                if (type == ArmorType.ADVENTURER)
+                    resetAdventurerStepHeight(p);
                 return;
             }
         }
@@ -285,6 +299,9 @@ public class ArmorListener implements Listener {
             return;
 
         players.add(uuid);
+
+        if (type == ArmorType.ADVENTURER)
+            updateAdventurerStepHeight(p, p.isSneaking());
 
         if (type.taskFactory != null) {
             BukkitRunnable task = type.taskFactory.apply(p);
@@ -319,6 +336,20 @@ public class ArmorListener implements Listener {
             players.remove(uuid);
         }
         lastSneakTime.remove(uuid);
+    }
+
+    public static void updateAdventurerStepHeight(Player p, boolean sneaking) {
+        setAdventurerStepHeight(p, sneaking ? DEFAULT_STEP_HEIGHT : ADVENTURER_STEP_HEIGHT);
+    }
+
+    public static void resetAdventurerStepHeight(Player p) {
+        setAdventurerStepHeight(p, DEFAULT_STEP_HEIGHT);
+    }
+
+    private static void setAdventurerStepHeight(Player p, double stepHeight) {
+        AttributeInstance attribute = p.getAttribute(Attribute.STEP_HEIGHT);
+        if (attribute != null)
+            attribute.setBaseValue(stepHeight);
     }
 
     public void checkHealthRegen(Player p) {

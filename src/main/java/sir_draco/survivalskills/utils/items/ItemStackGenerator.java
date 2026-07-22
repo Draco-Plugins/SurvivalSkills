@@ -329,6 +329,7 @@ public class ItemStackGenerator {
 
     private static final List<String> ADVENTURER_LORE = List.of("",
             ChatColor.GRAY + "Speed III Everywhere",
+            ChatColor.GRAY + "Autostep automatically steps up one block",
             ChatColor.GRAY + "Prevents Fall Damage",
             ChatColor.GRAY + "Must wear the full set");
 

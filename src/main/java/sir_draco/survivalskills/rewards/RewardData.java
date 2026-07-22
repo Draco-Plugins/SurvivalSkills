@@ -195,7 +195,7 @@ public class RewardData {
 
         staticEntry(m, "AdventurerArmor", lines(
                 NEW_ITEM + "You can now craft Adventurer Armor",
-                GREEN + "\nAdventurer Armor lets you travel even faster and you won't take fall damage!",
+                GREEN + "\nAdventurer Armor lets you travel even faster, step up one block automatically, and you won't take fall damage!",
                 GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),
                 GRAY + "Craftable Item");
 

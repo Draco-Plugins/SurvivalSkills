@@ -16,10 +16,12 @@ public class AdventurerArmor extends BukkitRunnable {
     @Override
     public void run() {
         if (!ArmorListener.isWearingArmor(p.getUniqueId(), ArmorType.ADVENTURER)) {
+            ArmorListener.resetAdventurerStepHeight(p);
             cancel();
             return;
         }
 
+        ArmorListener.updateAdventurerStepHeight(p, p.isSneaking());
         ArmorListener.giveSpeedPotionEffect(p, 2);
     }
 }
