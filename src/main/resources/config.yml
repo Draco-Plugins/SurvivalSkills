@@ -404,6 +404,10 @@ Fighting:
         Enabled: true
         Level: 24
         Type: "Command"
+    WardrobeI:
+        Enabled: true
+        Level: 28
+        Type: "Command"
     BroodMotherSummon:
         Enabled: true
         Level: 25
@@ -420,6 +424,10 @@ Fighting:
         Enabled: true
         Level: 40
         Type: "State"
+    WardrobeII:
+        Enabled: true
+        Level: 42
+        Type: "Command"
     BerserkerIV:
         Enabled: true
         Level: 45
@@ -432,6 +440,10 @@ Fighting:
         Enabled: true
         Level: 55
         Type: "State"
+    WardrobeIII:
+        Enabled: true
+        Level: 58
+        Type: "Command"
     LifestealIV:
         Enabled: true
         Level: 60

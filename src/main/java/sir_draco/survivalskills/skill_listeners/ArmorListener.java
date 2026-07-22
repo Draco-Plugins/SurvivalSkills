@@ -294,6 +294,13 @@ public class ArmorListener implements Listener {
         }
     }
 
+    public void refreshPlayerArmor(Player player) {
+        ItemStack[] armor = player.getInventory().getArmorContents();
+        for (ArmorType armorType : ArmorType.values()) {
+            playerWearingArmor(player, armor, armorType);
+        }
+    }
+
     private static boolean isPlayerInventory(Inventory inventory) {
         return inventory.getType().equals(InventoryType.PLAYER);
     }

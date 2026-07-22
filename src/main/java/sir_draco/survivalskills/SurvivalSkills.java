@@ -41,6 +41,8 @@ import sir_draco.survivalskills.utils.FileUtils;
 import sir_draco.survivalskills.utils.RecipeMaker;
 import sir_draco.survivalskills.utils.RecipeRegistrar;
 import sir_draco.survivalskills.utils.Utils;
+import sir_draco.survivalskills.wardrobe.WardrobeGui;
+import sir_draco.survivalskills.wardrobe.WardrobeManager;
 
 import java.io.*;
 import java.util.*;
@@ -64,6 +66,8 @@ public final class SurvivalSkills extends JavaPlugin {
     private PipeManager pipeManager;
     private SuperEnchantingTableManager superEnchantingTableManager;
     private BuilderWandListener builderWandListener;
+    private WardrobeManager wardrobeManager;
+    private WardrobeGui wardrobeGui;
 
     // Listeners
     private MiningSkill miningListener;
@@ -115,6 +119,7 @@ public final class SurvivalSkills extends JavaPlugin {
         PipeConfiguration pipeConfiguration = PipeConfiguration.load(this, config);
         pipeManager = new PipeManager(this, pipeConfiguration);
         FileUtils.loadPipeData(pipeManager);
+        wardrobeManager = new WardrobeManager(this);
 
         // Load plugin features
         abilityManager = new AbilityManager(this);
@@ -161,6 +166,7 @@ public final class SurvivalSkills extends JavaPlugin {
         }
 
         FileUtils.savePlayerData();
+        wardrobeManager.saveAll();
 
         try {
             trophyManager.saveTrophies();
@@ -222,6 +228,7 @@ public final class SurvivalSkills extends JavaPlugin {
         PipeConfiguration pipeConfiguration = PipeConfiguration.load(this, config);
         PipeListener pipeListener = new PipeListener(this, pipeManager, pipeConfiguration);
         superEnchantingTableManager = new SuperEnchantingTableManager(this);
+        wardrobeGui = new WardrobeGui(this, wardrobeManager);
 
         getServer().getPluginManager().registerEvents(buildingListener, this);
         getServer().getPluginManager().registerEvents(miningListener, this);
@@ -243,6 +250,8 @@ public final class SurvivalSkills extends JavaPlugin {
         getServer().getPluginManager().registerEvents(builderWandListener, this);
         getServer().getPluginManager().registerEvents(flightRespawnListener, this);
         getServer().getPluginManager().registerEvents(pipeListener, this);
+        getServer().getPluginManager().registerEvents(wardrobeManager, this);
+        getServer().getPluginManager().registerEvents(wardrobeGui, this);
         superEnchantingTableManager.start();
         TrialManager.initialize();
         getServer().getPluginManager().registerEvents(new TrialEventListener(), this);
@@ -402,6 +411,10 @@ public final class SurvivalSkills extends JavaPlugin {
         return playerListener;
     }
 
+    public ArmorListener getArmorListener() {
+        return armorListener;
+    }
+
     public boolean isForced(Player p, String[] args) {
         if (!p.hasPermission("survivalskills.op"))
             return false;
@@ -503,6 +516,14 @@ public final class SurvivalSkills extends JavaPlugin {
 
     public SkillManager getSkillManager() {
         return skillManager;
+    }
+
+    public WardrobeManager getWardrobeManager() {
+        return wardrobeManager;
+    }
+
+    public WardrobeGui getWardrobeGui() {
+        return wardrobeGui;
     }
 
     public GodListener getGodListener() {

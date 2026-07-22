@@ -333,6 +333,19 @@ public class RewardData {
                         + " to enable or disable phantom spawns"),
                 GRAY + "Use " + AQUA + "/togglephantoms" + GRAY + " to enable or disable phantom spawns");
 
+        staticEntry(m, "WardrobeI", lines(
+                NEW_ABILITY + "You can now use " + AQUA + "/wardrobe" + YELLOW
+                        + " to store and swap your first armor set"),
+                GRAY + "Use " + AQUA + "/wardrobe" + GRAY + " to store and swap armor sets");
+
+        staticEntry(m, "WardrobeII", lines(
+                NEW_ABILITY + "Your second armor set is now available in " + AQUA + "/wardrobe"),
+                GRAY + "Your second armor set is unlocked in " + AQUA + "/wardrobe");
+
+        staticEntry(m, "WardrobeIII", lines(
+                NEW_ABILITY + "Your third armor set is now available in " + AQUA + "/wardrobe"),
+                GRAY + "Your third armor set is unlocked in " + AQUA + "/wardrobe");
+
         staticEntry(m, "FishingKing", lines(
                 NEW_ITEM + "You can now summon the Fishing King through fishing when it isn't raining"),
                 GRAY + "The Fishing King can spawn while fishing (1/100 chance)");

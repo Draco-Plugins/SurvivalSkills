@@ -49,7 +49,7 @@ public class FileUtils {
     public static final String TRAIL = ".Trail";
     public static final String NO_PHANTOMS = ".NoPhantoms";
 
-    private static final double CURRENT_CONFIG_VERSION = 2.31;
+    private static final double CURRENT_CONFIG_VERSION = 2.32;
 
     private FileUtils() {
         // Prevent instantiation

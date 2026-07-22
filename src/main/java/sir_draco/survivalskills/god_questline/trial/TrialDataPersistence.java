@@ -33,6 +33,10 @@ public class TrialDataPersistence {
     private static final String TRIAL_DATA_FILE = "trialdata.yml";
 
     private static final String BUILDING_FILE = "trialbuilding.yml";
+    private static final String OWNER_KEY = ".Owner";
+    private static final String LAST_USED_KEY = ".LastUsed";
+    private static final String LOCATION_KEY = ".Location";
+    private static final String PROTECTED_AREA_KEY = ".ProtectedArea";
 
     private static TrialDataPersistence instance;
 
@@ -209,7 +213,7 @@ public class TrialDataPersistence {
 
     public void removeTrialBuilding(UUID buildingId) {
         trialBuildingOwnership.remove(buildingId);
-        getOrLoadTrialDataConfig().set(buildingId.toString(), null);
+        removeTrialBuildingData(getOrLoadTrialDataConfig(), buildingId);
     }
 
     public void loadTrialBuildingData() {
@@ -243,14 +247,12 @@ public class TrialDataPersistence {
         // Remove building entries that are no longer owned, but keep player completed-trial
         // entries (identified by the absence of an ".Owner" child key).
         for (String key : new ArrayList<>(config.getKeys(false))) {
-            if (config.contains(key + ".CompletedTrials"))
-                continue;
-            if (!config.contains(key + ".Owner"))
+            if (!config.contains(key + OWNER_KEY))
                 continue;
             try {
                 UUID uuid = UUID.fromString(key);
                 if (!trialBuildingOwnership.containsKey(uuid))
-                    config.set(key, null);
+                    removeTrialBuildingData(config, uuid);
             } catch (IllegalArgumentException ignored) {
                 // Not a UUID-shaped key; leave it alone.
             }
@@ -266,6 +268,18 @@ public class TrialDataPersistence {
 
         if (saveFile)
             saveTrialDataFile("Failed to save trial building data");
+    }
+
+    static void removeTrialBuildingData(FileConfiguration config, UUID buildingId) {
+        String key = buildingId.toString();
+        config.set(key + OWNER_KEY, null);
+        config.set(key + LAST_USED_KEY, null);
+        config.set(key + LOCATION_KEY, null);
+        config.set(key + PROTECTED_AREA_KEY, null);
+
+        ConfigurationSection section = config.getConfigurationSection(key);
+        if (section != null && section.getKeys(false).isEmpty())
+            config.set(key, null);
     }
 
     public void saveCompletedTrialsOnQuit(org.bukkit.entity.Player p, TrialRegistry registry) {

@@ -88,6 +88,9 @@ commands:
     godtrial:
         description: Allows a player to start the god trial
         permission: survivalskills.default
+    wardrobe:
+        description: Stores and swaps unlocked armor sets
+        permission: survivalskills.default
 
     sscreative:
         description: Allows for creative mode

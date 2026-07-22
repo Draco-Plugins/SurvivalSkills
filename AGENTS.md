@@ -47,3 +47,8 @@
 | Unused assignments should be removed            | Avoid dead variables—remove or refactor.                       |
 | Magic numbers should be replaced with constants | Improves readability and maintainability.                      |
 | Catch blocks should not be empty                | Always log or handle exceptions meaningfully.                  |
+
+## Repo Level Conventions
+
+1. When adding a new skill reward, be sure to add it at the appropriate level to config.yml, then ensure that the version number is incremented in pom.xml and FileUtils.java so that the config is picked up by servers running the plugin
+2. When creating a new item, it is important that the item itself is added appropriately. Whether this is a custom runnable class, being added to a list of other items, or Bukkit Listener logic. Then the item should be added to the SurvivalSkillsGetCommand.java and the TabCompleter.java classes.

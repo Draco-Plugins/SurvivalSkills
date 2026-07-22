@@ -41,6 +41,7 @@ public final class CommandRegistry {
         new UpCommand(plugin);
         new GodTrialCommand(plugin);
         new CreativeCommand(plugin);
+        new WardrobeCommand(plugin, plugin.getWardrobeGui());
 
         // Admin Commands
         new BossCommand(plugin);
