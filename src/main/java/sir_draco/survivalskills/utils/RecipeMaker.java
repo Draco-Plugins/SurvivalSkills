@@ -31,6 +31,9 @@ public class RecipeMaker {
         // Shape characters for the 3x3 grid, indexed by slot position (row-major).
         private static final char[] SHAPE_CHARS = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'};
 
+        private static final RecipeChoice EGG_CHOICE =
+                        new RecipeChoice.MaterialChoice(Material.EGG, Material.BLUE_EGG, Material.BROWN_EGG);
+
         // ── Dense wool color palette ────────────────────────────────────────────
         // A single source of truth shared by the compaction recipes and the
         // black/white fragment recipes.
@@ -399,6 +402,8 @@ public class RecipeMaker {
                         else
                                 recipe.setIngredient(slot, new RecipeChoice.ExactChoice(exactChoice));
                 }
+                else if (material == Material.EGG)
+                        recipe.setIngredient(slot, EGG_CHOICE);
                 else if (material != null)
                         recipe.setIngredient(slot, material);
         }
