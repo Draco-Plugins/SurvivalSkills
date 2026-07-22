@@ -91,6 +91,11 @@ public class FishingAbilityManager {
 
     public void onBucketUse(PlayerBucketEmptyEvent e) {
         ItemStack hand = ItemStackGeneratorUtils.getItemInHand(e.getPlayer(), e.getHand());
+        if (ItemStackGeneratorUtils.isCustomItem(hand,
+                ItemModelData.UNLIMITED_POWDER_SNOW_BUCKET.getId())) {
+            preservePowderSnowBucket(e, hand);
+            return;
+        }
         if (!ItemStackGeneratorUtils.isCustomItem(hand))
             return;
 
@@ -102,11 +107,13 @@ public class FishingAbilityManager {
             e.setCancelled(true);
             Block relative = e.getBlockClicked().getRelative(e.getBlockFace());
             relative.setType(Material.LAVA);
-        } else if (ItemStackGeneratorUtils.isCustomItem(hand,
-                ItemModelData.UNLIMITED_POWDER_SNOW_BUCKET.getId())) {
-            e.setCancelled(true);
-            Block relative = e.getBlockClicked().getRelative(e.getBlockFace());
-            relative.setType(Material.POWDER_SNOW);
         }
+    }
+
+    static void preservePowderSnowBucket(PlayerBucketEmptyEvent e, ItemStack hand) {
+        // Powder snow uses Minecraft's solid-bucket placement path. Let the
+        // server perform that placement and only replace the resulting empty
+        // bucket with the original unlimited bucket.
+        e.setItemStack(hand.clone());
     }
 }

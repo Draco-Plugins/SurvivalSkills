@@ -16,6 +16,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.utils.Utils;
 import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGenerator;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
@@ -57,15 +58,21 @@ public final class PipeListener implements Listener {
         }
         Block block = event.getClickedBlock();
         if (block == null || !isChest(block)) return;
+        interactWithChest(event, player, block);
+    }
+
+    void interactWithChest(PlayerInteractEvent event, Player player, Block block) {
+        if (!hasPipeAccess(player, block)) {
+            event.setCancelled(true);
+            return;
+        }
         PipeLocation clicked = location(block);
         Optional<PipeRecord> pipe = manager.getPipe(clicked);
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             if (pipe.isEmpty()) return;
             event.setCancelled(true);
             PipeRecord record = pipe.orElseThrow();
-            if (!record.ownerUuid().equals(player.getUniqueId())) {
-                deny(player);
-            } else if (record.type() == PipeType.RECEIVER) {
+            if (record.type() == PipeType.RECEIVER) {
                 openFilter(player, record);
             } else {
                 showSenderHud(player, record, block);
@@ -129,22 +136,14 @@ public final class PipeListener implements Listener {
     }
 
     private void relink(Player player, PipeRecord receiver) {
-        if (!receiver.ownerUuid().equals(player.getUniqueId())) {
-            deny(player);
-            return;
-        }
         PipeRecord sender = activeSender(player).orElseThrow();
-        if (manager.relink(receiver.pipeUuid(), sender.pipeUuid(), player.getUniqueId())) {
+        if (manager.relink(receiver.pipeUuid(), sender.pipeUuid())) {
             resetSession(player.getUniqueId(), sender.pipeUuid());
             player.sendMessage(ChatColor.GREEN + "Receiver linked.");
         } else player.sendMessage(ChatColor.RED + "The receiver could not be linked.");
     }
 
     private void selectSender(Player player, PipeRecord sender) {
-        if (!sender.ownerUuid().equals(player.getUniqueId())) {
-            deny(player);
-            return;
-        }
         if (!manager.isWithinRange(sender.location(), location(player.getLocation().getBlock()))) {
             player.sendMessage(ChatColor.RED + "That sender is too far away.");
             return;
@@ -154,10 +153,6 @@ public final class PipeListener implements Listener {
     }
 
     private void remove(Player player, PipeRecord record) {
-        if (!record.ownerUuid().equals(player.getUniqueId())) {
-            deny(player);
-            return;
-        }
         manager.remove(record.pipeUuid());
         givePipe(player);
         sessions.entrySet().removeIf(entry -> entry.getValue().senderUuid().equals(record.pipeUuid()));
@@ -333,11 +328,14 @@ public final class PipeListener implements Listener {
         return new PipeLocation(block.getWorld().getUID(), block.getX(), block.getY(), block.getZ());
     }
 
+    private boolean hasPipeAccess(Player player, Block block) {
+        if (!plugin.isGriefPreventionEnabled() || !Utils.checkForClaim(player, block.getLocation())) return true;
+        player.sendMessage(ChatColor.RED + "You do not have build access to pipes in this claim.");
+        return false;
+    }
+
     private static String format(PipeLocation location) {
         return location.x() + ", " + location.y() + ", " + location.z();
     }
 
-    private static void deny(Player player) {
-        player.sendMessage(ChatColor.RED + "You do not own this pipe.");
-    }
 }

@@ -98,12 +98,12 @@ public final class PipeManager {
         return byUuid.get(record.pipeUuid());
     }
 
-    public boolean relink(UUID receiverUuid, UUID senderUuid, UUID owner) {
+    public boolean relink(UUID receiverUuid, UUID senderUuid) {
         requireMainThread();
         PipeRecord receiver = byUuid.get(receiverUuid);
         PipeRecord sender = byUuid.get(senderUuid);
         if (receiver == null || sender == null || receiver.type() != PipeType.RECEIVER
-                || !receiver.ownerUuid().equals(owner) || receiver.senderUuid().isPresent()) return false;
+                || receiver.senderUuid().isPresent()) return false;
         validateLink(receiver, sender);
         replace(new PipeRecord(receiver.pipeUuid(), receiver.ownerUuid(), receiver.location(), receiver.type(),
                 Optional.of(senderUuid), List.of(), receiver.whitelist()));
@@ -348,7 +348,6 @@ public final class PipeManager {
 
     private void validateLink(PipeRecord receiver, PipeRecord sender) {
         if (sender == null || sender.type() != PipeType.SENDER) throw new IllegalArgumentException("Missing sender");
-        if (!receiver.ownerUuid().equals(sender.ownerUuid())) throw new IllegalArgumentException("Cross-owner link");
         if (!isWithinRange(receiver.location(), sender.location())) throw new IllegalArgumentException("Out-of-range link");
     }
 
