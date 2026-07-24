@@ -25,13 +25,16 @@ import java.util.*;
 
 public final class PipeListener implements Listener {
     private static final String FILTER_TITLE = "Pipe Filter";
+    private static final long REMOVAL_CONFIRMATION_TICKS = 200;
     private static final long[] THRESHOLDS = {600, 200, 60, 0};
     private record LinkingSession(UUID senderUuid, long deadline, Set<Long> sentThresholds) {}
+    private record RemovalConfirmation(UUID senderUuid, long deadline) {}
 
     private final SurvivalSkills plugin;
     private final PipeManager manager;
     private final PipeConfiguration configuration;
     private final Map<UUID, LinkingSession> sessions = new HashMap<>();
+    private final Map<UUID, RemovalConfirmation> removalConfirmations = new HashMap<>();
     private final Map<UUID, UUID> openFilters = new HashMap<>();
     private long tick;
 
@@ -153,10 +156,26 @@ public final class PipeListener implements Listener {
     }
 
     private void remove(Player player, PipeRecord record) {
+        if (record.type() == PipeType.SENDER && !confirmSenderRemoval(player, record)) return;
         manager.remove(record.pipeUuid());
         givePipe(player);
         sessions.entrySet().removeIf(entry -> entry.getValue().senderUuid().equals(record.pipeUuid()));
         player.sendMessage(ChatColor.GREEN + "Pipe removed.");
+    }
+
+    private boolean confirmSenderRemoval(Player player, PipeRecord sender) {
+        UUID playerUuid = player.getUniqueId();
+        RemovalConfirmation confirmation = removalConfirmations.get(playerUuid);
+        if (confirmation != null && confirmation.senderUuid().equals(sender.pipeUuid())
+                && confirmation.deadline() > tick) {
+            removalConfirmations.remove(playerUuid);
+            return true;
+        }
+        removalConfirmations.put(playerUuid,
+                new RemovalConfirmation(sender.pipeUuid(), tick + REMOVAL_CONFIRMATION_TICKS));
+        player.sendMessage(ChatColor.RED + "Are you sure you want to remove this sender pipe? "
+                + "Shift-left-click it again to confirm.");
+        return false;
     }
 
     @EventHandler
@@ -193,13 +212,17 @@ public final class PipeListener implements Listener {
     @EventHandler
     public void quit(PlayerQuitEvent event) {
         sessions.remove(event.getPlayer().getUniqueId());
+        removalConfirmations.remove(event.getPlayer().getUniqueId());
         openFilters.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
     public void heldItem(PlayerItemHeldEvent event) {
         ItemStack next = event.getPlayer().getInventory().getItem(event.getNewSlot());
-        if (!isWrench(next)) sessions.remove(event.getPlayer().getUniqueId());
+        if (!isWrench(next)) {
+            sessions.remove(event.getPlayer().getUniqueId());
+            removalConfirmations.remove(event.getPlayer().getUniqueId());
+        }
     }
 
     private void openFilter(Player player, PipeRecord receiver) {
@@ -240,6 +263,7 @@ public final class PipeListener implements Listener {
 
     private void timerTick() {
         tick++;
+        removalConfirmations.entrySet().removeIf(entry -> entry.getValue().deadline() <= tick);
         Iterator<Map.Entry<UUID, LinkingSession>> iterator = sessions.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<UUID, LinkingSession> entry = iterator.next();
