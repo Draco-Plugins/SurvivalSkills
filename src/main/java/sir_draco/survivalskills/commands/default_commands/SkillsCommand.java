@@ -19,6 +19,7 @@ import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skill_listeners.SilkyShearsListener;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.abilities.AbilityTimer;
 import sir_draco.survivalskills.super_enchanting.SuperEnchantingItems;
 import sir_draco.survivalskills.super_enchanting.SuperEnchantingTableManager;
 import sir_draco.survivalskills.utils.RecipeSlotLayout;
@@ -30,6 +31,8 @@ import java.util.*;
 import java.util.Locale;
 
 public class SkillsCommand implements CommandExecutor {
+
+    private static final String XP_VOUCHER_ABILITY = "XPVoucher";
 
     private record DeathTier(int threshold, String displaySuffix, List<String> lore) {}
 
@@ -80,6 +83,7 @@ public class SkillsCommand implements CommandExecutor {
             case "trophies" -> handleTrophies(p);
             case "player" -> handlePlayer(p, strings);
             case "leaderboard" -> handleLeaderboard(p, strings);
+            case "multiplier" -> handleMultiplier(p);
             default -> {
                 sendError(p, "Unknown subcommand: " + strings[0]);
             }
@@ -167,6 +171,7 @@ public class SkillsCommand implements CommandExecutor {
         p.sendRawMessage(ChatColor.GRAY + "/skills recipes - View all skill recipes");
         p.sendRawMessage(ChatColor.GRAY + "/skills trophies - Explains how the trophy system works");
         p.sendRawMessage(ChatColor.GRAY + "/skills player <name> - Gets the skill stats of another player");
+        p.sendRawMessage(ChatColor.GRAY + "/skills multiplier - Shows your active XP multiplier and time remaining");
         p.sendRawMessage(ChatColor.GRAY + "/spelunker - tells you where ores are, unlocked through mining skill");
         p.sendRawMessage(ChatColor.GRAY + "/veinminer - unlocked through mining skill");
         p.sendRawMessage(ChatColor.GRAY + "/toolbelt - an inventory to store tools, unlocked through mining skill");
@@ -200,6 +205,20 @@ public class SkillsCommand implements CommandExecutor {
         p.sendRawMessage(ChatColor.GRAY + "The easiest trophies to craft are the cave, farm, and forest trophies");
         p.sendRawMessage(ChatColor.RED + "Making the same trophy multiple times does not increase the cap");
         p.sendRawMessage(ChatColor.GOLD + "See trophy recipes by using " + ChatColor.AQUA + "/skills recipes");
+        p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
+    }
+
+    private void handleMultiplier(Player p) {
+        AbilityTimer timer = plugin.getAbilityManager().getAbility(p, XP_VOUCHER_ABILITY);
+        if (timer == null || !timer.isActive()) {
+            sendError(p, "You do not have an active XP multiplier");
+            return;
+        }
+
+        double multiplier = plugin.getSkillManager().getPlayerMultiplier(p);
+        String timeLeft = RewardNotifications.cooldown(Math.max(0, timer.getActiveTimeLeft()));
+        p.sendRawMessage(ChatColor.GREEN + "Your XP multiplier is " + ChatColor.AQUA + multiplier + "x"
+                + ChatColor.GREEN + ". Time left: " + timeLeft);
         p.playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1, 1);
     }
 

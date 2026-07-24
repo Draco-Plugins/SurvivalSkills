@@ -207,6 +207,7 @@ public class TabCompleter implements Listener {
         words.add("trophies");
         words.add("player");
         words.add("leaderboard");
+        words.add("multiplier");
         e.setCompletions(getCompletions(buffer, words));
     }
 
