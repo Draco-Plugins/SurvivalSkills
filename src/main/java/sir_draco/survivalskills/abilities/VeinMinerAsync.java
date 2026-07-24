@@ -176,7 +176,7 @@ public class VeinMinerAsync extends BukkitRunnable {
                 try {
                     BlockBreakEvent event = new BlockBreakEvent(blockToBreak, player);
                     Bukkit.getServer().getPluginManager().callEvent(event);
-                    if (!event.isCancelled()) blockToBreak.breakNaturally(pickaxe);
+                    if (!event.isCancelled()) breakBlock(blockToBreak, pickaxe, event.isDropItems());
                 } finally {
                     player.removeMetadata(VEIN_MINER_BREAK_METADATA, plugin);
                 }
@@ -193,5 +193,14 @@ public class VeinMinerAsync extends BukkitRunnable {
             cleanup();
             cancel();
         }
+    }
+
+    static void breakBlock(Block block, ItemStack pickaxe, boolean dropItems) {
+        if (dropItems) {
+            block.breakNaturally(pickaxe);
+            return;
+        }
+
+        block.setType(Material.AIR);
     }
 }

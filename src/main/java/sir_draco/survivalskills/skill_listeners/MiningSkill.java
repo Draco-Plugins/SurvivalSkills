@@ -4,7 +4,6 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Directional;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,6 +12,7 @@ import org.bukkit.event.Event.Result;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.inventory.InventoryAction;
@@ -54,6 +54,7 @@ public class MiningSkill implements Listener {
 
     private final SurvivalSkills plugin;
     private final NamespacedKey unlimitedTorchDataKey;
+    private final NamespacedKey playerPlacedAncientDebrisDataKey;
     // Use EnumSet for O(1) contains() and minimal memory footprint. They are
     // immutable after construction.
     private Set<Material> ores = EnumSet.noneOf(Material.class);
@@ -73,6 +74,7 @@ public class MiningSkill implements Listener {
     public MiningSkill(SurvivalSkills plugin, int blocksPerHunger) {
         this.plugin = plugin;
         unlimitedTorchDataKey = new NamespacedKey(plugin, "unlimited_torches");
+        playerPlacedAncientDebrisDataKey = new NamespacedKey(plugin, "player_placed_ancient_debris");
         this.blocksPerHunger = blocksPerHunger;
         setOres();
         setCommonOres();
@@ -102,6 +104,21 @@ public class MiningSkill implements Listener {
 
         // Handle veinminer
         veinminerChecker(p, e);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void trackPlayerPlacedAncientDebris(BlockPlaceEvent e) {
+        Block block = e.getBlockPlaced();
+        if (!Material.ANCIENT_DEBRIS.equals(block.getType())) return;
+
+        markTrackedBlock(block, playerPlacedAncientDebrisDataKey);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void removePlayerPlacedAncientDebrisTracking(BlockBreakEvent e) {
+        if (!Material.ANCIENT_DEBRIS.equals(e.getBlock().getType())) return;
+
+        removeTrackedBlock(e.getBlock(), playerPlacedAncientDebrisDataKey);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -168,19 +185,36 @@ public class MiningSkill implements Listener {
     }
 
     public void markUnlimitedTorch(Block block) {
+        markTrackedBlock(block, unlimitedTorchDataKey);
+    }
+
+    private boolean removeUnlimitedTorchData(Block block) {
+        return removeTrackedBlock(block, unlimitedTorchDataKey);
+    }
+
+    private static void markTrackedBlock(Block block, NamespacedKey dataKey) {
         PersistentDataContainer data = block.getChunk().getPersistentDataContainer();
         long blockPosition = encodeBlockPosition(block);
-        long[] positions = data.getOrDefault(unlimitedTorchDataKey, PersistentDataType.LONG_ARRAY, new long[0]);
+        long[] positions = data.getOrDefault(dataKey, PersistentDataType.LONG_ARRAY, new long[0]);
         if (Arrays.stream(positions).anyMatch((long position) -> position == blockPosition)) return;
 
         long[] updatedPositions = Arrays.copyOf(positions, positions.length + 1);
         updatedPositions[positions.length] = blockPosition;
-        data.set(unlimitedTorchDataKey, PersistentDataType.LONG_ARRAY, updatedPositions);
+        data.set(dataKey, PersistentDataType.LONG_ARRAY, updatedPositions);
     }
 
-    private boolean removeUnlimitedTorchData(Block block) {
+    private static boolean containsTrackedBlock(Block block, NamespacedKey dataKey) {
         PersistentDataContainer data = block.getChunk().getPersistentDataContainer();
-        long[] positions = data.get(unlimitedTorchDataKey, PersistentDataType.LONG_ARRAY);
+        long[] positions = data.get(dataKey, PersistentDataType.LONG_ARRAY);
+        if (positions == null) return false;
+
+        long blockPosition = encodeBlockPosition(block);
+        return Arrays.stream(positions).anyMatch((long position) -> position == blockPosition);
+    }
+
+    private static boolean removeTrackedBlock(Block block, NamespacedKey dataKey) {
+        PersistentDataContainer data = block.getChunk().getPersistentDataContainer();
+        long[] positions = data.get(dataKey, PersistentDataType.LONG_ARRAY);
         if (positions == null) return false;
 
         long blockPosition = encodeBlockPosition(block);
@@ -189,8 +223,8 @@ public class MiningSkill implements Listener {
                 .toArray();
         if (remainingPositions.length == positions.length) return false;
 
-        if (remainingPositions.length == 0) data.remove(unlimitedTorchDataKey);
-        else data.set(unlimitedTorchDataKey, PersistentDataType.LONG_ARRAY, remainingPositions);
+        if (remainingPositions.length == 0) data.remove(dataKey);
+        else data.set(dataKey, PersistentDataType.LONG_ARRAY, remainingPositions);
         return true;
     }
 
@@ -371,26 +405,44 @@ public class MiningSkill implements Listener {
     }
 
     public void doubleOre(Player p, BlockBreakEvent e) {
+        Material brokenType = e.getBlock().getType();
+        if (!ores.contains(brokenType)) return;
+
         // Defensive: rewards object can theoretically be null if player data not fully
         // loaded yet.
         PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
         if (rewards == null) return;
         double fortuneChance = rewards.getFortuneChance();
         if (fortuneChance <= 0) return;
-        Material brokenType = e.getBlock().getType();
-        if (!ores.contains(brokenType)) return;
-        if (p.getInventory().getItemInMainHand().getEnchantmentLevel(Enchantment.SILK_TOUCH) > 0) return; // Respect silk touch
+        ItemStack tool = p.getInventory().getItemInMainHand();
+        Collection<ItemStack> drops = e.getBlock().getDrops(tool);
+        boolean playerPlacedAncientDebris = Material.ANCIENT_DEBRIS.equals(brokenType)
+                && containsTrackedBlock(e.getBlock(), playerPlacedAncientDebrisDataKey);
+        if (!canDoubleOreDrops(brokenType, drops, playerPlacedAncientDebris)) return;
 
         if (Math.random() >= fortuneChance) return; // Chance failed
 
         // Replace default drops with doubled stacks (capped at 64)
         e.setDropItems(false);
-        for (ItemStack drop : e.getBlock().getDrops(p.getInventory().getItemInMainHand())) {
+        for (ItemStack drop : drops) {
             if (drop == null || drop.getType().isAir()) continue;
             int newAmount = Math.min(drop.getAmount() * 2, 64);
             drop.setAmount(newAmount);
             e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
         }
+    }
+
+    static boolean returnsBrokenBlock(Material brokenType, Collection<ItemStack> drops) {
+        return drops.stream()
+                .filter(Objects::nonNull)
+                .anyMatch((ItemStack drop) -> brokenType.equals(drop.getType()));
+    }
+
+    static boolean canDoubleOreDrops(Material brokenType, Collection<ItemStack> drops,
+                                     boolean playerPlacedAncientDebris) {
+        if (!returnsBrokenBlock(brokenType, drops)) return true;
+
+        return Material.ANCIENT_DEBRIS.equals(brokenType) && !playerPlacedAncientDebris;
     }
 
     public void veinminerChecker(Player p, BlockBreakEvent e) {

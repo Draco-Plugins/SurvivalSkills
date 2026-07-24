@@ -1,5 +1,6 @@
 package sir_draco.survivalskills.pipes;
 
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -17,6 +18,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class PipeManagerTest {
+    @Test
+    void recognizesCopperChestVariantsAsPipeChests() {
+        Set<Material> copperChestMaterials = Set.of(
+                Material.COPPER_CHEST, Material.EXPOSED_COPPER_CHEST,
+                Material.WEATHERED_COPPER_CHEST, Material.OXIDIZED_COPPER_CHEST,
+                Material.WAXED_COPPER_CHEST, Material.WAXED_EXPOSED_COPPER_CHEST,
+                Material.WAXED_WEATHERED_COPPER_CHEST, Material.WAXED_OXIDIZED_COPPER_CHEST);
+
+        assertTrue(copperChestMaterials.stream().allMatch((Material material) ->
+                PipeManager.isPipeChest(material)));
+    }
+
     @Test
     void discoversBothDoubleChestHalfLocationsFromSideHolders() {
         UUID worldUuid = UUID.randomUUID();

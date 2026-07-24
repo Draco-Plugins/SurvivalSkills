@@ -20,6 +20,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public final class PipeManager {
+    private static final Set<Material> PIPE_CHEST_MATERIALS = Set.of(
+            Material.CHEST, Material.TRAPPED_CHEST,
+            Material.COPPER_CHEST, Material.EXPOSED_COPPER_CHEST, Material.WEATHERED_COPPER_CHEST,
+            Material.OXIDIZED_COPPER_CHEST, Material.WAXED_COPPER_CHEST,
+            Material.WAXED_EXPOSED_COPPER_CHEST, Material.WAXED_WEATHERED_COPPER_CHEST,
+            Material.WAXED_OXIDIZED_COPPER_CHEST);
+
     public enum Activity { IDLE_UNPOWERED, ACTIVE, BLOCKED }
     public record SenderStatus(long lastProcessedTick, int amountMoved, Activity activity) {}
     public record ChunkKey(UUID worldUuid, int x, int z) {}
@@ -425,8 +432,12 @@ public final class PipeManager {
     }
 
     private Optional<Set<PipeLocation>> chestLocations(Block block) {
-        if (block.getType() != Material.CHEST && block.getType() != Material.TRAPPED_CHEST) return Optional.empty();
+        if (!isPipeChest(block.getType())) return Optional.empty();
         return discoverLoadedChestLocations(new PipeLocation(block.getWorld().getUID(), block.getX(), block.getY(), block.getZ()));
+    }
+
+    static boolean isPipeChest(Material material) {
+        return PIPE_CHEST_MATERIALS.contains(material);
     }
 
     private Optional<Set<PipeLocation>> discoverLoadedChestLocations(PipeLocation location) {

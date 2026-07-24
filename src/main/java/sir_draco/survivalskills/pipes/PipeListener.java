@@ -323,7 +323,7 @@ public final class PipeListener implements Listener {
     }
 
     private static boolean isChest(Block block) {
-        return block.getType() == Material.CHEST || block.getType() == Material.TRAPPED_CHEST;
+        return PipeManager.isPipeChest(block.getType());
     }
 
     private static PipeLocation location(Block block) {

@@ -9,6 +9,7 @@ import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -16,6 +17,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.Test;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.abilities.items.PowerDrillTask;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -123,6 +126,56 @@ class MiningSkillTest {
         miningSkill.markUnlimitedTorch(block);
 
         verify(data).set(any(NamespacedKey.class), eq(PersistentDataType.LONG_ARRAY),
+                eq(new long[] { ((long) 1 << 36) | ((long) 2 << 32) | 64 }));
+    }
+
+    @Test
+    void naturallyGeneratedAncientDebrisCanBeDoubled() {
+        assertTrue(MiningSkill.canDoubleOreDrops(
+                Material.ANCIENT_DEBRIS, List.of(new ItemStack(Material.ANCIENT_DEBRIS)), false));
+    }
+
+    @Test
+    void playerPlacedAncientDebrisCannotBeDoubled() {
+        assertFalse(MiningSkill.canDoubleOreDrops(
+                Material.ANCIENT_DEBRIS, List.of(new ItemStack(Material.ANCIENT_DEBRIS)), true));
+    }
+
+    @Test
+    void coalCanBeDoubledWhenCoalOreReturnsCoal() {
+        assertTrue(MiningSkill.canDoubleOreDrops(
+                Material.COAL_ORE, List.of(new ItemStack(Material.COAL)), false));
+    }
+
+    @Test
+    void coalOreCannotBeDoubledWhenSilkTouchReturnsTheBlock() {
+        assertFalse(MiningSkill.canDoubleOreDrops(
+                Material.COAL_ORE, List.of(new ItemStack(Material.COAL_ORE)), false));
+    }
+
+    @Test
+    void playerPlacedAncientDebrisIsTrackedInChunkData() {
+        SurvivalSkills plugin = mock(SurvivalSkills.class);
+        when(plugin.getName()).thenReturn("SurvivalSkills");
+        MiningSkill miningSkill = new MiningSkill(plugin, 0);
+        BlockPlaceEvent event = mock(BlockPlaceEvent.class);
+        Block block = mock(Block.class);
+        Chunk chunk = mock(Chunk.class);
+        PersistentDataContainer data = mock(PersistentDataContainer.class);
+        when(event.getBlockPlaced()).thenReturn(block);
+        when(block.getType()).thenReturn(Material.ANCIENT_DEBRIS);
+        when(block.getChunk()).thenReturn(chunk);
+        when(chunk.getPersistentDataContainer()).thenReturn(data);
+        when(block.getX()).thenReturn(1);
+        when(block.getY()).thenReturn(64);
+        when(block.getZ()).thenReturn(2);
+        when(data.getOrDefault(any(NamespacedKey.class), eq(PersistentDataType.LONG_ARRAY), any(long[].class)))
+                .thenReturn(new long[0]);
+
+        miningSkill.trackPlayerPlacedAncientDebris(event);
+
+        verify(data).set(eq(new NamespacedKey(plugin, "player_placed_ancient_debris")),
+                eq(PersistentDataType.LONG_ARRAY),
                 eq(new long[] { ((long) 1 << 36) | ((long) 2 << 32) | 64 }));
     }
 

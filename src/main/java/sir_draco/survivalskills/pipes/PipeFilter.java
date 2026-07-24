@@ -24,6 +24,7 @@ public record PipeFilter(Material material, Set<NamespacedKey> enchantments) {
         }
     }
 
+    @SuppressWarnings("deprecation")
     public static PipeFilter fromItem(ItemStack item) {
         Objects.requireNonNull(item);
         if (item.getType() != Material.ENCHANTED_BOOK
@@ -31,11 +32,12 @@ public record PipeFilter(Material material, Set<NamespacedKey> enchantments) {
             return new PipeFilter(item.getType(), Set.of());
         }
         Set<NamespacedKey> enchantmentKeys = enchantmentMeta.getStoredEnchants().keySet().stream()
-                .map(enchantment -> enchantment.getKeyOrThrow())
+                .map(enchantment -> enchantment.getKey())
                 .collect(Collectors.toUnmodifiableSet());
         return new PipeFilter(item.getType(), enchantmentKeys);
     }
 
+    @SuppressWarnings("deprecation")
     public boolean matches(ItemStack item) {
         Objects.requireNonNull(item);
         if (item.getType() != Material.ENCHANTED_BOOK
@@ -43,7 +45,7 @@ public record PipeFilter(Material material, Set<NamespacedKey> enchantments) {
             return matches(item.getType(), Set.of());
         }
         Set<NamespacedKey> enchantmentKeys = enchantmentMeta.getStoredEnchants().keySet().stream()
-                .map(enchantment -> enchantment.getKeyOrThrow())
+                .map(enchantment -> enchantment.getKey())
                 .collect(Collectors.toUnmodifiableSet());
         return matches(item.getType(), enchantmentKeys);
     }
