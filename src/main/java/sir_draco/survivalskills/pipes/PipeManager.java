@@ -20,6 +20,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
 public final class PipeManager {
+    static final int MAX_RECEIVERS_PER_CYCLE = 50;
+
     private static final Set<Material> PIPE_CHEST_MATERIALS = Set.of(
             Material.CHEST, Material.TRAPPED_CHEST,
             Material.COPPER_CHEST, Material.EXPOSED_COPPER_CHEST, Material.WEATHERED_COPPER_CHEST,
@@ -194,16 +196,31 @@ public final class PipeManager {
         int moved = 0;
         int startReceiver = receivers.isEmpty() ? 0 : receiverCursors.getOrDefault(senderUuid, 0) % receivers.size();
         int startSlot = contents.length == 0 ? 0 : sourceCursors.getOrDefault(senderUuid, 0) % contents.length;
-        for (int offset = 0; offset < receivers.size(); offset++) {
-            PipeRecord receiver = byUuid.get(receivers.get((startReceiver + offset) % receivers.size()));
+        int receiversToProcess = receiverProcessingCount(receivers.size());
+        for (int offset = 0; offset < receiversToProcess; offset++) {
+            int receiverIndex = (int) Math.floorMod((long) startReceiver + offset, receivers.size());
+            PipeRecord receiver = byUuid.get(receivers.get(receiverIndex));
             if (receiver == null || receiver.senderUuid().filter(senderUuid::equals).isEmpty()) continue;
             Optional<Inventory> target = resolveInventory(receiver);
             if (target.isEmpty()) continue;
             moved += transferOneStack(source, contents, target.orElseThrow(), receiver.whitelist(), startSlot);
         }
-        if (!receivers.isEmpty()) receiverCursors.put(senderUuid, (startReceiver + 1) % receivers.size());
+        if (!receivers.isEmpty()) {
+            receiverCursors.put(senderUuid, nextReceiverCursor(startReceiver, receivers.size()));
+        }
         if (contents.length > 0) sourceCursors.put(senderUuid, (startSlot + 1) % contents.length);
         statuses.put(senderUuid, new SenderStatus(tick, moved, moved > 0 ? Activity.ACTIVE : Activity.BLOCKED));
+    }
+
+    static int nextReceiverCursor(int startReceiver, int receiverCount) {
+        if (receiverCount <= 0) return 0;
+        int receiversProcessed = receiverProcessingCount(receiverCount);
+        int cursorAdvance = receiverCount <= MAX_RECEIVERS_PER_CYCLE ? 1 : receiversProcessed;
+        return (int) Math.floorMod((long) startReceiver + cursorAdvance, receiverCount);
+    }
+
+    static int receiverProcessingCount(int receiverCount) {
+        return Math.min(Math.max(receiverCount, 0), MAX_RECEIVERS_PER_CYCLE);
     }
 
     static int transferOneStack(Inventory source, ItemStack[] contents, Inventory target,
@@ -406,6 +423,8 @@ public final class PipeManager {
         Integer bucket = bucketBySender.remove(pipeUuid);
         if (bucket != null) workBuckets.get(bucket).remove(pipeUuid);
         statuses.remove(pipeUuid);
+        receiverCursors.remove(pipeUuid);
+        sourceCursors.remove(pipeUuid);
     }
 
     private void replace(PipeRecord record) { byUuid.put(record.pipeUuid(), record); }

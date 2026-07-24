@@ -61,6 +61,57 @@ class PipeManagerTest {
         assertTrue(PipeManager.doubleChestLocations(doubleChest).isEmpty());
     }
 
+    @Test
+    void advancesReceiverCursorByPerCycleProcessingCap() {
+        assertEquals(50, PipeManager.MAX_RECEIVERS_PER_CYCLE);
+        assertEquals(50, PipeManager.receiverProcessingCount(500));
+        assertEquals(50, PipeManager.nextReceiverCursor(0, 500));
+        assertEquals(100, PipeManager.nextReceiverCursor(50, 500));
+    }
+
+    @Test
+    void capsReceiverProcessingAtBoundary() {
+        assertEquals(0, PipeManager.receiverProcessingCount(-1));
+        assertEquals(0, PipeManager.receiverProcessingCount(0));
+        assertEquals(49, PipeManager.receiverProcessingCount(49));
+        assertEquals(50, PipeManager.receiverProcessingCount(50));
+        assertEquals(50, PipeManager.receiverProcessingCount(51));
+    }
+
+    @Test
+    void wrapsReceiverCursorAfterProcessingCappedBatch() {
+        assertEquals(25, PipeManager.nextReceiverCursor(75, 100));
+        assertEquals(40, PipeManager.nextReceiverCursor(Integer.MAX_VALUE - 10, Integer.MAX_VALUE));
+    }
+
+    @Test
+    void rotatesReceiverPriorityWhenBelowPerCycleCap() {
+        assertEquals(1, PipeManager.nextReceiverCursor(0, 25));
+        assertEquals(0, PipeManager.nextReceiverCursor(24, 25));
+        assertEquals(0, PipeManager.nextReceiverCursor(0, 0));
+    }
+
+    @Test
+    void reachesEveryReceiverAcrossCappedCycles() {
+        for (int receiverCount = 1; receiverCount <= 1_000; receiverCount++) {
+            boolean[] processed = new boolean[receiverCount];
+            int cursor = 0;
+            int cyclesForFullPass = (receiverCount + PipeManager.MAX_RECEIVERS_PER_CYCLE - 1)
+                    / PipeManager.MAX_RECEIVERS_PER_CYCLE;
+            for (int cycle = 0; cycle < cyclesForFullPass; cycle++) {
+                int receiversToProcess = PipeManager.receiverProcessingCount(receiverCount);
+                for (int offset = 0; offset < receiversToProcess; offset++) {
+                    processed[(cursor + offset) % receiverCount] = true;
+                }
+                cursor = PipeManager.nextReceiverCursor(cursor, receiverCount);
+            }
+            for (int receiver = 0; receiver < receiverCount; receiver++) {
+                assertTrue(processed[receiver],
+                        "Receiver " + receiver + " was skipped in a system of size " + receiverCount);
+            }
+        }
+    }
+
     private static Chest chestAt(World world, int x, int y, int z) {
         Block block = mock(Block.class);
         when(block.getWorld()).thenReturn(world);
