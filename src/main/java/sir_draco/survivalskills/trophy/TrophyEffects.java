@@ -35,6 +35,8 @@ public class TrophyEffects extends BukkitRunnable {
 
     private static final String TROPHY_EFFECT_ID_KEY = "trophy_effect_id";
     private static final String TROPHY_EFFECT_ITEM_VALUE = "Trophy";
+    private static final NamespacedKey DISPLAY_ITEM_ENCHANTMENT_KEY = NamespacedKey.minecraft("knockback");
+    private static final double DISPLAY_ITEM_CLEANUP_RADIUS = 0.5;
     private static final double CHAMPION_CLEANUP_HORIZONTAL_RADIUS = 1.5;
     private static final double CHAMPION_CLEANUP_VERTICAL_RADIUS = 1.0;
 
@@ -155,26 +157,28 @@ public class TrophyEffects extends BukkitRunnable {
         if (world == null) {
             return;
         }
-        for (Entity ent : world.getEntities()) {
+        Location displayLocation = loc.clone().add(0.5, 1.0, 0.5);
+        for (Entity ent : world.getNearbyEntities(displayLocation, DISPLAY_ITEM_CLEANUP_RADIUS,
+                DISPLAY_ITEM_CLEANUP_RADIUS, DISPLAY_ITEM_CLEANUP_RADIUS)) {
             removeDuplicateDisplayItem(mat, ent);
         }
     }
 
     private void removeDuplicateDisplayItem(Material mat, Entity ent) {
-        if (!ent.getType().equals(EntityType.ITEM)) {
+        if (!(ent instanceof Item item)) {
             return;
         }
-        if (!ent.hasMetadata(TROPHY_ITEM)) {
+        ItemStack itemStack = item.getItemStack();
+        if (!itemStack.getType().equals(mat) || !hasDisplayItemEnchantment(itemStack)) {
             return;
         }
-        Item item = (Item) ent;
-        if (!item.getItemStack().getType().equals(mat)) {
-            return;
-        }
-        if (item.getLocation().distance(loc) > 5) {
-            return;
-        }
-        ent.remove();
+        item.remove();
+    }
+
+    @SuppressWarnings("deprecation")
+    private static boolean hasDisplayItemEnchantment(ItemStack itemStack) {
+        return itemStack.getEnchantments().keySet().stream()
+                .anyMatch((Enchantment enchantment) -> DISPLAY_ITEM_ENCHANTMENT_KEY.equals(enchantment.getKey()));
     }
 
     public void setRun(boolean go) {
