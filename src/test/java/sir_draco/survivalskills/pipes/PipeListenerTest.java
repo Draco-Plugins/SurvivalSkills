@@ -81,7 +81,6 @@ class PipeListenerTest {
     @Test
     void senderRemovalRequiresASecondSneakLeftClick() {
         try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class);
-                MockedStatic<Utils> utils = mockStatic(Utils.class);
                 MockedStatic<ItemStackGenerator> itemStackGenerator = mockStatic(ItemStackGenerator.class)) {
             PipeInteraction interaction = pipeInteraction(bukkit);
             ItemStack transferPipe = mock(ItemStack.class);

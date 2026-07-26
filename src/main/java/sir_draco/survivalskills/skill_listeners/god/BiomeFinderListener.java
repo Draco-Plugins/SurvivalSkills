@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -22,11 +23,14 @@ import org.bukkit.util.BiomeSearchResult;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
 /** Owns the Biome Finder picker and resolves selected biomes in the player's current world. */
@@ -38,6 +42,12 @@ public final class BiomeFinderListener implements Listener {
     private static final int PAGE_DISPLAY_SLOT = 49;
     private static final int NEXT_PAGE_SLOT = 50;
     private static final int SEARCH_RADIUS = 10_000;
+    private static final int HORIZONTAL_INTERVAL = 16;
+    private static final int VERTICAL_INTERVAL = 32;
+    private static final int MAX_SEARCH_ATTEMPTS = 3;
+    private static final double REJECTED_RADIUS_SQUARED = 128 * 128;
+    private static final long SEARCH_COOLDOWN_MILLIS = 30_000;
+    private static final int MAX_CONCURRENT_SEARCHES = 3;
     private static final String INVENTORY_TITLE = "Biome Finder - Page ";
 
     @SuppressWarnings("deprecation")
@@ -46,6 +56,8 @@ public final class BiomeFinderListener implements Listener {
             .sorted(Comparator.comparing((Biome biome) -> biome.getKey().toString()))
             .toList();
     private final Set<UUID> activeSearches = new HashSet<>();
+    private final Map<UUID, Long> searchCooldowns = new HashMap<>();
+    private int runningSearches;
 
     public void openBiomePicker(Player player, int requestedPage) {
         int totalPages = calculateTotalPages(biomes.size());
@@ -108,62 +120,168 @@ public final class BiomeFinderListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        searchCooldowns.remove(event.getPlayer().getUniqueId());
+    }
+
     @SuppressWarnings("deprecation")
     private void locateBiome(Player player, Biome biome) {
         UUID playerId = player.getUniqueId();
-        if (!activeSearches.add(playerId)) {
+        if (activeSearches.contains(playerId)) {
             player.sendMessage(ChatColor.YELLOW + "A biome search is already in progress.");
             return;
         }
+        long now = System.currentTimeMillis();
+        Long lastSearch = searchCooldowns.get(playerId);
+        if (lastSearch != null && now - lastSearch < SEARCH_COOLDOWN_MILLIS) {
+            long remainingSeconds = (SEARCH_COOLDOWN_MILLIS - (now - lastSearch) + 999) / 1000;
+            player.sendMessage(ChatColor.YELLOW + "Please wait " + remainingSeconds
+                    + " seconds before using the Biome Finder again.");
+            return;
+        }
+        if (runningSearches >= MAX_CONCURRENT_SEARCHES) {
+            player.sendMessage(ChatColor.YELLOW + "The Biome Finder is busy. Please try again shortly.");
+            return;
+        }
+        activeSearches.add(playerId);
+        searchCooldowns.put(playerId, now);
+        runningSearches++;
 
         Location origin = player.getLocation().clone();
         World world = player.getWorld();
-        String worldName = world.getName();
-        String biomeName = formatBiomeName(biome.getKey());
         player.closeInventory();
-        player.sendMessage(ChatColor.YELLOW + "Searching for the closest " + ChatColor.AQUA + biomeName
-                + ChatColor.YELLOW + "...");
+        player.sendMessage(ChatColor.YELLOW + "Searching for the closest " + ChatColor.AQUA
+                + formatBiomeName(biome.getKey()) + ChatColor.YELLOW + "...");
 
+        searchAsync(new BiomeSearch(playerId, world, origin, biome), origin, new CopyOnWriteArrayList<>(), 1);
+    }
+
+    @SuppressWarnings("deprecation")
+    private void searchAsync(BiomeSearch search, Location searchOrigin, List<Location> rejected, int attempt) {
         Bukkit.getScheduler().runTaskAsynchronously(SurvivalSkills.getInstance(), () -> {
             try {
-                Optional<BiomeSearchResult> result = Optional.ofNullable(
-                        world.locateNearestBiome(origin, SEARCH_RADIUS, biome));
-                finishSearch(playerId, biomeName, worldName, result);
+                Optional<BiomeSearchResult> result = Optional.ofNullable(search.world().locateNearestBiome(
+                        searchOrigin, SEARCH_RADIUS, HORIZONTAL_INTERVAL, VERTICAL_INTERVAL, search.biome()));
+                if (result.isPresent() && isRejected(result.orElseThrow().getLocation(), rejected)) {
+                    retrySearch(search, rejected, attempt);
+                    return;
+                }
+                verifyCandidate(search, result, rejected, attempt);
             } catch (RuntimeException exception) {
                 Bukkit.getLogger().log(Level.WARNING,
                         String.format("[SurvivalSkills] Failed to locate biome %s for player %s",
-                                biome.getKey(), playerId), exception);
-                finishFailedSearch(playerId);
+                                search.biome().getKey(), search.playerId()), exception);
+                finishFailedSearch(search.playerId());
             }
         });
     }
 
-    private void finishSearch(UUID playerId, String biomeName, String searchedWorldName,
-                              Optional<BiomeSearchResult> result) {
+    private void verifyCandidate(BiomeSearch search, Optional<BiomeSearchResult> result,
+                                 List<Location> rejected, int attempt) {
         Bukkit.getScheduler().runTask(SurvivalSkills.getInstance(), () -> {
-            activeSearches.remove(playerId);
-            Optional.ofNullable(Bukkit.getPlayer(playerId)).ifPresent((Player player) -> {
-                if (result.isEmpty()) {
-                    player.sendMessage(ChatColor.RED + "No " + biomeName + " biome was found within "
-                            + SEARCH_RADIUS + " blocks in " + searchedWorldName + ".");
-                    return;
+            if (result.isEmpty()) {
+                if (attempt == 1) {
+                    finishNotFoundSearch(search);
+                } else {
+                    finishUnverifiedSearch(search);
                 }
-                Location location = result.orElseThrow().getLocation();
-                player.sendMessage(ChatColor.GREEN + "Closest " + ChatColor.AQUA + biomeName + ChatColor.GREEN
-                        + " biome: " + ChatColor.YELLOW + "(" + location.getBlockX() + ", "
-                        + location.getBlockY() + ", " + location.getBlockZ() + ")"
-                        + ChatColor.GRAY + " in " + location.getWorld().getName());
+                return;
+            }
+            Location location = result.orElseThrow().getLocation();
+            boolean verified = readStoredBiome(search.world(), location)
+                    .map((Biome actual) -> actual.equals(search.biome()))
+                    .orElse(true);
+            if (verified) {
+                finishVerifiedSearch(search, location);
+                return;
+            }
+            rejected.add(location);
+            retrySearch(search, rejected, attempt);
+        });
+    }
+
+    /**
+     * Reads the biome actually stored in the chunk at the candidate location. An empty result
+     * means the chunk has never been generated, so it will match the search sampler when created.
+     */
+    private static Optional<Biome> readStoredBiome(World world, Location location) {
+        int chunkX = location.getBlockX() >> 4;
+        int chunkZ = location.getBlockZ() >> 4;
+        if (!world.isChunkLoaded(chunkX, chunkZ)) {
+            if (!world.isChunkGenerated(chunkX, chunkZ)) {
+                return Optional.empty();
+            }
+            world.getChunkAt(chunkX, chunkZ);
+        }
+        return Optional.of(world.getBiome(location.getBlockX(), location.getBlockY(), location.getBlockZ()));
+    }
+
+    private void retrySearch(BiomeSearch search, List<Location> rejected, int attempt) {
+        if (attempt >= MAX_SEARCH_ATTEMPTS) {
+            finishUnverifiedSearch(search);
+            return;
+        }
+        searchAsync(search, shiftedOrigin(search.origin(), attempt), rejected, attempt + 1);
+    }
+
+    // Offsets the origin enough to change which sample points the search checks
+    private static Location shiftedOrigin(Location origin, int attempt) {
+        int offset = (HORIZONTAL_INTERVAL / 2 + 1) * attempt;
+        return origin.clone().add(offset, 0.0, offset);
+    }
+
+    private static boolean isRejected(Location location, List<Location> rejected) {
+        return rejected.stream().anyMatch((Location point) ->
+                point.distanceSquared(location) < REJECTED_RADIUS_SQUARED);
+    }
+
+    @SuppressWarnings("deprecation")
+    private void finishVerifiedSearch(BiomeSearch search, Location location) {
+        Bukkit.getScheduler().runTask(SurvivalSkills.getInstance(), () -> {
+            endSearch(search.playerId());
+            Optional.ofNullable(Bukkit.getPlayer(search.playerId())).ifPresent((Player player) -> {
+                player.sendMessage(ChatColor.GREEN + "Closest " + ChatColor.AQUA
+                        + formatBiomeName(search.biome().getKey()) + ChatColor.GREEN + " biome: "
+                        + ChatColor.YELLOW + "(" + location.getBlockX() + ", " + location.getBlockY()
+                        + ", " + location.getBlockZ() + ")" + ChatColor.GRAY + " in "
+                        + location.getWorld().getName());
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1, 1);
             });
         });
     }
 
+    @SuppressWarnings("deprecation")
+    private void finishNotFoundSearch(BiomeSearch search) {
+        finishSearchWithMessage(search, ChatColor.RED + "No " + formatBiomeName(search.biome().getKey())
+                + " biome was found within " + SEARCH_RADIUS + " blocks in " + search.world().getName() + ".");
+    }
+
+    @SuppressWarnings("deprecation")
+    private void finishUnverifiedSearch(BiomeSearch search) {
+        finishSearchWithMessage(search, ChatColor.RED + "No verified " + formatBiomeName(search.biome().getKey())
+                + " biome was found within " + SEARCH_RADIUS + " blocks in " + search.world().getName() + ".");
+    }
+
     private void finishFailedSearch(UUID playerId) {
         Bukkit.getScheduler().runTask(SurvivalSkills.getInstance(), () -> {
-            activeSearches.remove(playerId);
+            endSearch(playerId);
             Optional.ofNullable(Bukkit.getPlayer(playerId)).ifPresent((Player player) ->
                     player.sendMessage(ChatColor.RED + "The biome search failed. Please try again."));
         });
+    }
+
+    private void finishSearchWithMessage(BiomeSearch search, String message) {
+        Bukkit.getScheduler().runTask(SurvivalSkills.getInstance(), () -> {
+            endSearch(search.playerId());
+            Optional.ofNullable(Bukkit.getPlayer(search.playerId()))
+                    .ifPresent((Player player) -> player.sendMessage(message));
+        });
+    }
+
+    private void endSearch(UUID playerId) {
+        activeSearches.remove(playerId);
+        runningSearches--;
     }
 
     @SuppressWarnings("deprecation")
@@ -268,6 +386,9 @@ public final class BiomeFinderListener implements Listener {
             return Material.SCULK;
         }
         return Material.GRASS_BLOCK;
+    }
+
+    private record BiomeSearch(UUID playerId, World world, Location origin, Biome biome) {
     }
 
     private static final class BiomePickerHolder implements InventoryHolder {
