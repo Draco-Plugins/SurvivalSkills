@@ -21,15 +21,11 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import sir_draco.survivalskills.abilities.SpelunkerAbilitySync;
 import sir_draco.survivalskills.abilities.VeinMinerAsync;
 import sir_draco.survivalskills.abilities.items.PowerDrillTask;
@@ -48,7 +44,6 @@ import java.util.logging.Level;
 public class MiningSkill implements Listener {
 
     private static final int CUSTOM_ITEM_UNLIMITED_TORCH = ItemModelData.UNLIMITED_TORCH.getId();
-    private static final int CUSTOM_ITEM_MINING_ARMOR = ItemModelData.MINING_ARMOR.getId();
     private static final int CUSTOM_ITEM_ZAP_WAND = ItemModelData.ZAP_WAND.getId();
     private static final int CUSTOM_ITEM_POWER_DRILL = ItemModelData.POWER_DRILL.getId();
 
@@ -280,22 +275,6 @@ public class MiningSkill implements Listener {
     }
 
     @EventHandler
-    public void playerMove(PlayerMoveEvent e) {
-        // Make sure they are wearing the armor
-        if (!isMiningArmor(e.getPlayer().getInventory())) return;
-
-        // Add the potion effects
-        e.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 100, 1, false, false));
-
-        Location loc = e.getPlayer().getLocation();
-        if (loc.getWorld() == null || !loc.getWorld().getEnvironment().equals(World.Environment.NORMAL)
-                || loc.getBlockY() >= 64)
-            return;
-        e.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, 0, false, false));
-        e.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 100, 0, false, false));
-    }
-
-    @EventHandler
     public void onMobSpawn(EntitySpawnEvent e) {
         if (e.getLocation().getBlockY() >= 64) return;
         if (!peacefulMobList.contains(e.getEntityType())) return;
@@ -476,13 +455,6 @@ public class MiningSkill implements Listener {
 
     static boolean shouldSkipVeinMiner(boolean holdingPowerDrill, boolean veinMinerActive) {
         return holdingPowerDrill || veinMinerActive;
-    }
-
-    public boolean isMiningArmor(PlayerInventory inv) {
-        if (!ItemStackGeneratorUtils.isCustomItem(inv.getBoots(), CUSTOM_ITEM_MINING_ARMOR)) return false;
-        if (!ItemStackGeneratorUtils.isCustomItem(inv.getLeggings(), CUSTOM_ITEM_MINING_ARMOR)) return false;
-        if (!ItemStackGeneratorUtils.isCustomItem(inv.getChestplate(), CUSTOM_ITEM_MINING_ARMOR)) return false;
-        return ItemStackGeneratorUtils.isCustomItem(inv.getHelmet(), CUSTOM_ITEM_MINING_ARMOR);
     }
 
     public void setOres() {

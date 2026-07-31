@@ -51,6 +51,7 @@ public class ArmorListener implements Listener {
         TRAVELER(ItemModelData.TRAVELER_ARMOR.getId(), SkillCategory.EXPLORING, "TravelerArmor", TravelerArmor::new, 20, true),
         GILL(ItemModelData.GILL_ARMOR.getId(), SkillCategory.EXPLORING, "GillArmor", GillArmor::new, 20, true),
         ADVENTURER(ItemModelData.ADVENTURER_ARMOR.getId(), SkillCategory.EXPLORING, "AdventurerArmor", AdventurerArmor::new, 20, true),
+        MINING(ItemModelData.MINING_ARMOR.getId(), SkillCategory.MINING, "MiningArmor", MiningArmor::new, 20, true),
         BEACON(ItemModelData.BEACON_ARMOR.getId(), SkillCategory.MINING, "BeaconArmor", BeaconArmor::new, 1, true),
         POWER(ItemModelData.POWER_ARMOR.getId(), SkillCategory.MINING, "PowerOre", null, 0, true);
 
@@ -385,5 +386,13 @@ public class ArmorListener implements Listener {
 
     public static void giveWaterBreathingPotionEffect(Player p) {
         p.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 100, 0, false, false, true));
+    }
+
+    public static void giveHastePotionEffect(Player p, int level) {
+        p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 100, level, false, false, true));
+    }
+
+    public static void giveFireResistancePotionEffect(Player p) {
+        p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 100, 0, false, false, true));
     }
 }
