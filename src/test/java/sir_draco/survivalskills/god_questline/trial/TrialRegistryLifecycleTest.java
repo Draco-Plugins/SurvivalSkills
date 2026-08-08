@@ -6,6 +6,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -63,16 +64,30 @@ class TrialRegistryLifecycleTest {
         Player player = mockPlayer();
         PendingTrial pendingTrial = new PendingTrial(player);
         Inventory inventory = mock(Inventory.class);
-        java.lang.reflect.Field inventoryField = PendingTrial.class.getDeclaredField("playerManager");
-        inventoryField.setAccessible(true);
-        inventoryField.set(pendingTrial, inventory);
+        setPlayerManager(pendingTrial, inventory);
         registry.registerTrialSelectionInventory(inventory);
         registry.putPendingTrial(player, pendingTrial);
 
         registry.removePendingTrial(player);
 
         assertFalse(registry.isTrialSelectionInventory(inventory));
+        assertFalse(registry.isTrialSelectionInventory(player, inventory));
         verify(inventory).clear();
+    }
+
+    @Test
+    void pendingTrialManagerRemainsRecognizedAfterTransientUnregistration() throws ReflectiveOperationException {
+        Player player = mockPlayer();
+        PendingTrial pendingTrial = new PendingTrial(player);
+        Inventory inventory = mock(Inventory.class);
+        setPlayerManager(pendingTrial, inventory);
+        registry.putPendingTrial(player, pendingTrial);
+        registry.registerTrialSelectionInventory(inventory);
+
+        registry.unregisterTrialSelectionInventory(inventory);
+
+        assertFalse(registry.isTrialSelectionInventory(inventory));
+        assertTrue(registry.isTrialSelectionInventory(player, inventory));
     }
 
     @Test
@@ -83,6 +98,13 @@ class TrialRegistryLifecycleTest {
         pendingTrial.confirmParty();
 
         verify(player).closeInventory();
+    }
+
+    private void setPlayerManager(PendingTrial pendingTrial, Inventory inventory)
+            throws ReflectiveOperationException {
+        Field inventoryField = PendingTrial.class.getDeclaredField("playerManager");
+        inventoryField.setAccessible(true);
+        inventoryField.set(pendingTrial, inventory);
     }
 
     private Player mockPlayer() {

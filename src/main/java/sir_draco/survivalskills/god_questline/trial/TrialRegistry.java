@@ -154,6 +154,14 @@ public class TrialRegistry {
         return trialSelectionInventories.contains(inv);
     }
 
+    /** Recognizes a pending trial master's retained manager even after transient unregistration. */
+    public boolean isTrialSelectionInventory(Player player, Inventory inv) {
+        if (isTrialSelectionInventory(inv))
+            return true;
+        PendingTrial pendingTrial = pendingTrials.get(player);
+        return pendingTrial != null && pendingTrial.ownsPlayerManager(inv);
+    }
+
     /** Clears all session-only state after it has been persisted during plugin shutdown. */
     public void clearAll() {
         pendingTrials.values().forEach((PendingTrial pendingTrial) -> pendingTrial.dispose());

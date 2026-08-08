@@ -517,30 +517,36 @@ public class TrialEventListener implements Listener {
 
     @EventHandler
     public void onTrialSelectionClick(InventoryClickEvent e) {
+        if (!(e.getWhoClicked() instanceof Player player))
+            return;
         TrialRegistry registry = TrialRegistry.getInstance();
         Inventory top = e.getView().getTopInventory();
         Inventory clicked = e.getInventory();
 
         // Shift-clicks moving items out of the selection GUI into the player inventory.
-        if (registry.isTrialSelectionInventory(top) && !registry.isTrialSelectionInventory(clicked)) {
+        if (registry.isTrialSelectionInventory(player, top)
+                && !registry.isTrialSelectionInventory(player, clicked)) {
             e.setCancelled(true);
             return;
         }
-        if (!registry.isTrialSelectionInventory(clicked))
+        if (!registry.isTrialSelectionInventory(player, clicked))
             return;
         e.setCancelled(true);
-        TrialUtils.handleTrialSelectionClick(e.getClickedInventory(), (Player) e.getWhoClicked(), e.getCurrentItem());
+        TrialUtils.handleTrialSelectionClick(e.getClickedInventory(), player, e.getCurrentItem());
     }
 
     @EventHandler
     public void onTrialSelectionDrag(InventoryDragEvent e) {
+        if (!(e.getWhoClicked() instanceof Player player))
+            return;
         TrialRegistry registry = TrialRegistry.getInstance();
         Inventory top = e.getView().getTopInventory();
-        if (registry.isTrialSelectionInventory(top) && !registry.isTrialSelectionInventory(e.getInventory())) {
+        if (registry.isTrialSelectionInventory(player, top)
+                && !registry.isTrialSelectionInventory(player, e.getInventory())) {
             e.setCancelled(true);
             return;
         }
-        if (!registry.isTrialSelectionInventory(e.getInventory()))
+        if (!registry.isTrialSelectionInventory(player, e.getInventory()))
             return;
         e.setCancelled(true);
     }

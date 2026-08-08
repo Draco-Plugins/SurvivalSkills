@@ -78,9 +78,7 @@ public class PendingTrial {
             confirm.setItemMeta(confirmMeta);
             playerManager.setItem(8, confirm);
         }
-        if (!TrialManager.isTrialSelectionInventory(playerManager)) {
-            TrialManager.registerTrialSelectionInventory(playerManager);
-        }
+        TrialManager.registerTrialSelectionInventory(playerManager);
 
         openPlayerManagerIfNeeded();
     }
@@ -91,6 +89,11 @@ public class PendingTrial {
         Inventory openInventory = trialMaster.getOpenInventory().getTopInventory();
         if (Objects.equals(openInventory, manager)) return;
         trialMaster.openInventory(manager);
+    }
+
+    /** Returns whether this pending trial owns the supplied party-manager inventory. */
+    boolean ownsPlayerManager(Inventory inventory) {
+        return playerManager != null && Objects.equals(playerManager, inventory);
     }
 
     public void endPendingTrial() {
