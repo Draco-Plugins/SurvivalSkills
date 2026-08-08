@@ -152,8 +152,7 @@ public final class SuperEnchantingGui implements Listener {
             return;
         }
 
-        Optional<UpgradeCost> costOptional = SuperEnchantingRules.getUpgradeCost(
-                enchantment.getMaxLevel(), currentLevel);
+        Optional<UpgradeCost> costOptional = SuperEnchantingRules.getUpgradeCost(enchantment, currentLevel);
         if (costOptional.isEmpty()) {
             player.sendMessage(ChatColor.RED + "That enchantment cannot be super upgraded yet.");
             player.playSound(player, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
@@ -234,17 +233,16 @@ public final class SuperEnchantingGui implements Listener {
     }
 
     private ItemStack createEnchantmentItem(Player player, Enchantment enchantment, int currentLevel) {
-        int baseMaximum = enchantment.getMaxLevel();
-        int superMaximum = SuperEnchantingRules.getMaximumLevel(baseMaximum);
+        int superMaximum = SuperEnchantingRules.getMaximumLevel(enchantment);
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.GRAY + "Current level: " + ChatColor.WHITE + currentLevel);
         lore.add(ChatColor.GRAY + "Super maximum: " + ChatColor.WHITE + superMaximum);
         lore.add("");
 
-        Optional<UpgradeCost> costOptional = SuperEnchantingRules.getUpgradeCost(baseMaximum, currentLevel);
+        Optional<UpgradeCost> costOptional = SuperEnchantingRules.getUpgradeCost(enchantment, currentLevel);
         if (costOptional.isEmpty()) {
-            if (currentLevel < baseMaximum)
-                lore.add(ChatColor.YELLOW + "Reach vanilla level " + baseMaximum + " first.");
+            if (currentLevel < enchantment.getMaxLevel())
+                lore.add(ChatColor.YELLOW + "Reach vanilla level " + enchantment.getMaxLevel() + " first.");
             else
                 lore.add(ChatColor.GREEN + "Maximum level reached");
         } else {
