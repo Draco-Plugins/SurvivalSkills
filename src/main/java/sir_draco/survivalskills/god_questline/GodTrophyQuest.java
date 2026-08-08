@@ -39,6 +39,8 @@ public class GodTrophyQuest {
 
     private int phase = 0;
 
+    private BukkitRunnable activeDialogueTask;
+
     private enum PhaseGroup {
         INTRO(0, 0, 0),
         FARMING(1, 12, 0),
@@ -177,20 +179,30 @@ public class GodTrophyQuest {
     // Dialogue helpers
     // -----------------------
     public void dialogue(Player p, List<String> messages) {
-        new BukkitRunnable() {
+        cancelActiveDialogue();
+        activeDialogueTask = new BukkitRunnable() {
             private int counter = 0;
 
             @Override
             public void run() {
-                if (counter >= messages.size()) {
+                if (!p.isOnline() || counter >= messages.size()) {
                     cancel();
+                    activeDialogueTask = null;
                     return;
                 }
                 p.sendRawMessage(TrophyManager.npcName + ChatColor.WHITE + ": " + messages.get(counter));
                 p.playSound(p, Sound.ENTITY_VILLAGER_AMBIENT, 1, 1);
                 counter++;
             }
-        }.runTaskTimer(SurvivalSkills.getInstance(), 0, 40);
+        };
+        activeDialogueTask.runTaskTimer(SurvivalSkills.getInstance(), 0, 40);
+    }
+
+    private void cancelActiveDialogue() {
+        if (activeDialogueTask == null)
+            return;
+        activeDialogueTask.cancel();
+        activeDialogueTask = null;
     }
 
     public void dialogueOpener(Player p) {
