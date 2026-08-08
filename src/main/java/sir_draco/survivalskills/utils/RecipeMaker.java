@@ -178,6 +178,7 @@ public class RecipeMaker {
                 NamespacedKey endKey = createKey("end", plugin);
                 NamespacedKey championKey = createKey("champion", plugin);
                 NamespacedKey godKey = createKey("god", plugin);
+                NamespacedKey godTrophyBaseKey = createKey("god_trophy_base", plugin);
 
                 Map<Integer, ItemStack> trophyItems = plugin.getTrophyManager().getTrophyItems();
                 denseWoolRecipes(plugin);
@@ -194,6 +195,7 @@ public class RecipeMaker {
                 ItemStack whiteFragment = registerWhiteFragment(whiteKey);
                 registerColorTrophy(colorKey, blackFragment, whiteFragment, trophyItems);
                 registerChampionTrophy(championKey, trophyItems);
+                registerGodTrophyBase(godTrophyBaseKey);
                 registerGodTrophy(godKey, trophyItems);
         }
 
@@ -273,6 +275,13 @@ public class RecipeMaker {
                                 ItemStackGenerator.getPowerOre(), ItemStackGenerator.getGodTrophyBase(), null, null,
                                 null, null);
                 trophyItems.put(10, godTrophy);
+        }
+
+        private static void registerGodTrophyBase(NamespacedKey key) {
+                ShapelessRecipe recipe = new ShapelessRecipe(key, ItemStackGenerator.getGodTrophyBase());
+                recipe.addIngredient(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
+                recipe.addIngredient(Material.NETHER_STAR);
+                RecipeRegistrar.addShapelessRecipe(recipe, key);
         }
 
         public static void denseWoolRecipes(SurvivalSkills plugin) {

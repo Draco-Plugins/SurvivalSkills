@@ -164,6 +164,16 @@ public class PlayerListener implements Listener {
             return;
         }
 
+        if (modelData == ItemModelData.GOD_TROPHY_BASE.getId()) {
+            if (SkillManager.getSkillLevel(p.getUniqueId(), SkillCategory.MAIN) != Skill.MAX_LEVEL) {
+                e.setCancelled(true);
+                p.sendRawMessage(ChatColor.RED + "You need to be main level " + ChatColor.AQUA + Skill.MAX_LEVEL
+                        + ChatColor.RED + " to craft this");
+                p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            }
+            return;
+        }
+
         if (modelData == ItemModelData.TROPHY.getId()) {
             handleTrophyCraft(e, p, rewards, result);
         }
