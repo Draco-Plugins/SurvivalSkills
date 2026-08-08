@@ -39,28 +39,28 @@ public class RecipeMaker {
         // black/white fragment recipes.
 
         private enum DenseWoolColor {
-                WHITE(Material.WHITE_WOOL, "White", ChatColor.GRAY),
-                GRAY(Material.GRAY_WOOL, "Gray", ChatColor.DARK_GRAY),
-                LIGHT_GRAY(Material.LIGHT_GRAY_WOOL, "Light Gray", ChatColor.GRAY),
-                BROWN(Material.BROWN_WOOL, "Brown", ChatColor.getByChar("#6E2C00")),
-                BLACK(Material.BLACK_WOOL, "Black", ChatColor.BLACK),
-                RED(Material.RED_WOOL, "Red", ChatColor.RED),
-                ORANGE(Material.ORANGE_WOOL, "Orange", ChatColor.getByChar("#FF8C00")),
-                YELLOW(Material.YELLOW_WOOL, "Yellow", ChatColor.YELLOW),
-                PINK(Material.PINK_WOOL, "Pink", ChatColor.getByChar("#FF00A2")),
-                MAGENTA(Material.MAGENTA_WOOL, "Magenta", ChatColor.LIGHT_PURPLE),
-                PURPLE(Material.PURPLE_WOOL, "Purple", ChatColor.DARK_PURPLE),
-                BLUE(Material.BLUE_WOOL, "Blue", ChatColor.DARK_BLUE),
-                LIGHT_BLUE(Material.LIGHT_BLUE_WOOL, "Light Blue", ChatColor.BLUE),
-                CYAN(Material.CYAN_WOOL, "Cyan", ChatColor.getByChar("#009696")),
-                GREEN(Material.GREEN_WOOL, "Green", ChatColor.DARK_GREEN),
-                LIME(Material.LIME_WOOL, "Lime", ChatColor.GREEN);
+                WHITE(Material.WHITE_WOOL, "White", ChatColor.GRAY.toString()),
+                GRAY(Material.GRAY_WOOL, "Gray", ChatColor.DARK_GRAY.toString()),
+                LIGHT_GRAY(Material.LIGHT_GRAY_WOOL, "Light Gray", ChatColor.GRAY.toString()),
+                BROWN(Material.BROWN_WOOL, "Brown", net.md_5.bungee.api.ChatColor.of("#6E2C00").toString()),
+                BLACK(Material.BLACK_WOOL, "Black", ChatColor.BLACK.toString()),
+                RED(Material.RED_WOOL, "Red", ChatColor.RED.toString()),
+                ORANGE(Material.ORANGE_WOOL, "Orange", net.md_5.bungee.api.ChatColor.of("#FF8C00").toString()),
+                YELLOW(Material.YELLOW_WOOL, "Yellow", ChatColor.YELLOW.toString()),
+                PINK(Material.PINK_WOOL, "Pink", net.md_5.bungee.api.ChatColor.of("#FF00A2").toString()),
+                MAGENTA(Material.MAGENTA_WOOL, "Magenta", ChatColor.LIGHT_PURPLE.toString()),
+                PURPLE(Material.PURPLE_WOOL, "Purple", ChatColor.DARK_PURPLE.toString()),
+                BLUE(Material.BLUE_WOOL, "Blue", ChatColor.DARK_BLUE.toString()),
+                LIGHT_BLUE(Material.LIGHT_BLUE_WOOL, "Light Blue", ChatColor.BLUE.toString()),
+                CYAN(Material.CYAN_WOOL, "Cyan", net.md_5.bungee.api.ChatColor.of("#009696").toString()),
+                GREEN(Material.GREEN_WOOL, "Green", ChatColor.DARK_GREEN.toString()),
+                LIME(Material.LIME_WOOL, "Lime", ChatColor.GREEN.toString());
 
                 private final Material material;
                 private final String displayName;
-                private final ChatColor chatColor;
+                private final String chatColor;
 
-                DenseWoolColor(Material material, String displayName, ChatColor chatColor) {
+                DenseWoolColor(Material material, String displayName, String chatColor) {
                         this.material = material;
                         this.displayName = displayName;
                         this.chatColor = chatColor;
@@ -70,7 +70,7 @@ public class RecipeMaker {
 
                 public String displayName() { return displayName; }
 
-                public ChatColor chatColor() { return chatColor; }
+                public String chatColor() { return chatColor; }
         }
 
         // Full palette used by the compaction recipes (declaration = registration order).
