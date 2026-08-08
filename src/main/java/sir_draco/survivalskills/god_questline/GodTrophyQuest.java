@@ -371,8 +371,7 @@ public class GodTrophyQuest {
                     lines("Excellent Work!", "Now bring me a potion of weaving"), false);
             case 17 -> potionStep(p, PotionType.WEAVING, "Potion of Weaving",
                     lines("Excellent Work!", "Now bring me a potion of wind charged"), false);
-            // This potion has a different format due to being the last step
-            case 18 -> handInMaterialStep(p, getPotion(PotionType.WIND_CHARGED).getType(), "Potion of Wind Charged",
+            case 18 -> potionStep(p, PotionType.WIND_CHARGED, "Potion of Wind Charged",
                     lines(
                             "Thank you for demonstrating your knowledge",
                             "Now show me your refined taste in relics",
@@ -704,8 +703,35 @@ public class GodTrophyQuest {
     /** Potion hand-in convenience wrapper. */
     private void potionStep(Player p, PotionType type, String friendlyName, List<String> successMessages,
             boolean updateParticles) {
-        if (handleItemCheck(p, getPotion(type), friendlyName))
+        if (handlePotionCheck(p, type, friendlyName))
             return;
         onHandInComplete(p, successMessages, updateParticles);
+    }
+
+    /** Checks a potion hand-in by base effect while accepting every potion container variant. */
+    private boolean handlePotionCheck(Player p, PotionType requiredType, String itemName) {
+        ItemStack hand = p.getInventory().getItemInMainHand();
+        if (hand.getType().isAir())
+            return emptyHandItemStackDialogue(p, itemName);
+
+        if (!isPotionContainer(hand)
+                || !(hand.getItemMeta() instanceof PotionMeta meta)
+                || !meta.hasBasePotionType()
+                || !hasSamePotionEffect(meta.getBasePotionType(), requiredType))
+            return wrongItemDialogue(p, itemName);
+
+        playSuccessSound(p);
+        return false;
+    }
+
+    private static boolean isPotionContainer(ItemStack item) {
+        return switch (item.getType()) {
+            case POTION, SPLASH_POTION, LINGERING_POTION -> true;
+            default -> false;
+        };
+    }
+
+    private static boolean hasSamePotionEffect(PotionType heldType, PotionType requiredType) {
+        return heldType != null && Objects.equals(heldType.getEffectType(), requiredType.getEffectType());
     }
 }
