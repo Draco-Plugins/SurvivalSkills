@@ -20,7 +20,6 @@ import sir_draco.survivalskills.god_questline.trial.ProtectedArea;
 import sir_draco.survivalskills.god_questline.trial.RelativeBlock;
 import sir_draco.survivalskills.god_questline.trial.Trial;
 import sir_draco.survivalskills.god_questline.trial.TrialManager;
-import sir_draco.survivalskills.god_questline.trial.WaveGenerator;
 import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
@@ -590,14 +589,14 @@ public class TrialUtils {
                 sendError(p, "You have not beaten any solo mode trials");
                 return;
             }
-            int difficultyToBeat = (trueDifficulty + 1) / 2;
+            int difficultyToBeat = TrialDifficulty.getSoloDifficultyForCoop(trueDifficulty);
             ArrayList<Integer> gamemodesBeaten = TrialManager.getCompletedGamemodes(p);
             if (!gamemodesBeaten.contains(difficultyToBeat)) {
                 p.sendMessage(ChatColor.RED + String.format("You have not beaten solo mode on this difficulty: %s",
-                        WaveGenerator.getDifficultyName(difficultyToBeat)));
+                        TrialDifficulty.getDifficultyNameFromTrueDifficulty(difficultyToBeat)));
                 p.sendMessage(ChatColor.YELLOW + "You have beaten:");
                 for (int beaten : gamemodesBeaten)
-                    p.sendMessage(ChatColor.GRAY + "- " + WaveGenerator.getDifficultyName(beaten));
+                    p.sendMessage(ChatColor.GRAY + "- " + TrialDifficulty.getDifficultyNameFromTrueDifficulty(beaten));
                 p.playSound(p, ERROR_SOUND, 1, 1);
                 return;
             }
@@ -730,7 +729,7 @@ public class TrialUtils {
 
         // Check if they have beaten solo mode on this difficulty
         ArrayList<Integer> beaten = TrialManager.getCompletedGamemodes(p);
-        if (beaten == null || !beaten.contains((trial.getTrialDifficulty() + 1) / 2)) {
+        if (beaten == null || !beaten.contains(TrialDifficulty.getSoloDifficultyForCoop(trial.getTrialDifficulty()))) {
             sendError(p, "You have not beaten solo mode on this difficulty and can't join this party");
             return;
         }
