@@ -100,6 +100,17 @@ public final class TrialManager {
         TrialRegistry.getInstance().removePendingTrial(master);
     }
 
+    public static void cancelPendingTrial(Player master, boolean removeNewBuildingState) {
+        removePendingTrial(master);
+        master.closeInventory();
+
+        if (removeNewBuildingState) {
+            UUID ownerId = master.getUniqueId();
+            removeProtectedArea(ownerId);
+            removeBuildingCreationCooldown(ownerId);
+        }
+    }
+
     public static Map<Player, PendingTrial> getPendingTrials() {
         return TrialRegistry.getInstance().getPendingTrials();
     }
@@ -150,6 +161,10 @@ public final class TrialManager {
 
     public static void setBuildingCreationCooldown(UUID ownerId, long timestamp) {
         ProtectedAreaManager.getInstance().setBuildingCreationCooldown(ownerId, timestamp);
+    }
+
+    public static void removeBuildingCreationCooldown(UUID ownerId) {
+        ProtectedAreaManager.getInstance().removeBuildingCreationCooldown(ownerId);
     }
 
     // --- Spectator + scoreboards ---------------------------------------

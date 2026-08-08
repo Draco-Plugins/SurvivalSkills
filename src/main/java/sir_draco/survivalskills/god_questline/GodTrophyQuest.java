@@ -8,6 +8,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.bukkit.scheduler.BukkitRunnable;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -732,6 +734,15 @@ public class GodTrophyQuest {
     }
 
     private static boolean hasSamePotionEffect(PotionType heldType, PotionType requiredType) {
-        return heldType != null && Objects.equals(heldType.getEffectType(), requiredType.getEffectType());
+        if (heldType == null || requiredType == null)
+            return false;
+
+        List<PotionEffectType> heldEffects = heldType.getPotionEffects().stream()
+                .map((PotionEffect effect) -> effect.getType())
+                .toList();
+        List<PotionEffectType> requiredEffects = requiredType.getPotionEffects().stream()
+                .map((PotionEffect effect) -> effect.getType())
+                .toList();
+        return Objects.equals(heldEffects, requiredEffects);
     }
 }

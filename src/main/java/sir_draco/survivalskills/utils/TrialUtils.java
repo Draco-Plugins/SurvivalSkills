@@ -37,6 +37,8 @@ public class TrialUtils {
     private static final int TRIAL_AREA_HEIGHT = 30;
     private static final int TRIAL_AREA_Y_OFFSET = -1;
     private static final int TRIAL_MAX_DISTANCE = 100;
+    private static final int SOLO_GOD_DIFFICULTY = 7;
+    private static final int COOP_GOD_DIFFICULTY = 8;
     private static final long COOLDOWN = 5 * 60 * 1000L;
     private static final int COOLDOWN_MINUTES = (int) (COOLDOWN / (60 * 1000));
     private static final Sound ERROR_SOUND = Sound.ENTITY_ENDERMAN_TELEPORT;
@@ -398,7 +400,13 @@ public class TrialUtils {
     }
 
     public static void createTrial(PendingTrial pendingTrial, ArrayList<RelativeBlock> blocks, ProtectedArea area, Location centerLocation) {
-        if (pendingTrial.getTrialDifficulty() == 7 && !completedGodQuest(pendingTrial.getTrialMaster())) return;
+        if (isGodDifficulty(pendingTrial.getTrialDifficulty())
+                && !completedGodQuest(pendingTrial.getTrialMaster())) {
+            // A non-null block list means initializeTrial just reserved a new building area.
+            // Existing structures must remain available for later attempts.
+            TrialManager.cancelPendingTrial(pendingTrial.getTrialMaster(), blocks != null);
+            return;
+        }
 
         Trial trial;
         if (blocks == null) trial = new Trial(pendingTrial.getTrialMaster(), area, centerLocation, pendingTrial.getTrialDifficulty());
@@ -424,6 +432,10 @@ public class TrialUtils {
         TrialManager.registerTrial(trial);
         trial.runTaskTimer(SurvivalSkills.getInstance(), 60, 1);
         if (trial.isExistingStructure()) trial.startTrial();
+    }
+
+    private static boolean isGodDifficulty(int difficulty) {
+        return difficulty == SOLO_GOD_DIFFICULTY || difficulty == COOP_GOD_DIFFICULTY;
     }
 
     public static boolean completedGodQuest(Player p) {
