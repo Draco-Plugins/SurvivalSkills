@@ -16,6 +16,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.Test;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.abilities.AbilityManager;
 import sir_draco.survivalskills.abilities.items.PowerDrillTask;
 
 import java.util.List;
@@ -196,5 +197,57 @@ class MiningSkillTest {
     @Test
     void powerDrillIsRejectedByVeinMinerAdmissionPolicy() {
         assertTrue(MiningSkill.shouldSkipVeinMiner(true, false));
+    }
+
+    @Test
+    void weaponsRequireTheToolBeltUpgrade() {
+        SurvivalSkills plugin = mock(SurvivalSkills.class);
+        AbilityManager abilityManager = mock(AbilityManager.class);
+        Player player = mock(Player.class);
+        when(plugin.getName()).thenReturn("SurvivalSkills");
+        when(plugin.getAbilityManager()).thenReturn(abilityManager);
+        MiningSkill miningSkill = new MiningSkill(plugin, 0);
+
+        when(abilityManager.hasToolBeltUpgrade(player)).thenReturn(false);
+        assertFalse(miningSkill.isAcceptableToolBeltItem(player, new ItemStack(Material.DIAMOND_SWORD)));
+
+        when(abilityManager.hasToolBeltUpgrade(player)).thenReturn(true);
+        assertTrue(miningSkill.isAcceptableToolBeltItem(player, new ItemStack(Material.DIAMOND_SWORD)));
+    }
+
+    @Test
+    void toolBeltUpgradeAcceptsEverySupportedWeaponType() {
+        SurvivalSkills plugin = mock(SurvivalSkills.class);
+        AbilityManager abilityManager = mock(AbilityManager.class);
+        Player player = mock(Player.class);
+        when(plugin.getName()).thenReturn("SurvivalSkills");
+        when(plugin.getAbilityManager()).thenReturn(abilityManager);
+        when(abilityManager.hasToolBeltUpgrade(player)).thenReturn(true);
+        MiningSkill miningSkill = new MiningSkill(plugin, 0);
+
+        List<Material> supportedWeapons = List.of(
+                Material.WOODEN_SWORD,
+                Material.STONE_SWORD,
+                Material.IRON_SWORD,
+                Material.GOLDEN_SWORD,
+                Material.DIAMOND_SWORD,
+                Material.NETHERITE_SWORD,
+                Material.BOW,
+                Material.CROSSBOW,
+                Material.MACE,
+                Material.TRIDENT);
+
+        assertTrue(supportedWeapons.stream().allMatch((Material material) ->
+                miningSkill.isAcceptableToolBeltItem(player, new ItemStack(material))));
+    }
+
+    @Test
+    void toolsRemainAcceptedWithoutTheToolBeltUpgrade() {
+        SurvivalSkills plugin = mock(SurvivalSkills.class);
+        Player player = mock(Player.class);
+        when(plugin.getName()).thenReturn("SurvivalSkills");
+        MiningSkill miningSkill = new MiningSkill(plugin, 0);
+
+        assertTrue(miningSkill.isAcceptableToolBeltItem(player, new ItemStack(Material.DIAMOND_PICKAXE)));
     }
 }

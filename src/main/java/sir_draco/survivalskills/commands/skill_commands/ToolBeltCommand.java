@@ -9,9 +9,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import sir_draco.survivalskills.abilities.AbilityManager;
 import sir_draco.survivalskills.rewards.Reward;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.SurvivalSkills;
+
+import java.util.logging.Level;
 
 
 public class ToolBeltCommand implements CommandExecutor {
@@ -33,7 +36,7 @@ public class ToolBeltCommand implements CommandExecutor {
         if (reward == null) {
             p.sendRawMessage(ChatColor.RED + "Tool Belts are not enabled");
             p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            Bukkit.getLogger().warning("Could not find the tool belt reward");
+            Bukkit.getLogger().log(Level.WARNING, "[SurvivalSkills] Could not find the tool belt reward");
             return true;
         }
         if (!reward.isEnabled()) {
@@ -49,17 +52,19 @@ public class ToolBeltCommand implements CommandExecutor {
         }
 
         // Check if the player has a tool belt
-        if (!plugin.getMiningListener().getToolBelts().containsKey(p)) {
-            Inventory toolBelt = plugin.getAbilityManager().loadToolBelt(p);
-            if (toolBelt == null) toolBelt = Bukkit.createInventory(p, 9, "Tool Belt");
-            plugin.getMiningListener().getToolBelts().put(p, toolBelt);
-            p.openInventory(toolBelt);
-            p.playSound(p, Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
+        Inventory toolBelt = plugin.getMiningListener().getToolBelts().get(p);
+        if (toolBelt == null) {
+            toolBelt = plugin.getAbilityManager().loadToolBelt(p);
+            if (toolBelt == null) {
+                toolBelt = Bukkit.createInventory(p, plugin.getAbilityManager().getToolBeltSize(p),
+                        AbilityManager.TOOL_BELT_TITLE);
+            }
+        } else {
+            toolBelt = plugin.getAbilityManager().resizeToolBelt(p, toolBelt);
         }
-        else {
-            p.openInventory(plugin.getMiningListener().getToolBelts().get(p));
-            p.playSound(p, Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
-        }
+        plugin.getMiningListener().getToolBelts().put(p, toolBelt);
+        p.openInventory(toolBelt);
+        p.playSound(p, Sound.ITEM_ARMOR_EQUIP_LEATHER, 1, 1);
         return true;
     }
 }

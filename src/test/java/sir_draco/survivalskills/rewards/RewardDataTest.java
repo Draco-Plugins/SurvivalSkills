@@ -253,6 +253,16 @@ class RewardDataTest {
         assertTrue(l5.get(0).contains("25%"), "LifestealV should have 25%");
     }
 
+    @Test
+    void toolBeltUpgradeDescribesWeaponsAndExpandedCapacity() {
+        List<String> notification = RewardData.getNotification("Fighting", "ToolBeltII");
+
+        assertNotNull(notification);
+        assertTrue(notification.get(0).contains("18"));
+        assertTrue(notification.get(0).contains("weapons"));
+        assertTrue(RewardData.getDescription("Fighting", "ToolBeltII").contains("18"));
+    }
+
     // -- Spot checks: Fishing --
 
     @Test

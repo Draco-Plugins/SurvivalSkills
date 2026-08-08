@@ -448,6 +448,10 @@ Fighting:
         Enabled: true
         Level: 60
         Type: "State"
+    ToolBeltII:
+        Enabled: true
+        Level: 62
+        Type: "State"
     MobScanner:
         Enabled: true
         Level: 65

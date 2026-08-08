@@ -311,6 +311,12 @@ public class RewardData {
                 NEW_ABILITY + "You now have a {value} chance of doing double damage",
                 "You now have a {value} chance of\ndoing double damage");
 
+        staticEntry(m, "ToolBeltII", lines(
+                NEW_ABILITY + "Your Tool Belt now has " + AQUA + "18" + YELLOW
+                        + " slots and can store weapons"),
+                GRAY + "Expands your Tool Belt to " + AQUA + "18" + GRAY
+                        + " slots and allows it to store weapons");
+
         staticEntry(m, "GiantSummon", lines(
                 NEW_ITEM + "You can now craft a Giant Boss Summoning item",
                 GRAY + "See the crafting recipe by using the command" + AQUA + " /skills recipes"),

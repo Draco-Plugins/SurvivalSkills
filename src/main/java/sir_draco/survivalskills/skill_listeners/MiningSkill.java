@@ -46,6 +46,7 @@ public class MiningSkill implements Listener {
     private static final int CUSTOM_ITEM_UNLIMITED_TORCH = ItemModelData.UNLIMITED_TORCH.getId();
     private static final int CUSTOM_ITEM_ZAP_WAND = ItemModelData.ZAP_WAND.getId();
     private static final int CUSTOM_ITEM_POWER_DRILL = ItemModelData.POWER_DRILL.getId();
+    private static final int CUSTOM_ITEM_MAGNET = ItemModelData.MAGNET.getId();
 
     private final SurvivalSkills plugin;
     private final NamespacedKey unlimitedTorchDataKey;
@@ -59,6 +60,7 @@ public class MiningSkill implements Listener {
     private final ArrayList<Player> peacefulMiners = new ArrayList<>();
     private final ArrayList<EntityType> peacefulMobList = new ArrayList<>();
     private final Set<Material> acceptableTools = createAcceptableTools();
+    private final Set<Material> acceptableWeapons = createAcceptableWeapons();
     private final Map<Player, SpelunkerAbilitySync> spelunkerTracker = new ConcurrentHashMap<>();
     private final Map<Player, Boolean> veinminerTracker = new ConcurrentHashMap<>(); // false = takes hunger, true = doesn't
     private final Map<Player, List<Block>> veinTracker = new ConcurrentHashMap<>();
@@ -302,11 +304,8 @@ public class MiningSkill implements Listener {
             e.setCancelled(true);
             return;
         }
-        if (e.getCurrentItem() == null) return;
-
-        // Check if the clicked item is a tool
-        if (inv.equals(top)) return;
-        if (acceptableTools.contains(e.getCurrentItem().getType())) return;
+        ItemStack item = getToolBeltInsertion(e, inv.equals(top));
+        if (item == null || isAcceptableToolBeltItem(p, item)) return;
         p.sendRawMessage(ChatColor.RED + "You can only put tools in the tool belt");
         p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
         e.setCancelled(true);
@@ -318,19 +317,15 @@ public class MiningSkill implements Listener {
         if (!toolBelts.containsValue(inv)) return;
         Player p = (Player) e.getWhoClicked();
 
-        // Check if the clicked item is a tool
-        if (!acceptableTools.contains(e.getOldCursor().getType())) {
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            e.setCancelled(true);
-            return;
-        }
+        boolean hasInvalidItem = e.getNewItems().entrySet().stream()
+                .filter((Map.Entry<Integer, ItemStack> entry) -> entry.getKey() < inv.getSize())
+                .map((Map.Entry<Integer, ItemStack> entry) -> entry.getValue())
+                .anyMatch((ItemStack item) -> !isAcceptableToolBeltItem(p, item));
+        if (!hasInvalidItem) return;
 
-        for (ItemStack item : e.getNewItems().values()) {
-            if (acceptableTools.contains(item.getType())) continue;
-            p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
-            e.setCancelled(true);
-            return;
-        }
+        p.sendRawMessage(ChatColor.RED + "You can only put tools in the tool belt");
+        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+        e.setCancelled(true);
     }
 
     @EventHandler
@@ -525,24 +520,28 @@ public class MiningSkill implements Listener {
                 Material.WOODEN_PICKAXE,
                 Material.STONE_PICKAXE,
                 Material.IRON_PICKAXE,
+                Material.COPPER_PICKAXE,
                 Material.GOLDEN_PICKAXE,
                 Material.DIAMOND_PICKAXE,
                 Material.NETHERITE_PICKAXE,
                 Material.WOODEN_SHOVEL,
                 Material.STONE_SHOVEL,
                 Material.IRON_SHOVEL,
+                Material.COPPER_SHOVEL,
                 Material.GOLDEN_SHOVEL,
                 Material.DIAMOND_SHOVEL,
                 Material.NETHERITE_SHOVEL,
                 Material.WOODEN_AXE,
                 Material.STONE_AXE,
                 Material.IRON_AXE,
+                Material.COPPER_AXE,
                 Material.GOLDEN_AXE,
                 Material.DIAMOND_AXE,
                 Material.NETHERITE_AXE,
                 Material.WOODEN_HOE,
                 Material.STONE_HOE,
                 Material.IRON_HOE,
+                Material.COPPER_HOE,
                 Material.GOLDEN_HOE,
                 Material.DIAMOND_HOE,
                 Material.NETHERITE_HOE,
@@ -580,6 +579,47 @@ public class MiningSkill implements Listener {
                 Material.ENDER_EYE,
                 Material.SHIELD,
                 Material.TORCH));
+    }
+
+    private static Set<Material> createAcceptableWeapons() {
+        return Collections.unmodifiableSet(EnumSet.of(
+                Material.WOODEN_SWORD,
+                Material.STONE_SWORD,
+                Material.IRON_SWORD,
+                Material.COPPER_SWORD,
+                Material.GOLDEN_SWORD,
+                Material.DIAMOND_SWORD,
+                Material.NETHERITE_SWORD,
+                Material.BOW,
+                Material.CROSSBOW,
+                Material.MACE,
+                Material.TRIDENT,
+                Material.WOODEN_SPEAR,
+                Material.STONE_SPEAR,
+                Material.IRON_SPEAR,
+                Material.COPPER_SPEAR,
+                Material.GOLDEN_SPEAR,
+                Material.DIAMOND_SPEAR,
+                Material.NETHERITE_SPEAR
+            ));
+    }
+
+    private static ItemStack getToolBeltInsertion(InventoryClickEvent event, boolean clickedToolBelt) {
+        if (clickedToolBelt) {
+            return switch (event.getAction()) {
+                case PLACE_ALL, PLACE_ONE, PLACE_SOME, SWAP_WITH_CURSOR -> event.getCursor();
+                default -> null;
+            };
+        }
+        if (!InventoryAction.MOVE_TO_OTHER_INVENTORY.equals(event.getAction())) return null;
+        return event.getCurrentItem();
+    }
+
+    boolean isAcceptableToolBeltItem(Player p, ItemStack item) {
+        Material material = item.getType();
+        if (acceptableTools.contains(material)) return true;
+        if (acceptableWeapons.contains(material)) return plugin.getAbilityManager().hasToolBeltUpgrade(p);
+        return Material.HOPPER.equals(material) && ItemStackGeneratorUtils.isCustomItem(item, CUSTOM_ITEM_MAGNET);
     }
 
     public Map<Player, SpelunkerAbilitySync> getSpelunkerTracker() {

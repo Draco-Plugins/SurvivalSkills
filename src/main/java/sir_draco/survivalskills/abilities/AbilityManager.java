@@ -19,10 +19,12 @@ import sir_draco.survivalskills.SurvivalSkills;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 
 /**
@@ -42,6 +44,10 @@ public class AbilityManager {
 
     // Whitelist of entity types affected by Bloody Domain. Kept static for quick lookups.
     private static final ArrayList<EntityType> domainMobs = new ArrayList<>();
+    public static final String TOOL_BELT_UPGRADE_REWARD = "ToolBeltII";
+    public static final String TOOL_BELT_TITLE = "Tool Belt";
+    public static final int TOOL_BELT_SIZE = 9;
+    public static final int UPGRADED_TOOL_BELT_SIZE = 18;
     public static final String FLIGHT = ".Flight";
     public static final String SPELUNKER = ".Spelunker";
     public static final String LAST_USED_SUFFIX = ".LastUsedTimestamp";
@@ -69,14 +75,51 @@ public class AbilityManager {
         FileConfiguration data = plugin.getToolBeltData();
         if (!data.contains(p.getUniqueId().toString())) return null;
 
-        Inventory toolBelt = Bukkit.createInventory(p, 9, "Tool Belt");
         ConfigurationSection section = data.getConfigurationSection(p.getUniqueId().toString());
         if (section == null) return null;
-        for (String key : section.getKeys(false)) {
-            ItemStack item = section.getItemStack(key);
-            if (item == null) continue;
-            toolBelt.addItem(item);
-        }
+        List<ItemStack> items = section.getKeys(false).stream()
+                .map((String key) -> section.getItemStack(key))
+                .filter(Objects::nonNull)
+                .toList();
+        return createToolBelt(p, getToolBeltSize(p), items);
+    }
+
+    /**
+     * Rebuild a cached Tool Belt at the size currently available to the player.
+     * Existing contents are copied so upgrading from nine to eighteen slots cannot
+     * discard items.
+     */
+    public Inventory resizeToolBelt(Player p, Inventory toolBelt) {
+        int size = getToolBeltSize(p);
+        if (toolBelt.getSize() == size) return toolBelt;
+
+        List<ItemStack> items = Arrays.stream(toolBelt.getContents())
+                .filter(Objects::nonNull)
+                .map((ItemStack item) -> item.clone())
+                .toList();
+        return createToolBelt(p, size, items);
+    }
+
+    public int getToolBeltSize(Player p) {
+        return hasToolBeltUpgrade(p) ? UPGRADED_TOOL_BELT_SIZE : TOOL_BELT_SIZE;
+    }
+
+    public boolean hasToolBeltUpgrade(Player p) {
+        PlayerRewards playerRewards = plugin.getSkillManager().getPlayerRewards(p);
+        if (playerRewards == null) return false;
+        Reward reward = playerRewards.getReward(SkillCategory.FIGHTING, TOOL_BELT_UPGRADE_REWARD);
+        return reward != null && reward.isEnabled() && reward.isApplied();
+    }
+
+    private static Inventory createToolBelt(Player p, int size, List<ItemStack> items) {
+        Inventory toolBelt = Bukkit.createInventory(p, size, TOOL_BELT_TITLE);
+        Map<Integer, ItemStack> overflow = toolBelt.addItem(items.toArray(ItemStack[]::new));
+        if (overflow.isEmpty()) return toolBelt;
+
+        Map<Integer, ItemStack> playerOverflow = p.getInventory()
+                .addItem(overflow.values().toArray(ItemStack[]::new));
+        playerOverflow.values().forEach((ItemStack item) ->
+                p.getWorld().dropItemNaturally(p.getLocation(), item));
         return toolBelt;
     }
 
