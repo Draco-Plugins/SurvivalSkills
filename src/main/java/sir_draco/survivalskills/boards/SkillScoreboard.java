@@ -1,9 +1,11 @@
 package sir_draco.survivalskills.boards;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.UUID;
 
 import javax.annotation.Nullable;
 
@@ -386,14 +388,19 @@ public class SkillScoreboard {
     private static void loadPlayerDeaths(Player p) {
         Scoreboard board = getScoreboard(p);
         if (board == null) return;
+        loadPlayerDeaths(board, Bukkit.getOnlinePlayers(), SurvivalSkills.getInstance().getLeaderboardTracker());
+    }
+
+    static void loadPlayerDeaths(Scoreboard board, Iterable<? extends Player> onlinePlayers,
+            Map<UUID, LeaderboardPlayer> leaderboardTracker) {
         Objective deathObjective = board.getObjective(DEATHS);
         if (deathObjective == null) return;
-        
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            LeaderboardPlayer leaderboardPlayer = SurvivalSkills.getInstance().getLeaderboardTracker().get(player.getUniqueId());
+
+        for (Player player : onlinePlayers) {
+            LeaderboardPlayer leaderboardPlayer = leaderboardTracker.get(player.getUniqueId());
             if (leaderboardPlayer == null) continue;
             int deaths = leaderboardPlayer.getScore(SkillCategory.DEATHS);
-            deathObjective.getScore(p.getName()).setScore(deaths);
+            deathObjective.getScore(player.getName()).setScore(deaths);
         }
     }
 

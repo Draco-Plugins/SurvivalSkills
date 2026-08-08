@@ -446,6 +446,10 @@ public final class SurvivalSkills extends JavaPlugin {
         return leaderboardData;
     }
 
+    public File getLeaderboardFile() {
+        return leaderboardFile;
+    }
+
     public File getToolBeltFile() {
         return toolBeltFile;
     }

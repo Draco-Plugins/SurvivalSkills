@@ -423,6 +423,8 @@ public class SkillManager {
             @Override
             public void run() {
                 FileUtils.savePlayerData();
+                FileUtils.saveLeaderboard(plugin.getLeaderboardTracker(), plugin.getLeaderboardData(),
+                        plugin.getLeaderboardFile());
                 plugin.getAbilityManager().saveToolBelts();
             }
         }.runTaskTimer(plugin, 1200, 1200);

@@ -189,9 +189,19 @@ public class FileUtils {
             for (SkillCategory cat : SkillCategory.allSkills()) {
                 scores.put(cat, leaderboardData.getInt(key + "." + cat.getDisplayName().replace(" ", "")));
             }
+            scores.put(SkillCategory.ALL, loadLeaderboardTotalScore(leaderboardData, key));
             String name = leaderboardData.getString(key + ".Name");
             leaderboardTracker.put(UUID.fromString(key), new LeaderboardPlayer(name, scores));
         });
+    }
+
+    private static int loadLeaderboardTotalScore(FileConfiguration leaderboardData, String playerKey) {
+        String totalScorePath = playerKey + ".Level";
+        if (leaderboardData.contains(totalScorePath)) return leaderboardData.getInt(totalScorePath);
+        return SkillCategory.mainSkills().stream()
+                .mapToInt((SkillCategory skillCategory) -> leaderboardData.getInt(
+                        playerKey + "." + skillCategory.getDisplayName().replace(" ", "")))
+                .sum();
     }
 
     public static void loadPermaTrash(Player p, FileConfiguration permaTrashData) {

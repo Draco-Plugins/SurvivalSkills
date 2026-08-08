@@ -3,7 +3,6 @@ package sir_draco.survivalskills.boards;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -22,17 +21,9 @@ public class Leaderboard {
      */
     public static LeaderboardPlayer createLeaderboardPlayer(Player p) {
         EnumMap<SkillCategory, Integer> scores = new EnumMap<>(SkillCategory.class);
-        scores.put(SkillCategory.BUILDING, getLeaderboardScore(p, SkillCategory.BUILDING));
-        scores.put(SkillCategory.CRAFTING, getLeaderboardScore(p, SkillCategory.CRAFTING));
-        scores.put(SkillCategory.EXPLORING, getLeaderboardScore(p, SkillCategory.EXPLORING));
-        scores.put(SkillCategory.FARMING, getLeaderboardScore(p, SkillCategory.FARMING));
-        scores.put(SkillCategory.FIGHTING, getLeaderboardScore(p, SkillCategory.FIGHTING));
-        scores.put(SkillCategory.FISHING, getLeaderboardScore(p, SkillCategory.FISHING));
-        scores.put(SkillCategory.MINING, getLeaderboardScore(p, SkillCategory.MINING));
-        scores.put(SkillCategory.MAIN, getLeaderboardScore(p, SkillCategory.MAIN));
-        scores.put(SkillCategory.DEATHS, getLeaderboardScore(p, SkillCategory.DEATHS));
-        scores.put(SkillCategory.SOLO_TRIALS, getLeaderboardScore(p, SkillCategory.SOLO_TRIALS));
-        scores.put(SkillCategory.COOP_TRIALS, getLeaderboardScore(p, SkillCategory.COOP_TRIALS));
+        SkillCategory.allSkills().forEach((SkillCategory skillCategory) ->
+                scores.put(skillCategory, getLeaderboardScore(p, skillCategory)));
+        scores.put(SkillCategory.ALL, getLeaderboardScore(p, SkillCategory.ALL));
         return new LeaderboardPlayer(p.getDisplayName(), scores);
     }
 
@@ -44,24 +35,14 @@ public class Leaderboard {
      */
     public static int getLeaderboardScore(Player p, SkillCategory skillCategory) {
         SurvivalSkills plugin = SurvivalSkills.getInstance();
-        if (!plugin.getLeaderboardData().contains(p.getUniqueId().toString())) return 0;
-        if (skillCategory == SkillCategory.ALL) {
-            int score = 0;
-            for (Skill skill : plugin.getSkillManager().getPlayerSkills().get(p.getUniqueId()).getSkills()) score += skill.getLevel();
-            return score;
-        }
-        else if (skillCategory == SkillCategory.DEATHS) {
-            return plugin.getLeaderboardData().getInt(p.getUniqueId() + ".Deaths");
-        }
-        else if (skillCategory == SkillCategory.SOLO_TRIALS) {
-            return plugin.getLeaderboardData().getInt(p.getUniqueId() + ".SoloTrials");
-        }
-        else if (skillCategory == SkillCategory.COOP_TRIALS) {
-            return plugin.getLeaderboardData().getInt(p.getUniqueId() + ".CoopTrials");
-        }
-        else {
-            return SkillManager.getSkill(p.getUniqueId(), skillCategory).getLevel();
-        }
+        return switch (skillCategory) {
+            case ALL -> SkillCategory.mainSkills().stream()
+                    .mapToInt((SkillCategory category) -> SkillManager.getSkill(p.getUniqueId(), category).getLevel())
+                    .sum();
+            case DEATHS, SOLO_TRIALS, COOP_TRIALS -> plugin.getLeaderboardData().getInt(
+                    p.getUniqueId() + "." + skillCategory.getDisplayName().replace(" ", ""));
+            default -> SkillManager.getSkill(p.getUniqueId(), skillCategory).getLevel();
+        };
     }
 
 
@@ -73,13 +54,11 @@ public class Leaderboard {
      */
     public static ArrayList<String> sortLeaderboard(SkillCategory skillCategory, int limit) {
         SurvivalSkills plugin = SurvivalSkills.getInstance();
-        boolean isDeaths = (skillCategory == SkillCategory.DEATHS);
-
         ArrayList<Map.Entry<UUID, LeaderboardPlayer>> entries = new ArrayList<>(plugin.getLeaderboardTracker().entrySet());
         entries.sort((a, b) -> {
             int scoreA = a.getValue().getScore(skillCategory);
             int scoreB = b.getValue().getScore(skillCategory);
-            return isDeaths ? Integer.compare(scoreA, scoreB) : Integer.compare(scoreB, scoreA);
+            return Integer.compare(scoreB, scoreA);
         });
 
         int finalLimit = limit == -1 ? entries.size() : Math.min(entries.size(), limit);
@@ -126,12 +105,11 @@ public class Leaderboard {
         int skillScore = getLeaderboardScore(p, skillCategory);
 
         // Find the rank for the player
-        boolean isDeaths = (skillCategory == SkillCategory.DEATHS);
         int rank = 1;
         for (Map.Entry<UUID, LeaderboardPlayer> entry : plugin.getLeaderboardTracker().entrySet()) {
             if (entry.getKey().equals(p.getUniqueId())) continue;
             int score = entry.getValue().getScore(skillCategory);
-            if (isDeaths ? score < skillScore : score > skillScore) rank++;
+            if (score > skillScore) rank++;
         }
         p.sendRawMessage(ChatColor.GREEN + "You are currently ranked " + ChatColor.GOLD + rank + ChatColor.GREEN + " in "
                 + ChatColor.GOLD + skillCategory + ChatColor.GREEN + " out of " + ChatColor.GOLD + plugin.getLeaderboardTracker().size() + ChatColor.GREEN + "!");
@@ -145,12 +123,8 @@ public class Leaderboard {
      */
     public static LeaderboardPlayer initializeLeaderboardForPlayer(Player p) {
         SurvivalSkills plugin = SurvivalSkills.getInstance();
-        LeaderboardPlayer leaderboardPlayer = plugin.getLeaderboardTracker().get(p.getUniqueId());
-        if (leaderboardPlayer == null) {
-            leaderboardPlayer = createLeaderboardPlayer(p);
-            plugin.getLeaderboardTracker().put(p.getUniqueId(), leaderboardPlayer);
-        }
-
+        LeaderboardPlayer leaderboardPlayer = createLeaderboardPlayer(p);
+        plugin.getLeaderboardTracker().put(p.getUniqueId(), leaderboardPlayer);
         return leaderboardPlayer;
     }
 }
