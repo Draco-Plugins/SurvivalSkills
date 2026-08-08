@@ -6,11 +6,14 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.weather.WeatherChangeEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.utils.items.ItemModelData;
@@ -30,6 +33,8 @@ public class FishingAbilityManager {
 
     /** Custom-item identifier used by the unlimited bucket pickup guard. */
     private static final int UNLIMITED_BUCKET_CUSTOM_ITEM_ID = ItemModelData.UNLIMITED_EMPTY_BUCKET.getId();
+    private static final int UNLIMITED_POWDER_SNOW_BUCKET_CUSTOM_ITEM_ID =
+            ItemModelData.UNLIMITED_POWDER_SNOW_BUCKET.getId();
 
     private final SurvivalSkills plugin;
     private final ArrayList<Player> waterBreathers = new ArrayList<>();
@@ -91,11 +96,6 @@ public class FishingAbilityManager {
 
     public void onBucketUse(PlayerBucketEmptyEvent e) {
         ItemStack hand = ItemStackGeneratorUtils.getItemInHand(e.getPlayer(), e.getHand());
-        if (ItemStackGeneratorUtils.isCustomItem(hand,
-                ItemModelData.UNLIMITED_POWDER_SNOW_BUCKET.getId())) {
-            preservePowderSnowBucket(e, hand);
-            return;
-        }
         if (!ItemStackGeneratorUtils.isCustomItem(hand))
             return;
 
@@ -110,10 +110,27 @@ public class FishingAbilityManager {
         }
     }
 
-    static void preservePowderSnowBucket(PlayerBucketEmptyEvent e, ItemStack hand) {
-        // Powder snow uses Minecraft's solid-bucket placement path. Let the
-        // server perform that placement and only replace the resulting empty
-        // bucket with the original unlimited bucket.
-        e.setItemStack(hand.clone());
+    public void onBlockPlace(BlockPlaceEvent e) {
+        ItemStack placedItem = e.getItemInHand();
+        if (!ItemStackGeneratorUtils.isCustomItem(placedItem,
+                UNLIMITED_POWDER_SNOW_BUCKET_CUSTOM_ITEM_ID))
+            return;
+
+        Player player = e.getPlayer();
+        EquipmentSlot hand = e.getHand();
+        int mainHandSlot = player.getInventory().getHeldItemSlot();
+        ItemStack preservedBucket = placedItem.clone();
+        Bukkit.getScheduler().runTask(plugin,
+                () -> restorePowderSnowBucket(player, hand, mainHandSlot, preservedBucket));
+    }
+
+    static void restorePowderSnowBucket(Player player, EquipmentSlot hand,
+            int mainHandSlot, ItemStack preservedBucket) {
+        PlayerInventory inventory = player.getInventory();
+        if (EquipmentSlot.OFF_HAND.equals(hand))
+            inventory.setItemInOffHand(preservedBucket);
+        else
+            inventory.setItem(mainHandSlot, preservedBucket);
+        player.updateInventory();
     }
 }

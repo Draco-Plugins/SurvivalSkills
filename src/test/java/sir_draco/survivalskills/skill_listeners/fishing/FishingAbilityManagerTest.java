@@ -1,7 +1,9 @@
 package sir_draco.survivalskills.skill_listeners.fishing;
 
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.inventory.PlayerInventory;
 import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.mock;
@@ -12,15 +14,30 @@ import static org.mockito.Mockito.when;
 class FishingAbilityManagerTest {
 
     @Test
-    void unlimitedPowderSnowUsesVanillaPlacementAndKeepsBucket() {
-        ItemStack bucket = mock(ItemStack.class);
+    void restoresUnlimitedPowderSnowBucketToOriginalMainHandSlot() {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
         ItemStack preservedBucket = mock(ItemStack.class);
-        when(bucket.clone()).thenReturn(preservedBucket);
-        PlayerBucketEmptyEvent event = mock(PlayerBucketEmptyEvent.class);
+        when(player.getInventory()).thenReturn(inventory);
 
-        FishingAbilityManager.preservePowderSnowBucket(event, bucket);
+        FishingAbilityManager.restorePowderSnowBucket(player, EquipmentSlot.HAND, 4, preservedBucket);
 
-        verify(event).setItemStack(preservedBucket);
-        verify(event, never()).setCancelled(true);
+        verify(inventory).setItem(4, preservedBucket);
+        verify(inventory, never()).setItemInOffHand(preservedBucket);
+        verify(player).updateInventory();
+    }
+
+    @Test
+    void restoresUnlimitedPowderSnowBucketToOffHand() {
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        ItemStack preservedBucket = mock(ItemStack.class);
+        when(player.getInventory()).thenReturn(inventory);
+
+        FishingAbilityManager.restorePowderSnowBucket(player, EquipmentSlot.OFF_HAND, 2, preservedBucket);
+
+        verify(inventory).setItemInOffHand(preservedBucket);
+        verify(inventory, never()).setItem(2, preservedBucket);
+        verify(player).updateInventory();
     }
 }
