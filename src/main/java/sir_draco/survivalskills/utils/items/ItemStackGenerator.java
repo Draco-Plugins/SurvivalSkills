@@ -9,6 +9,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -68,7 +69,9 @@ public class ItemStackGenerator {
     public static ItemStack getZapWand() {
         return new ItemStackBuilder(Material.LIGHTNING_ROD, 1,
                 ChatColor.GOLD.toString() + ChatColor.BOLD + "Zap Wand")
-                .lore(ChatColor.GRAY + "Right click the ground to throw lightning")
+                .lore(List.of(
+                        ChatColor.GRAY + "Right click the ground to throw lightning",
+                        ChatColor.LIGHT_PURPLE + "Zap obsidian beneath you to forge Power Ore"))
                 .modelData(ItemModelData.ZAP_WAND.getId())
                 .build();
     }
@@ -124,6 +127,31 @@ public class ItemStackGenerator {
                 .hideEnchants(true)
                 .enchants(enchants)
                 .build();
+    }
+
+    public static ItemStack getPowerOreGuide() {
+        ItemStack item = new ItemStackBuilder(Material.WRITTEN_BOOK, 1,
+                ChatColor.LIGHT_PURPLE.toString() + ChatColor.BOLD + "Power Ore Forge Guide")
+                .lore(ChatColor.GRAY + "How to forge Power Ore and harness its power")
+                .modelData(ItemModelData.POWER_ORE_GUIDE.getId())
+                .build();
+        if (!(item.getItemMeta() instanceof BookMeta bookMeta)) return item;
+
+        bookMeta.setTitle("Forging Power Ore");
+        bookMeta.setAuthor("SurvivalSkills");
+        bookMeta.setGeneration(BookMeta.Generation.ORIGINAL);
+        bookMeta.setPages(List.of(
+                ChatColor.DARK_PURPLE.toString() + ChatColor.BOLD + "Power Ore Forge\n\n"
+                        + ChatColor.RESET + "1. Reach Mining level 95 to unlock Power Ore forging.\n\n"
+                        + "2. Bring 50 experience levels to the Overworld.",
+                "3. Place obsidian and stand directly on it.\n\n"
+                        + "4. Use the Zap Wand on the same obsidian beneath you. You must be struck by its lightning.\n\n"
+                        + "5. Complete the challenge to charge the ore.",
+                ChatColor.DARK_PURPLE.toString() + ChatColor.BOLD + "The Power Chain\n\n"
+                        + ChatColor.RESET + "Power Ore unlocks the Power Sword, Power Drill, Power Laser, and Power Armor.\n\n"
+                        + "Continue through the Teleport Anchor and ultimately the God Trophy."));
+        item.setItemMeta(bookMeta);
+        return item;
     }
 
     public static ItemStack getPowerLaser() {

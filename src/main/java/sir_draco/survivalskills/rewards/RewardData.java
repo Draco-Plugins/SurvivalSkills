@@ -140,10 +140,13 @@ public class RewardData {
 
         staticEntry(m, "PowerOre", lines(
                 NEW_ITEM + "You can now forge " + LIGHT_PURPLE + "Power Ore",
-                GREEN + "\nPlace obsidian down, stand on it, and strike lightning on the block" +
-                        " sacrificing 50 levels of experience"),
+                GREEN + "\nIn the Overworld, stand on obsidian and use the Zap Wand on that same block",
+                GREEN + "The lightning must strike you and will sacrifice 50 experience levels",
+                GRAY + "Read your Power Ore Forge Guide and the Zap Wand lore for the full steps"),
                 GRAY + "You can now forge " + LIGHT_PURPLE + "Power Ore\n" + GRAY
-                        + "Place obsidian down, stand on it, and strike lightning on the block and yourself sacrificing 50 levels of experience");
+                        + "In the Overworld, stand on obsidian and use the Zap Wand on that same block\n" + GRAY
+                        + "Let the Zap Wand lightning strike you, sacrificing 50 experience levels\n" + GRAY
+                        + "Read the Zap Wand lore and your Power Ore Forge Guide for the full steps");
 
         return m;
     }

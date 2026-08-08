@@ -254,6 +254,10 @@ public class MiningSkill implements Listener {
 
         World world = e.getClickedBlock().getWorld();
         Location loc = e.getClickedBlock().getLocation();
+        if (Material.OBSIDIAN.equals(e.getClickedBlock().getType())) {
+            plugin.getGodListener().getPowerOreChallengeListener()
+                    .prepareZapWandPowerOreForge(p, e.getClickedBlock());
+        }
         world.strikeLightning(loc);
         e.setCancelled(true);
     }

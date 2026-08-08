@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -61,7 +62,9 @@ public class PowerOreChallengeListener implements Listener {
 
     // Conversion requirements
     private static final int POWER_ORE_LEVEL_REQUIREMENT = 50;
+    private static final int POWER_ORE_UNLOCK_LEVEL = 95;
     private static final long CONVERSION_COOLDOWN_TICKS = 20L;
+    private static final long ZAP_WAND_MARKER_TICKS = 1L;
 
     private static final String POWER_ORE_CONVERSIONS_FILE = "poweroreconversions.yml";
     private static final String SIMON_SAYS_TITLE = "Simon Says";
@@ -70,10 +73,15 @@ public class PowerOreChallengeListener implements Listener {
 
     private final ChallengeRegistry powerOreRegistry = new ChallengeRegistry();
     private final Set<Player> conversionCooldowns = new HashSet<>();
+    private final Map<UUID, Location> pendingZapWandStrikes = new HashMap<>();
     private final Map<UUID, Set<PowerDrillTask>> drillTasks = new ConcurrentHashMap<>();
 
     public PowerOreChallengeListener() {
-        loadPowerOreConversions();
+        this(true);
+    }
+
+    PowerOreChallengeListener(boolean loadConversions) {
+        if (loadConversions) loadPowerOreConversions();
     }
 
     // --- Block break ---
@@ -158,9 +166,12 @@ public class PowerOreChallengeListener implements Listener {
             return;
         if (!EntityDamageEvent.DamageCause.LIGHTNING.equals(e.getCause()))
             return;
+        Optional<Location> expectedForgeLocation = consumePendingZapWandStrike(p.getUniqueId());
+        if (expectedForgeLocation.isEmpty())
+            return;
         if (conversionCooldowns.contains(p))
             return;
-        tryPowerOreConversion(p);
+        tryPowerOreConversion(p, expectedForgeLocation.get());
     }
 
     // --- Scavenger hunt head interaction ---
@@ -220,14 +231,95 @@ public class PowerOreChallengeListener implements Listener {
 
     // --- Conversion ---
 
-    public void tryPowerOreConversion(Player p) {
+    public void prepareZapWandPowerOreForge(Player p, Block clickedBlock) {
+        Location clickedLocation = clickedBlock.getLocation();
+        Block blockBelowPlayer = p.getLocation().getBlock().getRelative(0, -1, 0);
+        PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
+        boolean powerOreUnlocked = rewards != null
+                && rewards.getReward(SkillCategory.MINING, PowerOreGate.POWER_ORE_REWARD) != null
+                && rewards.getReward(SkillCategory.MINING, PowerOreGate.POWER_ORE_REWARD).isApplied();
+        ForgePrerequisite prerequisite = firstMissingForgePrerequisite(
+                clickedLocation.equals(blockBelowPlayer.getLocation()),
+                powerOreUnlocked,
+                p.getLevel() >= POWER_ORE_LEVEL_REQUIREMENT,
+                clickedLocation.getWorld() != null
+                        && World.Environment.NORMAL.equals(clickedLocation.getWorld().getEnvironment()),
+                powerOreRegistry.hasPlayer(p.getUniqueId()));
+
+        if (!ForgePrerequisite.READY.equals(prerequisite)) {
+            sendForgeHint(p, prerequisite, rewards);
+            return;
+        }
+
+        UUID playerId = p.getUniqueId();
+        trackPendingZapWandStrike(playerId, clickedLocation);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                pendingZapWandStrikes.remove(playerId, clickedLocation);
+            }
+        }.runTaskLater(SurvivalSkills.getInstance(), ZAP_WAND_MARKER_TICKS);
+    }
+
+    void trackPendingZapWandStrike(UUID playerId, Location clickedLocation) {
+        pendingZapWandStrikes.put(playerId, clickedLocation);
+    }
+
+    Optional<Location> consumePendingZapWandStrike(UUID playerId) {
+        return Optional.ofNullable(pendingZapWandStrikes.remove(playerId));
+    }
+
+    static ForgePrerequisite firstMissingForgePrerequisite(boolean standingOnClickedObsidian,
+                                                            boolean powerOreUnlocked,
+                                                            boolean enoughExperience,
+                                                            boolean inOverworld,
+                                                            boolean hasActiveChallenge) {
+        if (!standingOnClickedObsidian) return ForgePrerequisite.STAND_ON_CLICKED_OBSIDIAN;
+        if (!powerOreUnlocked) return ForgePrerequisite.UNLOCK_POWER_ORE;
+        if (!enoughExperience) return ForgePrerequisite.EXPERIENCE_LEVELS;
+        if (!inOverworld) return ForgePrerequisite.OVERWORLD;
+        if (hasActiveChallenge) return ForgePrerequisite.ACTIVE_CHALLENGE;
+        return ForgePrerequisite.READY;
+    }
+
+    private void sendForgeHint(Player p, ForgePrerequisite prerequisite, PlayerRewards rewards) {
+        switch (prerequisite) {
+            case STAND_ON_CLICKED_OBSIDIAN -> p.sendRawMessage(ChatColor.RED
+                    + "Stand on the obsidian block you zap to forge Power Ore");
+            case UNLOCK_POWER_ORE -> {
+                int unlockLevel = POWER_ORE_UNLOCK_LEVEL;
+                if (rewards != null
+                        && rewards.getReward(SkillCategory.MINING, PowerOreGate.POWER_ORE_REWARD) != null) {
+                    unlockLevel = rewards.getReward(SkillCategory.MINING, PowerOreGate.POWER_ORE_REWARD).getLevel();
+                }
+                p.sendRawMessage(ChatColor.RED + "Power Ore forging unlocks at mining level "
+                        + ChatColor.AQUA + unlockLevel);
+            }
+            case EXPERIENCE_LEVELS -> p.sendRawMessage(ChatColor.RED
+                    + "You need 50 levels of experience to forge Power Ore");
+            case OVERWORLD -> p.sendRawMessage(ChatColor.RED
+                    + "Power Ore can only be forged in the Overworld");
+            case ACTIVE_CHALLENGE -> {
+                PowerOreChallengeHandle existing = powerOreRegistry.forPlayer(p.getUniqueId());
+                p.sendRawMessage(ChatColor.RED + "You are already attempting a Power Ore challenge at "
+                        + existing.getOreLocation().getBlockX() + ", " + existing.getOreLocation().getBlockY() + ", "
+                        + existing.getOreLocation().getBlockZ());
+            }
+            case READY -> {
+                return;
+            }
+        }
+        p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+    }
+
+    private void tryPowerOreConversion(Player p, Location expectedForgeLocation) {
         conversionCooldowns.add(p);
         scheduleCooldownExpiry(p);
 
         if (!hasPowerOreAbilityUnlocked(p))
             return;
 
-        Location loc = validateConversionPrerequisites(p);
+        Location loc = validateConversionPrerequisites(p, expectedForgeLocation);
         if (loc == null)
             return;
 
@@ -243,12 +335,14 @@ public class PowerOreChallengeListener implements Listener {
         }.runTaskLaterAsynchronously(SurvivalSkills.getInstance(), CONVERSION_COOLDOWN_TICKS);
     }
 
-    private Location validateConversionPrerequisites(Player p) {
+    private Location validateConversionPrerequisites(Player p, Location expectedForgeLocation) {
         Block block = p.getLocation().getBlock().getRelative(0, -1, 0);
         if (!Material.OBSIDIAN.equals(block.getType()))
             return null;
 
         Location loc = block.getLocation();
+        if (!expectedForgeLocation.equals(loc))
+            return null;
         if (loc.getWorld() == null || loc.getWorld().getEnvironment() != World.Environment.NORMAL)
             return null;
 
@@ -365,6 +459,7 @@ public class PowerOreChallengeListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent e) {
         cancelDrillTasks(e.getPlayer().getUniqueId());
         conversionCooldowns.remove(e.getPlayer());
+        pendingZapWandStrikes.remove(e.getPlayer().getUniqueId());
     }
 
     /**
@@ -444,5 +539,14 @@ public class PowerOreChallengeListener implements Listener {
         Set<Map.Entry<Location, PowerOreChallengeHandle>> entries() {
             return byLocation.entrySet();
         }
+    }
+
+    enum ForgePrerequisite {
+        STAND_ON_CLICKED_OBSIDIAN,
+        UNLOCK_POWER_ORE,
+        EXPERIENCE_LEVELS,
+        OVERWORLD,
+        ACTIVE_CHALLENGE,
+        READY
     }
 }

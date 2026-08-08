@@ -3,6 +3,7 @@ package sir_draco.survivalskills.rewards;
 import org.bukkit.Bukkit;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -12,6 +13,7 @@ import sir_draco.survivalskills.boards.LeaderboardPlayer;
 import sir_draco.survivalskills.rewards.RewardEffects.RewardEffect;
 import sir_draco.survivalskills.skills.Skill;
 import sir_draco.survivalskills.skills.SkillCategory;
+import sir_draco.survivalskills.utils.items.ItemStackGenerator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -146,8 +148,21 @@ public class PlayerRewards {
         if (notify) RewardNotifications.notifyPlayer(skill.getSkillCategory().getDisplayName(), reward.getName(), p);
         reward.applyReward();
 
+        if (grantsPowerOreGuide(skill.getSkillCategory(), reward.getName())) {
+            giveOrDropItem(p, ItemStackGenerator.getPowerOreGuide());
+        }
+
         RewardEffect effect = RewardEffects.getEffect(skill.getSkillCategory().getDisplayName(), reward.getName());
         if (effect != null) effect.apply(this, p);
+    }
+
+    static void giveOrDropItem(Player p, ItemStack item) {
+        p.getInventory().addItem(item).values().forEach((ItemStack leftover) ->
+                p.getWorld().dropItemNaturally(p.getLocation(), leftover));
+    }
+
+    static boolean grantsPowerOreGuide(SkillCategory skillCategory, String rewardName) {
+        return SkillCategory.MINING.equals(skillCategory) && "PowerOre".equals(rewardName);
     }
 
     public HashMap<SkillCategory, ArrayList<Reward>> getRewardList() {

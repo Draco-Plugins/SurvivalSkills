@@ -75,6 +75,7 @@ public enum ItemModelData {
     GIANT_SWORD(66),
     SPAWNER_MOVER(67),
     SILKY_SHEARS(68),
+    POWER_ORE_GUIDE(69),
     TROPHY(999);
 
     private final int id;

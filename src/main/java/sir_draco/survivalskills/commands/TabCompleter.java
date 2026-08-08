@@ -145,6 +145,7 @@ public class TabCompleter implements Listener {
         words.add("warrioremblem");
         words.add("tridentlauncher");
         words.add("powerore");
+        words.add("poweroreguide");
         words.add("godtrophybase");
         words.add("unlimitedsponge");
         words.add("giantbossitem");

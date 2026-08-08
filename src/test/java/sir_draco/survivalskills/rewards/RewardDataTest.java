@@ -158,6 +158,22 @@ class RewardDataTest {
     }
 
     @Test
+    void powerOreTeachingTextDescribesTheZapWandForge() {
+        List<String> notification = RewardData.getNotification("Mining", "PowerOre");
+        String description = RewardData.getDescription("Mining", "PowerOre");
+
+        assertNotNull(notification);
+        String combinedNotification = String.join(" ", notification);
+        assertTrue(combinedNotification.contains("Zap Wand"));
+        assertTrue(combinedNotification.contains("Overworld"));
+        assertTrue(combinedNotification.contains("same block"));
+        assertTrue(combinedNotification.contains("50 experience levels"));
+        assertTrue(combinedNotification.contains("lore"));
+        assertTrue(description.contains("Zap Wand"));
+        assertTrue(description.contains("Power Ore Forge Guide"));
+    }
+
+    @Test
     void unlimitedTorchHasTwoNotificationLines() {
         var notif = RewardData.getNotification("Mining", "UnlimitedTorch");
         assertNotNull(notif);
