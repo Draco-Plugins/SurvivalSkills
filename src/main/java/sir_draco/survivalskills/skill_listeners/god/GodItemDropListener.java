@@ -15,6 +15,8 @@ import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.utils.items.ItemStackGenerator;
 import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
@@ -35,6 +37,9 @@ public class GodItemDropListener implements Listener {
     private static final double BOSS_DROP_CHANCE = 0.1;
     private static final double SPECIAL_DROP_CHANCE = 0.01;
     private static final double GENERIC_DROP_CHANCE = 0.001;
+    private static final double MOB_ITEM_DROP_CHANCE = 0.004;
+    private static final int MOB_ITEM_PHASE_START = 49;
+    private static final int MOB_ITEM_PHASE_END = 57;
 
     // Tipped arrow effect
     private static final int ARROW_EFFECT_DURATION_TICKS = 160;
@@ -64,7 +69,7 @@ public class GodItemDropListener implements Listener {
             Creeper creeper = (Creeper) e.getEntity();
             if (creeper.isPowered() && chance <= SPECIAL_DROP_CHANCE) {
                 addToDrops(e, ItemStackGenerator.getChargedCreeperEssence());
-            } else if (chance <= GENERIC_DROP_CHANCE) {
+            } else if (chance <= getGenericDropChance(e)) {
                 addToDrops(e, type);
             }
             return;
@@ -83,7 +88,7 @@ public class GodItemDropListener implements Listener {
         }
 
         // Rest of the mobs
-        if (chance > GENERIC_DROP_CHANCE)
+        if (chance > getGenericDropChance(e))
             return;
 
         if (EntityType.WITCH.equals(type)) {
@@ -92,6 +97,22 @@ public class GodItemDropListener implements Listener {
         } else {
             addToDrops(e, type);
         }
+    }
+
+    private double getGenericDropChance(EntityDeathEvent event) {
+        Player killer = event.getEntity().getKiller();
+        if (killer == null)
+            return GENERIC_DROP_CHANCE;
+
+        GodTrophyQuest quest = SurvivalSkills.getInstance().getTrophyManager()
+                .getPlayerGodQuestData().get(killer.getUniqueId());
+        if (quest == null)
+            return GENERIC_DROP_CHANCE;
+
+        int phase = quest.getPhase();
+        if (phase >= MOB_ITEM_PHASE_START && phase <= MOB_ITEM_PHASE_END)
+            return MOB_ITEM_DROP_CHANCE;
+        return GENERIC_DROP_CHANCE;
     }
 
     @EventHandler
