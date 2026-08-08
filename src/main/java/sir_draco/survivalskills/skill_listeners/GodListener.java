@@ -9,6 +9,7 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.Plugin;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.god_questline.GodAdvancementUI;
 import sir_draco.survivalskills.god_questline.GodRecipeUI;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.skill_listeners.god.GodItemDropListener;
@@ -40,6 +41,7 @@ public class GodListener implements Listener {
     private final GodItemUseHandler godItemUseHandler = new GodItemUseHandler(potionBagListener, biomeFinderListener);
 
     private final Map<Player, GodRecipeUI> openGodRecipeUI = new HashMap<>();
+    private final Map<Player, GodAdvancementUI> openGodAdvancementUI = new HashMap<>();
 
     public GodListener() {
     }
@@ -70,7 +72,13 @@ public class GodListener implements Listener {
     // --- God Recipe UI session handling ---
 
     public void registerGodRecipeUI(Player player, GodRecipeUI ui) {
+        openGodAdvancementUI.remove(player);
         openGodRecipeUI.put(player, ui);
+    }
+
+    public void registerGodAdvancementUI(Player player, GodAdvancementUI ui) {
+        openGodRecipeUI.remove(player);
+        openGodAdvancementUI.put(player, ui);
     }
 
     @EventHandler
@@ -78,10 +86,17 @@ public class GodListener implements Listener {
         if (!(e.getWhoClicked() instanceof Player p))
             return;
         GodRecipeUI ui = openGodRecipeUI.get(p);
-        if (ui == null)
+        if (ui != null) {
+            e.setCancelled(true);
+            ui.handleClick(e);
             return;
-        e.setCancelled(true);
-        ui.handleClick(e);
+        }
+
+        GodAdvancementUI advancementUI = openGodAdvancementUI.get(p);
+        if (advancementUI != null) {
+            e.setCancelled(true);
+            advancementUI.handleClick(e);
+        }
     }
 
     @EventHandler
@@ -89,10 +104,17 @@ public class GodListener implements Listener {
         if (!(e.getWhoClicked() instanceof Player p))
             return;
         GodRecipeUI ui = openGodRecipeUI.get(p);
-        if (ui == null)
+        if (ui != null) {
+            e.setCancelled(true);
+            ui.handleDrag(e);
             return;
-        e.setCancelled(true);
-        ui.handleDrag(e);
+        }
+
+        GodAdvancementUI advancementUI = openGodAdvancementUI.get(p);
+        if (advancementUI != null) {
+            e.setCancelled(true);
+            advancementUI.handleDrag(e);
+        }
     }
 
     @EventHandler
@@ -100,10 +122,16 @@ public class GodListener implements Listener {
         if (!(e.getPlayer() instanceof Player p))
             return;
         GodRecipeUI ui = openGodRecipeUI.get(p);
-        if (ui == null)
-            return;
-        if (ui.getInventories().get(ui.getCurrentInv()).equals(e.getInventory()))
+        if (ui != null && ui.getInventories().get(ui.getCurrentInv()).equals(e.getInventory())) {
             openGodRecipeUI.remove(p);
+            return;
+        }
+
+        GodAdvancementUI advancementUI = openGodAdvancementUI.get(p);
+        if (advancementUI != null
+                && advancementUI.getInventories().get(advancementUI.getCurrentInventoryIndex())
+                        .equals(e.getInventory()))
+            openGodAdvancementUI.remove(p);
     }
 
     // --- Delegated access surface ---

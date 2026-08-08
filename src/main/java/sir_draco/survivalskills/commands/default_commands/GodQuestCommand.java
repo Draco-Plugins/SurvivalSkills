@@ -7,6 +7,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import sir_draco.survivalskills.god_questline.GodAdvancementUI;
 import sir_draco.survivalskills.god_questline.GodRecipeUI;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.SurvivalSkills;
@@ -41,6 +42,13 @@ public class GodQuestCommand implements CommandExecutor {
         Optional<GodTrophyQuest.QuestProgress> questProgress = quest.getProgress();
         if (questProgress.isEmpty()) {
             sendQuestComplete(p);
+            return true;
+        }
+
+        if (quest.isAdvancementPhase()) {
+            GodAdvancementUI ui = new GodAdvancementUI(quest.getIncompleteAdvancements(p), questProgress.get());
+            plugin.getGodListener().registerGodAdvancementUI(p, ui);
+            ui.open(p);
             return true;
         }
 

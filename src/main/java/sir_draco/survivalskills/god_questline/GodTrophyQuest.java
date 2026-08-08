@@ -28,7 +28,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Objects;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.UUID;
+import java.util.stream.StreamSupport;
 
 public class GodTrophyQuest {
 
@@ -683,20 +686,23 @@ public class GodTrophyQuest {
         return potion;
     }
 
+    public List<Advancement> getIncompleteAdvancements(Player player) {
+        Objects.requireNonNull(player);
+        return getIncompleteAdvancements(Bukkit.advancementIterator(), player);
+    }
+
+    static List<Advancement> getIncompleteAdvancements(Iterator<Advancement> advancementIterator, Player player) {
+        Objects.requireNonNull(advancementIterator);
+        Objects.requireNonNull(player);
+        return StreamSupport.stream(
+                        Spliterators.spliteratorUnknownSize(advancementIterator, Spliterator.ORDERED), false)
+                .filter((Advancement advancement) -> !advancement.getKey().getKey().startsWith("recipes/"))
+                .filter((Advancement advancement) -> !player.getAdvancementProgress(advancement).isDone())
+                .toList();
+    }
+
     public boolean hasAllAdvancements(Player p) {
-        Iterator<Advancement> advancementIterator = Bukkit.advancementIterator();
-
-        while (advancementIterator.hasNext()) {
-            Advancement advancement = advancementIterator.next();
-            // Skip recipe unlocks — they auto-complete and don't count as
-            // visible advancements for the player
-            if (advancement.getKey().getKey().startsWith("recipes/"))
-                continue;
-            if (!p.getAdvancementProgress(advancement).isDone())
-                return false;
-        }
-
-        return true;
+        return getIncompleteAdvancements(p).isEmpty();
     }
 
     public int getCurrentItemCount() {
@@ -721,6 +727,14 @@ public class GodTrophyQuest {
 
     public boolean isVillagerTradingPhase() {
         return PHASE_TO_GROUP.get(phase) == PhaseGroup.VILLAGER;
+    }
+
+    public boolean isAdvancementPhase() {
+        return isAdvancementPhase(phase);
+    }
+
+    static boolean isAdvancementPhase(int phase) {
+        return PHASE_TO_GROUP.get(phase) == PhaseGroup.ADVANCEMENT;
     }
 
     public int getPhase() {
