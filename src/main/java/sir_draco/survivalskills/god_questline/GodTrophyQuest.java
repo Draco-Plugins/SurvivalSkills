@@ -411,6 +411,7 @@ public class GodTrophyQuest {
                     "Soon you will need to prove yourself in a combat trial",
                     "Bring me some powerful gear to show me you know what it means to fight",
                     "You can see the recipe by using " + ChatColor.YELLOW + "/godquest"));
+            currentItemCount = 0;
             phase++;
             updateGodTrophyParticles();
         }
@@ -592,6 +593,10 @@ public class GodTrophyQuest {
 
     public int getCurrentItemCount() {
         return currentItemCount;
+    }
+
+    public boolean isVillagerTradingPhase() {
+        return PHASE_TO_GROUP.get(phase) == PhaseGroup.VILLAGER;
     }
 
     public int getPhase() {

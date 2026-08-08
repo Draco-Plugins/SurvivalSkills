@@ -195,6 +195,7 @@ public class TrophyListener implements Listener {
 
         // Get the god quest
         GodTrophyQuest quest = plugin.getTrophyManager().getPlayerGodQuestData().get(p.getUniqueId());
+        if (!quest.isVillagerTradingPhase()) return;
 
         // Check that the inventory is a villager trade inventory
         if (e.getClickedInventory() == null) return;
