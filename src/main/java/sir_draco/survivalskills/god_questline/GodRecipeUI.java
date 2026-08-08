@@ -16,18 +16,17 @@ import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class GodRecipeUI {
 
     private final ArrayList<Inventory> inventories = new ArrayList<>();
     private int currentInv = 0;
 
-    public GodRecipeUI(ArrayList<NamespacedKey> keyList) {
-        if (keyList.isEmpty()) {
-            inventories.add(Bukkit.createInventory(null, 9, "Error"));
-            return;
-        }
-        createInventories(keyList);
+    public GodRecipeUI(List<NamespacedKey> keyList, GodTrophyQuest.QuestProgress questProgress) {
+        Objects.requireNonNull(keyList);
+        Objects.requireNonNull(questProgress);
+        createInventories(keyList, questProgress);
     }
 
     public void open(Player p) {
@@ -86,85 +85,69 @@ public class GodRecipeUI {
         }
     }
 
-    public void createInventories(ArrayList<NamespacedKey> list) {
-        ItemStack bottom = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+    public void createInventories(List<NamespacedKey> recipeKeys, GodTrophyQuest.QuestProgress questProgress) {
+        if (recipeKeys.isEmpty()) {
+            Inventory inventory = Bukkit.createInventory(null, 36, "God Quest Progress");
+            decorateFooter(inventory, questProgress, false, false);
+            inventories.add(inventory);
+            return;
+        }
 
-        ItemStack back = new ItemStack(Material.ARROW);
-        ItemMeta meta = back.getItemMeta();
-        if (meta == null) return;
-        meta.setDisplayName(ChatColor.RED + "Back");
-        back.setItemMeta(meta);
-
-        ItemStack front = new ItemStack(Material.ARROW);
-        meta = front.getItemMeta();
-        if (meta == null) return;
-        meta.setDisplayName(ChatColor.BLUE + "Next");
-        ItemStackGeneratorUtils.setCustomModelData(meta, 1);
-        front.setItemMeta(meta);
-
-        int totalPages = (int) Math.ceil((double) list.size() / 2);
-        int currPage = 1;
-        Inventory inv = Bukkit.createInventory(null, 36, "God Recipes: Page " + currPage + "/" + totalPages);
-        for (int i = 1; i <= list.size(); i++) {
-            if (i % 2 == 1) {
-                if (currPage != 1)
-                    inv = Bukkit.createInventory(null, 36, "God Recipes: Page " + currPage + "/" + totalPages);
-                if (currPage == 1 && list.size() > 1) {
-                    inv.setItem(35, bottom);
-                    inv.setItem(34, bottom);
-                    inv.setItem(33, bottom);
-                    inv.setItem(32, front);
-                    inv.setItem(31, bottom);
-                    inv.setItem(30, bottom);
-                    inv.setItem(29, bottom);
-                    inv.setItem(28, bottom);
-                    inv.setItem(27, bottom);
-                }
-                else if (currPage == 1) {
-                    inv.setItem(35, bottom);
-                    inv.setItem(34, bottom);
-                    inv.setItem(33, bottom);
-                    inv.setItem(32, bottom);
-                    inv.setItem(31, bottom);
-                    inv.setItem(30, bottom);
-                    inv.setItem(29, bottom);
-                    inv.setItem(28, bottom);
-                    inv.setItem(27, bottom);
-                }
-                else if (currPage == totalPages) {
-                    inv.setItem(35, bottom);
-                    inv.setItem(34, bottom);
-                    inv.setItem(33, bottom);
-                    inv.setItem(32, bottom);
-                    inv.setItem(31, bottom);
-                    inv.setItem(30, back);
-                    inv.setItem(29, bottom);
-                    inv.setItem(28, bottom);
-                    inv.setItem(27, bottom);
-                }
-                else {
-                    inv.setItem(35, bottom);
-                    inv.setItem(34, bottom);
-                    inv.setItem(33, bottom);
-                    inv.setItem(32, front);
-                    inv.setItem(31, bottom);
-                    inv.setItem(30, back);
-                    inv.setItem(29, bottom);
-                    inv.setItem(28, bottom);
-                    inv.setItem(27, bottom);
-                }
-            }
-
-            addRecipe(list, i - 1, inv);
-
-            if (i % 2 == 0 || i == list.size()) {
-                inventories.add(inv);
-                currPage += 1;
-            }
+        int totalPages = (int) Math.ceil(recipeKeys.size() / 2.0);
+        for (int pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+            int currentPage = pageIndex + 1;
+            Inventory inventory = Bukkit.createInventory(null, 36,
+                    "God Recipes: Page " + currentPage + "/" + totalPages);
+            int firstRecipeIndex = pageIndex * 2;
+            addRecipe(recipeKeys, firstRecipeIndex, inventory);
+            if (firstRecipeIndex + 1 < recipeKeys.size())
+                addRecipe(recipeKeys, firstRecipeIndex + 1, inventory);
+            decorateFooter(inventory, questProgress, pageIndex > 0, currentPage < totalPages);
+            inventories.add(inventory);
         }
     }
 
-    public void addRecipe(ArrayList<NamespacedKey> recipeKeys, int recipeIndex, Inventory inv) {
+    private void decorateFooter(Inventory inventory, GodTrophyQuest.QuestProgress questProgress,
+            boolean showBack, boolean showNext) {
+        ItemStack bottom = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        for (int slot = 27; slot <= 35; slot++)
+            inventory.setItem(slot, bottom);
+
+        inventory.setItem(31, createProgressItem(questProgress));
+        if (showBack)
+            inventory.setItem(30, createArrow(ChatColor.RED + "Back", false));
+        if (showNext)
+            inventory.setItem(32, createArrow(ChatColor.BLUE + "Next", true));
+    }
+
+    private ItemStack createProgressItem(GodTrophyQuest.QuestProgress questProgress) {
+        ItemStack progressItem = new ItemStack(Material.COMPASS);
+        ItemMeta meta = progressItem.getItemMeta();
+        if (meta == null)
+            return progressItem;
+        meta.setDisplayName(ChatColor.GOLD + "God Quest Progress");
+        meta.setLore(List.of(
+                ChatColor.YELLOW + "Current Step: " + ChatColor.WHITE + questProgress.currentStep(),
+                ChatColor.YELLOW + "Progress: " + ChatColor.AQUA + questProgress.currentCount()
+                        + ChatColor.WHITE + " / " + ChatColor.AQUA + questProgress.goal(),
+                ChatColor.YELLOW + "Next Step: " + ChatColor.WHITE + questProgress.nextStep()));
+        progressItem.setItemMeta(meta);
+        return progressItem;
+    }
+
+    private ItemStack createArrow(String displayName, boolean pointsForward) {
+        ItemStack arrow = new ItemStack(Material.ARROW);
+        ItemMeta meta = arrow.getItemMeta();
+        if (meta == null)
+            return arrow;
+        meta.setDisplayName(displayName);
+        if (pointsForward)
+            ItemStackGeneratorUtils.setCustomModelData(meta, 1);
+        arrow.setItemMeta(meta);
+        return arrow;
+    }
+
+    public void addRecipe(List<NamespacedKey> recipeKeys, int recipeIndex, Inventory inv) {
         NamespacedKey key = recipeKeys.get(recipeIndex);
         if (key == null) return;
         List<Integer> slots = RecipeSlotLayout.getRecipePositions(recipeIndex + 1);

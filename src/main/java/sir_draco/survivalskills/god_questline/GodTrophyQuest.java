@@ -26,13 +26,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Objects;
 import java.util.UUID;
 
 public class GodTrophyQuest {
 
+    private static final int MAX_PHASE = 59;
+
     private final UUID uuid;
-    private final int maxPhase = 59;
     private final boolean allAdvancements;
 
     private int currentItemCount = 0;
@@ -40,6 +42,28 @@ public class GodTrophyQuest {
     private int phase = 0;
 
     private BukkitRunnable activeDialogueTask;
+
+    public record QuestProgress(String currentStep, int currentCount, int goal, String nextStep) {
+
+        public QuestProgress {
+            Objects.requireNonNull(currentStep);
+            Objects.requireNonNull(nextStep);
+            if (currentCount < 0)
+                throw new IllegalArgumentException("Current count cannot be negative");
+            if (goal < 1)
+                throw new IllegalArgumentException("Goal must be positive");
+        }
+    }
+
+    private record QuestStep(String currentStep, int goal, String nextStep) {
+
+        private QuestStep {
+            Objects.requireNonNull(currentStep);
+            Objects.requireNonNull(nextStep);
+            if (goal < 1)
+                throw new IllegalArgumentException("Goal must be positive");
+        }
+    }
 
     private enum PhaseGroup {
         INTRO(0, 0, 0),
@@ -88,8 +112,71 @@ public class GodTrophyQuest {
             Color.fromRGB(75, 25, 130),   // Mob items
             Color.fromRGB(245, 245, 255)  // Advancements
     );
+    private static final List<QuestStep> QUEST_STEPS = List.of(
+            step("Speak to the God Trophy", 1, "2,000 bread"),
+            step("Bread", 2_000, "5,000 carrots"),
+            step("Carrots", 5_000, "5,000 potatoes"),
+            step("Potatoes", 5_000, "500 poisonous potatoes"),
+            step("Poisonous Potatoes", 500, "5,000 beetroots"),
+            step("Beetroots", 5_000, "5,000 melon slices"),
+            step("Melon Slices", 5_000, "2,500 pumpkins"),
+            step("Pumpkins", 2_500, "500 sweet berries"),
+            step("Sweet Berries", 500, "500 glow berries"),
+            step("Glow Berries", 500, "500 apples"),
+            step("Apples", 500, "64 chorus flowers"),
+            step("Chorus Flowers", 64, "64 cakes"),
+            step("Cakes", 64, "500 coal blocks"),
+            step("Coal Blocks", 500, "500 copper blocks"),
+            step("Copper Blocks", 500, "500 iron blocks"),
+            step("Iron Blocks", 500, "500 lapis blocks"),
+            step("Lapis Blocks", 500, "500 redstone blocks"),
+            step("Redstone Blocks", 500, "500 gold blocks"),
+            step("Gold Blocks", 500, "200 diamond blocks"),
+            step("Diamond Blocks", 200, "200 emerald blocks"),
+            step("Emerald Blocks", 200, "64 netherite blocks"),
+            step("Netherite Blocks", 64, "Modified Turtle Helmet"),
+            step("Modified Turtle Helmet", 1, "Goat Horn"),
+            step("Goat Horn", 1, "Ochre Frog Light"),
+            step("Ochre Frog Light", 1, "Verdant Frog Light"),
+            step("Verdant Frog Light", 1, "Pearlescent Frog Light"),
+            step("Pearlescent Frog Light", 1, "Music Knowledge Disc"),
+            step("Music Knowledge Disc", 1, "Potion of Swiftness"),
+            step("Potion of Swiftness", 1, "Potion of Fire Resistance"),
+            step("Potion of Fire Resistance", 1, "Potion of Healing"),
+            step("Potion of Healing", 1, "Potion of Harming"),
+            step("Potion of Harming", 1, "Potion of Water Breathing"),
+            step("Potion of Water Breathing", 1, "Potion of Night Vision"),
+            step("Potion of Night Vision", 1, "Potion of Invisibility"),
+            step("Potion of Invisibility", 1, "Potion of Leaping"),
+            step("Potion of Leaping", 1, "Potion of Slow Falling"),
+            step("Potion of Slow Falling", 1, "Potion of Strength"),
+            step("Potion of Strength", 1, "Potion of Weakness"),
+            step("Potion of Weakness", 1, "Potion of Regeneration"),
+            step("Potion of Regeneration", 1, "Potion of Poison"),
+            step("Potion of Poison", 1, "Potion of Infestation"),
+            step("Potion of Infestation", 1, "Potion of Oozing"),
+            step("Potion of Oozing", 1, "Potion of Weaving"),
+            step("Potion of Weaving", 1, "Potion of Wind Charged"),
+            step("Potion of Wind Charged", 1, "Sherd Relic"),
+            step("Sherd Relic", 1, "Trim Relic"),
+            step("Trim Relic", 1, "1,000 villager trades"),
+            step("Villager Trades", 1_000, "Warrior Emblem"),
+            step("Warrior Emblem", 1, "Web Shooter"),
+            step("Web Shooter", 1, "Unlimited Tipped Arrow"),
+            step("Unlimited Tipped Arrow", 1, "Villager Revival Artifact"),
+            step("Villager Revival Artifact", 1, "Ender Essence"),
+            step("Ender Essence", 1, "Creeper Essence"),
+            step("Creeper Essence", 1, "Trident Launcher"),
+            step("Trident Launcher", 1, "Magic Bag Of Wind"),
+            step("Magic Bag Of Wind", 1, "Unlimited Wither Rose"),
+            step("Unlimited Wither Rose", 1, "Dragon Breath Cannon"),
+            step("Dragon Breath Cannon", 1, "All Minecraft advancements"),
+            step("All Minecraft Advancements", 1, "Trial of the Gods")
+    );
     static {
-        for (int i = 0; i <= 59; i++) {
+        if (QUEST_STEPS.size() != MAX_PHASE)
+            throw new IllegalStateException("God quest step metadata must cover every active phase");
+        for (int i = 0; i <= MAX_PHASE; i++) {
             for (PhaseGroup group : PhaseGroup.values()) {
                 if (group.contains(i)) {
                     PHASE_TO_GROUP.put(i, group);
@@ -122,7 +209,7 @@ public class GodTrophyQuest {
      * Each PhaseGroup constant defines its phase range and local-index mapping.
      */
     public void handleNPCInteract(Player p) {
-        if (phase >= maxPhase)
+        if (phase >= MAX_PHASE)
             return;
 
         PhaseGroup group = PHASE_TO_GROUP.get(phase);
@@ -214,7 +301,7 @@ public class GodTrophyQuest {
                 "Bring me crops to show me you can feed a civilization",
                 "Bring me " + ChatColor.AQUA + "2,000 " + ChatColor.WHITE + "bread to start!");
         dialogue(p, messages);
-        phase++;
+        advancePhase(p, 1);
     }
 
     public void dialogueItemCount(Player p, String item, int count, int max) {
@@ -424,7 +511,7 @@ public class GodTrophyQuest {
                     "Bring me some powerful gear to show me you know what it means to fight",
                     "You can see the recipe by using " + ChatColor.YELLOW + "/godquest"));
             currentItemCount = 0;
-            phase++;
+            advancePhase(p, 1);
             updateGodTrophyParticles();
         }
     }
@@ -464,9 +551,8 @@ public class GodTrophyQuest {
                                     "The final task is to complete all Minecraft advancements"),
                             true);
                 } else {
-                    phase++; // Intentional to skip all advancements phase
                     handInItemStackStep(p, ItemStackGenerator.getDragonBreathCannon(), "Dragon Breath Cannon",
-                            getGodTrialCompletionMessage(), true);
+                            getGodTrialCompletionMessage(), true, 2);
                 }
             }
         }
@@ -567,10 +653,20 @@ public class GodTrophyQuest {
         godTrophyEffects.updateNpcPersonality(completedGroups);
     }
 
-    private static int countCompletedGroups(int phase) {
+    static int countCompletedGroups(int phase) {
         return (int) GOD_QUEST_GROUPS.stream()
                 .filter((PhaseGroup group) -> phase > group.end)
                 .count();
+    }
+
+    static int completionPercentage(int phase) {
+        return (int) Math.round(countCompletedGroups(phase) * 100.0 / GOD_QUEST_GROUPS.size());
+    }
+
+    static OptionalInt completedPercentageForTransition(int previousPhase, int currentPhase) {
+        if (countCompletedGroups(currentPhase) <= countCompletedGroups(previousPhase))
+            return OptionalInt.empty();
+        return OptionalInt.of(completionPercentage(currentPhase));
     }
 
     public void setCurrentItemCount(int count) {
@@ -607,6 +703,22 @@ public class GodTrophyQuest {
         return currentItemCount;
     }
 
+    public Optional<QuestProgress> getProgress() {
+        return progressForPhase(phase, currentItemCount, allAdvancements);
+    }
+
+    static Optional<QuestProgress> progressForPhase(int phase, int currentItemCount, boolean allAdvancements) {
+        if (phase < 0 || phase >= QUEST_STEPS.size())
+            return Optional.empty();
+
+        QuestStep questStep = QUEST_STEPS.get(phase);
+        String nextStep = phase == PhaseGroup.MOB_ITEM.end && !allAdvancements
+                ? "Trial of the Gods"
+                : questStep.nextStep();
+        int safeCurrentCount = Math.clamp(currentItemCount, 0, questStep.goal());
+        return Optional.of(new QuestProgress(questStep.currentStep(), safeCurrentCount, questStep.goal(), nextStep));
+    }
+
     public boolean isVillagerTradingPhase() {
         return PHASE_TO_GROUP.get(phase) == PhaseGroup.VILLAGER;
     }
@@ -623,7 +735,7 @@ public class GodTrophyQuest {
     }
 
     public int getMaxPhase() {
-        return maxPhase;
+        return MAX_PHASE;
     }
 
     // -----------------------
@@ -674,7 +786,7 @@ public class GodTrophyQuest {
     private void onBulkComplete(Player p, List<String> messages, boolean updateParticles) {
         currentItemCount = 0;
         dialogue(p, messages);
-        phase++;
+        advancePhase(p, 1);
         if (updateParticles)
             updateGodTrophyParticles();
     }
@@ -684,10 +796,14 @@ public class GodTrophyQuest {
      * dialogue, advances phase, and optionally triggers trophy particle updates.
      */
     private void onHandInComplete(Player p, List<String> messages, boolean updateParticles) {
+        onHandInComplete(p, messages, updateParticles, 1);
+    }
+
+    private void onHandInComplete(Player p, List<String> messages, boolean updateParticles, int phasesToAdvance) {
         removeItemFromMainHand(p);
         currentItemCount = 0;
         dialogue(p, messages);
-        phase++;
+        advancePhase(p, phasesToAdvance);
         if (updateParticles)
             updateGodTrophyParticles();
     }
@@ -706,9 +822,14 @@ public class GodTrophyQuest {
     /** Hand-in step for exact ItemStack in main hand. */
     private void handInItemStackStep(Player p, ItemStack expected, String itemName, List<String> successMessages,
             boolean updateParticles) {
+        handInItemStackStep(p, expected, itemName, successMessages, updateParticles, 1);
+    }
+
+    private void handInItemStackStep(Player p, ItemStack expected, String itemName, List<String> successMessages,
+            boolean updateParticles, int phasesToAdvance) {
         if (handleItemCheck(p, expected, itemName))
             return; // wrong or missing item
-        onHandInComplete(p, successMessages, updateParticles);
+        onHandInComplete(p, successMessages, updateParticles, phasesToAdvance);
     }
 
     /** Hand-in step for a specific Material in main hand. */
@@ -761,5 +882,17 @@ public class GodTrophyQuest {
                 .map((PotionEffect effect) -> effect.getType())
                 .toList();
         return Objects.equals(heldEffects, requiredEffects);
+    }
+
+    private static QuestStep step(String currentStep, int goal, String nextStep) {
+        return new QuestStep(currentStep, goal, nextStep);
+    }
+
+    private void advancePhase(Player p, int phasesToAdvance) {
+        int previousPhase = phase;
+        phase += phasesToAdvance;
+        completedPercentageForTransition(previousPhase, phase).ifPresent((int percentage) ->
+                Bukkit.broadcastMessage(ChatColor.AQUA + p.getName() + ChatColor.WHITE + " has completed "
+                        + ChatColor.GOLD + percentage + "%" + ChatColor.WHITE + " of the God Quest!"));
     }
 }

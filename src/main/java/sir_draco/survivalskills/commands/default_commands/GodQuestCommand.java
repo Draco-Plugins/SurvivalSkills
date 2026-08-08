@@ -11,11 +11,10 @@ import sir_draco.survivalskills.god_questline.GodRecipeUI;
 import sir_draco.survivalskills.god_questline.GodTrophyQuest;
 import sir_draco.survivalskills.SurvivalSkills;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class GodQuestCommand implements CommandExecutor {
 
@@ -39,23 +38,26 @@ public class GodQuestCommand implements CommandExecutor {
             return true;
         }
 
-        Optional<Integer> stage = quest.getStage();
-        if (stage.isEmpty()) {
-            sendNoRecipeError(p);
+        Optional<GodTrophyQuest.QuestProgress> questProgress = quest.getProgress();
+        if (questProgress.isEmpty()) {
+            sendQuestComplete(p);
             return true;
         }
 
-        GodRecipeUI ui = new GodRecipeUI(getRecipeList(stage.get()));
+        List<NamespacedKey> recipeKeys = quest.getStage()
+                .map((Integer stage) -> getRecipeList(stage))
+                .orElseGet(() -> List.of());
+        GodRecipeUI ui = new GodRecipeUI(recipeKeys, questProgress.get());
         plugin.getGodListener().registerGodRecipeUI(p, ui);
         ui.open(p);
         return true;
     }
 
-    private ArrayList<NamespacedKey> getRecipeList(int stage) {
+    private List<NamespacedKey> getRecipeList(int stage) {
         return plugin.getGodRecipeKeys().entrySet().stream()
                 .filter(e -> e.getValue() == stage)
                 .map((Map.Entry<NamespacedKey, Integer> entry) -> entry.getKey())
-                .collect(Collectors.toCollection(ArrayList::new));
+                .toList();
     }
 
     private void sendQuestError(Player p) {
@@ -63,8 +65,8 @@ public class GodQuestCommand implements CommandExecutor {
         p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
     }
 
-    private void sendNoRecipeError(Player p) {
-        p.sendRawMessage(ChatColor.RED + "There are no recipes for this stage of the God Quest");
+    private void sendQuestComplete(Player p) {
+        p.sendRawMessage(ChatColor.RED + "You have already completed the God Quest");
         p.playSound(p, Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
     }
 }
