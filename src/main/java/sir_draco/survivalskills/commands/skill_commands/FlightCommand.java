@@ -37,6 +37,12 @@ public class FlightCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
         if (!(sender instanceof Player p)) return false;
 
+        if (plugin.getFightingListener().isDragonFlightSuppressed(p)) {
+            p.sendRawMessage(ChatColor.DARK_PURPLE + "Dragon's Wrath prevents you from using flight!");
+            p.playSound(p, SOUND_DENY, 1, 1);
+            return true;
+        }
+
         // Check if the ability is enabled on this server
         if (!isFlightEnabled()) {
             p.sendRawMessage(ChatColor.RED + "Flight is not enabled on this server");

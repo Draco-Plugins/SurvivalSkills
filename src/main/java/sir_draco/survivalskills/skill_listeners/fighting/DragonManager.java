@@ -48,6 +48,10 @@ public class DragonManager {
         return dragonBoss;
     }
 
+    public boolean isFlightSuppressed(Player player) {
+        return dragonBoss != null && dragonBoss.isFlightSuppressed(player);
+    }
+
     // ---- Damage gates -----------------------------------------------------
 
     /** Cancel explosion/lightning damage to the dragon (matches the original immunity list). */
@@ -142,7 +146,13 @@ public class DragonManager {
                     if (!entity.getType().equals(EntityType.ENDER_DRAGON)) continue;
                     LivingEntity ent = (LivingEntity) entity;
                     dragonBoss = DragonBoss.attachToDragon("dragon", 0, 0,
-                            DRAGON_BASE_HEALTH * Bukkit.getOnlinePlayers().size(), 0, 0, 0, ent);
+                            DRAGON_BASE_HEALTH * Bukkit.getOnlinePlayers().size(), 20, 5, 1, ent);
+                    List<Player> players = Bukkit.getOnlinePlayers().stream()
+                            .filter((Player player) -> player.getWorld().getEnvironment()
+                                    .equals(World.Environment.THE_END))
+                            .map((Player player) -> player)
+                            .toList();
+                    dragonBoss.initializePlayers(players);
                     dragonBoss.runTaskTimer(plugin, 0, 1);
                     return;
                 }

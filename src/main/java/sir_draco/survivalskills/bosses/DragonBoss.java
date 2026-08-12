@@ -14,7 +14,10 @@ import sir_draco.survivalskills.bosses.attacks.DragonCannon;
 import sir_draco.survivalskills.utils.Utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class DragonBoss extends Boss {
@@ -31,17 +34,48 @@ public class DragonBoss extends Boss {
         new Vector(0, -0.1, -0.5)
     );
     private static final int MAX_ENDERMAN_SPAWNS = 5;
+    static final double GROUND_SLAM_CHANCE = 0.05;
+    static final double REGENERATOR_SPAWN_CHANCE = 0.05;
+    static final double ENDERMITE_TRIGGER_RADIUS = 3.0;
+    static final double GROUND_SLAM_RADIUS = 20.0;
+    static final double GROUND_SLAM_DAMAGE = 30.0;
+    static final int STUN_DURATION_TICKS = 20;
+    static final int REGENERATOR_HEAL_INTERVAL_TICKS = 20 * 5;
+    static final double REGENERATOR_HEAL_PERCENTAGE = 0.01;
+    static final double REGENERATOR_HEALTH = 75.0;
+    static final double REGENERATOR_DAMAGE = 10.0;
+    static final double REGENERATOR_SCALE = 0.7;
+    private static final int EXPLODING_ENDERMITE_COUNT = 3;
+    private static final float ENDERMITE_EXPLOSION_POWER = 0.1F;
+    private static final int GROUND_SLAM_TIMEOUT_TICKS = 20 * 4;
+    private static final double GROUND_SLAM_IMPACT_RADIUS = 5.0;
+    private static final double GROUND_SLAM_SPEED = 3.0;
+    private static final double GROUND_SLAM_KNOCKBACK = 2.0;
+    private static final double GROUND_SLAM_VERTICAL_KNOCKBACK = 0.75;
+    private static final String STUN_MESSAGE = ChatColor.DARK_PURPLE + "You have been stunned!";
 
     private EnderDragon dragon;
     private final List<Location> crystalLocations = new ArrayList<>();
     private final List<Player> players = new ArrayList<>();
+    private final List<Endermite> explosiveEndermites = new ArrayList<>();
+    private final Map<Player, FlightState> suppressedFlightStates = new HashMap<>();
+    private final Map<Player, StunState> stunnedPlayers = new HashMap<>();
 
     private int lightningCounter = 20 * 30;
     private int attackCounter = 20 * 10;
     private int timeSinceDragonFollowerSpawn = 0;
+    private int groundSlamTicks = 0;
+    private int regeneratorHealCounter = 0;
+    private Location groundSlamTarget;
+    private Enderman regenerator;
     private boolean initialized = false;
     private boolean crystalsFound = false;
     private boolean isRespawn = false;
+    private boolean dragonsWrath = false;
+
+    record FlightState(GameMode gameMode, boolean allowFlight, boolean flying, float flySpeed) {}
+
+    private record StunState(int ticksRemaining, float walkSpeed) {}
 
     private DragonBoss(String name, int spawnRadiusRequired, int spawnHeightRequired, double maxHealth, double damage,
             double defense, double speed) {
@@ -64,6 +98,7 @@ public class DragonBoss extends Boss {
     @Override
     public void run() {
         if (shouldCancel()) {
+            cleanupEncounterState();
             cancel();
             return;
         }
@@ -72,6 +107,12 @@ public class DragonBoss extends Boss {
         initializeCrystals();
         handleStageTransitions();
         tickCooldowns();
+        updateDragonsWrath();
+        updateStunnedPlayers();
+        updateExplosiveEndermites();
+        updateRegenerator();
+
+        if (updateGroundSlam()) return;
 
         if (isDisableAttack()) return;
         executeLightningStrike();
@@ -139,18 +180,27 @@ public class DragonBoss extends Boss {
 
     @Override
     public void attack() {
+        if (isGroundSlamRoll(Math.random()) && startGroundSlam()) {
+            trySpawnRegenerator();
+            return;
+        }
+
         switch (getStage()) {
             case 1, 2 -> {
-                if (Math.random() < 0.5) executeCannonAttack();
-                else deathRain();
+                double chance = Math.random();
+                if (chance < 1.0 / 3.0) executeCannonAttack();
+                else if (chance < 2.0 / 3.0) deathRain();
+                else spawnExplodingEndermites();
             }
             case 3 -> {
                 double chance = Math.random();
-                if (chance > 0.66) executeCannonAttack();
-                else if (chance > 0.33) deathRain();
-                else spawnAngryEndermen();
+                if (chance < 0.25) executeCannonAttack();
+                else if (chance < 0.5) deathRain();
+                else if (chance < 0.75) spawnAngryEndermen();
+                else spawnExplodingEndermites();
             }
         }
+        trySpawnRegenerator();
     }
 
     private void onStageEnter(int newStage) {
@@ -161,8 +211,291 @@ public class DragonBoss extends Boss {
         }
     }
 
+    private void updateDragonsWrath() {
+        if (!dragonsWrath && getHealthPercentage() <= 0.5) {
+            dragonsWrath = true;
+            broadcastDragonMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
+                    + ChatColor.RESET + "Dragon's Wrath has stripped you of your powers!",
+                    Sound.ENTITY_ENDER_DRAGON_GROWL);
+        }
+        if (!dragonsWrath) return;
+
+        restoreFlightOutsideFight();
+        players.stream()
+                .filter((Player player) -> player.isOnline())
+                .filter((Player player) -> player.getWorld().equals(dragon.getWorld()))
+                .forEach((Player player) -> {
+                    suppressedFlightStates.computeIfAbsent(player,
+                            (Player participant) -> captureFlightState(participant));
+                    suppressFlight(player);
+                });
+    }
+
+    private void restoreFlightOutsideFight() {
+        Iterator<Map.Entry<Player, FlightState>> iterator = suppressedFlightStates.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Player, FlightState> entry = iterator.next();
+            Player player = entry.getKey();
+            if (!player.isOnline() || player.getWorld().equals(dragon.getWorld())) continue;
+            restoreFlightState(player, entry.getValue());
+            iterator.remove();
+        }
+    }
+
+    static FlightState captureFlightState(Player player) {
+        return new FlightState(player.getGameMode(), player.getAllowFlight(), player.isFlying(), player.getFlySpeed());
+    }
+
+    static void suppressFlight(Player player) {
+        player.setFlying(false);
+        player.setAllowFlight(false);
+    }
+
+    static void restoreFlightState(Player player, FlightState state) {
+        if (!player.isOnline() || player.getGameMode() != state.gameMode()) return;
+        player.setAllowFlight(state.allowFlight());
+        player.setFlying(state.allowFlight() && state.flying());
+        player.setFlySpeed(state.flySpeed());
+    }
+
+    private void spawnExplodingEndermites() {
+        for (int i = 0; i < EXPLODING_ENDERMITE_COUNT; i++) {
+            Optional<Location> locationOptional = randomLoc(dragon.getLocation(), 30);
+            if (locationOptional.isEmpty()) continue;
+
+            Location spawnLocation = locationOptional.get().clone().add(0, 1, 0);
+            Endermite endermite = (Endermite) dragon.getWorld().spawnEntity(spawnLocation, EntityType.ENDERMITE);
+            endermite.setCustomName(ChatColor.DARK_PURPLE + "Unstable Endermite");
+            endermite.setCustomNameVisible(true);
+            endermite.setPersistent(true);
+            endermite.setRemoveWhenFarAway(false);
+            findNearbyTarget(endermite, 150).ifPresent((Player player) -> endermite.setTarget(player));
+            explosiveEndermites.add(endermite);
+        }
+    }
+
+    private void updateExplosiveEndermites() {
+        Iterator<Endermite> iterator = explosiveEndermites.iterator();
+        while (iterator.hasNext()) {
+            Endermite endermite = iterator.next();
+            if (!endermite.isValid() || endermite.isDead()) {
+                iterator.remove();
+                continue;
+            }
+
+            boolean playerInRange = players.stream()
+                    .filter((Player player) -> player.isOnline())
+                    .filter((Player player) -> player.getWorld().equals(endermite.getWorld()))
+                    .anyMatch((Player player) -> isWithinRadius(player.getLocation(), endermite.getLocation(),
+                            ENDERMITE_TRIGGER_RADIUS));
+            if (!playerInRange) continue;
+
+            detonateEndermite(endermite);
+            iterator.remove();
+        }
+    }
+
+    private void detonateEndermite(Endermite endermite) {
+        Location explosionLocation = endermite.getLocation();
+        players.stream()
+                .filter((Player player) -> player.isOnline())
+                .filter((Player player) -> player.getWorld().equals(endermite.getWorld()))
+                .filter((Player player) -> isWithinRadius(player.getLocation(), explosionLocation,
+                        ENDERMITE_TRIGGER_RADIUS))
+                .forEach((Player player) -> stunPlayer(player));
+        endermite.getWorld().createExplosion(explosionLocation, ENDERMITE_EXPLOSION_POWER, false, false, endermite);
+        endermite.remove();
+    }
+
+    private void stunPlayer(Player player) {
+        stunnedPlayers.compute(player, (Player stunnedPlayer, StunState currentState) -> {
+            float walkSpeed = currentState == null ? stunnedPlayer.getWalkSpeed() : currentState.walkSpeed();
+            return new StunState(STUN_DURATION_TICKS, walkSpeed);
+        });
+        player.setWalkSpeed(0);
+        player.setVelocity(new Vector());
+        Utils.sendActionBarMessage(player, STUN_MESSAGE);
+    }
+
+    private void updateStunnedPlayers() {
+        Iterator<Map.Entry<Player, StunState>> iterator = stunnedPlayers.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Player, StunState> entry = iterator.next();
+            Player player = entry.getKey();
+            StunState state = entry.getValue();
+            if (!player.isOnline()) {
+                iterator.remove();
+                continue;
+            }
+            if (state.ticksRemaining() <= 1) {
+                player.setWalkSpeed(state.walkSpeed());
+                iterator.remove();
+                continue;
+            }
+
+            player.setWalkSpeed(0);
+            player.setVelocity(new Vector());
+            entry.setValue(new StunState(state.ticksRemaining() - 1, state.walkSpeed()));
+        }
+    }
+
+    private boolean startGroundSlam() {
+        Optional<Player> targetOptional = findNearbyTarget(dragon, 150);
+        if (targetOptional.isEmpty()) return false;
+
+        Location playerLocation = targetOptional.get().getLocation();
+        int groundY = dragon.getWorld().getHighestBlockYAt(playerLocation.getBlockX(), playerLocation.getBlockZ());
+        groundSlamTarget = new Location(dragon.getWorld(), playerLocation.getX(), groundY + 1,
+                playerLocation.getZ());
+        groundSlamTicks = 0;
+        dragon.setPhase(EnderDragon.Phase.CHARGE_PLAYER);
+        broadcastDragonMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
+                + ChatColor.RESET + "Be crushed beneath my wrath!", Sound.ENTITY_ENDER_DRAGON_GROWL);
+        return true;
+    }
+
+    private boolean updateGroundSlam() {
+        if (groundSlamTarget == null) return false;
+        groundSlamTicks++;
+
+        Vector direction = groundSlamTarget.toVector().subtract(dragon.getLocation().toVector());
+        boolean reachedTarget = direction.lengthSquared() <= GROUND_SLAM_IMPACT_RADIUS * GROUND_SLAM_IMPACT_RADIUS;
+        double horizontalDistanceSquared = direction.getX() * direction.getX() + direction.getZ() * direction.getZ();
+        boolean reachedGround = dragon.getLocation().getY() <= groundSlamTarget.getY() + GROUND_SLAM_IMPACT_RADIUS
+                && horizontalDistanceSquared <= GROUND_SLAM_IMPACT_RADIUS * GROUND_SLAM_IMPACT_RADIUS;
+        if (reachedTarget || reachedGround || groundSlamTicks >= GROUND_SLAM_TIMEOUT_TICKS) {
+            completeGroundSlam();
+            return true;
+        }
+
+        if (direction.lengthSquared() > 0) dragon.setVelocity(direction.normalize().multiply(GROUND_SLAM_SPEED));
+        return true;
+    }
+
+    private void completeGroundSlam() {
+        Location impactLocation = groundSlamTarget;
+        if (impactLocation == null || impactLocation.getWorld() == null) {
+            clearGroundSlam();
+            return;
+        }
+
+        World world = impactLocation.getWorld();
+        world.playSound(impactLocation, Sound.ENTITY_GENERIC_EXPLODE, 5, 0.5F);
+        world.spawnParticle(Particle.EXPLOSION_EMITTER, impactLocation, 8, 4, 1, 4, 0);
+        world.spawnParticle(Particle.END_ROD, impactLocation, 250,
+                GROUND_SLAM_RADIUS / 2, 1, GROUND_SLAM_RADIUS / 2, 0.25);
+
+        players.stream()
+                .filter((Player player) -> player.isOnline())
+                .filter((Player player) -> player.getWorld().equals(world))
+                .filter((Player player) -> isWithinRadius(player.getLocation(), impactLocation, GROUND_SLAM_RADIUS))
+                .forEach((Player player) -> applyGroundSlam(player, impactLocation));
+        attackCounter = Math.max(attackCounter, getAttackCooldown());
+        clearGroundSlam();
+    }
+
+    private void applyGroundSlam(Player player, Location impactLocation) {
+        player.damage(GROUND_SLAM_DAMAGE, dragon);
+        Vector knockback = player.getLocation().toVector().subtract(impactLocation.toVector());
+        knockback.setY(0);
+        if (knockback.lengthSquared() == 0) knockback.setX(1);
+        knockback.normalize().multiply(GROUND_SLAM_KNOCKBACK).setY(GROUND_SLAM_VERTICAL_KNOCKBACK);
+        player.setVelocity(knockback);
+    }
+
+    private void clearGroundSlam() {
+        groundSlamTarget = null;
+        groundSlamTicks = 0;
+    }
+
+    private void trySpawnRegenerator() {
+        if (!shouldSpawnRegenerator(Math.random()) || hasLivingRegenerator()) return;
+        Optional<Location> locationOptional = randomLoc(dragon.getLocation(), 30);
+        if (locationOptional.isEmpty()) return;
+
+        Location spawnLocation = locationOptional.get().clone().add(0, 1, 0);
+        Enderman enderman = (Enderman) dragon.getWorld().spawnEntity(spawnLocation, EntityType.ENDERMAN);
+        enderman.setCustomName(ChatColor.LIGHT_PURPLE + "Dragon Regenerator");
+        enderman.setCustomNameVisible(true);
+        enderman.setPersistent(true);
+        enderman.setRemoveWhenFarAway(false);
+        Utils.updateEntityAttributeInstance(enderman, Attribute.MAX_HEALTH, REGENERATOR_HEALTH);
+        enderman.setHealth(REGENERATOR_HEALTH);
+        Utils.updateEntityAttributeInstance(enderman, Attribute.ATTACK_DAMAGE, REGENERATOR_DAMAGE);
+        Utils.updateEntityAttributeInstance(enderman, Attribute.SCALE, REGENERATOR_SCALE);
+        findNearbyTarget(enderman, 150).ifPresent((Player player) -> enderman.setTarget(player));
+        enderman.getWorld().spawnParticle(Particle.PORTAL, enderman.getLocation().clone().add(0, 1, 0), 30,
+                1, 1, 1, 0.1);
+        regenerator = enderman;
+        regeneratorHealCounter = 0;
+    }
+
+    private void updateRegenerator() {
+        if (!hasLivingRegenerator()) {
+            regenerator = null;
+            regeneratorHealCounter = 0;
+            return;
+        }
+        if (!regenerator.getWorld().equals(dragon.getWorld())) return;
+
+        regeneratorHealCounter++;
+        if (regeneratorHealCounter < REGENERATOR_HEAL_INTERVAL_TICKS) return;
+        regeneratorHealCounter = 0;
+        dragon.setHealth(calculateRegeneratedHealth(dragon.getHealth(), getEntityMaxHealth()));
+        dragon.getWorld().spawnParticle(Particle.HEART, dragon.getLocation(), 12, 2, 2, 2, 0.1);
+        dragon.getWorld().playSound(dragon.getLocation(), Sound.ENTITY_GENERIC_DRINK, 2, 1);
+    }
+
+    private boolean hasLivingRegenerator() {
+        return regenerator != null && regenerator.isValid() && !regenerator.isDead();
+    }
+
+    private void cleanupEncounterState() {
+        explosiveEndermites.stream()
+                .filter((Endermite endermite) -> endermite.isValid())
+                .forEach((Endermite endermite) -> endermite.remove());
+        explosiveEndermites.clear();
+        if (regenerator != null && regenerator.isValid()) regenerator.remove();
+        regenerator = null;
+        regeneratorHealCounter = 0;
+        stunnedPlayers.forEach((Player player, StunState state) -> {
+            if (player.isOnline()) player.setWalkSpeed(state.walkSpeed());
+        });
+        stunnedPlayers.clear();
+        suppressedFlightStates.forEach((Player player, FlightState state) -> restoreFlightState(player, state));
+        suppressedFlightStates.clear();
+        clearGroundSlam();
+    }
+
+    static boolean isGroundSlamRoll(double roll) {
+        return roll < GROUND_SLAM_CHANCE;
+    }
+
+    static boolean shouldSpawnRegenerator(double roll) {
+        return roll < REGENERATOR_SPAWN_CHANCE;
+    }
+
+    static double calculateRegeneratedHealth(double currentHealth, double maximumHealth) {
+        return Math.min(maximumHealth, currentHealth + maximumHealth * REGENERATOR_HEAL_PERCENTAGE);
+    }
+
+    static boolean isWithinRadius(Location first, Location second, double radius) {
+        if (!java.util.Objects.equals(first.getWorld(), second.getWorld())) return false;
+        double x = first.getX() - second.getX();
+        double y = first.getY() - second.getY();
+        double z = first.getZ() - second.getZ();
+        return x * x + y * y + z * z <= radius * radius;
+    }
+
+    static void addUniquePlayers(List<Player> currentPlayers, List<Player> newPlayers) {
+        newPlayers.stream()
+                .filter((Player player) -> !currentPlayers.contains(player))
+                .forEach((Player player) -> currentPlayers.add(player));
+    }
+
     @Override
     public void deathAnimation() {
+        cleanupEncounterState();
         if (dragon.getWorld().hasMetadata("killedfirstdragon")) {
             Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
                     + ChatColor.RESET + "I always come back");
@@ -185,6 +518,12 @@ public class DragonBoss extends Boss {
             Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "toggleoverworldfirstdragon");
         }
         cancel();
+    }
+
+    @Override
+    public void cleanup() {
+        cleanupEncounterState();
+        super.cleanup();
     }
 
     public void dragonAttributes() {
@@ -345,11 +684,15 @@ public class DragonBoss extends Boss {
 
     public void respawnDragonInitPlayers(List<Player> players) {
         isRespawn = true;
-        this.players.addAll(players);
+        initializePlayers(players);
+    }
+
+    public void initializePlayers(List<Player> players) {
+        addUniquePlayers(this.players, players);
     }
 
     public void addPlayer(Player p) {
-        players.add(p);
+        if (!players.contains(p)) players.add(p);
     }
 
     public List<Player> getPlayers() {
@@ -358,6 +701,10 @@ public class DragonBoss extends Boss {
 
     public boolean isRespawn() {
         return isRespawn;
+    }
+
+    public boolean isFlightSuppressed(Player player) {
+        return dragonsWrath && players.contains(player) && player.getWorld().equals(dragon.getWorld());
     }
 
 

@@ -473,21 +473,25 @@ public class FarmingSkill implements Listener {
         double chance = plugin.getSkillManager().getPlayerRewards(p).getCropDoubleChance();
         if (chance == 0) return;
         if (Math.random() >= chance) return;
-        applyCustomDrops(e, p, true);
+        applyCustomDrops(e, p, true, true);
     }
 
     private boolean handleHarvesterDrops(Player p, BlockBreakEvent e, boolean harvester) {
         if (!harvester) return false;
         boolean doubleCrops = Math.random() < plugin.getSkillManager().getPlayerRewards(p).getCropDoubleChance();
-        applyCustomDrops(e, p, doubleCrops);
+        applyCustomDrops(e, p, doubleCrops, false);
         return true;
     }
 
-    private void applyCustomDrops(BlockBreakEvent e, Player p, boolean shouldDouble) {
+    private void applyCustomDrops(BlockBreakEvent e, Player p, boolean shouldDouble, boolean dropSeeds) {
         e.setDropItems(false);
         ItemStack[] drops = e.getBlock().getDrops(p.getInventory().getItemInMainHand()).toArray(new ItemStack[0]);
         for (ItemStack drop : drops) {
-            if (isSeed(drop.getType())) continue;
+            if (isSeed(drop.getType())) {
+                if (!dropSeeds) continue;
+                e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
+                continue;
+            }
             if (shouldDouble) drop.setAmount(drop.getAmount() * 2);
             e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), drop);
         }

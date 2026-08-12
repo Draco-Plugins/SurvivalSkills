@@ -341,6 +341,10 @@ public class FightingSkill implements Listener {
         return dragonManager.getDragonBoss();
     }
 
+    public boolean isDragonFlightSuppressed(Player player) {
+        return dragonManager.isFlightSuppressed(player);
+    }
+
     public List<Player> getNoPhantomSpawns() {
         return noPhantomSpawns;
     }
