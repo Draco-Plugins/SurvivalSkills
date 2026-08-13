@@ -12,6 +12,7 @@ import sir_draco.survivalskills.utils.Recipes.ArmorUpgradeRecipeData.ArmorUpgrad
 import sir_draco.survivalskills.utils.Recipes.RecipeSpec;
 import sir_draco.survivalskills.utils.Recipes.RewardRecipeData;
 import sir_draco.survivalskills.utils.Recipes.ShapedSpec;
+import sir_draco.survivalskills.utils.Recipes.ShapelessSpec;
 import sir_draco.survivalskills.utils.Recipes.SmallShapedSpec;
 import sir_draco.survivalskills.utils.Recipes.TrophyRecipeData;
 import sir_draco.survivalskills.utils.Recipes.TrophyRecipeData.TrophyRecipe;
@@ -131,6 +132,14 @@ public class RecipeMaker {
                                 recipe.setIngredient(SHAPE_CHARS[idx], items[idx].getType());
                 }
                 RecipeRegistrar.addShapedRecipe(recipe, key);
+        }
+
+        public static void createShapelessRecipe(NamespacedKey key, ItemStack result,
+                        List<RecipeChoice> ingredients) {
+                ShapelessRecipe recipe = new ShapelessRecipe(key, result);
+                for (RecipeChoice ingredient : ingredients)
+                        recipe.addIngredient(ingredient);
+                RecipeRegistrar.addShapelessRecipe(recipe, key);
         }
 
         // ── Dense wool helpers ───────────────────────────────────────────────
@@ -383,6 +392,7 @@ public class RecipeMaker {
                                         s.matA(), s.matB(), s.matC());
                         case ShapedSpec s -> createShapedRecipe(key, s.result(), s.a(), s.b(), s.c(), s.d(),
                                         s.e(), s.f(), s.g(), s.h(), s.i(), s.unique());
+                        case ShapelessSpec s -> createShapelessRecipe(key, s.result(), s.ingredients());
                         }
                 }
         }
