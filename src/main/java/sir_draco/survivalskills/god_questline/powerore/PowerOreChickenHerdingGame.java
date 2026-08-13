@@ -3,8 +3,8 @@ package sir_draco.survivalskills.god_questline.powerore;
 /** Tracks the deterministic progress and countdown state for Chicken Herding. */
 final class PowerOreChickenHerdingGame {
 
-    static final int TOTAL_CHICKENS = 50;
-    static final int DURATION_TICKS = 60 * 20;
+    static final int TOTAL_CHICKENS = 40;
+    static final int DURATION_TICKS = 90 * 20;
     private static final int TICKS_PER_SECOND = 20;
 
     private int deliveredChickens;
