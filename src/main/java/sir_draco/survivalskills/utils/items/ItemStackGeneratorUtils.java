@@ -120,6 +120,9 @@ public class ItemStackGeneratorUtils {
         meta.addAttributeModifier(Attribute.ARMOR,
                 new AttributeModifier(new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), keyPrefix + "Defense"),
                         armor, AttributeModifier.Operation.ADD_NUMBER, slot));
+        meta.addAttributeModifier(Attribute.ARMOR_TOUGHNESS,
+                new AttributeModifier(new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), keyPrefix + "Toughness"),
+                        2.0, AttributeModifier.Operation.ADD_NUMBER, slot));
         meta.addAttributeModifier(Attribute.KNOCKBACK_RESISTANCE,
                 new AttributeModifier(new NamespacedKey(SurvivalSkills.getPlugin(SurvivalSkills.class), keyPrefix + "Knockback"),
                         2.0, AttributeModifier.Operation.ADD_NUMBER, slot));

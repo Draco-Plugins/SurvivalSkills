@@ -1,6 +1,7 @@
 package sir_draco.survivalskills.commands.admin_commands;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -16,6 +17,7 @@ import sir_draco.survivalskills.bosses.DragonBoss;
 import sir_draco.survivalskills.bosses.GiantBoss;
 import sir_draco.survivalskills.bosses.VillagerBoss;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.god_questline.powerore.PowerOreChallenge;
 
 public class BossCommand implements CommandExecutor {
 
@@ -26,6 +28,7 @@ public class BossCommand implements CommandExecutor {
     private final SurvivalSkills plugin;
     private Boss activeBoss;
     private DragonBoss dragonBoss;
+    private PowerOreChallenge powerOreChallenge;
 
     public BossCommand(SurvivalSkills plugin) {
         this.plugin = plugin;
@@ -93,8 +96,23 @@ public class BossCommand implements CommandExecutor {
             case "broodmother" -> spawnBroodMother(p);
             case "villager" -> spawnVillager(p);
             case "fishingboss" -> spawnFishingBoss(p);
-            default -> sendUsage(p, "/ssboss spawn <giant/broodmother/villager/fishingboss>");
+            case "powerore" -> spawnPowerOreMiniBoss(p);
+            default -> sendUsage(p, "/ssboss spawn <giant/broodmother/villager/fishingboss/powerore>");
         }
+    }
+
+    private void spawnPowerOreMiniBoss(Player p) {
+        if (powerOreChallenge != null
+                && powerOreChallenge.getStatus() == PowerOreChallenge.Status.RUNNING) {
+            sendError(p, "Power Ore Sentinel already spawned!");
+            return;
+        }
+
+        Location testLocation = p.getLocation().getBlock().getLocation();
+        powerOreChallenge = PowerOreChallenge.forMiniBossTest(testLocation, p);
+        powerOreChallenge.start();
+        if (powerOreChallenge.getStatus() == PowerOreChallenge.Status.RUNNING)
+            sendSuccess(p, "Power Ore Sentinel spawned!");
     }
 
     private void spawnGiant(Player p) {

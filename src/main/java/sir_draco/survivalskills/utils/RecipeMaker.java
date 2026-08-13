@@ -10,6 +10,7 @@ import sir_draco.survivalskills.utils.Recipes.GodRecipeData;
 import sir_draco.survivalskills.utils.Recipes.ArmorUpgradeRecipeData;
 import sir_draco.survivalskills.utils.Recipes.ArmorUpgradeRecipeData.ArmorUpgradeRecipe;
 import sir_draco.survivalskills.utils.Recipes.RecipeSpec;
+import sir_draco.survivalskills.utils.Recipes.RecipeDisplayRegistry;
 import sir_draco.survivalskills.utils.Recipes.RewardRecipeData;
 import sir_draco.survivalskills.utils.Recipes.ShapedSpec;
 import sir_draco.survivalskills.utils.Recipes.ShapelessSpec;
@@ -340,9 +341,11 @@ public class RecipeMaker {
 
         public static void rewardRecipes(SurvivalSkills plugin) {
                 for (SmallShapedSpec spec : RewardRecipeData.ALL) {
+                        NamespacedKey key = createKey(spec.keyName(), plugin);
+                        RecipeDisplayRegistry.register(key, spec);
                         Optional<Character> flexibleExactSlot = ArmorUpgradeRecipeData.find(spec.keyName())
                                         .map((ArmorUpgradeRecipe upgrade) -> upgrade.ingredientSlot());
-                        createSmallShapedRecipe(createKey(spec.keyName(), plugin), spec.result(), spec.shape(),
+                        createSmallShapedRecipe(key, spec.result(), spec.shape(),
                                         spec.exactA(), spec.exactB(), spec.exactC(),
                                         spec.matA(), spec.matB(), spec.matC(), flexibleExactSlot);
                 }

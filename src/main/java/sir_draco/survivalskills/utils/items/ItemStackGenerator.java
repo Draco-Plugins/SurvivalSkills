@@ -164,16 +164,24 @@ public class ItemStackGenerator {
     }
 
     private static final List<String> POWER_ARMOR_COLOR = List.of(
-            ChatColor.GRAY + "The helmet is teeming with energy");
+            ChatColor.GRAY + "The helmet is teeming with energy",
+            ChatColor.LIGHT_PURPLE + "Speed III Everywhere",
+            ChatColor.LIGHT_PURPLE + "Autostep automatically steps up one block");
     private static final List<String> POWER_ARMOR_CHEST = List.of(
             ChatColor.GRAY + "The chestplate is teeming with energy",
+            ChatColor.LIGHT_PURPLE + "Speed III Everywhere",
+            ChatColor.LIGHT_PURPLE + "Autostep automatically steps up one block",
             ChatColor.LIGHT_PURPLE + "The full armor absorbs all damage",
             ChatColor.LIGHT_PURPLE + "When it has reached its limit you will take twice as much damage",
             ChatColor.LIGHT_PURPLE + "Sneak twice in quick succession to unleash the stored power!");
     private static final List<String> POWER_ARMOR_LEGS = List.of(
-            ChatColor.GRAY + "The leggings are teeming with energy");
+            ChatColor.GRAY + "The leggings are teeming with energy",
+            ChatColor.LIGHT_PURPLE + "Speed III Everywhere",
+            ChatColor.LIGHT_PURPLE + "Autostep automatically steps up one block");
     private static final List<String> POWER_ARMOR_BOOTS = List.of(
-            ChatColor.GRAY + "The boots are teeming with energy");
+            ChatColor.GRAY + "The boots are teeming with energy",
+            ChatColor.LIGHT_PURPLE + "Speed III Everywhere",
+            ChatColor.LIGHT_PURPLE + "Autostep automatically steps up one block");
 
     private static final Color POWER_COLOR = Color.fromRGB(73, 0, 110);
 

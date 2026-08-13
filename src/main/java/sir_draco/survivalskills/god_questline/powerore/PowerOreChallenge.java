@@ -32,14 +32,20 @@ public final class PowerOreChallenge implements PowerOreChallengeHandle {
     private final Player player;
     private final UUID uuid;
     private final PowerOreTask task;
+    private final boolean testOnly;
     private Status status = Status.RUNNING;
     private PowerOreVisualEffect visualEffect;
     private boolean rewardDropped = false;
 
     public PowerOreChallenge(Location oreLocation, Player player, TaskType type) {
+        this(oreLocation, player, type, false);
+    }
+
+    private PowerOreChallenge(Location oreLocation, Player player, TaskType type, boolean testOnly) {
         this.oreLocation = oreLocation;
         this.player = player;
         this.uuid = player.getUniqueId();
+        this.testOnly = testOnly;
         this.task = switch (type) {
             case MINI_BOSS -> new PowerOreMiniBossTask(this, player, oreLocation);
             case SCAVENGER_HUNT -> new PowerOreScavengerHuntTask(this, player, oreLocation);
@@ -49,9 +55,15 @@ public final class PowerOreChallenge implements PowerOreChallengeHandle {
         };
     }
 
+    /** Creates a mini-boss challenge for admin testing without starting a conversion. */
+    public static PowerOreChallenge forMiniBossTest(Location location, Player player) {
+        return new PowerOreChallenge(location, player, TaskType.MINI_BOSS, true);
+    }
+
     public void start() {
         player.sendMessage(ChatColor.LIGHT_PURPLE + "Power Ore Challenge started: " + ChatColor.GOLD + task.name());
-        startVisuals();
+        if (!testOnly)
+            startVisuals();
         task.start();
     }
 
@@ -60,7 +72,10 @@ public final class PowerOreChallenge implements PowerOreChallengeHandle {
             return;
         status = Status.SUCCESS;
         task.cleanup();
-        player.sendMessage(ChatColor.GREEN + "Your Power Ore is now charged! Mine it to claim the ore.");
+        if (testOnly)
+            player.sendMessage(ChatColor.GREEN + "Power Ore Sentinel defeated!");
+        else
+            player.sendMessage(ChatColor.GREEN + "Your Power Ore is now charged! Mine it to claim the ore.");
     }
 
     public void fail(String reason) {
@@ -73,8 +88,10 @@ public final class PowerOreChallenge implements PowerOreChallengeHandle {
         else
             player.sendMessage(ChatColor.RED + "Power Ore Challenge failed.");
         player.playSound(player, Sound.BLOCK_GLASS_BREAK, 1, 0.6f);
-        stopVisuals();
-        SurvivalSkills.getInstance().getGodListener().removeOreConversion(uuid, oreLocation);
+        if (!testOnly) {
+            stopVisuals();
+            SurvivalSkills.getInstance().getGodListener().removeOreConversion(uuid, oreLocation);
+        }
     }
 
     @Override

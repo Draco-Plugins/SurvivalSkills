@@ -24,6 +24,8 @@ import sir_draco.survivalskills.super_enchanting.SuperEnchantingItems;
 import sir_draco.survivalskills.super_enchanting.SuperEnchantingTableManager;
 import sir_draco.survivalskills.utils.RecipeSlotLayout;
 import sir_draco.survivalskills.utils.SkillDisplay;
+import sir_draco.survivalskills.utils.Recipes.RecipeDisplayRegistry;
+import sir_draco.survivalskills.utils.Recipes.SmallShapedSpec;
 import sir_draco.survivalskills.utils.items.ItemStackGenerator;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
 
@@ -316,9 +318,28 @@ public class SkillsCommand implements CommandExecutor {
         NamespacedKey key = plugin.getRecipeKeys().get(recipeCounter - 1);
         if (key == null) return;
         List<Integer> slots = RecipeSlotLayout.getRecipePositions(recipeCounter);
+        Optional<SmallShapedSpec> displayRecipe = RecipeDisplayRegistry.find(key);
+        if (displayRecipe.isPresent()) {
+            addCustomRewardRecipe(displayRecipe.orElseThrow(), slots, inv);
+            return;
+        }
         Recipe recipe = Bukkit.getRecipe(key);
         if (recipe instanceof ShapedRecipe shaped) addShapedRecipe(shaped, slots, inv);
         else if (recipe instanceof ShapelessRecipe shapeless) addShapelessRecipe(shapeless, slots, inv);
+    }
+
+    private void addCustomRewardRecipe(SmallShapedSpec recipeSpec, List<Integer> slots, Inventory inv) {
+        String[] shape = getDisplayShape(recipeSpec.shape());
+        for (int row = 0; row < shape.length; row++) {
+            for (int column = 0; column < shape[row].length(); column++) {
+                char ingredientSlot = shape[row].charAt(column);
+                Optional<ItemStack> displayIngredient = getDisplayIngredient(recipeSpec, ingredientSlot);
+                if (displayIngredient.isPresent()) {
+                    inv.setItem(slots.get(row * 3 + column), displayIngredient.orElseThrow());
+                }
+            }
+        }
+        inv.setItem(slots.get(9), getResult(recipeSpec.result().clone()));
     }
 
     private void addShapedRecipe(ShapedRecipe recipe, List<Integer> slots, Inventory inv) {
@@ -343,6 +364,31 @@ public class SkillsCommand implements CommandExecutor {
             }
         }
         inv.setItem(slots.get(9), getResult(recipe.getResult()));
+    }
+
+    private static String[] getDisplayShape(String shape) {
+        String[] rows = shape.split(":");
+        if ("DDD".equals(rows[0])) return new String[] {rows[1], rows[2]};
+        if ("DDD".equals(rows[2])) return new String[] {rows[0], rows[1]};
+        return rows;
+    }
+
+    static Optional<ItemStack> getDisplayIngredient(SmallShapedSpec recipeSpec, char slot) {
+        ItemStack exactIngredient = switch (slot) {
+            case 'A' -> recipeSpec.exactA();
+            case 'B' -> recipeSpec.exactB();
+            case 'C' -> recipeSpec.exactC();
+            default -> null;
+        };
+        if (exactIngredient != null) return Optional.of(exactIngredient.clone());
+
+        Material material = switch (slot) {
+            case 'A' -> recipeSpec.matA();
+            case 'B' -> recipeSpec.matB();
+            case 'C' -> recipeSpec.matC();
+            default -> null;
+        };
+        return material == null ? Optional.empty() : Optional.of(new ItemStack(material));
     }
 
     private void addShapelessRecipe(ShapelessRecipe recipe, List<Integer> slots, Inventory inv) {

@@ -35,4 +35,16 @@ class PowerOreChallengeTest {
 
         assertInstanceOf(PowerOreChickenHerdingTask.class, challenge.getTask());
     }
+
+    @Test
+    void miniBossTestFactoryCreatesMiniBossTask() {
+        Player player = mock(Player.class);
+        Location location = mock(Location.class);
+        when(player.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(location.clone()).thenReturn(location);
+
+        PowerOreChallenge challenge = PowerOreChallenge.forMiniBossTest(location, player);
+
+        assertInstanceOf(PowerOreMiniBossTask.class, challenge.getTask());
+    }
 }

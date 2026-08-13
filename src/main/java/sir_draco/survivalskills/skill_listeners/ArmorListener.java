@@ -53,7 +53,7 @@ public class ArmorListener implements Listener {
         ADVENTURER(ItemModelData.ADVENTURER_ARMOR.getId(), SkillCategory.EXPLORING, "AdventurerArmor", AdventurerArmor::new, 20, true),
         MINING(ItemModelData.MINING_ARMOR.getId(), SkillCategory.MINING, "MiningArmor", MiningArmor::new, 20, true),
         BEACON(ItemModelData.BEACON_ARMOR.getId(), SkillCategory.MINING, "BeaconArmor", BeaconArmor::new, 1, true),
-        POWER(ItemModelData.POWER_ARMOR.getId(), SkillCategory.MINING, "PowerOre", null, 0, true);
+        POWER(ItemModelData.POWER_ARMOR.getId(), SkillCategory.MINING, "PowerOre", PowerArmorAbilities::new, 20, true);
 
         private final int modelData;
         private final SkillCategory category;
