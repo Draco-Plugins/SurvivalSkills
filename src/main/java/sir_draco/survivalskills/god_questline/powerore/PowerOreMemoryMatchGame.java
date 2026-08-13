@@ -152,7 +152,9 @@ public final class PowerOreMemoryMatchGame {
         ArrayList<Integer> shuffledPairs = IntStream.range(0, pairCount)
                 .boxed()
                 .flatMap((Integer pairIdentifier) -> List.of(pairIdentifier, pairIdentifier).stream())
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+                .collect(ArrayList::new,
+                        (ArrayList<Integer> pairs, Integer pairIdentifier) -> pairs.add(pairIdentifier),
+                        (ArrayList<Integer> firstPairs, ArrayList<Integer> secondPairs) -> firstPairs.addAll(secondPairs));
         Collections.shuffle(shuffledPairs, random);
         pairIdentifiers = List.copyOf(shuffledPairs);
         matchedPositions.clear();

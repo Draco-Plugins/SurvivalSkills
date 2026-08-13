@@ -13,8 +13,8 @@ class PowerOreChickenHerdingGameTest {
     void startsWithFortyChickensAndSixtySeconds() {
         PowerOreChickenHerdingGame game = new PowerOreChickenHerdingGame();
 
-        assertEquals(50, game.getChickensRemaining());
-        assertEquals(60, game.getSecondsRemaining());
+        assertEquals(40, game.getChickensRemaining());
+        assertEquals(90, game.getSecondsRemaining());
         assertFalse(game.isComplete());
         assertFalse(game.isExpired());
     }
@@ -23,7 +23,7 @@ class PowerOreChickenHerdingGameTest {
     void completesOnlyAfterAllChickensAreDelivered() {
         PowerOreChickenHerdingGame game = new PowerOreChickenHerdingGame();
 
-        game.deliverChickens(49);
+        game.deliverChickens(39);
         assertEquals(1, game.getChickensRemaining());
         assertFalse(game.isComplete());
 

@@ -113,7 +113,9 @@ class LeaderboardTest {
         ArrayList<Skill> skills = SkillCategory.mainSkills().stream()
                 .map((SkillCategory skillCategory) -> new Skill(0,
                         skillCategory == raisedCategory ? raisedLevel : 1, skillCategory))
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+                .collect(ArrayList::new,
+                        (ArrayList<Skill> loadedSkills, Skill skill) -> loadedSkills.add(skill),
+                        (ArrayList<Skill> firstSkills, ArrayList<Skill> secondSkills) -> firstSkills.addAll(secondSkills));
         playerSkills.put(uuid, new SkillsHolder(skills, new PlayerRewards()));
     }
 

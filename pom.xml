@@ -30,6 +30,26 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.8.1</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>properties</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.5.2</version>
+        <configuration>
+          <argLine>-Xshare:off -javaagent:${org.mockito:mockito-core:jar}</argLine>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.5.3</version>
         <executions>
@@ -55,6 +75,7 @@
                         <exclude>META-INF/*.RSA</exclude>
                         <exclude>META-INF/MANIFEST.MF</exclude>
                         <exclude>module-info.class</exclude>
+                        <exclude>META-INF/versions/**/module-info.class</exclude>
                       </excludes>
                     </filter>
                   </filters>
