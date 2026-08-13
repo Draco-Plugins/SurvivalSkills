@@ -17,7 +17,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class PowerOreScavengerHuntTask extends BukkitRunnable implements PowerOreTask {
 
     private static final int HEAD_COUNT = 3;
-    private static final int SPAWN_RADIUS = 150;
+    private static final int SPAWN_RADIUS = 50;
     private static final int MAX_SPAWN_ATTEMPTS = 500;
     private static final int ANNOUNCE_INTERVAL_SECONDS = 60;
     private static final int FINAL_COUNTDOWN_SECONDS = 10;

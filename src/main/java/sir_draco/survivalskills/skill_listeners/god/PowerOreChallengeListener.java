@@ -15,7 +15,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -28,8 +27,8 @@ import sir_draco.survivalskills.abilities.items.PowerDrillTask;
 import sir_draco.survivalskills.god_questline.powerore.CompletedPowerOreChallenge;
 import sir_draco.survivalskills.god_questline.powerore.PowerOreChallenge;
 import sir_draco.survivalskills.god_questline.powerore.PowerOreChallengeHandle;
+import sir_draco.survivalskills.god_questline.powerore.PowerOreInventoryTask;
 import sir_draco.survivalskills.god_questline.powerore.PowerOreScavengerHuntTask;
-import sir_draco.survivalskills.god_questline.powerore.PowerOreSimonSaysTask;
 import sir_draco.survivalskills.rewards.PlayerRewards;
 import sir_draco.survivalskills.utils.items.ItemModelData;
 import sir_draco.survivalskills.utils.items.ItemStackGeneratorUtils;
@@ -51,8 +50,8 @@ import java.util.logging.Level;
 
 /**
  * Owns the Power Ore conversion lifecycle: lightning-triggered challenges,
- * charged-ore mining, the scavenger hunt and Simon Says GUI interactions, and
- * the power drill ability.
+ * charged-ore mining, task interactions, inventory challenge GUIs, and the
+ * power drill ability.
  */
 public class PowerOreChallengeListener implements Listener {
 
@@ -64,16 +63,13 @@ public class PowerOreChallengeListener implements Listener {
     private static final int POWER_ORE_LEVEL_REQUIREMENT = 50;
     private static final int POWER_ORE_UNLOCK_LEVEL = 95;
     private static final long CONVERSION_COOLDOWN_TICKS = 20L;
-    private static final long ZAP_WAND_MARKER_TICKS = 1L;
 
     private static final String POWER_ORE_CONVERSIONS_FILE = "poweroreconversions.yml";
-    private static final String SIMON_SAYS_TITLE = "Simon Says";
     private static final String YAML_CHARGED_KEY = "ChargedPowerOres";
     private static final double BLOCK_CENTER_OFFSET = 0.5;
 
     private final ChallengeRegistry powerOreRegistry = new ChallengeRegistry();
     private final Set<Player> conversionCooldowns = new HashSet<>();
-    private final Map<UUID, Location> pendingZapWandStrikes = new HashMap<>();
     private final Map<UUID, Set<PowerDrillTask>> drillTasks = new ConcurrentHashMap<>();
 
     public PowerOreChallengeListener() {
@@ -160,20 +156,6 @@ public class PowerOreChallengeListener implements Listener {
             e.setCancelled(true);
     }
 
-    @EventHandler
-    public void onPlayerDamageByLightning(EntityDamageEvent e) {
-        if (!(e.getEntity() instanceof Player p))
-            return;
-        if (!EntityDamageEvent.DamageCause.LIGHTNING.equals(e.getCause()))
-            return;
-        Optional<Location> expectedForgeLocation = consumePendingZapWandStrike(p.getUniqueId());
-        if (expectedForgeLocation.isEmpty())
-            return;
-        if (conversionCooldowns.contains(p))
-            return;
-        tryPowerOreConversion(p, expectedForgeLocation.get());
-    }
-
     // --- Scavenger hunt head interaction ---
 
     @EventHandler
@@ -194,44 +176,41 @@ public class PowerOreChallengeListener implements Listener {
             e.setCancelled(true); // Prevent other plugins from consuming
     }
 
-    // --- Simon Says GUI ---
+    // --- Power Ore challenge GUIs ---
 
-    private PowerOreSimonSaysTask getSimonSaysTask(Player p) {
+    private Optional<PowerOreInventoryTask> getInventoryTask(Player p) {
         PowerOreChallengeHandle handle = powerOreRegistry.forPlayer(p.getUniqueId());
         if (!(handle instanceof PowerOreChallenge challenge)
                 || !challenge.getStatus().equals(PowerOreChallenge.Status.RUNNING)
-                || !(challenge.getTask() instanceof PowerOreSimonSaysTask simonTask))
-            return null;
-        return simonTask;
+                || !(challenge.getTask() instanceof PowerOreInventoryTask inventoryTask))
+            return Optional.empty();
+        return Optional.of(inventoryTask);
     }
 
     @EventHandler
     public void onGUIClick(InventoryClickEvent e) {
         if (!(e.getWhoClicked() instanceof Player p))
             return;
-        PowerOreSimonSaysTask simonTask = getSimonSaysTask(p);
-        if (simonTask == null) return;
-        simonTask.handleClick(e);
+        getInventoryTask(p).ifPresent((PowerOreInventoryTask inventoryTask) -> inventoryTask.handleClick(e));
     }
 
     @EventHandler
     public void onGUIClose(InventoryCloseEvent e) {
         if (!(e.getPlayer() instanceof Player p))
             return;
-        PowerOreSimonSaysTask simonTaskClose = getSimonSaysTask(p);
-        if (simonTaskClose == null) return;
-        simonTaskClose.handleClose();
+        getInventoryTask(p).ifPresent((PowerOreInventoryTask inventoryTask) -> inventoryTask.handleClose(e));
     }
 
     @EventHandler
     public void onGUIDrag(InventoryDragEvent e) {
-        if (e.getView().getTitle().contains(SIMON_SAYS_TITLE))
-            e.setCancelled(true);
+        if (!(e.getWhoClicked() instanceof Player p))
+            return;
+        getInventoryTask(p).ifPresent((PowerOreInventoryTask inventoryTask) -> inventoryTask.handleDrag(e));
     }
 
     // --- Conversion ---
 
-    public void prepareZapWandPowerOreForge(Player p, Block clickedBlock) {
+    public void handleZapWandPowerOreForge(Player p, Block clickedBlock) {
         Location clickedLocation = clickedBlock.getLocation();
         Block blockBelowPlayer = p.getLocation().getBlock().getRelative(0, -1, 0);
         PlayerRewards rewards = SurvivalSkills.getInstance().getSkillManager().getPlayerRewards(p);
@@ -248,25 +227,12 @@ public class PowerOreChallengeListener implements Listener {
 
         if (!ForgePrerequisite.READY.equals(prerequisite)) {
             sendForgeHint(p, prerequisite, rewards);
+            clickedBlock.getWorld().strikeLightning(clickedLocation);
             return;
         }
 
-        UUID playerId = p.getUniqueId();
-        trackPendingZapWandStrike(playerId, clickedLocation);
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                pendingZapWandStrikes.remove(playerId, clickedLocation);
-            }
-        }.runTaskLater(SurvivalSkills.getInstance(), ZAP_WAND_MARKER_TICKS);
-    }
-
-    void trackPendingZapWandStrike(UUID playerId, Location clickedLocation) {
-        pendingZapWandStrikes.put(playerId, clickedLocation);
-    }
-
-    Optional<Location> consumePendingZapWandStrike(UUID playerId) {
-        return Optional.ofNullable(pendingZapWandStrikes.remove(playerId));
+        clickedBlock.getWorld().strikeLightning(clickedLocation);
+        tryPowerOreConversion(p, clickedLocation);
     }
 
     static ForgePrerequisite firstMissingForgePrerequisite(boolean standingOnClickedObsidian,
@@ -313,6 +279,9 @@ public class PowerOreChallengeListener implements Listener {
     }
 
     private void tryPowerOreConversion(Player p, Location expectedForgeLocation) {
+        if (conversionCooldowns.contains(p))
+            return;
+
         conversionCooldowns.add(p);
         scheduleCooldownExpiry(p);
 
@@ -459,7 +428,6 @@ public class PowerOreChallengeListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent e) {
         cancelDrillTasks(e.getPlayer().getUniqueId());
         conversionCooldowns.remove(e.getPlayer());
-        pendingZapWandStrikes.remove(e.getPlayer().getUniqueId());
     }
 
     /**

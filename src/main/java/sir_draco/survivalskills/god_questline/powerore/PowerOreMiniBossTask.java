@@ -17,8 +17,8 @@ public class PowerOreMiniBossTask extends BukkitRunnable implements PowerOreTask
 
     // Entity stats
     private static final int MAX_HEALTH = 250;
-    private static final int ATTACK_DAMAGE = 30;
-    private static final float SPEED = 0.4f;
+    private static final int ATTACK_DAMAGE = 75;
+    private static final float SPEED = 0.6f;
     private static final double MAX_DISTANCE = 60.0;
 
     // Spawn offsets
@@ -36,7 +36,7 @@ public class PowerOreMiniBossTask extends BukkitRunnable implements PowerOreTask
     private static final double PROJECTILE_SPEED = 1.2;
     private static final int PROJECTILE_LIFETIME = 40;
     private static final double COLLISION_RADIUS_SQ = 1.2;
-    private static final int PROJECTILE_DAMAGE = 18;
+    private static final int PROJECTILE_DAMAGE = 75;
 
     // Projectile tracker timing (ticks)
     private static final int TRACKER_DELAY = 1;

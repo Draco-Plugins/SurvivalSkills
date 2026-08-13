@@ -172,7 +172,7 @@ public class VeinMinerAsync extends BukkitRunnable {
                 blockIndex++;
                 if (blockToBreak.getType().isAir()) return;
 
-                player.setMetadata(VEIN_MINER_BREAK_METADATA, new FixedMetadataValue(plugin, true));
+                player.setMetadata(VEIN_MINER_BREAK_METADATA, new FixedMetadataValue(plugin, pickaxe));
                 try {
                     BlockBreakEvent event = new BlockBreakEvent(blockToBreak, player);
                     Bukkit.getServer().getPluginManager().callEvent(event);

@@ -24,6 +24,7 @@ import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import sir_draco.survivalskills.abilities.SpelunkerAbilitySync;
@@ -256,9 +257,10 @@ public class MiningSkill implements Listener {
         Location loc = e.getClickedBlock().getLocation();
         if (Material.OBSIDIAN.equals(e.getClickedBlock().getType())) {
             plugin.getGodListener().getPowerOreChallengeListener()
-                    .prepareZapWandPowerOreForge(p, e.getClickedBlock());
+                    .handleZapWandPowerOreForge(p, e.getClickedBlock());
+        } else {
+            world.strikeLightning(loc);
         }
-        world.strikeLightning(loc);
         e.setCancelled(true);
     }
 
@@ -392,7 +394,7 @@ public class MiningSkill implements Listener {
         if (rewards == null) return;
         double fortuneChance = rewards.getFortuneChance();
         if (fortuneChance <= 0) return;
-        ItemStack tool = p.getInventory().getItemInMainHand();
+        ItemStack tool = getBlockBreakTool(p);
         Collection<ItemStack> drops = e.getBlock().getDrops(tool);
         boolean playerPlacedAncientDebris = Material.ANCIENT_DEBRIS.equals(brokenType)
                 && containsTrackedBlock(e.getBlock(), playerPlacedAncientDebrisDataKey);
@@ -414,6 +416,15 @@ public class MiningSkill implements Listener {
         return drops.stream()
                 .filter(Objects::nonNull)
                 .anyMatch((ItemStack drop) -> brokenType.equals(drop.getType()));
+    }
+
+    private ItemStack getBlockBreakTool(Player p) {
+        for (MetadataValue metadataValue : p.getMetadata(VeinMinerAsync.VEIN_MINER_BREAK_METADATA)) {
+            if (!plugin.equals(metadataValue.getOwningPlugin())) continue;
+            if (metadataValue.value() instanceof ItemStack itemStack) return itemStack;
+        }
+
+        return p.getInventory().getItemInMainHand();
     }
 
     static boolean canDoubleOreDrops(Material brokenType, Collection<ItemStack> drops,

@@ -25,7 +25,7 @@ public final class PowerOreChallenge implements PowerOreChallengeHandle {
 
     /** Future extension: add weights or conditions per task type here */
     public enum TaskType {
-        MINI_BOSS, SCAVENGER_HUNT, SIMON_SAYS
+        MINI_BOSS, SCAVENGER_HUNT, SIMON_SAYS, MEMORY_MATCH, CHICKEN_HERDING
     }
 
     private final Location oreLocation; // Obsidian block location
@@ -44,6 +44,8 @@ public final class PowerOreChallenge implements PowerOreChallengeHandle {
             case MINI_BOSS -> new PowerOreMiniBossTask(this, player, oreLocation);
             case SCAVENGER_HUNT -> new PowerOreScavengerHuntTask(this, player, oreLocation);
             case SIMON_SAYS -> new PowerOreSimonSaysTask(this, player);
+            case MEMORY_MATCH -> new PowerOreMemoryMatchTask(this, player);
+            case CHICKEN_HERDING -> new PowerOreChickenHerdingTask(this, player, oreLocation);
         };
     }
 

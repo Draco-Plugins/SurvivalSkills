@@ -3,15 +3,14 @@ package sir_draco.survivalskills.abilities.items;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Enemy;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import sir_draco.survivalskills.SurvivalSkills;
-import sir_draco.survivalskills.abilities.AbilityManager;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -61,20 +60,12 @@ public class PowerSword extends BukkitRunnable {
         }
 
         // Damage nearby hostile mobs once
-        for (Entity ent : player.getNearbyEntities(AOE_RADIUS, AOE_RADIUS, AOE_RADIUS)) {
-            if (!(ent instanceof LivingEntity living))
-                continue;
-            if (ent.getType() == EntityType.PLAYER)
-                continue; // Skip players
-            if (!AbilityManager.getDomainMobs().contains(ent.getType()))
-                continue; // Only hostile / domain mobs
-            if (damagedEntityIds.contains(ent.getEntityId()))
-                continue; // Already damaged this dash
-
-            living.damage(15, player);
-            damagedEntityIds.add(ent.getEntityId());
+        List<Enemy> nearbyEnemies = findNewEnemies(
+                player.getNearbyEntities(AOE_RADIUS, AOE_RADIUS, AOE_RADIUS), damagedEntityIds);
+        for (Enemy enemy : nearbyEnemies) {
+            enemy.damage(15, player);
             // Add a lightning-ish crack sound without actual strike for feedback
-            player.getWorld().playSound(living.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.2f, 1.6f);
+            player.getWorld().playSound(enemy.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.2f, 1.6f);
         }
 
         ticks++;
@@ -82,6 +73,14 @@ public class PowerSword extends BukkitRunnable {
             player.setRiptiding(false);
             cancel();
         }
+    }
+
+    static List<Enemy> findNewEnemies(List<Entity> nearbyEntities, Set<Integer> damagedEntityIds) {
+        return nearbyEntities.stream()
+                .filter(Enemy.class::isInstance)
+                .map(Enemy.class::cast)
+                .filter((Enemy enemy) -> damagedEntityIds.add(enemy.getEntityId()))
+                .toList();
     }
 
     private void dashForward(double multiplier) {

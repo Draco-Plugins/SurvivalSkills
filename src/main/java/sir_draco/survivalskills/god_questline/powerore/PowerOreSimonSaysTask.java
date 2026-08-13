@@ -6,6 +6,8 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -15,7 +17,7 @@ import sir_draco.survivalskills.SurvivalSkills;
 import java.util.*;
 
 /** Simon Says memory sequence task. */
-public class PowerOreSimonSaysTask implements PowerOreTask {
+public class PowerOreSimonSaysTask implements PowerOreInventoryTask {
 
     private static final int[] SEQUENCE_LENGTHS = { 4, 6, 8, 10 };
     private static final int TICKS_BEFORE_SEQUENCE = 40;
@@ -162,7 +164,16 @@ public class PowerOreSimonSaysTask implements PowerOreTask {
         return Optional.of((slot - 1) / 2);
     }
 
+    @Override
+    public boolean ownsInventory(Inventory candidateInventory) {
+        return inventory != null && inventory.equals(candidateInventory);
+    }
+
+    @Override
     public void handleClick(InventoryClickEvent e) {
+        if (!ownsInventory(e.getView().getTopInventory()))
+            return;
+        e.setCancelled(true);
         Optional<Integer> colorIndexOpt = getClickedColorIndex(e);
         if (colorIndexOpt.isEmpty())
             return;
@@ -205,13 +216,22 @@ public class PowerOreSimonSaysTask implements PowerOreTask {
         }.runTaskLater(SurvivalSkills.getInstance(), NEXT_ROUND_DELAY_TICKS);
     }
 
-    public void handleClose() {
+    @Override
+    public void handleClose(InventoryCloseEvent event) {
+        if (!ownsInventory(event.getInventory()))
+            return;
         if (finished)
             return;
         if (challenge.getStatus() == PowerOreChallenge.Status.RUNNING) {
             finished = true;
             challenge.fail("Simon Says closed early");
         }
+    }
+
+    @Override
+    public void handleDrag(InventoryDragEvent event) {
+        if (ownsInventory(event.getView().getTopInventory()))
+            event.setCancelled(true);
     }
 
     @Override

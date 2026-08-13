@@ -1,8 +1,10 @@
 package sir_draco.survivalskills.skill_listeners;
 
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
@@ -12,12 +14,17 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.junit.jupiter.api.Test;
 import sir_draco.survivalskills.SurvivalSkills;
 import sir_draco.survivalskills.abilities.AbilityManager;
+import sir_draco.survivalskills.abilities.VeinMinerAsync;
 import sir_draco.survivalskills.abilities.items.PowerDrillTask;
+import sir_draco.survivalskills.rewards.PlayerRewards;
+import sir_draco.survivalskills.skills.SkillManager;
 
 import java.util.List;
 
@@ -152,6 +159,50 @@ class MiningSkillTest {
     void coalOreCannotBeDoubledWhenSilkTouchReturnsTheBlock() {
         assertFalse(MiningSkill.canDoubleOreDrops(
                 Material.COAL_ORE, List.of(new ItemStack(Material.COAL_ORE)), false));
+    }
+
+    @Test
+    void veinMinerDoubleOreUsesCapturedToolAfterHeldItemChanges() {
+        SurvivalSkills plugin = mock(SurvivalSkills.class);
+        SkillManager skillManager = mock(SkillManager.class);
+        PlayerRewards rewards = mock(PlayerRewards.class);
+        Player player = mock(Player.class);
+        PlayerInventory inventory = mock(PlayerInventory.class);
+        BlockBreakEvent event = mock(BlockBreakEvent.class);
+        Block block = mock(Block.class);
+        World world = mock(World.class);
+        Location location = mock(Location.class);
+        MetadataValue metadataValue = mock(MetadataValue.class);
+        ItemStack pickaxe = new ItemStack(Material.DIAMOND_PICKAXE);
+        ItemStack magnet = new ItemStack(Material.HOPPER);
+        ItemStack diamond = mock(ItemStack.class);
+        Material diamondMaterial = mock(Material.class);
+        when(plugin.getName()).thenReturn("SurvivalSkills");
+        when(plugin.getSkillManager()).thenReturn(skillManager);
+        when(skillManager.getPlayerRewards(player)).thenReturn(rewards);
+        when(rewards.getFortuneChance()).thenReturn(1.0);
+        when(player.getInventory()).thenReturn(inventory);
+        when(inventory.getItemInMainHand()).thenReturn(magnet);
+        when(player.getMetadata(VeinMinerAsync.VEIN_MINER_BREAK_METADATA)).thenReturn(List.of(metadataValue));
+        when(metadataValue.getOwningPlugin()).thenReturn(plugin);
+        when(metadataValue.value()).thenReturn(pickaxe);
+        when(event.getBlock()).thenReturn(block);
+        when(block.getType()).thenReturn(Material.DIAMOND_ORE);
+        when(block.getDrops(pickaxe)).thenReturn(List.of(diamond));
+        when(diamond.getType()).thenReturn(diamondMaterial);
+        when(diamond.getAmount()).thenReturn(1);
+        when(diamondMaterial.isAir()).thenReturn(false);
+        when(block.getWorld()).thenReturn(world);
+        when(block.getLocation()).thenReturn(location);
+        MiningSkill miningSkill = new MiningSkill(plugin, 1);
+
+        miningSkill.doubleOre(player, event);
+
+        verify(block).getDrops(pickaxe);
+        verify(block, never()).getDrops(magnet);
+        verify(event).setDropItems(false);
+        verify(diamond).setAmount(2);
+        verify(world).dropItemNaturally(location, diamond);
     }
 
     @Test
