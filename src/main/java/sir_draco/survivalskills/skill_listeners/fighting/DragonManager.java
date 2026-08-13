@@ -2,6 +2,7 @@ package sir_draco.survivalskills.skill_listeners.fighting;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -20,7 +21,6 @@ import sir_draco.survivalskills.bosses.DragonBoss;
 import sir_draco.survivalskills.skills.SkillCategory;
 import sir_draco.survivalskills.skills.SkillManager;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,6 +36,9 @@ public class DragonManager {
     private static final double DRAGON_SUBSEQUENT_KILL_XP_MULTIPLIER = 100.0;
     private static final int DRAGON_BASE_HEALTH = 250;
     private static final int DRAGON_ATTACH_DELAY_TICKS = 20;
+    private static final double DRAGON_RESPAWN_PARTICIPANT_RADIUS = 200.0;
+    private static final double DRAGON_RESPAWN_PARTICIPANT_RADIUS_SQUARED =
+            DRAGON_RESPAWN_PARTICIPANT_RADIUS * DRAGON_RESPAWN_PARTICIPANT_RADIUS;
 
     private final SurvivalSkills plugin;
     private DragonBoss dragonBoss;
@@ -63,13 +66,18 @@ public class DragonManager {
             e.setCancelled(true);
     }
 
-    /** Only the dragon's own fight participants may damage it. */
+    /** Initial fights are server-wide; respawns accept damage only from their spawn-time participants. */
     void handleDragonDamageByCorrectPlayer(EntityDamageByEntityEvent e, Player p) {
         if (dragonBoss == null) return;
-        if (!dragonBoss.getBoss().equals(e.getEntity())) e.setCancelled(true);
-        if (!dragonBoss.isRespawn()) return;
-        if (dragonBoss.getPlayers().contains(p)) return;
-        e.setCancelled(true);
+        if (!dragonBoss.getBoss().equals(e.getEntity())) {
+            e.setCancelled(true);
+            return;
+        }
+        if (!canPlayerDamageDragon(dragonBoss.isRespawn(), dragonBoss.getPlayers(), p)) e.setCancelled(true);
+    }
+
+    static boolean canPlayerDamageDragon(boolean respawn, List<Player> participants, Player player) {
+        return !respawn || participants.contains(player);
     }
 
     // ---- Death & XP -------------------------------------------------------
@@ -115,9 +123,7 @@ public class DragonManager {
     public void teleportToEnd(PlayerTeleportEvent e) {
         if (!e.getCause().equals(PlayerTeleportEvent.TeleportCause.END_PORTAL)) return;
         if (dragonBoss != null) {
-            if (dragonBoss.isRespawn() && dragonBoss.getPlayers().isEmpty()) {
-                dragonBoss.addPlayer(e.getPlayer());
-            } else if (!dragonBoss.isRespawn() && !dragonBoss.getPlayers().contains(e.getPlayer())) {
+            if (!dragonBoss.isRespawn() && !dragonBoss.getPlayers().contains(e.getPlayer())) {
                 dragonBoss.addPlayer(e.getPlayer());
             } else {
                 e.getPlayer().sendRawMessage(ChatColor.LIGHT_PURPLE + ChatColor.BOLD.toString() + "Ender Dragon: "
@@ -145,13 +151,9 @@ public class DragonManager {
                 for (Entity entity : finalWorld.getEntities()) {
                     if (!entity.getType().equals(EntityType.ENDER_DRAGON)) continue;
                     LivingEntity ent = (LivingEntity) entity;
+                    List<Player> players = getOnlinePlayerSnapshot();
                     dragonBoss = DragonBoss.attachToDragon("dragon", 0, 0,
-                            DRAGON_BASE_HEALTH * Bukkit.getOnlinePlayers().size(), 20, 5, 1, ent);
-                    List<Player> players = Bukkit.getOnlinePlayers().stream()
-                            .filter((Player player) -> player.getWorld().getEnvironment()
-                                    .equals(World.Environment.THE_END))
-                            .map((Player player) -> player)
-                            .toList();
+                            calculateDragonHealth(players.size()), 20, 5, 1, ent);
                     dragonBoss.initializePlayers(players);
                     dragonBoss.runTaskTimer(plugin, 0, 1);
                     return;
@@ -170,17 +172,33 @@ public class DragonManager {
         if (!world.getEnvironment().equals(World.Environment.THE_END)) return;
         if (!world.hasMetadata(KILLED_FIRST_DRAGON_META)) return;
 
-        // Get the players in the end to determine dragon health
-        List<Player> players = new ArrayList<>();
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!player.getWorld().getEnvironment().equals(World.Environment.THE_END)) continue;
-            players.add(player);
-        }
-        int health = players.isEmpty() ? DRAGON_BASE_HEALTH : DRAGON_BASE_HEALTH * players.size();
+        List<Player> players = findRespawnParticipants(e.getLocation(), getOnlinePlayerSnapshot());
+        int health = calculateDragonHealth(players.size());
 
         dragonBoss = DragonBoss.attachToDragon("dragon", 0, 0, health, 0, 0, 0,
                 (LivingEntity) e.getEntity());
         dragonBoss.runTaskTimer(plugin, 0, 1);
         dragonBoss.respawnDragonInitPlayers(players);
+    }
+
+    static int calculateDragonHealth(int playerCount) {
+        return DRAGON_BASE_HEALTH * Math.max(1, playerCount);
+    }
+
+    static List<Player> findRespawnParticipants(Location dragonLocation, List<Player> onlinePlayers) {
+        World dragonWorld = dragonLocation.getWorld();
+        if (dragonWorld == null || !dragonWorld.getEnvironment().equals(World.Environment.THE_END)) return List.of();
+
+        return onlinePlayers.stream()
+                .filter((Player player) -> player.getWorld().equals(dragonWorld))
+                .filter((Player player) -> player.getLocation().distanceSquared(dragonLocation)
+                        <= DRAGON_RESPAWN_PARTICIPANT_RADIUS_SQUARED)
+                .toList();
+    }
+
+    private static List<Player> getOnlinePlayerSnapshot() {
+        return Bukkit.getOnlinePlayers().stream()
+                .map((Player player) -> player)
+                .toList();
     }
 }
