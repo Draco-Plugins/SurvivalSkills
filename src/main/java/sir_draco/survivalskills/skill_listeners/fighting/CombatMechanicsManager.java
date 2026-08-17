@@ -8,6 +8,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import sir_draco.survivalskills.SurvivalSkills;
+import sir_draco.survivalskills.rewards.PlayerRewards;
 
 /**
  * On-hit combat rewards for the fighting skill: critical hits and lifesteal.
@@ -28,7 +29,10 @@ public class CombatMechanicsManager {
 
     /** Roll a critical hit; if it lands, double damage and play the crit effect. */
     public void applyCritical(Player p, EntityDamageByEntityEvent e) {
-        double criticalChance = plugin.getSkillManager().getPlayerRewards(p).getCriticalChance();
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+        if (rewards == null)
+            return;
+        double criticalChance = rewards.getCriticalChance();
         if (criticalChance == 0 || Math.random() >= criticalChance)
             return;
         e.setDamage(e.getDamage() * CRITICAL_DAMAGE_MULTIPLIER);
@@ -43,7 +47,10 @@ public class CombatMechanicsManager {
 
     /** Roll lifesteal; if it lands and the player is below max health, heal them. */
     public void applyLifesteal(Player p, EntityDamageByEntityEvent e) {
-        double lifesteal = plugin.getSkillManager().getPlayerRewards(p).getLifesteal();
+        PlayerRewards rewards = plugin.getSkillManager().getPlayerRewards(p);
+        if (rewards == null)
+            return;
+        double lifesteal = rewards.getLifesteal();
         if (lifesteal == 0 || Math.random() >= lifesteal)
             return;
         AttributeInstance healthAttribute = p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);

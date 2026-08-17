@@ -243,20 +243,29 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
         lore.add(ChatColor.GRAY + "Location: " + ChatColor.WHITE + (int) anchor.location.getX() + ", "
                 + (int) anchor.location.getY() + ", " + (int) anchor.location.getZ());
 
+        Location viewerLocation = viewer.getLocation();
         World anchorWorld = anchor.location.getWorld();
+        OptionalDouble distance = calculateDistance(viewerLocation, anchor.location);
         if (anchorWorld == null) {
             lore.add(ChatColor.GRAY + "Distance: " + ChatColor.WHITE + "Unavailable");
-        } else if (!anchorWorld.equals(viewer.getWorld())) {
+        } else if (distance.isEmpty()) {
             lore.add(ChatColor.GRAY + "Distance: " + ChatColor.WHITE + "Different world");
         } else {
-            double distance = viewer.getLocation().distance(anchor.location);
-            lore.add(ChatColor.GRAY + "Distance: " + ChatColor.WHITE + String.format("%.1f blocks", distance));
+            lore.add(ChatColor.GRAY + "Distance: " + ChatColor.WHITE
+                    + String.format("%.1f blocks", distance.orElseThrow()));
         }
         lore.add("");
         lore.add(ChatColor.GREEN + "Click to teleport!");
 
         return new ItemStackBuilder(Material.END_PORTAL_FRAME, 1, ChatColor.GOLD + anchor.name)
                 .lore(lore).build();
+    }
+
+    static OptionalDouble calculateDistance(Location first, Location second) {
+        World firstWorld = first.getWorld();
+        if (firstWorld == null || !firstWorld.equals(second.getWorld()))
+            return OptionalDouble.empty();
+        return OptionalDouble.of(first.distance(second));
     }
 
     /**
