@@ -56,9 +56,9 @@ public class PowerOreSimonSaysTask implements PowerOreInventoryTask {
 
     private int roundIndex = 0;
     private int inputIndex = 0;
-    private List<Integer> currentSequence = new ArrayList<>();
+    private final List<Integer> currentSequence = new ArrayList<>();
     private Inventory inventory;
-    private boolean showing = false;
+    private boolean acceptingInput = false;
     private boolean finished = false;
 
     public PowerOreSimonSaysTask(PowerOreChallenge challenge, Player player) {
@@ -74,6 +74,7 @@ public class PowerOreSimonSaysTask implements PowerOreInventoryTask {
     }
 
     private void startRound() {
+        acceptingInput = false;
         inputIndex = 0;
         currentSequence.clear();
         int length = SEQUENCE_LENGTHS[roundIndex];
@@ -84,7 +85,7 @@ public class PowerOreSimonSaysTask implements PowerOreInventoryTask {
     }
 
     private void showSequence() {
-        showing = true;
+        acceptingInput = false;
         new BukkitRunnable() {
             int idx = 0;
             int phaseTicks = 0;
@@ -98,8 +99,8 @@ public class PowerOreSimonSaysTask implements PowerOreInventoryTask {
                 }
 
                 if (idx >= currentSequence.size()) {
-                    showing = false;
                     fillColorButtons();
+                    acceptingInput = true;
                     player.sendMessage(ChatColor.GREEN + "Repeat the sequence!");
                     cancel();
                     return;
@@ -151,8 +152,7 @@ public class PowerOreSimonSaysTask implements PowerOreInventoryTask {
     }
 
     private Optional<Integer> getClickedColorIndex(InventoryClickEvent e) {
-        e.setCancelled(true);
-        if (showing)
+        if (!acceptingInput)
             return Optional.empty();
         if (challenge.getStatus() != PowerOreChallenge.Status.RUNNING)
             return Optional.empty();
@@ -179,6 +179,8 @@ public class PowerOreSimonSaysTask implements PowerOreInventoryTask {
             return;
 
         int colorIndex = colorIndexOpt.get();
+        if (inputIndex >= currentSequence.size())
+            return;
         if (currentSequence.get(inputIndex) != colorIndex) {
             finished = true;
             challenge.fail("Wrong sequence");
@@ -197,6 +199,7 @@ public class PowerOreSimonSaysTask implements PowerOreInventoryTask {
     }
 
     private void advanceRound() {
+        acceptingInput = false;
         player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, ROUND_COMPLETION_SOUND_VOLUME,
                 ROUND_COMPLETION_SOUND_PITCH);
         roundIndex++;
