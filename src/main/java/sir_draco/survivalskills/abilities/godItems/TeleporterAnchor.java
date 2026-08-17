@@ -243,8 +243,15 @@ public record TeleporterAnchor(String name, Location location, UUID ownerId) {
         lore.add(ChatColor.GRAY + "Location: " + ChatColor.WHITE + (int) anchor.location.getX() + ", "
                 + (int) anchor.location.getY() + ", " + (int) anchor.location.getZ());
 
-        double distance = viewer.getLocation().distance(anchor.location);
-        lore.add(ChatColor.GRAY + "Distance: " + ChatColor.WHITE + String.format("%.1f blocks", distance));
+        World anchorWorld = anchor.location.getWorld();
+        if (anchorWorld == null) {
+            lore.add(ChatColor.GRAY + "Distance: " + ChatColor.WHITE + "Unavailable");
+        } else if (!anchorWorld.equals(viewer.getWorld())) {
+            lore.add(ChatColor.GRAY + "Distance: " + ChatColor.WHITE + "Different world");
+        } else {
+            double distance = viewer.getLocation().distance(anchor.location);
+            lore.add(ChatColor.GRAY + "Distance: " + ChatColor.WHITE + String.format("%.1f blocks", distance));
+        }
         lore.add("");
         lore.add(ChatColor.GREEN + "Click to teleport!");
 
