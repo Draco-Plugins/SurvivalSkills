@@ -37,6 +37,7 @@ public final class PowerArmor {
     private static final int MIN_PARTICLE_POINTS = 80; // ensure a decent baseline
     private static final int MAX_PARTICLE_POINTS = 1500; // cap to prevent lag spikes
     private static final double PARTICLE_DENSITY = 4.5; // points per radius^2 (tweak for visual density)
+    private static final Float DRAGON_BREATH_PARTICLE_DATA = 1.0F;
     private static final NamespacedKey DAMAGE_KEY = new NamespacedKey(SurvivalSkills.getInstance(), POWER_ARMOR_KEY);
 
     /**
@@ -196,7 +197,8 @@ public final class PowerArmor {
             double py = center.getY() + y * radius;
             double pz = center.getZ() + z * radius;
 
-            world.spawnParticle(Particle.DRAGON_BREATH, px, py, pz, 1, 0, 0, 0, 0);
+            world.spawnParticle(Particle.DRAGON_BREATH, px, py, pz, 1, 0, 0, 0, 0,
+                    DRAGON_BREATH_PARTICLE_DATA);
         }
     }
 
